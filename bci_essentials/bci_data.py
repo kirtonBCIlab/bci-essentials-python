@@ -135,8 +135,13 @@ class EEG_data():
         self.fsample = float(data[self.eeg_index]['info']['nominal_srate'][0])   # sampling rate
         self.nchannels = int(data[self.eeg_index]['info']['channel_count'][0])   # number of channels 
         self.channel_labels = []                                    # channel labels/locations, 'TRG' means trigger
-        for i in range(self.nchannels):
-            self.channel_labels.append(data[self.eeg_index]['info']['desc'][0]['channels'][0]['channel'][i]['label'][0])
+        try:
+            for i in range(self.nchannels):
+                self.channel_labels.append(data[self.eeg_index]['info']['desc'][0]['channels'][0]['channel'][i]['label'][0])
+
+        except:
+            for i in range(self.nchannels):
+                self.channel_labels.append("?")
         print(self.channel_labels)
 
         # if it is the DSI7 flex, relabel the channels, may want to make this more flexible in the future
@@ -366,8 +371,29 @@ class EEG_data():
         # other preprocessing options go here
 
     # main
-    def main(self, buffer=0.01, eeg_start=0, max_channels = 64, max_samples = 2560, max_windows = 1000,
-                    max_loops=100000, training=True, online=True, train_complete=False, iterative_training = False, live_update = False):
+    # add pp_low, pp_high, pp_order, subset
+
+    def main(self, 
+            buffer=0.01, 
+            eeg_start=0, 
+            max_channels = 64, 
+            max_samples = 2560, 
+            max_windows = 1000,
+            max_loops=100000, 
+            training=True, 
+            online=True, 
+            train_complete=False, 
+            iterative_training = False, 
+            live_update = False,
+            
+            pp_type = "bandpass",   # preprocessing method
+            pp_low=1,               # bandpass lower cutoff
+            pp_high=40,             # bandpass upper cutoff
+            pp_order=5,             # bandpass order
+
+            subset=[]):
+
+
         """
         Howdy
         """
@@ -640,7 +666,7 @@ class EEG_data():
                 # This is where to do preprocessing
                 #self.windows[:,:,self.nwindows] = self.preprocessing(window=self.windows[:,:,self.nwindows],option='notch',fc=60)
                 
-                self.windows[self.nwindows,:self.nchannels,:self.nsamples] = self.preprocessing(window=self.windows[self.nwindows,:self.nchannels,:self.nsamples],option="bandpass", order=5, fl=5, fh=24)
+                self.windows[self.nwindows,:self.nchannels,:self.nsamples] = self.preprocessing(window=self.windows[self.nwindows,:self.nchannels,:self.nsamples],option=pp_type, order=pp_order, fl=pp_low, fh=pp_high)
                 #self.windows[self.nwindows,:self.nchannels-1,:self.nsamples] = self.preprocessing(window=self.windows[self.nwindows,:self.nchannels-1,:self.nsamples],option="bandpass", order=5, fl=5, fh=24)
                 # plot_window(self.windows[self.nwindows,:self.nchannels-1,:self.nsamples-1], self.fsample, self.channel_labels)
 
@@ -694,6 +720,8 @@ class ERP_data(EEG_data):
             pp_high=40,             # bandpass upper cutoff
             pp_order=5,             # bandpass order
 
+            subset=[],
+
             #picks = [],
 
             plot_erp = False
@@ -702,12 +730,6 @@ class ERP_data(EEG_data):
         Howdy
         """
 
-        
-        # Import settings
-        #pp_settings = PreprocessingSettings()
-        #pp_settings = True
-        #classification_settings = ClassificationSettings()
-        # self.classifier = erp_rg_classifier()
         unity_train = True
         self.num_options = num_selections
 
@@ -740,19 +762,10 @@ class ERP_data(EEG_data):
             self.nwindows = 0
             self.decision_count = 0
 
-            # Online indices
-            online_marker_index = 0
-            online_eeg_index = 0
 
-            # FOR TRAINING, TO HOPEFULLY BE REMOVED
-            target_order = [0, 4, 8, 2, 6, 1, 7, 3, 5]
-            self.training_targets = np.ndarray((self.max_windows), dtype=int)
+            self.training_labels= np.ndarray((self.max_windows), dtype=int)
+            self.stim_labels = np.zeros((self.max_windows, self.num_options), dtype=bool)
             self.target_index = np.ndarray((self.max_windows), bool)
-
-            # train on the first num_to_train samples
-            #self.labels = target_order[0:classification_settings.n_training_blocks-1]
-            # print target labels
-            #print(self.labels)
             
             # initialize the data structures in numpy arrays
             # ERP window
@@ -767,13 +780,7 @@ class ERP_data(EEG_data):
 
             loops = 0
             train_complete = False 
-
-            first_marker = True
-
-        # If online then send a ping at regular intervals to keep connection open
         
-
-
         while loops < max_loops:
             # load data chunk from search start position
             # offline no more data to load
@@ -785,21 +792,6 @@ class ERP_data(EEG_data):
                 # Time sync if not synced
                 
                 self.pull_data_from_stream()
-                # new_marker_data, new_marker_timestamps = self.marker_inlet.pull_chunk(timeout=0.1)
-                # # print("Pulled {} marker samples".format(len(new_marker_timestamps)))
-
-                # new_eeg_data, new_eeg_timestamps = self.eeg_inlet.pull_chunk(timeout=0.1)
-
-                # # if time is in milliseconds, divide by 1000, works for sampling rates above 10Hz
-                # if new_eeg_timestamps[-1] - new_eeg_timestamps[-2] > 0.1:
-                #     new_eeg_timestamps = [(new_eeg_timestamps[i]/1000) for i in range(len(new_eeg_timestamps))]
-
-                # new_eeg_timestamps = [new_eeg_timestamps[i] + self.eeg_inlet.time_correction() for i in range(len(new_eeg_timestamps))]
-                    
-                # self.marker_data = np.array(list(self.marker_data) + new_marker_data)
-                # self.marker_timestamps = np.array(list(self.marker_timestamps) + new_marker_timestamps)
-                # self.eeg_data = np.array(list(self.eeg_data) + new_eeg_data)
-                # self.eeg_timestamps = np.array(list(self.eeg_timestamps) + new_eeg_timestamps)
 
                 # Create a stream to send markers back to Unity, but only create the stream once
                 if self.stream_outlet == False:
@@ -974,7 +966,10 @@ class ERP_data(EEG_data):
                         print(marker_info)
                         current_target = unity_label
 
-                    self.training_targets[self.nwindows] = current_target
+                    self.training_labels[self.nwindows] = current_target
+
+                    for fi in flash_indices:
+                        self.stim_labels[self.nwindows, fi] = True
 
                     if current_target in flash_indices:
                         self.target_index[self.nwindows] = True
@@ -1041,10 +1036,13 @@ class ERP_data(EEG_data):
             
         # Trim the unused ends of numpy arrays
         if training == True:
-            self.training_targets = self.training_targets[0:self.nwindows-1]
+            self.training_labels = self.training_labels[0:self.nwindows-1]
             self.target_index = self.target_index[0:self.nwindows-1]
 
         self.erp_windows = self.erp_windows[0:self.nwindows, 0:self.nchannels, 0:self.nsamples]
+        self.target_index = self.target_index[0:self.nwindows]
+        self.training_labels = self.training_labels[0:self.nwindows]
+        self.stim_labels = self.stim_labels[0:self.nwindows, :]
         self.decision_blocks = self.decision_blocks[0:self.decision_count, 0:self.num_options, 0:self.nchannels, 0:self.nsamples]
         self.big_decision_blocks = self.big_decision_blocks[0:self.decision_count, 0:self.num_options, :, 0:self.nchannels, 0:self.nsamples]
         self.predictions = self.predictions[0:self.decision_count-1]

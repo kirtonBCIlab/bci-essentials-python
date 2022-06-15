@@ -27,3 +27,5 @@ test_erp.load_offline_eeg_data(filename = "examples/data/p300_example.xdf", form
 
 # Run main loop, this will do all of the classification for online or offline
 test_erp.main(training=True, online=False, pp_low=0.1, pp_high=10, pp_order=5, plot_erp=False, window_start=0.0, window_end=0.8)
+
+print("debug")
