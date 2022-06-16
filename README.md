@@ -16,7 +16,7 @@ Alternatively, a regular python virtual environment should be sufficient.
 2. Create a conda environment from the bci_essentials_env.yml an activate it
 >conda env create -f env/bci_essentials_env.yml
 >conda activate bci_essentials
-OR use pip to install to a virtual environment
+2. OR use pip to install to a virtual environment
 >pip install virtualenv
 >virtualenv bci_essentials
 >source bci_essentials/bin/activate
@@ -41,30 +41,30 @@ It is recommended to save the EEG, marker, and response (created by the backend 
 ## Directory
 ### bci_essentials
 The main packge containing modules for BCI processing.
--bci_data.py         -   module for reading online/offline data, windowing, processing, and classifying EEG signals
--classification.py   -   module containing relevant classifiers for BCI_data, classifiers can be extended to meet individual needs
--signal_processing.py-   module containing functions for the processing of EEG_data
--visuals.py          -   module for visualizing EEG data
+- bci_data.py         -   module for reading online/offline data, windowing, processing, and classifying EEG signals
+- classification.py   -   module containing relevant classifiers for BCI_data, classifiers can be extended to meet individual needs
+- signal_processing.py-   module containing functions for the processing of EEG_data
+- visuals.py          -   module for visualizing EEG data
 
 ### env
 Environment files.
--bci_online.yml      -   includes all necessary libraries for BCI essentials plus MNE
--bci_essentials.yml  -   includes all necessary libraries for BCI essentials
--bci_essentials.txt  -   includes all necessary libraries for BCI essentials in the pip requirements format
+- bci_online.yml      -   includes all necessary libraries for BCI essentials plus MNE
+- bci_essentials.yml  -   includes all necessary libraries for BCI essentials
+- bci_essentials.txt  -   includes all necessary libraries for BCI essentials in the pip requirements format
 
 ### examples
 Example scripts and data.
--data                        -   directory containing example data for P300, MI, and SSVEP
--eeg_lsl_sim.py              -   creates a stream of mock EEG data from an xdf file
--marker_lsl_sim.py           -   creates a stream of mock marker data from an xdf file
--mi_offline_test.py          -   runs offline MI processing on previously collected EEG and marker streams
--mi_unity_backend.py         -   runs online MI processing on live EEG and marker streams
--p300_offline_test.py        -   runs offline P300 processing on previously collected EEG and marker streams
--p300_unity_backend.py       -   runs online P300 processing on live EEG and marker streams
--ssvep_offline_test.py       -   runs offline SSVEP processing on previously collected EEG and marker streams
--ssvep_unity_backend_tf.py   -   runs online SSVEP processing on live EEG and marker streams, does not require training
--ssvep_unity_backend.py      -   runs online SSVEP processing on live EEG and marker streams
--switch_offline_test.py      -   runs offline switch state processing on previously collected EEG and marker streams
--switch_unity_backend.py     -   runs online switch state processing on live EEG and marker streams
+- data                        -   directory containing example data for P300, MI, and SSVEP
+- eeg_lsl_sim.py              -   creates a stream of mock EEG data from an xdf file
+- marker_lsl_sim.py           -   creates a stream of mock marker data from an xdf file
+- mi_offline_test.py          -   runs offline MI processing on previously collected EEG and marker streams
+- mi_unity_backend.py         -   runs online MI processing on live EEG and marker streams
+- p300_offline_test.py        -   runs offline P300 processing on previously collected EEG and marker streams
+- p300_unity_backend.py       -   runs online P300 processing on live EEG and marker streams
+- ssvep_offline_test.py       -   runs offline SSVEP processing on previously collected EEG and marker streams
+- ssvep_unity_backend_tf.py   -   runs online SSVEP processing on live EEG and marker streams, does not require training
+- ssvep_unity_backend.py      -   runs online SSVEP processing on live EEG and marker streams
+- switch_offline_test.py      -   runs offline switch state processing on previously collected EEG and marker streams
+- switch_unity_backend.py     -   runs online switch state processing on live EEG and marker streams
 
 
