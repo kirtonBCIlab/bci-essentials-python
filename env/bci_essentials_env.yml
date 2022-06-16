@@ -57,5 +57,5 @@ dependencies:
   - zstd=1.5.2=h19a0ad4_0
   - pip:
     - pylsl==1.15.0
-    - pyriemann==0.2.8.dev0
+    - pyriemann
 prefix: C:\Users\brian\anaconda3\envs\bci_essentials
