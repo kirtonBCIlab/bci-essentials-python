@@ -34,8 +34,8 @@ Change the filename in the script to point to the data you want to process.
 Online processing requires an EEG stream and a marker stream. These can both be simulated using eeg_lsl_sim.py and marker_lsl_sim.py.
 Real EEG streams come from a headset connected over LSL. Real marker streams come from the application in the Unity frontend.
 Once these streams are running, simply begin the backend processing script ( ie. mi_unity_backend.py, p300_unity_bakend.py, etc.)
-It is recommended to save the EEG, marker, and response (created by the backend processing script) streams using [Lab Recorder]
-(https://github.com/labstreaminglayer/App-LabRecorder) for later offline processing.
+It is recommended to save the EEG, marker, and response (created by the backend processing script) streams using 
+[Lab Recorder](https://github.com/labstreaminglayer/App-LabRecorder) for later offline processing.
 >python examples/mi_unity_backend.py
 
 ## Directory
