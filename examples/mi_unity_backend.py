@@ -1,6 +1,10 @@
+import os
 import sys
 
 from pylsl import StreamInlet, resolve_stream, resolve_byprop
+
+# Add parent directory to path to access bci_essentials
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),os.pardir))
 
 from bci_essentials.bci_data import *
 

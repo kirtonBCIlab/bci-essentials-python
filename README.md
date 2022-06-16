@@ -5,7 +5,7 @@ These modules are specifically designed to be equivalent whether run offline or 
 
 ## Related packages
 ### bci-essentials-unity
-The front end for this package can be found in [bci-essentials-unity](github.com/kirtonBCIlab/bci-essentials-unity)
+The front end for this package can be found in [bci-essentials-unity](https://www.github.com/kirtonBCIlab/bci-essentials-unity)
 
 ## Getting Started
 It is recommended to use anaconda or miniconda, all conda commands must be run from the anaconda prompt unless anaconda has been added to PATH.
