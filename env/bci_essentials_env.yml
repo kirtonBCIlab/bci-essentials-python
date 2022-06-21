@@ -58,4 +58,3 @@ dependencies:
   - pip:
     - pylsl==1.15.0
     - pyriemann
-prefix: C:\Users\brian\anaconda3\envs\bci_essentials

@@ -817,6 +817,7 @@ class ERP_data(EEG_data):
                     # if self.marker_data[self.marker_count][0] == 'P300 SingleFlash Begins' or 'P300 SingleFlash Started':
                     if self.marker_data[self.marker_count][0] == 'P300 SingleFlash Started' or self.marker_data[self.marker_count][0] == 'P300 SingleFlash Begins' or self.marker_data[self.marker_count][0] == 'Trial Started':
                         # Note that a marker occured, but do nothing else
+                        print("Trial Started")
                         self.marker_count += 1
                         # UPDATE THE SEARCH START LOC
                         #continue
