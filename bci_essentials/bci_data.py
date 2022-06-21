@@ -160,10 +160,10 @@ class EEG_data():
             self.nchannels = 23
             self.channel_labels.pop()
 
-        if self.headset_string == "EmotivDataStream-EEG":
+        # if self.headset_string == "EmotivDataStream-EEG":
 
-            self.nchannels = 32
-            self.channel_labels = self.channel_labels[3:-2]
+        #     self.nchannels = 32
+        #     self.channel_labels = self.channel_labels[3:-2]
 
         # if other headsets have quirks, they can be accomodated for here
 
@@ -172,10 +172,12 @@ class EEG_data():
 
     # ONLINE
     # stream data from an online source
-    def stream_online_eeg_data(self, timeout=5, max_eeg_samples=1000000, max_marker_samples=100000, eeg_only=False):
+    def stream_online_eeg_data(self, timeout=5, max_eeg_samples=1000000, max_marker_samples=100000, eeg_only=False, subset=[]):
         """
         Howdy
         """
+        self.subset = subset
+
         print("printing incoming stream")
 
         exit_flag = 0
@@ -270,10 +272,24 @@ class EEG_data():
             self.nchannels = 23
 
 
-        if self.headset_string == "EmotivDataStream-EEG":
+        # if self.headset_string == "EmotivDataStream-EEG":
 
-            self.nchannels = 32
-            self.channel_labels = self.channel_labels[3:-2] #Accounting for all the extra parts in EmotivFlex
+        #     self.nchannels = 32
+        #     self.channel_labels = self.channel_labels[3:-2] #Accounting for all the extra parts in EmotivFlex
+
+
+        # If a subset is to be used, define a new nchannels, and channel labels
+        if self.subset != []:
+            print("A subset was defined")
+            print("Original channels")
+            print(self.channel_labels)
+            self.nchannels = len(self.subset)
+            self.subset_indices = []
+            for s in self.subset:
+                self.subset_indices.append(self.channel_labels.index(s))
+            self.channel_labels = self.subset
+            print("Subset channels")
+            print(self.channel_labels)
 
         # if self.headset_string == "WS-Default":
         #     self.nchannels = 7
