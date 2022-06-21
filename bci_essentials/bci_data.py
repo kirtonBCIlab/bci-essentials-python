@@ -160,6 +160,11 @@ class EEG_data():
             self.nchannels = 23
             self.channel_labels.pop()
 
+        if self.headset_string == "EmotivDataStream-EEG":
+
+            self.nchannels = 32
+            self.channel_labels = self.channel_labels[3:-2]
+
         # if other headsets have quirks, they can be accomodated for here
 
         print(self.headset_string)
@@ -265,6 +270,10 @@ class EEG_data():
             self.nchannels = 23
 
 
+        if self.headset_string == "EmotivDataStream-EEG":
+
+            self.nchannels = 32
+            self.channel_labels = self.channel_labels[3:-2] #Accounting for all the extra parts in EmotivFlex
 
         # if self.headset_string == "WS-Default":
         #     self.nchannels = 7
