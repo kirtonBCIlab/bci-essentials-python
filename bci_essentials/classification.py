@@ -71,6 +71,7 @@ class generic_classifier():
         #
         self.subset_defined = False
         self.subset = []
+        self.channel_labels = []
 
         # Lists for plotting classifier performance over time
         self.offline_accuracy = []
@@ -153,13 +154,17 @@ class erp_rg_classifier(generic_classifier):
                                 n_splits = 3,                   # number of folds for cross-validation
                                 lico_expansion_factor = 1,      # Linear Combination Oversampling expansion factor is the factor by which the number of ERPs in the training set will be expanded
                                 oversample_ratio = 0,           # traditional oversampling, float from 0.1-1 resulting ratio of erp class to non-erp class, 0 for no oversampling
-                                undersample_ratio = 0           # traditional undersampling, float from 0.1-1 resulting ratio of erp class to non-erp classs, 0 for no undersampling 
+                                undersample_ratio = 0,          # traditional undersampling, float from 0.1-1 resulting ratio of erp class to non-erp classs, 0 for no undersampling
+                                subset=[],                      # subset of channels to use, can be in format of indices or channel labels
+                                channel_labels=[]               # channel labels, required to have subset defined by a list of strings (ie.["PO3","PO4"]) instead of a list of indices (ie.[3,4]) 
                                 ):
 
         self.n_splits = n_splits                    
         self.lico_expansion_factor = lico_expansion_factor
         self.oversample_ratio = oversample_ratio
         self.undersample_ratio = undersample_ratio
+        self.subset = subset
+        self.channel_labels = channel_labels
 
 
     def add_to_train(self, decision_block, label_idx, reshape=True):
@@ -558,6 +563,11 @@ class ssvep_basic_classifier_tf(generic_classifier):
 
 # TODO : Add a SSVEP CCA Classifier
 
+# TODO : Add a SSVEP Riemannian MDM classifier
+
+# class ssvep_rg_classifier(generic_classifier):
+#     def set_ssvep_rg_classifier_settings(self, n_splits, type="MDM", subset=[])
+
 class mi_classifier(generic_classifier):
     def set_mi_classifier_settings(self, n_splits=3, type="TS", subset=[], pred_threshold=0.5, subtract_center=False, rebuild = True, random_seed = 42):
         # Build the cross-validation split
@@ -877,3 +887,54 @@ class null_classifier(generic_classifier):
 
     def predict(self, X):
         return 0
+
+
+# Some common functions
+
+def get_subset(X, subset=[], channel_labels=[]):
+    """
+    Get a subset of X according to labels or indices
+
+    X               -   data in the shape of [# of windows, # of channels, # of samples]
+    subset          -   list of indices (int) or labels (str) of the desired channels (default = [])
+    channel_labels  -   channel labels from the entire EEG montage (default = [])
+
+    """
+
+
+    # Init
+    subset_indices = []
+
+    # Copy the indices based on subset
+    try:
+        # Check if we can use subset indices
+        if type(subset[0] == int):
+            print("Using subset indices")
+
+            subset_indices = subset
+
+        # Or channel labels
+        if type(subset[0] == str):
+            print("Using channel labels and subset labels")
+            
+            # Replace indices with those described by labels
+            for sl in subset:
+                subset_indices.append(channel_labels.index(sl))
+
+    except:
+        print("something went wrong")
+        return X
+
+    # Return for the given indices
+    try:
+        nwindows, nchannels, nsamples = X.shape
+
+        new_X = X[:,subset_indices,:]
+        return new_X
+
+
+    except:
+        nchannels, nsamples = X.shape
+
+        new_X = X[subset_indices,:]
+        return new_X
