@@ -153,13 +153,15 @@ class erp_rg_classifier(generic_classifier):
                                 n_splits = 3,                   # number of folds for cross-validation
                                 lico_expansion_factor = 1,      # Linear Combination Oversampling expansion factor is the factor by which the number of ERPs in the training set will be expanded
                                 oversample_ratio = 0,           # traditional oversampling, float from 0.1-1 resulting ratio of erp class to non-erp class, 0 for no oversampling
-                                undersample_ratio = 0           # traditional undersampling, float from 0.1-1 resulting ratio of erp class to non-erp classs, 0 for no undersampling 
+                                undersample_ratio = 0,          # traditional undersampling, float from 0.1-1 resulting ratio of erp class to non-erp classs, 0 for no undersampling 
+                                random_seed = 42                # random seed
                                 ):
 
         self.n_splits = n_splits                    
         self.lico_expansion_factor = lico_expansion_factor
         self.oversample_ratio = oversample_ratio
         self.undersample_ratio = undersample_ratio
+        self.random_seed = random_seed
 
 
     def add_to_train(self, decision_block, label_idx, reshape=True):
@@ -203,7 +205,7 @@ class erp_rg_classifier(generic_classifier):
         print(self.X.shape, self.y.shape)
 
         # Define the strategy for cross validation
-        cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
+        cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=self.random_seed)
 
         # Define the classifier
         #self.clf = make_pipeline(XdawnCovariances(), TangentSpace(metric="riemann"), RandomForestClassifier(random_state=42))
