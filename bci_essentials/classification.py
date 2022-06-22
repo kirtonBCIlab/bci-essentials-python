@@ -86,6 +86,52 @@ class generic_classifier():
         # Keep track of predictions
         self.predictions = []
         self.pred_probas = []
+
+    def get_subset(X, subset=[], channel_labels=[]):
+        """
+        Get a subset of X according to labels or indices
+
+        X               -   data in the shape of [# of windows, # of channels, # of samples]
+        subset          -   list of indices (int) or labels (str) of the desired channels (default = [])
+        channel_labels  -   channel labels from the entire EEG montage (default = [])
+        """
+
+        # Init
+        subset_indices = []
+
+        # Copy the indices based on subset
+        try:
+            # Check if we can use subset indices
+            if type(subset[0] == int):
+                print("Using subset indices")
+
+                subset_indices = subset
+
+            # Or channel labels
+            if type(subset[0] == str):
+                print("Using channel labels and subset labels")
+                
+                # Replace indices with those described by labels
+                for sl in subset:
+                    subset_indices.append(channel_labels.index(sl))
+
+        except:
+            print("something went wrong")
+            return X
+
+        # Return for the given indices
+        try:
+            nwindows, nchannels, nsamples = X.shape
+
+            new_X = X[:,subset_indices,:]
+            return new_X
+
+
+        except:
+            nchannels, nsamples = X.shape
+
+            new_X = X[subset_indices,:]
+            return new_X
     
     # add training data, to the training set using a decision block and a label
     def add_to_train(self, decision_block, labels, num_options = 0, meta = []):
@@ -155,8 +201,8 @@ class erp_rg_classifier(generic_classifier):
                                 lico_expansion_factor = 1,      # Linear Combination Oversampling expansion factor is the factor by which the number of ERPs in the training set will be expanded
                                 oversample_ratio = 0,           # traditional oversampling, float from 0.1-1 resulting ratio of erp class to non-erp class, 0 for no oversampling
                                 undersample_ratio = 0,          # traditional undersampling, float from 0.1-1 resulting ratio of erp class to non-erp classs, 0 for no undersampling
-                                subset=[],                      # subset of channels to use, can be in format of indices or channel labels
-                                channel_labels=[]               # channel labels, required to have subset defined by a list of strings (ie.["PO3","PO4"]) instead of a list of indices (ie.[3,4]) 
+                                subset = [],                      # subset of channels to use, can be in format of indices or channel labels
+                                channel_labels = []               # channel labels, required to have subset defined by a list of strings (ie.["PO3","PO4"]) instead of a list of indices (ie.[3,4]) 
                                 ):
 
         self.n_splits = n_splits                    
@@ -167,30 +213,17 @@ class erp_rg_classifier(generic_classifier):
         self.channel_labels = channel_labels
 
 
-    def add_to_train(self, decision_block, label_idx, reshape=True):
+    def add_to_train(self, decision_block, label_idx):
         print("adding to training set")
-        # reshape from [n,m,p] to [p,n,m]
         # n = number of channels
         # m = number of samples
         # p = number of windows
         p,n,m = decision_block.shape
 
-        # decision_block_reshape = np.swapaxes(np.swapaxes(decision_block,0,2),1,2)
-
         # get labels from label_idx
         labels = np.zeros([p])
         labels[label_idx] = 1
         print(labels)
-
-        # oversample until classes are even
-        # WE ONLY WANT TO OVERSAMPLE TRAINING DATA
-        # if oversample > 0:
-        #     erp_sample = decision_block[label_idx,:,:]
-        #     erp_sample = erp_sample[np.newaxis, ...]
-        #     print(erp_sample.shape)
-        #     for i in range(oversample):
-        #         decision_block = np.append(decision_block, erp_sample, axis=0)
-        #         labels = np.append(labels, 1)
 
         # If the classifier has no data then initialize
         if self.X == []:
@@ -211,15 +244,12 @@ class erp_rg_classifier(generic_classifier):
         cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
 
         # Define the classifier
-        #self.clf = make_pipeline(XdawnCovariances(), TangentSpace(metric="riemann"), RandomForestClassifier(random_state=42))
         self.clf = make_pipeline(XdawnCovariances(estimator='lwf'), TangentSpace(metric="riemann"), LinearDiscriminantAnalysis(solver='eigen',shrinkage='auto'))
+
         # Init predictions to all false 
         preds = np.zeros(len(self.y))
 
-        # print(self.X.shape)
-        # print(self.y.shape)
-        # print(self.y)
-
+        # 
         for train_idx, test_idx in cv.split(self.X,self.y):
             y_train, y_test = self.y[train_idx], self.y[test_idx]
 
@@ -887,54 +917,3 @@ class null_classifier(generic_classifier):
 
     def predict(self, X):
         return 0
-
-
-# Some common functions
-
-def get_subset(X, subset=[], channel_labels=[]):
-    """
-    Get a subset of X according to labels or indices
-
-    X               -   data in the shape of [# of windows, # of channels, # of samples]
-    subset          -   list of indices (int) or labels (str) of the desired channels (default = [])
-    channel_labels  -   channel labels from the entire EEG montage (default = [])
-
-    """
-
-
-    # Init
-    subset_indices = []
-
-    # Copy the indices based on subset
-    try:
-        # Check if we can use subset indices
-        if type(subset[0] == int):
-            print("Using subset indices")
-
-            subset_indices = subset
-
-        # Or channel labels
-        if type(subset[0] == str):
-            print("Using channel labels and subset labels")
-            
-            # Replace indices with those described by labels
-            for sl in subset:
-                subset_indices.append(channel_labels.index(sl))
-
-    except:
-        print("something went wrong")
-        return X
-
-    # Return for the given indices
-    try:
-        nwindows, nchannels, nsamples = X.shape
-
-        new_X = X[:,subset_indices,:]
-        return new_X
-
-
-    except:
-        nchannels, nsamples = X.shape
-
-        new_X = X[subset_indices,:]
-        return new_X

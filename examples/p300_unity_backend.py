@@ -21,7 +21,7 @@ test_erp.classifier.set_p300_clf_settings(n_splits=5, lico_expansion_factor=1, o
 # test_template = Template.load_template(file_path = "./templates", file_name = "ekl_base")
 
 # Connect the streams
-test_erp.stream_online_eeg_data()
+test_erp.stream_online_eeg_data(subset=["P3", "P4"])
 
 # Run
 
