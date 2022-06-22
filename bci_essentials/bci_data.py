@@ -79,7 +79,9 @@ class EEG_data():
     # Currently only suports .xdf format
     def load_offline_eeg_data(self, filename, format='xdf', subset=[]):
         """
-        Loads offline data
+        Loads offline data from a file
+
+        Currently only supports .xdf
         """
         self.subset = subset
 

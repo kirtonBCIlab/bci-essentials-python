@@ -20,10 +20,12 @@ test_mi = EEG_data()
 test_mi.classifier = mi_classifier()
 
 # Define the classifier settings
-test_mi.classifier.set_mi_classifier_settings(n_splits=3, type="TS", subtract_center=False, rebuild=True, random_seed=35)
+test_mi.classifier.set_mi_classifier_settings(n_splits=3, type="TS", random_seed=35)
 
 # Load the xdf
 test_mi.load_offline_eeg_data(filename  = "examples/data/mi_example.xdf")
 
 # Run main loop, this will do all of the classification for online or offline
-test_mi.main(online=False, training=True)
+test_mi.main(online=False, training=True, subset=['C3','C1','C2','C4'])
+
+print("debug")

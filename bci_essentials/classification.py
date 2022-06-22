@@ -63,14 +63,14 @@ def lico(X,y,expansion_factor=3, sum_num=2, shuffle=False):
 # make a generic classifier which can be extended to more specific classifiers
 class generic_classifier():
     #
-    def __init__(self, training_selection=0):
+    def __init__(self, training_selection=0, subset=[]):
         print("initializing the classifier")
         self.X = []
         self.y = []
 
         #
         self.subset_defined = False
-        self.subset = []
+        self.subset = subset
         self.channel_labels = []
 
         # Lists for plotting classifier performance over time
@@ -87,7 +87,7 @@ class generic_classifier():
         self.predictions = []
         self.pred_probas = []
 
-    def get_subset(X, subset=[], channel_labels=[]):
+    def get_subset(self, X=[]):
         """
         Get a subset of X according to labels or indices
 
@@ -96,42 +96,61 @@ class generic_classifier():
         channel_labels  -   channel labels from the entire EEG montage (default = [])
         """
 
+        # Check for self.subset and/or self.channel_labels
+
         # Init
         subset_indices = []
 
         # Copy the indices based on subset
         try:
             # Check if we can use subset indices
-            if type(subset[0] == int):
+            if self.subset == []:
+                return X
+
+            if type(self.subset[0]) == int:
                 print("Using subset indices")
 
-                subset_indices = subset
+                subset_indices = self.subset
 
             # Or channel labels
-            if type(subset[0] == str):
+            if type(self.subset[0]) == str:
                 print("Using channel labels and subset labels")
                 
                 # Replace indices with those described by labels
-                for sl in subset:
-                    subset_indices.append(channel_labels.index(sl))
+                for sl in self.subset:
+                    subset_indices.append(self.channel_labels.index(sl))
 
+            # Return for the given indices
+            try:
+                nwindows, nchannels, nsamples = self.X.shape
+
+                if X == None:
+                    new_X = self.X[:,subset_indices,:]
+                    self.X = new_X
+                else:
+                    new_X = X[:,subset_indices,:]
+                    X = new_X
+                    return X
+
+
+            except:
+                nchannels, nsamples = self.X.shape
+
+                if X == None:
+                    new_X = self.X[subset_indices,:]
+                    self.X = new_X
+
+                else:
+                    new_X = X[subset_indices,:]
+                    X = new_X
+                    return X
+
+        # notify if failed
         except:
-            print("something went wrong")
+            print("something went wrong, no subset taken")
             return X
 
-        # Return for the given indices
-        try:
-            nwindows, nchannels, nsamples = X.shape
 
-            new_X = X[:,subset_indices,:]
-            return new_X
-
-
-        except:
-            nchannels, nsamples = X.shape
-
-            new_X = X[subset_indices,:]
-            return new_X
     
     # add training data, to the training set using a decision block and a label
     def add_to_train(self, decision_block, labels, num_options = 0, meta = []):
@@ -142,6 +161,9 @@ class generic_classifier():
         # p = number of signals
         p,n,m = decision_block.shape
         # n,m,p = decision_block.shape
+
+
+        decision_block = self.get_subset(decision_block)
 
         self.num_options = num_options
         self.meta = meta
@@ -200,18 +222,13 @@ class erp_rg_classifier(generic_classifier):
                                 n_splits = 3,                   # number of folds for cross-validation
                                 lico_expansion_factor = 1,      # Linear Combination Oversampling expansion factor is the factor by which the number of ERPs in the training set will be expanded
                                 oversample_ratio = 0,           # traditional oversampling, float from 0.1-1 resulting ratio of erp class to non-erp class, 0 for no oversampling
-                                undersample_ratio = 0,          # traditional undersampling, float from 0.1-1 resulting ratio of erp class to non-erp classs, 0 for no undersampling
-                                subset = [],                      # subset of channels to use, can be in format of indices or channel labels
-                                channel_labels = []               # channel labels, required to have subset defined by a list of strings (ie.["PO3","PO4"]) instead of a list of indices (ie.[3,4]) 
+                                undersample_ratio = 0          # traditional undersampling, float from 0.1-1 resulting ratio of erp class to non-erp classs, 0 for no undersampling
                                 ):
 
         self.n_splits = n_splits                    
         self.lico_expansion_factor = lico_expansion_factor
         self.oversample_ratio = oversample_ratio
         self.undersample_ratio = undersample_ratio
-        self.subset = subset
-        self.channel_labels = channel_labels
-
 
     def add_to_train(self, decision_block, label_idx):
         print("adding to training set")
@@ -219,6 +236,9 @@ class erp_rg_classifier(generic_classifier):
         # m = number of samples
         # p = number of windows
         p,n,m = decision_block.shape
+
+        # get a subset
+        decision_block = self.get_subset(decision_block)
 
         # get labels from label_idx
         labels = np.zeros([p])
@@ -384,14 +404,13 @@ class ssvep_basic_classifier(generic_classifier):
     Classifies SSVEP based on relative band power at the expected frequencies
     """
 
-    def set_ssvep_settings(self, n_splits=3, sampling_freq=256, target_freqs = [1, 2, 3, 4, 5, 6, 7, 8, 9], subset=[], random_seed=42, clf_type="Random Forest"):
+    def set_ssvep_settings(self, n_splits=3, sampling_freq=256, target_freqs = [1, 2, 3, 4, 5, 6, 7, 8, 9], random_seed=42, clf_type="Random Forest"):
         self.sampling_freq = sampling_freq
         self.target_freqs = target_freqs
 
         # Build the cross-validation split
         self.n_splits = n_splits
         self.cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_seed)
-        self.subset = subset
 
         # Define the classifier
         if clf_type == "LDA":
@@ -412,13 +431,8 @@ class ssvep_basic_classifier(generic_classifier):
         self.X = np.array(self.X)
         self.X = self.X[:,:,:]
 
-        if self.subset != []:
-            subX = self.X[:,self.subset,:]
-
-        else:
-            subX = self.X
-
-        
+        # get subset
+        #self.get_subset()
 
         # Extract features, the bandpowers of the bands around each of the target frequencies
 
@@ -498,11 +512,7 @@ class ssvep_basic_classifier(generic_classifier):
         if type(X) == None:
             X = self.X
 
-        if self.subset != []:
-            subX = X[:,self.subset,:]
-
-        else:
-            subX = X
+        subX = self.get_subset(X)
 
         # Extract features, the bandpowers of the bands around each of the target frequencies
 
@@ -596,10 +606,10 @@ class ssvep_basic_classifier_tf(generic_classifier):
 # TODO : Add a SSVEP Riemannian MDM classifier
 
 # class ssvep_rg_classifier(generic_classifier):
-#     def set_ssvep_rg_classifier_settings(self, n_splits, type="MDM", subset=[])
+#     def set_ssvep_rg_classifier_settings(self, n_splits, type="MDM")
 
 class mi_classifier(generic_classifier):
-    def set_mi_classifier_settings(self, n_splits=3, type="TS", subset=[], pred_threshold=0.5, subtract_center=False, rebuild = True, random_seed = 42):
+    def set_mi_classifier_settings(self, n_splits=3, type="TS", pred_threshold=0.5, random_seed = 42):
         # Build the cross-validation split
         self.n_splits = n_splits
         self.cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_seed)
@@ -629,22 +639,11 @@ class mi_classifier(generic_classifier):
         else:
             print("Classifier type not defined") 
 
-
-        # Define a subset
-        if self.subset != []:
-            self.subset_defined = True
-            self.subset = subset
-        else:
-            self.subset_defined = False
-
         # Threshold
         self.pred_threshold = pred_threshold
 
-        # Centerline subtraction
-        self.subtract_center = subtract_center
-
         # Rebuild from scratch with each training
-        self.rebuild = rebuild
+        self.rebuild = True
 
 
 
@@ -655,40 +654,18 @@ class mi_classifier(generic_classifier):
         # do the rest of the training if train_free is false
         self.X = np.array(self.X)
 
-        # take a subset / do spatial filtering
-        self.X = self.X[:,:,:]
-
-        # Subtract the center
-
         # Try rebuilding the classifier each time
         if self.rebuild == True:
             self.next_fit_window = 0
             self.clf = self.clf_model
 
-        # 
-        if self.subset_defined:
-            subX = self.X[self.next_fit_window:,self.subset,:]
-            suby = self.y[self.next_fit_window:]
-            self.next_fit_window = nwindows
+        # get channel subset
+        #self.get_subset()
 
-        else:
-            subX = self.X[self.next_fit_window:,:,:]
-            suby = self.y[self.next_fit_window:]
-            self.next_fit_window = nwindows
-
-        # plot_window(subX[0,:,:], 1)
-
-
-        # currently only works with Dion's MI montage
-        if self.subtract_center == True:
-            try:
-                subX = subX - subX[:,[1,1,1,6,6,6,6,6,6,6,12,12,12,12,12,15],:]
-                subX = subX[:,[0,2,3,4,5,7,8,9,10,11,13,14],:]
-            except:
-                print("Centerline subtraction not possible with montage subsets")
-
-        # plot_window(subX[0,:,:], 1)
-
+        # get temporal subset
+        subX = self.X[self.next_fit_window:,:,:]
+        suby = self.y[self.next_fit_window:]
+        self.next_fit_window = nwindows
 
         # Init predictions to all false 
         preds = np.zeros(nwindows)
@@ -705,35 +682,6 @@ class mi_classifier(generic_classifier):
             # fit the classsifier
             self.clf.fit(X_train_cov, y_train)
             preds[test_idx] = self.clf.predict(X_test_cov)
-
-            # Use pred proba to show what would be predicted
-            #predprobs = predproba[:,1]
-            #real = np.where(y_test == 1)
-
-            # a,pred_proba[test_idx] = self.clf.predict_proba(self.X[test_idx])
-            # print(preds[test_idx])
-            # print(predproba)
-
-        # for train_idx, test_idx in self.cv.split(self.X,self.y):
-        #     X_train, X_test = self.X[train_idx], self.X[test_idx]
-        #     y_train, y_test = self.y[train_idx], self.y[test_idx]
-
-        #     # get the covariance matrices for the training set
-        #     X_train_cov = Covariances().transform(X_train)
-        #     X_test_cov = Covariances().transform(X_test)
-
-        #     # fit the classsifier
-        #     self.clf.fit(X_train_cov, y_train)
-        #     preds[test_idx] = self.clf.predict(X_test_cov)
-
-        #     # Use pred proba to show what would be predicted
-        #     #predprobs = predproba[:,1]
-        #     #real = np.where(y_test == 1)
-
-        #     # a,pred_proba[test_idx] = self.clf.predict_proba(self.X[test_idx])
-        #     # print(preds[test_idx])
-        #     # print(predproba)
-
 
         # Print performance stats
         # accuracy
@@ -769,18 +717,10 @@ class mi_classifier(generic_classifier):
         if len(X.shape) < 3:
             X = X[np.newaxis, ...]
 
-        if self.subset_defined:
-            X = X[:,self.subset,:]
+        X = self.get_subset(X)
 
         # Troubleshooting
         #X = self.X[-6:,:,:]
-
-        if self.subtract_center == True:
-            try:
-                X = X - X[:,[1,1,1,6,6,6,6,6,6,6,12,12,12,12,12,15],:]
-                X = X[:,[0,2,3,4,5,7,8,9,10,11,13,14],:]
-            except:
-                print("Centerline subtraction not possible with montage subsets")
 
         print("the shape of X is", X.shape)
 
@@ -823,8 +763,8 @@ class switch_classifier(generic_classifier):
         # do the rest of the training if train_free is false
         self.X = np.array(self.X)
 
-        # take a subset / do spatial filtering
-        self.X = self.X[:,:,:]
+        # take a subset
+        #self.get_subset()
 
         # Try rebuilding the classifier each time
         if self.rebuild == True:
