@@ -186,6 +186,12 @@ class EEG_data():
             # Apply the subset to the raw data
             self.eeg_data = self.eeg_data[:, self.subset_indices]
 
+        # send channel labels to classifier
+        try:
+            self.classifier.channel_labels = self.channel_labels
+        except:
+            print("no classifier defined")
+
         print(self.headset_string)
         print(self.channel_labels)
 
@@ -307,6 +313,12 @@ class EEG_data():
             self.channel_labels = self.subset
             print("Subset channels")
             print(self.channel_labels)
+
+        # send channel labels to classifier
+        try:
+            self.classifier.channel_labels = self.channel_labels
+        except:
+            print("no classifier defined")
 
         # Print some headset info
         print(self.headset_string)
@@ -445,7 +457,6 @@ class EEG_data():
             pp_high=40,             # bandpass upper cutoff
             pp_order=5,             # bandpass order
 
-            # TODO add subsets
             subset = []):
 
         self.subset = subset

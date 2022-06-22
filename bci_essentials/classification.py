@@ -122,9 +122,9 @@ class generic_classifier():
 
             # Return for the given indices
             try:
-                nwindows, nchannels, nsamples = self.X.shape
+                # nwindows, nchannels, nsamples = self.X.shape
 
-                if X == None:
+                if X == []:
                     new_X = self.X[:,subset_indices,:]
                     self.X = new_X
                 else:
@@ -134,9 +134,8 @@ class generic_classifier():
 
 
             except:
-                nchannels, nsamples = self.X.shape
-
-                if X == None:
+                # nchannels, nsamples = self.X.shape
+                if X == []:
                     new_X = self.X[subset_indices,:]
                     self.X = new_X
 
@@ -184,6 +183,9 @@ class generic_classifier():
 
     # predict a label based on a decision block
     def predict_decision_block(self, decision_block):
+
+        decision_block = self.get_subset(decision_block)
+
         print("making a prediction")
 
         # # reshape from [n,m,p] to [p,n,m]
