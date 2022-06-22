@@ -166,7 +166,7 @@ class EEG_data():
 
         # if other headsets have quirks, they can be accomodated for here
 
-        # If a subset is to be used, define a new nchannels, and channel labels
+        # If a subset is to be used, define a new nchannels, channel labels, and eeg data
         if self.subset != []:
             print("A subset was defined")
             print("Original channels")
@@ -183,9 +183,6 @@ class EEG_data():
 
             # Apply the subset to the raw data
             self.eeg_data = self.eeg_data[:, self.subset_indices]
-
-
-
 
         print(self.headset_string)
         print(self.channel_labels)
@@ -335,7 +332,8 @@ class EEG_data():
 
         if include_eeg == True:
             new_eeg_data, new_eeg_timestamps = self.eeg_inlet.pull_chunk(timeout=0.1)
-
+            new_eeg_data = np.array(new_eeg_data)
+            new_eeg_data = new_eeg_data[:, self.subset_indices]
             # Do the subset
             
 
@@ -370,8 +368,13 @@ class EEG_data():
             # MAYBE DONT NEED THIS WITH NEW PROC SETTINGS
             new_eeg_timestamps = [new_eeg_timestamps[i] + self.eeg_time_correction for i in range(len(new_eeg_timestamps))]
         
-            # save the EEG and Marker data to the data object
-            self.eeg_data = np.array(list(self.eeg_data) + new_eeg_data)
+            # save the EEG data to the data object
+            try:
+                self.eeg_data = np.concatenate((self.eeg_data, new_eeg_data))
+            except:
+                self.eeg_data = new_eeg_data
+
+            # save the marker data to the data object
             self.eeg_timestamps = np.array(list(self.eeg_timestamps) + new_eeg_timestamps)
 
         # If the outlet exists send a ping
