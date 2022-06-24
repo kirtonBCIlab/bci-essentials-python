@@ -162,6 +162,33 @@ class EEG_data():
 
         # if other headsets have quirks, they can be accomodated for here
 
+        # If a subset is to be used, define a new nchannels, channel labels, and eeg data
+        if self.subset != []:
+            print("A subset was defined")
+            print("Original channels")
+            print(self.channel_labels)
+
+            self.nchannels = len(self.subset)
+            self.subset_indices = []
+            for s in self.subset:
+                self.subset_indices.append(self.channel_labels.index(s))
+
+            self.channel_labels = self.subset
+            print("Subset channels")
+            print(self.channel_labels)
+
+            # Apply the subset to the raw data
+            self.eeg_data = self.eeg_data[:, self.subset_indices]
+
+        else:
+            self.subset_indices = list(range(0,self.nchannels))
+
+        # send channel labels to classifier
+        try:
+            self.classifier.channel_labels = self.channel_labels
+        except:
+            print("no classifier defined")
+
         print(self.headset_string)
         print(self.channel_labels)
 
@@ -266,9 +293,14 @@ class EEG_data():
 
 
 
-        # if self.headset_string == "WS-Default":
-        #     self.nchannels = 7
-        # if other headsets have quirks, they can be accomodated for here
+        else:
+            self.subset_indices = list(range(0,self.nchannels))
+
+        # send channel labels to classifier
+        try:
+            self.classifier.channel_labels = self.channel_labels
+        except:
+            print("no classifier defined")
 
         # Print some headset info
         print(self.headset_string)
@@ -510,6 +542,7 @@ class EEG_data():
                                 print("No windows to make a decision")
                                 self.marker_count += 1
                                 break
+
 
                             prediction =  self.classifier.predict(self.windows)
 

@@ -12,13 +12,13 @@ from bci_essentials.bci_data import *
 switch_data = EEG_data()
 
 
-# LETS TRY IT OUT WITH JUST THE MI CLASSIFIER
-# Select a classifier
-switch_data.classifier = mi_classifier()
+# # LETS TRY IT OUT WITH JUST THE MI CLASSIFIER
+# # Select a classifier
+# switch_data.classifier = mi_classifier()
 
-switch_data.classifier.set_mi_classifier_settings(n_splits=3, type="TS", subtract_center=False, rebuild=True, random_seed=35)
-# Connect the streams
-switch_data.stream_online_eeg_data()
+# switch_data.classifier.set_mi_classifier_settings(n_splits=3, type="TS", subtract_center=False, rebuild=True, random_seed=35)
+# # Connect the streams
+# switch_data.stream_online_eeg_data()
 
 # OR
 

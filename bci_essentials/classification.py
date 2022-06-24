@@ -778,79 +778,88 @@ class switch_classifier(generic_classifier):
         # CHANGE THE CLASSIFIER HERE IF YOU WANT
 
 
+    # fit is a little different for the switch, becouse it consists of fitting multiple binary classifiers, one for each object in the scene
     def fit(self):
         # get dimensions
         nwindows, nchannels, nsamples = self.X.shape 
 
         # do the rest of the training if train_free is false
         self.X = np.array(self.X)
+        
+        # find the number of classes in y there shoud be N + 1, where N is the number of objects in the scene and also the number of classifiers
+        self.num_classifiers = len(list(np.unique(self.y))) - 1
 
-        # take a subset / do spatial filtering
-        self.X = self.X[:,:,:]
+        # make a list to hold all of the classifiers
+        self.clfs = []
 
-        # Try rebuilding the classifier each time
-        if self.rebuild == True:
-            self.next_fit_window = 0
-            self.clf = self.clf_model
+        # loop through and build the classifiers
+        for i in range(self.num_classifiers):
+            # add the basic unfit classifier
+            self.clfs.append(self.clf)
 
-        # Init predictions to all neutral (ie. zeros)
-        preds = np.zeros(nwindows)
+            # 
+            # X = self.X[where y is etiher 0 or i+1]
+            # y = self.y[where y is either 0 or i+1]
 
-        subX = self.X[self.next_fit_window:,:,:]
-        suby = self.y[self.next_fit_window:]
-        self.next_fit_window = nwindows
+            # # Init predictions to all neutral (ie. zeros)
+            # preds = np.zeros(nwindows)
 
-        for train_idx, test_idx in self.cv.split(subX,suby):
-            X_train, X_test = subX[train_idx], subX[test_idx]
-            y_train, y_test = suby[train_idx], suby[test_idx]
+            # subX = self.X[self.next_fit_window:,:,:]
+            # suby = self.y[self.next_fit_window:]
+            # self.next_fit_window = nwindows
 
-            # get the covariance matrices for the training set
-            X_train_cov = Covariances().transform(X_train)
-            X_test_cov = Covariances().transform(X_test)
+            # for train_idx, test_idx in self.cv.split(subX,suby):
+            #     X_train, X_test = subX[train_idx], subX[test_idx]
+            #     y_train, y_test = suby[train_idx], suby[test_idx]
 
-            # fit the classsifier
-            self.clf.fit(X_train_cov, y_train)
-            preds[test_idx] = self.clf.predict(X_test_cov)
+            #     # get the covariance matrices for the training set
+            #     X_train_cov = Covariances().transform(X_train)
+            #     X_test_cov = Covariances().transform(X_test)
 
-            # JUST ADDING A NOTE HERE THAT IN THE FUTURE WE WILL PROBABLY WANT TO USE PREDPROBA TO RETURN A SCORE FOR EACH CLASS AND NOT JUST A CLASSIFICATION
+            #     # fit the classsifier
+            #     self.clf.fit(X_train_cov, y_train)
+            #     preds[test_idx] = self.clf.predict(X_test_cov)
 
-            # Use pred proba to show what would be predicted
-            #predprobs = predproba[:,1]
-            #real = np.where(y_test == 1)
+            #     # JUST ADDING A NOTE HERE THAT IN THE FUTURE WE WILL PROBABLY WANT TO USE PREDPROBA TO RETURN A SCORE FOR EACH CLASS AND NOT JUST A CLASSIFICATION
 
-            # a,pred_proba[test_idx] = self.clf.predict_proba(self.X[test_idx])
-            # print(preds[test_idx])
-            # print(predproba)
+            #     # Use pred proba to show what would be predicted
+            #     #predprobs = predproba[:,1]
+            #     #real = np.where(y_test == 1)
 
-        # Print performance stats
-        # accuracy
-        correct = preds == self.y
-        #print(correct)
+            #     # a,pred_proba[test_idx] = self.clf.predict_proba(self.X[test_idx])
+            #     # print(preds[test_idx])
+            #     # print(predproba)
 
-        self.offline_window_count = nwindows
-        self.offline_window_counts.append(self.offline_window_count)
+            # # Print performance stats
+            # # accuracy
+            # correct = preds == self.y
+            # #print(correct)
 
-        # accuracy
-        accuracy = sum(preds == self.y)/len(preds)
-        self.offline_accuracy.append(accuracy)
-        print("accuracy = {}".format(accuracy))
+            # self.offline_window_count = nwindows
+            # self.offline_window_counts.append(self.offline_window_count)
 
-        # precision
-        precision = precision_score(self.y,preds)
-        self.offline_precision.append(precision)
-        print("precision = {}".format(precision))
+            # # accuracy
+            # accuracy = sum(preds == self.y)/len(preds)
+            # self.offline_accuracy.append(accuracy)
+            # print("accuracy = {}".format(accuracy))
 
-        # recall
-        recall = recall_score(self.y, preds)
-        self.offline_recall.append(recall)
-        print("recall = {}".format(recall))
+            # # precision
+            # precision = precision_score(self.y,preds)
+            # self.offline_precision.append(precision)
+            # print("precision = {}".format(precision))
 
-        # confusion matrix in command line
-        cm = confusion_matrix(self.y, preds)
-        self.offline_cm = cm
-        print("confusion matrix")
-        print(cm)
+            # # recall
+            # recall = recall_score(self.y, preds)
+            # self.offline_recall.append(recall)
+            # print("recall = {}".format(recall))
 
+            # # confusion matrix in command line
+            # cm = confusion_matrix(self.y, preds)
+            # self.offline_cm = cm
+            # print("confusion matrix")
+            # print(cm)
+
+    # This is the predict function
     def predict(self, X):
         # if X is 2D, make it 3D with one as first dimension
         if len(X.shape) < 3:
@@ -858,16 +867,17 @@ class switch_classifier(generic_classifier):
 
         print("the shape of X is", X.shape)
 
-        X_cov = Covariances().transform(X)
+        activationString = ""
 
-        pred = self.clf.predict(X_cov)
-        pred_proba = self.clf.predict_proba(X_cov)
+        # THIS IS A DUMMY CLASSIFIER
+        for i in range(0, self.num_classifiers):
+            if i > 0:
+                activationString = activationString + ","
 
-        for i in range(len(pred)):
-            self.predictions.append(pred[i])
-            self.pred_probas.append(pred_proba[i])
+            activationString = activationString + str(random.uniform(0, 1))
 
-        return pred
+
+        return activationString
 
 
 

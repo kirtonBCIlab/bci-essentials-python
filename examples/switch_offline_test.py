@@ -1,4 +1,6 @@
-import os
+# DONT USE THIS
+# NO OFFLINE SWITCH DATA EXISTS YET
+
 import sys
 
 # Add parent directory to path to access bci_essentials
