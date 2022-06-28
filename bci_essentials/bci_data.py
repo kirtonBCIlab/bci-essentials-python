@@ -347,7 +347,9 @@ class EEG_data():
         if include_eeg == True:
             new_eeg_data, new_eeg_timestamps = self.eeg_inlet.pull_chunk(timeout=0.1)
             new_eeg_data = np.array(new_eeg_data)
-            new_eeg_data = new_eeg_data[:, self.subset_indices]
+            ##Handle the case when you are using subsets
+            if self.subset!=[]:
+                new_eeg_data = new_eeg_data[:, self.subset_indices]
             # Do the subset
             
 
