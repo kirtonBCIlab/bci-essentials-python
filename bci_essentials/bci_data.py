@@ -168,7 +168,8 @@ class EEG_data():
 
         # if other headsets have quirks, they can be accomodated for here
 
-        # If a subset is to be used, define a new nchannels, channel labels, and eeg data
+        # If a subset is to be used, define a new nchannels, channel labels, and eeg data. 
+        #EKL EDIT - Needed to include a situation if the subset also isn't used, what to do with the subset_indice call.
         if self.subset != []:
             print("A subset was defined")
             print("Original channels")
@@ -185,6 +186,12 @@ class EEG_data():
 
             # Apply the subset to the raw data
             self.eeg_data = self.eeg_data[:, self.subset_indices]
+        else: 
+            self.subset_indices = []
+            for s in self.channel_labels:
+                self.subset_indices.append(self.channel_labels.index(s))
+        
+
 
         # send channel labels to classifier
         try:
@@ -298,8 +305,19 @@ class EEG_data():
 
         # if other headsets have quirks, they can be accomodated for here
 
+        #Doing some Emotiv quirk things quickly
+        if self.headset_string =="EmotivDataStream-EEG":
+
+            #TODO: Figure out how to deal understanding identifying if it is an emotiv X or flex
+            #Get stream, pull source_id, look at the first 5 letters to see if it is EPOCX or not.
+            
+            #Hardcoded right now to deal with this
+            self.nchannels = 14
+            self.channel_labels = self.channel_labels[3:-2]
+
 
         # If a subset is to be used, define a new nchannels, and channel labels
+        #EKL Edit - Need to handle the case when there is no subset, but we need subset indices still.
         if self.subset != []:
             print("A subset was defined")
             print("Original channels")
@@ -313,12 +331,17 @@ class EEG_data():
             self.channel_labels = self.subset
             print("Subset channels")
             print(self.channel_labels)
+        else:
+            self.subset_indices = []
+            for s in self.channel_labels:
+                self.subset_indices.append(self.channel_labels.index(s))
 
         # send channel labels to classifier
         try:
             self.classifier.channel_labels = self.channel_labels
         except:
             print("no classifier defined")
+
 
         # Print some headset info
         print(self.headset_string)
@@ -347,7 +370,10 @@ class EEG_data():
         if include_eeg == True:
             new_eeg_data, new_eeg_timestamps = self.eeg_inlet.pull_chunk(timeout=0.1)
             new_eeg_data = np.array(new_eeg_data)
-            new_eeg_data = new_eeg_data[:, self.subset_indices]
+            #EKL Edit- Trying to deal with subset issues...
+            if self.subset!=[]:
+                new_eeg_data = new_eeg_data[:, self.subset_indices]
+
             # Do the subset
             
 
