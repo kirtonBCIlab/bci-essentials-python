@@ -25,5 +25,5 @@ test_erp.stream_online_eeg_data()
 
 # Run
 
-test_erp.main(online=True, training=True, pp_low=0.1, pp_high=15, pp_order=5, plot_erp=False, window_start=0.0, window_end=0.6)
+test_erp.main(online=True, training=True, pp_low=0.1, pp_high=15, pp_order=5, plot_erp=False, window_start=0.0, window_end=0.6, subset=["P3", "P4"])
 #test_erp.main(online=True, training=True, pp_type="none", plot_erp=False)

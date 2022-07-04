@@ -77,10 +77,14 @@ class EEG_data():
 
     # Load data from a variety of sources
     # Currently only suports .xdf format
-    def load_offline_eeg_data(self, filename, format='xdf'):
+    def load_offline_eeg_data(self, filename, format='xdf', subset=[]):
         """
-        Loads offline data
+        Loads offline data from a file
+
+        Currently only supports .xdf
         """
+        self.subset = subset
+
         if(format == 'xdf'):
             print("loading ERP data from {}".format(filename))
 
@@ -108,8 +112,10 @@ class EEG_data():
             self.eeg_timestamps = data[self.eeg_index]['time_stamps']
 
             # Unless explicit settings are desired, get settings from headset
-            if self.explicit_settings == False:
-                self.get_info_from_file(data)
+            #if self.explicit_settings == False:
+            self.get_info_from_file(data)
+
+
 
         # support for other file types goes here
 
@@ -134,7 +140,7 @@ class EEG_data():
         self.headset_string = data[self.eeg_index]['info']['name'][0]            # headset name in string format
         self.fsample = float(data[self.eeg_index]['info']['nominal_srate'][0])   # sampling rate
         self.nchannels = int(data[self.eeg_index]['info']['channel_count'][0])   # number of channels 
-        self.channel_labels = []                                    # channel labels/locations, 'TRG' means trigger
+        self.channel_labels = []                                                 # channel labels/locations, 'TRG' means trigger
         try:
             for i in range(self.nchannels):
                 self.channel_labels.append(data[self.eeg_index]['info']['desc'][0]['channels'][0]['channel'][i]['label'][0])
@@ -194,11 +200,13 @@ class EEG_data():
 
     # ONLINE
     # stream data from an online source
-    def stream_online_eeg_data(self, timeout=5, max_eeg_samples=1000000, max_marker_samples=100000, eeg_only=False):
+    def stream_online_eeg_data(self, timeout=5, max_eeg_samples=1000000, max_marker_samples=100000, eeg_only=False, subset=[]):
         """
         Howdy
         """
         print("printing incoming stream")
+
+        self.subset = subset
 
         exit_flag = 0
 
@@ -291,7 +299,7 @@ class EEG_data():
             self.channel_labels.pop()
             self.nchannels = 23
 
-
+        # if other headsets have quirks, they can be accomodated for here
 
         else:
             self.subset_indices = list(range(0,self.nchannels))
@@ -328,6 +336,18 @@ class EEG_data():
 
         if include_eeg == True:
             new_eeg_data, new_eeg_timestamps = self.eeg_inlet.pull_chunk(timeout=0.1)
+            new_eeg_data = np.array(new_eeg_data)
+            ##Handle the case when you are using subsets
+            if self.subset!=[]:
+                new_eeg_data = new_eeg_data[:, self.subset_indices]
+            # Do the subset
+            
+
+            # TEST TEST
+            # self.nchannels = len(self.subset)
+            
+            # new_eeg_data
+            # ####
 
             # if time is in milliseconds, divide by 1000, works for sampling rates above 10Hz
             try:
@@ -354,8 +374,13 @@ class EEG_data():
             # MAYBE DONT NEED THIS WITH NEW PROC SETTINGS
             new_eeg_timestamps = [new_eeg_timestamps[i] + self.eeg_time_correction for i in range(len(new_eeg_timestamps))]
         
-            # save the EEG and Marker data to the data object
-            self.eeg_data = np.array(list(self.eeg_data) + new_eeg_data)
+            # save the EEG data to the data object
+            try:
+                self.eeg_data = np.concatenate((self.eeg_data, new_eeg_data))
+            except:
+                self.eeg_data = new_eeg_data
+
+            # save the marker data to the data object
             self.eeg_timestamps = np.array(list(self.eeg_timestamps) + new_eeg_timestamps)
 
         # If the outlet exists send a ping
@@ -401,6 +426,7 @@ class EEG_data():
             return new_window
 
         # other preprocessing options go here
+    
 
     # main
     # add pp_low, pp_high, pp_order, subset
@@ -423,7 +449,9 @@ class EEG_data():
             pp_high=40,             # bandpass upper cutoff
             pp_order=5,             # bandpass order
 
-            subset=[]):
+            subset = []):
+
+        self.subset = subset
 
 
         """
@@ -444,10 +472,9 @@ class EEG_data():
             search_index = 0
 
             # initialize windows and labels
-            # self.windows = np.zeros((max_channels,max_samples,max_windows)) # size (N,S,W)
-            # self.labels = np.zeros((max_windows))                           # size (W)
-            self.windows = np.zeros((max_windows,max_channels,max_samples)) # size (N,S,W)
-            self.labels = np.zeros((max_windows))                           # size (W)
+            self.windows = np.zeros((max_windows,max_channels,max_samples))
+            self.labels = np.zeros((max_windows))
+
             # initialize the numbers of markers and windows to zero
             self.marker_count = 0
             self.nwindows = 0
@@ -490,12 +517,6 @@ class EEG_data():
                     if self.stream_outlet == True:
                         # send feedback for each marker that you receive
                         self.outlet.push_sample(["marker received : {}".format(self.marker_data[self.marker_count][0])])
-
-                    # Check for trial started message
-                    if self.marker_data[self.marker_count][0] == 'hello':
-                        print('hello')
-                        self.outlet.push_sample(["howdy"])
-
 
                     if self.marker_data[self.marker_count][0] == 'Trial Started':
                         print("Trial started")
@@ -631,14 +652,6 @@ class EEG_data():
                                 clf.target_freqs[i - 4] = float(marker_info[i])
                                 print("changed ", i-4, "target frequency to", marker_info[i])
 
-
-                # Convert marker info (window length, label) to float
-                # marker_info = [float(x) for x in marker_info]
-
-
-                # # Let the window length be defined by the incoming markers
-                # self.window_length = marker_info[0]
-
                 # Check if the whole EEG window corresponding to the marker is available
                 end_time_plus_buffer = self.marker_timestamps[self.marker_count] + self.window_length + buffer
 
@@ -647,24 +660,12 @@ class EEG_data():
                     break
 
                 print(marker_info)
-                # print(end_time_plus_buffer)
-                # print(self.eeg_timestamps[-1])
 
                 # send feedback to unity if there is an available outlet
                 if self.stream_outlet == True:
                     print("sending feedback to Unity")
                     # send feedback for each marker that you receive
                     self.outlet.push_sample(["marker received : {}".format(self.marker_data[self.marker_count][0])])                
-
-                #TODO change for included freq values 
-                # meta is the freq values for ssvep, but could be something else
-
-
-                # # If a second value is received from unity it is the training target
-                # if len(marker_info) > 1 and train_complete == False:
-                #     #print("changing training to TRUE")
-                #     training = True
-                #     label = int(marker_info[1])
 
                 # Find the start time for the window based on the marker timestamp
                 start_time = self.marker_timestamps[self.marker_count]
@@ -694,20 +695,13 @@ class EEG_data():
                     # Third, sdd to the EEG window
                     self.windows[self.nwindows,c,0:self.nsamples] = channel_data
 
-
-                # plot_window(self.windows[self.nwindows,:self.nchannels-1,:self.nsamples-1], self.fsample, self.channel_labels)
                 # This is where to do preprocessing
-                #self.windows[:,:,self.nwindows] = self.preprocessing(window=self.windows[:,:,self.nwindows],option='notch',fc=60)
-                
                 self.windows[self.nwindows,:self.nchannels,:self.nsamples] = self.preprocessing(window=self.windows[self.nwindows,:self.nchannels,:self.nsamples],option=pp_type, order=pp_order, fl=pp_low, fh=pp_high)
-                #self.windows[self.nwindows,:self.nchannels-1,:self.nsamples] = self.preprocessing(window=self.windows[self.nwindows,:self.nchannels-1,:self.nsamples],option="bandpass", order=5, fl=5, fh=24)
-                # plot_window(self.windows[self.nwindows,:self.nchannels-1,:self.nsamples-1], self.fsample, self.channel_labels)
 
-                #self.windows[self.nwindows,:,:] = self.preprocessing(window=self.windows[self.nwindows,:,:],option=None)
                 # This is where to do artefact rejection
-                
                 self.windows[self.nwindows,:self.nchannels,:self.nsamples] = self.artefact_rejection(window=self.windows[self.nwindows,:self.nchannels,:self.nsamples],option=None)
-                #self.windows[self.nwindows,:self.nchannels-1,:self.nsamples] = self.artefact_rejection(window=self.windows[self.nwindows,:self.nchannels-1,:self.nsamples],option=None)
+
+                
                 # Add the label if it exists, otherwise set a flag of -1 to denote that there is no label
                 if training == True:
                     self.labels[self.nwindows] = label
@@ -762,6 +756,8 @@ class ERP_data(EEG_data):
         """
         Howdy
         """
+
+        self.subset = subset
 
         unity_train = True
         self.num_options = num_selections
@@ -852,23 +848,9 @@ class ERP_data(EEG_data):
                         # Note that a marker occured, but do nothing else
                         print("Trial Started")
                         self.marker_count += 1
-                        # UPDATE THE SEARCH START LOC
-                        #continue
-
-                        # This is the first marker so allow it to change the size of the decision blocks if needed
-                        first_marker = True
-
-                        if online == True:
-                            self.outlet.push_sample(["trial started"])
-                        # echo = True
-                        # if echo == True:
-                        #     echo_string = ["python received:  {}".format(self.marker_data[self.marker_count][0])]
-                        #     print(echo_string)
-                        #     self.outlet.push_sample(echo_string)
                     
                     # If training completed then train the classifier
                     elif self.marker_data[self.marker_count][0] == 'Training Complete' and train_complete == False:
-
 
                         if train_complete == False:
                             print("Training the classifier")
@@ -931,7 +913,7 @@ class ERP_data(EEG_data):
                                     print("okay, actually sending now...")
                                     self.outlet.push_sample(["{}".format(prediction)])
                     
-
+                        # TODO
                         else:
                             print("Insufficient windows to make a decision")
                             self.decision_count -= 1

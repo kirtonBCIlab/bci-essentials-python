@@ -17,7 +17,7 @@ from bci_essentials.visuals import *
 test_erp = ERP_data()
 
 # Choose a classifier
-test_erp.classifier = erp_rg_classifier()
+test_erp.classifier = erp_rg_classifier(subset=["P3", "P4"])
 
 # Set classifier settings
 test_erp.classifier.set_p300_clf_settings(n_splits=5, lico_expansion_factor=1, oversample_ratio=0, undersample_ratio=0)
