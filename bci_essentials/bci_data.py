@@ -166,6 +166,11 @@ class EEG_data():
             self.nchannels = 23
             self.channel_labels.pop()
 
+        # if self.headset_string == "EmotivDataStream-EEG":
+
+        #     self.nchannels = 32
+        #     self.channel_labels = self.channel_labels[3:-2]
+
         # if other headsets have quirks, they can be accomodated for here
 
         # If a subset is to be used, define a new nchannels, channel labels, and eeg data
@@ -204,6 +209,8 @@ class EEG_data():
         """
         Howdy
         """
+        self.subset = subset
+
         print("printing incoming stream")
 
         self.subset = subset
@@ -300,6 +307,24 @@ class EEG_data():
             self.nchannels = 23
 
 
+        # if self.headset_string == "EmotivDataStream-EEG":
+
+        #     self.nchannels = 32
+        #     self.channel_labels = self.channel_labels[3:-2] #Accounting for all the extra parts in EmotivFlex
+
+
+        # If a subset is to be used, define a new nchannels, and channel labels
+        if self.subset != []:
+            print("A subset was defined")
+            print("Original channels")
+            print(self.channel_labels)
+            self.nchannels = len(self.subset)
+            self.subset_indices = []
+            for s in self.subset:
+                self.subset_indices.append(self.channel_labels.index(s))
+            self.channel_labels = self.subset
+            print("Subset channels")
+            print(self.channel_labels)
 
         # if other headsets have quirks, they can be accomodated for here
 

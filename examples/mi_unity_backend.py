@@ -16,7 +16,9 @@ mi_data.classifier = mi_classifier() # you can add a subset here
 mi_data.classifier.set_mi_classifier_settings(n_splits=3, type="TS", random_seed=35)
 
 # Connect the streams
+
 mi_data.stream_online_eeg_data() # you can also add a subset here
+
 
 # Run
 mi_data.main(online=True, training=True)
