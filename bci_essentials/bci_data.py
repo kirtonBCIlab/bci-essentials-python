@@ -186,6 +186,9 @@ class EEG_data():
             # Apply the subset to the raw data
             self.eeg_data = self.eeg_data[:, self.subset_indices]
 
+        else:
+            self.subset_indices = list(range(0,self.nchannels))
+
         # send channel labels to classifier
         try:
             self.classifier.channel_labels = self.channel_labels
@@ -298,21 +301,8 @@ class EEG_data():
 
         # if other headsets have quirks, they can be accomodated for here
 
-
-        # If a subset is to be used, define a new nchannels, and channel labels
-        if self.subset != []:
-            print("A subset was defined")
-            print("Original channels")
-            print(self.channel_labels)
-
-            self.nchannels = len(self.subset)
-            self.subset_indices = []
-            for s in self.subset:
-                self.subset_indices.append(self.channel_labels.index(s))
-
-            self.channel_labels = self.subset
-            print("Subset channels")
-            print(self.channel_labels)
+        else:
+            self.subset_indices = list(range(0,self.nchannels))
 
         # send channel labels to classifier
         try:
@@ -573,6 +563,7 @@ class EEG_data():
                                 print("No windows to make a decision")
                                 self.marker_count += 1
                                 break
+
 
                             prediction =  self.classifier.predict(self.windows)
 
@@ -855,6 +846,7 @@ class ERP_data(EEG_data):
                     # if self.marker_data[self.marker_count][0] == 'P300 SingleFlash Begins' or 'P300 SingleFlash Started':
                     if self.marker_data[self.marker_count][0] == 'P300 SingleFlash Started' or self.marker_data[self.marker_count][0] == 'P300 SingleFlash Begins' or self.marker_data[self.marker_count][0] == 'Trial Started':
                         # Note that a marker occured, but do nothing else
+                        print("Trial Started")
                         self.marker_count += 1
                     
                     # If training completed then train the classifier
