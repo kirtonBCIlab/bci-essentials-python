@@ -441,7 +441,7 @@ class ssvep_basic_classifier(generic_classifier):
         # Extract features, the bandpowers of the bands around each of the target frequencies
 
         # Get the PSD of the windows using Welch's method
-        f, Pxx = signal.welch(subX, fs=self.sampling_freq, nperseg=256)
+        f, Pxx = signal.welch(self.X, fs=self.sampling_freq, nperseg=256)
 
         # X features are the PSDs from 0 to the max target frequency + some buffer
         upper_buffer = 5
