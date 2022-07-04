@@ -661,9 +661,13 @@ class EEG_data():
                 # Check if the whole EEG window corresponding to the marker is available
                 end_time_plus_buffer = self.marker_timestamps[self.marker_count] + self.window_length + buffer
 
-                # If we don't have the full window then pull more data
+                # If we don't have the full window then pull more data, only do this online
                 if (self.eeg_timestamps[-1] <= end_time_plus_buffer):
-                    break
+                    if online == True:
+                        break
+                    if online == False:
+                        self.marker_count += 1
+                        break
 
                 print(marker_info)
 
@@ -720,14 +724,13 @@ class EEG_data():
                     pred = self.classifier.predict(self.windows[self.nwindows, 0:self.nchannels, 0:self.nsamples-1])
                     self.outlet.push_sample(["{}".format(int(pred))])
 
-
                 # iterate to next window
                 self.marker_count += 1
                 self.nwindows += 1
                 search_index = start_loc
 
             # Wait a short period of time and then try to pull more data
-            time.sleep(0.01)
+            time.sleep(0.00001)
             loops += 1
 
 # ERP Data
@@ -1045,9 +1048,9 @@ class ERP_data(EEG_data):
                 self.marker_count += 1
                 self.nwindows += 1
                 search_index = start_loc
-                time.sleep(0.001)
+                time.sleep(0.000001)
 
-            time.sleep(0.001)
+            time.sleep(0.000001)
             loops += 1
             
         # Trim the unused ends of numpy arrays
