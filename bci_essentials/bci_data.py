@@ -299,7 +299,24 @@ class EEG_data():
             self.channel_labels.pop()
             self.nchannels = 23
 
+
+
         # if other headsets have quirks, they can be accomodated for here
+
+        # If a subset is to be used, define a new nchannels, channel labels, and eeg data
+        if self.subset != []:
+            print("A subset was defined")
+            print("Original channels")
+            print(self.channel_labels)
+
+            self.nchannels = len(self.subset)
+            self.subset_indices = []
+            for s in self.subset:
+                self.subset_indices.append(self.channel_labels.index(s))
+
+            self.channel_labels = self.subset
+            print("Subset channels")
+            print(self.channel_labels)
 
         else:
             self.subset_indices = list(range(0,self.nchannels))
@@ -337,17 +354,10 @@ class EEG_data():
         if include_eeg == True:
             new_eeg_data, new_eeg_timestamps = self.eeg_inlet.pull_chunk(timeout=0.1)
             new_eeg_data = np.array(new_eeg_data)
-            ##Handle the case when you are using subsets
+            
+            #Handle the case when you are using subsets
             if self.subset!=[]:
-                new_eeg_data = new_eeg_data[:, self.subset_indices]
-            # Do the subset
-            
-
-            # TEST TEST
-            # self.nchannels = len(self.subset)
-            
-            # new_eeg_data
-            # ####
+                new_eeg_data = new_eeg_data[:, self.subset_indices]   
 
             # if time is in milliseconds, divide by 1000, works for sampling rates above 10Hz
             try:
@@ -447,12 +457,8 @@ class EEG_data():
             pp_type = "bandpass",   # preprocessing method
             pp_low=1,               # bandpass lower cutoff
             pp_high=40,             # bandpass upper cutoff
-            pp_order=5,             # bandpass order
-
-            subset = []):
-
-        self.subset = subset
-
+            pp_order=5             # bandpass order
+            ):
 
         """
         Howdy
@@ -747,17 +753,11 @@ class ERP_data(EEG_data):
             pp_high=40,             # bandpass upper cutoff
             pp_order=5,             # bandpass order
 
-            subset=[],
-
-            #picks = [],
-
             plot_erp = False
             ):
         """
         Howdy
         """
-
-        self.subset = subset
 
         unity_train = True
         self.num_options = num_selections
