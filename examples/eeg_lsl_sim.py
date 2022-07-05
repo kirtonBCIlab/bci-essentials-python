@@ -22,8 +22,8 @@ import datetime
 
 from pylsl import StreamInfo, StreamOutlet
 
-# Add parent directory to path to access bci_essentials
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),os.pardir))
+# # Add parent directory to path to access bci_essentials
+# sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),os.pardir))
 
 # Import local bci_essentials
 from bci_essentials.bci_data import EEG_data
@@ -75,6 +75,16 @@ fs_eeg = round(len(eeg_time_stamps) / (time_stop - time_start))
 
 # create the eeg stream
 info = StreamInfo('MockEEG', 'EEG', 8, fs_eeg, 'float32', 'mockeeg1')
+
+# add channel data
+channels = info.desc().append_child("channels")
+for c in eeg_stream.channel_labels:
+    channels.append_child("channel")\
+        .append_child_value("name", c)\
+        .append_child_value("unit", "microvolts")\
+        .append_child_value("type", "EEG")
+
+# create the EEG stream
 outlet = StreamOutlet(info)
 
 if start_now == False:

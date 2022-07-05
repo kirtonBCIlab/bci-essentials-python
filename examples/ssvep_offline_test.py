@@ -4,8 +4,11 @@
 import os
 import sys
 
-# Add parent directory to path to access bci_essentials
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),os.pardir))
+
+# # Add parent directory to path to access bci_essentials
+# sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),os.pardir))
+
+
 
 # # from src.bci_data import *
 from bci_essentials.bci_data import *
@@ -21,15 +24,17 @@ test_ssvep = EEG_data()
 test_ssvep.load_offline_eeg_data(filename = "examples/data/ssvep_example.xdf", format='xdf')
 
 # Define the classifier
-test_ssvep.classifier = ssvep_basic_classifier()
+
+test_ssvep.classifier = ssvep_basic_classifier(subset=[])
 
 # 
 target_freqs = [9, 9.6, 10.28, 11.07, 12, 13.09, 14.4]
-# add the frequencies from the marker string to target freqs
+# TODO add the frequencies from the marker string to target freqs
 
 #test_ssvep.classifier.set_ssvep_settings(sampling_freq = 300, target_freqs = target_freqs)
 
-test_ssvep.classifier.set_ssvep_settings(n_splits=3, sampling_freq=300, target_freqs = target_freqs, subset=[], random_seed=42, clf_type="Random Forest")
+test_ssvep.classifier.set_ssvep_settings(n_splits=3, sampling_freq=300, target_freqs = target_freqs, random_seed=42, clf_type="Random Forest")
+
 #test_ssvep.classifier.set_ssvep_settings(n_splits=3, sampling_freq=300, target_freqs = target_freqs, subset=[], random_seed=42, clf_type="LDA")
 
 test_ssvep.main(online=False, training=True, max_samples= 5120)

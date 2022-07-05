@@ -1,8 +1,8 @@
 import os
 import sys
 
-# Add parent directory to path to access bci_essentials
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),os.pardir))
+# # Add parent directory to path to access bci_essentials
+# sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),os.pardir))
 
 # import bci_essntials
 from bci_essentials.bci_data import *
