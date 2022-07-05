@@ -1,3 +1,7 @@
 bci_essentials/__pycache__
 archive/
 .idea/
+*.egg-info/
+.vscode/
+build/
+dist/
