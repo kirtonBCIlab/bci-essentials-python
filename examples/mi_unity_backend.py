@@ -8,7 +8,6 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),os.pardi
 
 from bci_essentials.bci_data import *
 
-
 # f = open("test.txt", 'w')
 # sys.stdout = f
 

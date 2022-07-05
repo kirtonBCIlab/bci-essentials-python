@@ -18,13 +18,20 @@ from sklearn.pipeline import make_pipeline, Pipeline
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.utils import resample
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, precision_score, recall_score
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, precision_score, recall_score, accuracy_score
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn import preprocessing
 
 from pyriemann.estimation import ERPCovariances, XdawnCovariances, Covariances
 from pyriemann.tangentspace import TangentSpace
 from pyriemann.classification import MDM, TSclassifier
 from pyriemann.utils.viz import plot_confusion_matrix
+
+import tensorflow as tf
+from tensorflow.keras.models import Sequential, load_model
+from tensorflow.keras.layers import Activation, Dense, Flatten
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.metrics import categorical_crossentropy
 
 from scipy import signal
 
@@ -762,21 +769,18 @@ class mi_classifier(generic_classifier):
         return pred
 
 class switch_classifier(generic_classifier):
-    def set_switch_classifier_settings(self, n_splits=3, rebuild = True, random_seed = 42):
-        # Build the cross-validation split
+    def set_switch_classifier_settings(self, n_splits = 3, rebuild = True, random_seed = 42, activation_main = 'relu', activation_class = 'softmax'):
         self.n_splits = n_splits
         self.cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_seed)
-
-        # Rebuild from scratch with each training
         self.rebuild = rebuild
 
-        # Define the classifier
-        ts = TSclassifier()
-        self.clf_model = Pipeline([("Tangent Space", ts)])
-        self.clf = Pipeline([("Tangent Space", ts)])
-
         # CHANGE THE CLASSIFIER HERE IF YOU WANT
-
+        self.adamclf = Sequential([
+            Flatten(),
+            Dense(units=8, input_shape=(4,), activation=activation_main),
+            Dense(units=16, activation=activation_main),
+            Dense(units=2, activation=activation_class)
+        ])
 
     # fit is a little different for the switch, becouse it consists of fitting multiple binary classifiers, one for each object in the scene
     def fit(self):
@@ -788,6 +792,10 @@ class switch_classifier(generic_classifier):
         
         # find the number of classes in y there shoud be N + 1, where N is the number of objects in the scene and also the number of classifiers
         self.num_classifiers = len(list(np.unique(self.y))) - 1
+        print(f"Number of classes: {self.num_classifiers}")
+
+        # classifier number
+        self.clf = self.adamclf
 
         # make a list to hold all of the classifiers
         self.clfs = []
@@ -796,39 +804,57 @@ class switch_classifier(generic_classifier):
         for i in range(self.num_classifiers):
             # add the basic unfit classifier
             self.clfs.append(self.clf)
-
-            # 
-            # X = self.X[where y is etiher 0 or i+1]
-            # y = self.y[where y is either 0 or i+1]
+             
+            X = self.X[0]
+            y = self.y[i+1]
 
             # # Init predictions to all neutral (ie. zeros)
             # preds = np.zeros(nwindows)
 
-            # subX = self.X[self.next_fit_window:,:,:]
-            # suby = self.y[self.next_fit_window:]
-            # self.next_fit_window = nwindows
+            self.next_fit_window = 0
 
-            # for train_idx, test_idx in self.cv.split(subX,suby):
-            #     X_train, X_test = subX[train_idx], subX[test_idx]
-            #     y_train, y_test = suby[train_idx], suby[test_idx]
+            preds = np.array([])
 
-            #     # get the covariance matrices for the training set
-            #     X_train_cov = Covariances().transform(X_train)
-            #     X_test_cov = Covariances().transform(X_test)
+            # subX = X[self.next_fit_window:,:]
+            # suby = y[self.next_fit_window:]
+            self.next_fit_window = nwindows
 
-            #     # fit the classsifier
-            #     self.clf.fit(X_train_cov, y_train)
-            #     preds[test_idx] = self.clf.predict(X_test_cov)
+            for train_idx, test_idx in self.cv.split(X,y):
+                X_train, X_test = X[train_idx], X[test_idx]
+                y_train, y_test = y[train_idx], y[test_idx]
 
-            #     # JUST ADDING A NOTE HERE THAT IN THE FUTURE WE WILL PROBABLY WANT TO USE PREDPROBA TO RETURN A SCORE FOR EACH CLASS AND NOT JUST A CLASSIFICATION
+                z_dim, y_dim, x_dim = X_train.shape
+                X_train = X_train.reshape(z_dim, x_dim*y_dim)
+                scaler_train = preprocessing.StandardScaler().fit(X_train)
+                X_train_scaled = scaler_train.transform(X_train)
 
-            #     # Use pred proba to show what would be predicted
-            #     #predprobs = predproba[:,1]
-            #     #real = np.where(y_test == 1)
+                z_dim, y_dim, x_dim = X_test.shape
+                X_test = X_test.reshape(z_dim, x_dim*y_dim)
+                scaler_test = preprocessing.StandardScaler().fit(X_test)
+                X_test_scaled = scaler_test.transform(X_test)
 
-            #     # a,pred_proba[test_idx] = self.clf.predict_proba(self.X[test_idx])
-            #     # print(preds[test_idx])
-            #     # print(predproba)
+                # get the covariance matrices for the training set
+                '''X_train_cov = Covariances().transform(X_train)
+                X_test_cov = Covariances().transform(X_test) '''
+
+                # Compile the model
+                self.adamclf.compile(optimizer=Adam(learning_rate=0.001), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+                # Fit the model
+                self.adamclf.fit(x=X_train_scaled, y=y_train, batch_size=5, epochs=3, shuffle=True, verbose=2, validation_data=(X_test_scaled, y_test)) # Need to reshape X_train
+
+                # Predict
+                np.append(preds, self.adamclf.predict(X_test))
+                #preds[test_idx] = self.clf.predict(X_test_cov)
+
+                # JUST ADDING A NOTE HERE THAT IN THE FUTURE WE WILL PROBABLY WANT TO USE PREDPROBA TO RETURN A SCORE FOR EACH CLASS AND NOT JUST A CLASSIFICATION
+
+                # Use pred proba to show what would be predicted
+                #predprobs = predproba[:,1]
+                #real = np.where(y_test == 1)
+
+                # a,pred_proba[test_idx] = self.clf.predict_proba(self.X[test_idx])
+                # print(preds[test_idx])
+                # print(predproba)
 
             # # Print performance stats
             # # accuracy

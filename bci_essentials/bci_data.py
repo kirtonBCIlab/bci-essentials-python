@@ -161,27 +161,29 @@ class EEG_data():
             self.channel_labels.pop()
 
         # if other headsets have quirks, they can be accomodated for here
+        print(self.headset_string)
+        print(self.channel_labels)
 
         # If a subset is to be used, define a new nchannels, channel labels, and eeg data
-        if self.subset != []:
-            print("A subset was defined")
-            print("Original channels")
-            print(self.channel_labels)
+        # if self.subset != []:
+        #     print("A subset was defined")
+        #     print("Original channels")
+        #     print(self.channel_labels)
 
-            self.nchannels = len(self.subset)
-            self.subset_indices = []
-            for s in self.subset:
-                self.subset_indices.append(self.channel_labels.index(s))
+        #     self.nchannels = len(self.subset)
+        #     self.subset_indices = []
+        #     for s in self.subset:
+        #         self.subset_indices.append(self.channel_labels.index(s))
 
-            self.channel_labels = self.subset
-            print("Subset channels")
-            print(self.channel_labels)
+        #     self.channel_labels = self.subset
+        #     print("Subset channels")
+        #     print(self.channel_labels)
 
-            # Apply the subset to the raw data
-            self.eeg_data = self.eeg_data[:, self.subset_indices]
+        #     # Apply the subset to the raw data
+        #     self.eeg_data = self.eeg_data[:, self.subset_indices]
 
-        else:
-            self.subset_indices = list(range(0,self.nchannels))
+        # else:
+        #     self.subset_indices = list(range(0,self.nchannels))
 
         # send channel labels to classifier
         try:
@@ -327,17 +329,17 @@ class EEG_data():
             self.marker_timestamps = np.array(list(self.marker_timestamps) + new_marker_timestamps)
 
         if include_eeg == True:
-            new_eeg_data, new_eeg_timestamps = self.eeg_inlet.pull_chunk(timeout=0.1)
+            new_eeg_data, new_eeg_timestamps = self.eeg_inlet.pull_chunk(timeout=1) # timeout=0.1 orginally - Adam
 
             # if time is in milliseconds, divide by 1000, works for sampling rates above 10Hz
             try:
-                if self.time_units == 'milliseconds':
+                if self.time_units == 'timestamp':
                     new_eeg_timestamps = [(new_eeg_timestamps[i]/1000) for i in range(len(new_eeg_timestamps))]
 
             # If time units are not defined then define them
             except:
-                dif_low = -2
-                dif_high = -1
+                dif_low = -2 # -2
+                dif_high = -1 # -1
                 while (new_eeg_timestamps[dif_high] - new_eeg_timestamps[dif_low] == 0):
                     dif_low -= 1
                     dif_high -= 1
