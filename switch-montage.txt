@@ -1,0 +1,16 @@
+F3
+Fz
+F4
+FC3
+FCz
+FC4
+C5
+C3
+C1
+Cz
+C2
+C4
+C6
+CP5
+CP4
+Pz
