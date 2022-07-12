@@ -8,21 +8,18 @@ These modules are specifically designed to be equivalent whether run offline or 
 The front end for this package can be found in [bci-essentials-unity](https://www.github.com/kirtonBCIlab/bci-essentials-unity)
 
 ## Getting Started
-It is recommended to use anaconda or miniconda, all conda commands must be run from the anaconda prompt unless anaconda has been added to PATH.
-Alternatively, a regular python virtual environment should be sufficient.
 
+Using the terminal
 1. clone from git
 >git clone https://github.com/kirtonBCIlab/bci-essentials-python.git
-2. Create a conda environment from the bci_essentials_env.yml an activate it
->conda env create -f env/bci_essentials_env.yml
+2. Create and activate a conda environment (RECOMENDED)
+>conda create -n bci-essentials
 >conda activate bci_essentials
-2. OR use pip to install to a virtual environment
->pip install virtualenv
->virtualenv bci_essentials
->source bci_essentials/bin/activate
->pip install -r env/bci_essentials_requirements.txt
-3. Update pyriemann to the latest version from github
->pip install git+https://github.com/pyRiemann/pyRiemann
+3. navigate to the bci-essentials-python directory and activate virtual env if desired
+>cd <your-local-bci-essentials-python-directory>
+4. install with pip
+>pip install .
+
 
 ## Offline processing
 Offline processing can be done by running the corresponding offline test script (ie. mi_offline_test.py, p300_offline_test.py, etc.)
@@ -45,12 +42,6 @@ The main packge containing modules for BCI processing.
 - classification.py   -   module containing relevant classifiers for BCI_data, classifiers can be extended to meet individual needs
 - signal_processing.py-   module containing functions for the processing of EEG_data
 - visuals.py          -   module for visualizing EEG data
-
-### env
-Environment files.
-- bci_online.yml      -   includes all necessary libraries for BCI essentials plus MNE
-- bci_essentials.yml  -   includes all necessary libraries for BCI essentials
-- bci_essentials.txt  -   includes all necessary libraries for BCI essentials in the pip requirements format
 
 ### examples
 Example scripts and data.
