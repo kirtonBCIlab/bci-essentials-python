@@ -377,7 +377,7 @@ class EEG_data():
             self.marker_timestamps = np.array(list(self.marker_timestamps) + new_marker_timestamps)
 
         if include_eeg == True:
-            new_eeg_data, new_eeg_timestamps = self.eeg_inlet.pull_chunk(timeout=0.1)
+            new_eeg_data, new_eeg_timestamps = self.eeg_inlet.pull_chunk(timeout=1)
             new_eeg_data = np.array(new_eeg_data)
             
             #Handle the case when you are using subsets
@@ -747,7 +747,7 @@ class EEG_data():
                 # TODO: Get this live update going
                 if live_update == True:
                     pred = self.classifier.predict(self.windows[self.nwindows, 0:self.nchannels, 0:self.nsamples-1])
-                    self.outlet.push_sample(["{}".format(int(pred))])
+                    self.outlet.push_sample(["{}".format(pred)])
 
                 # iterate to next window
                 self.marker_count += 1

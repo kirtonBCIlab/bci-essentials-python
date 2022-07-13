@@ -18,13 +18,21 @@ from sklearn.pipeline import make_pipeline, Pipeline
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.utils import resample
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, precision_score, recall_score
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, precision_score, recall_score, accuracy_score
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn import preprocessing
 
 from pyriemann.estimation import ERPCovariances, XdawnCovariances, Covariances
 from pyriemann.tangentspace import TangentSpace
 from pyriemann.classification import MDM, TSclassifier
 from pyriemann.utils.viz import plot_confusion_matrix
+
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras.models import Sequential, load_model
+from tensorflow.keras.layers import Activation, Dense, Flatten
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.metrics import categorical_crossentropy
 
 from scipy import signal
 
@@ -744,104 +752,124 @@ class mi_classifier(generic_classifier):
         return pred
 
 class switch_classifier(generic_classifier):
-    def set_switch_classifier_settings(self, n_splits=3, rebuild = True, random_seed = 42):
-        # Build the cross-validation split
+    def set_switch_classifier_settings(self, n_splits = 2, rebuild = True, random_seed = 42, activation_main = 'relu', activation_class = 'sigmoid'):
+
         self.n_splits = n_splits
         self.cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_seed)
-
-        # Rebuild from scratch with each training
         self.rebuild = rebuild
 
-        # Define the classifier
-        ts = TSclassifier()
-        self.clf_model = Pipeline([("Tangent Space", ts)])
-        self.clf = Pipeline([("Tangent Space", ts)])
+        tf.random.set_seed(
+            random_seed
+        )
 
         # CHANGE THE CLASSIFIER HERE IF YOU WANT
+        self.clf0and1 = Sequential([
+            Flatten(),
+            Dense(units=8, input_shape=(4,), activation=activation_main),
+            Dense(units=16, activation=activation_main),
+            Dense(units=3, activation=activation_class)
+        ])
+
+        self.clf0and2 = Sequential([
+            Flatten(),
+            Dense(units=8, input_shape=(4,), activation=activation_main),
+            Dense(units=16, activation=activation_main),
+            Dense(units=3, activation=activation_class)
+        ])
+
+        # self.clf0and1 = MDM()
 
 
-    # fit is a little different for the switch, becouse it consists of fitting multiple binary classifiers, one for each object in the scene
     def fit(self):
         # get dimensions
         nwindows, nchannels, nsamples = self.X.shape 
 
         # do the rest of the training if train_free is false
-        self.X = np.array(self.X)
-        
+        X = np.array(self.X)
+        y = np.array(self.y)
+
         # find the number of classes in y there shoud be N + 1, where N is the number of objects in the scene and also the number of classifiers
         self.num_classifiers = len(list(np.unique(self.y))) - 1
+        print(f"Number of classes: {self.num_classifiers}")
 
         # make a list to hold all of the classifiers
         self.clfs = []
 
         # loop through and build the classifiers
         for i in range(self.num_classifiers):
-            # add the basic unfit classifier
-            self.clfs.append(self.clf)
+            # take a subset / do spatial filtering
+            X = X[:,:,:] # Does nothing for now
 
-            # 
-            # X = self.X[where y is etiher 0 or i+1]
-            # y = self.y[where y is either 0 or i+1]
+            X_class = X[np.logical_or(y==0, y==(i+1)),:,:]
+            y_class = y[np.logical_or(y==0, y==(i+1)),]
 
-            # # Init predictions to all neutral (ie. zeros)
-            # preds = np.zeros(nwindows)
+            # Try rebuilding the classifier each time
+            if self.rebuild == True:
+                self.next_fit_window = 0
+                # tf.keras.backend.clear_session()
 
-            # subX = self.X[self.next_fit_window:,:,:]
-            # suby = self.y[self.next_fit_window:]
-            # self.next_fit_window = nwindows
+            subX = X_class[self.next_fit_window:,:,:]
+            suby = y_class[self.next_fit_window:]
+            self.next_fit_window = nwindows
 
-            # for train_idx, test_idx in self.cv.split(subX,suby):
-            #     X_train, X_test = subX[train_idx], subX[test_idx]
-            #     y_train, y_test = suby[train_idx], suby[test_idx]
+            for train_idx, test_idx in self.cv.split(subX,suby):
+                X_train, X_test = subX[train_idx], subX[test_idx]
+                y_train, y_test = suby[train_idx], suby[test_idx]
 
-            #     # get the covariance matrices for the training set
-            #     X_train_cov = Covariances().transform(X_train)
-            #     X_test_cov = Covariances().transform(X_test)
+                z_dim, y_dim, x_dim = X_train.shape
+                X_train = X_train.reshape(z_dim, x_dim*y_dim)
+                scaler_train = preprocessing.StandardScaler().fit(X_train)
+                X_train_scaled = scaler_train.transform(X_train)
 
-            #     # fit the classsifier
-            #     self.clf.fit(X_train_cov, y_train)
-            #     preds[test_idx] = self.clf.predict(X_test_cov)
+                print(f"The shape of X_train_scaled is {X_train_scaled.shape}")
 
-            #     # JUST ADDING A NOTE HERE THAT IN THE FUTURE WE WILL PROBABLY WANT TO USE PREDPROBA TO RETURN A SCORE FOR EACH CLASS AND NOT JUST A CLASSIFICATION
+                z_dim, y_dim, x_dim = X_test.shape
+                X_test = X_test.reshape(z_dim, x_dim*y_dim)
+                scaler_test = preprocessing.StandardScaler().fit(X_test)
+                X_test_scaled = scaler_test.transform(X_test)
 
-            #     # Use pred proba to show what would be predicted
-            #     #predprobs = predproba[:,1]
-            #     #real = np.where(y_test == 1)
+                if i == 0:
+                    # Compile the model
+                    print("\nWorking on first model...")
+                    self.clf0and1.compile(optimizer=Adam(learning_rate=0.001), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+                    # Fit the model
+                    self.clf0and1.fit(x=X_train_scaled, y=y_train, batch_size=5, epochs=4, shuffle=True, verbose=2, validation_data=(X_test_scaled, y_test)) # Need to reshape X_train
+                    
+                else:
+                    print("\nWorking on second model...")
+                    # Compile the model
+                    self.clf0and2.compile(optimizer=Adam(learning_rate=0.001), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+                    # Fit the model
+                    self.clf0and2.fit(x=X_train_scaled, y=y_train, batch_size=5, epochs=4, shuffle=True, verbose=2, validation_data=(X_test_scaled, y_test)) # Need to reshape X_train
 
-            #     # a,pred_proba[test_idx] = self.clf.predict_proba(self.X[test_idx])
-            #     # print(preds[test_idx])
-            #     # print(predproba)
-
-            # # Print performance stats
-            # # accuracy
+            # Print performance stats
+            # accuracy
             # correct = preds == self.y
             # #print(correct)
 
-            # self.offline_window_count = nwindows
-            # self.offline_window_counts.append(self.offline_window_count)
+            '''self.offline_window_count = nwindows
+            self.offline_window_counts.append(self.offline_window_count)
+            # accuracy
+            accuracy = sum(preds == self.y)/len(preds)
+            self.offline_accuracy.append(accuracy)
+            print("accuracy = {}".format(accuracy))
+            # precision
+            precision = precision_score(self.y,preds)
+            self.offline_precision.append(precision)
+            print("precision = {}".format(precision))
+            # recall
+            recall = recall_score(self.y, preds)
+            self.offline_recall.append(recall)
+            print("recall = {}".format(recall))
+            # confusion matrix in command line
+            cm = confusion_matrix(self.y, preds)
+            self.offline_cm = cm
+            print("confusion matrix")
+            print(cm)'''
+            
+        self.weights1 = self.clf0and1.get_weights()
+        #self.weights2 = self.clf0and2.get_weights()
 
-            # # accuracy
-            # accuracy = sum(preds == self.y)/len(preds)
-            # self.offline_accuracy.append(accuracy)
-            # print("accuracy = {}".format(accuracy))
-
-            # # precision
-            # precision = precision_score(self.y,preds)
-            # self.offline_precision.append(precision)
-            # print("precision = {}".format(precision))
-
-            # # recall
-            # recall = recall_score(self.y, preds)
-            # self.offline_recall.append(recall)
-            # print("recall = {}".format(recall))
-
-            # # confusion matrix in command line
-            # cm = confusion_matrix(self.y, preds)
-            # self.offline_cm = cm
-            # print("confusion matrix")
-            # print(cm)
-
-    # This is the predict function
     def predict(self, X):
         # if X is 2D, make it 3D with one as first dimension
         if len(X.shape) < 3:
@@ -849,18 +877,53 @@ class switch_classifier(generic_classifier):
 
         print("the shape of X is", X.shape)
 
-        activationString = ""
+        self.predict0and1 = Sequential([
+            Flatten(),
+            Dense(units=8, input_shape=(4,), activation='relu'),
+            Dense(units=16, activation='relu'),
+            Dense(units=3, activation='sigmoid')
+        ])
 
-        # THIS IS A DUMMY CLASSIFIER
-        for i in range(0, self.num_classifiers):
-            if i > 0:
-                activationString = activationString + ","
+        self.predict0and2 = Sequential([
+            Flatten(),
+            Dense(units=8, input_shape=(4,), activation='relu'),
+            Dense(units=16, activation='relu'),
+            Dense(units=3, activation='sigmoid')
+        ])
 
-            activationString = activationString + str(random.uniform(0, 1))
+        z_dim, y_dim, x_dim = X.shape
+        X_predict = X.reshape(z_dim, x_dim*y_dim)
+        scaler_train = preprocessing.StandardScaler().fit(X_predict)
+        X_predict_scaled = scaler_train.transform(X_predict)
+
+        pred0and1 = self.predict0and1.predict(X_predict_scaled)
+        pred0and2 = self.predict0and2.predict(X_predict_scaled)
 
 
-        return activationString
+        final_predictions = np.array([])
 
+        for row1, row2 in zip(pred0and1, pred0and2):
+            if row1[0] > row1[1] and row2[0] > row2[2]:
+                np.append(final_predictions, 0)
+            elif row1[0] > row1[1] and row2[0] < row2[2]:
+                np.append(final_predictions, 2)
+            elif row1[0] < row1[1] and row2[0] > row2[2]:
+                np.append(final_predictions, 1)
+            elif row1[0] < row1[1] and row2[0] < row2[2]:
+                if row1[1] > row2[2]:
+                    np.append(final_predictions, 1)
+                else:
+                    np.append(final_predictions, 2)
+
+        return final_predictions
+
+class null_classifier(generic_classifier):
+    def fit(self):
+
+        print("This is a null classifier, there is no fitting")
+
+    def predict(self, X):
+        return 0
 
 
 

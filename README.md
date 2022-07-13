@@ -19,6 +19,13 @@ Using the terminal
 >cd <your-local-bci-essentials-python-directory>
 4. install with pip
 >pip install .
+The following is only for M1 Mac tensorflow install
+5. Navigate to https://drive.google.com/drive/folders/1oSipZLnoeQB0Awz8U68KYeCPsULy_dQ7 
+6. Download tensorflow-2.4.1-py3-none-any.whl and place it in main directory 
+7. Navigate to directory
+>cd <your-local-bci-essentials-python-directory>
+8. Use pip install on file once venv is active
+> pip install tensorflow-2.4.1-py3-none-any.whl
 
 
 ## Offline processing
