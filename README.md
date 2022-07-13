@@ -13,17 +13,17 @@ Using the terminal
 1. clone from git
 >git clone https://github.com/kirtonBCIlab/bci-essentials-python.git
 2. Create and activate a conda environment (RECOMENDED)
->conda create -n bci-essentials
->conda activate bci_essentials
+>1.conda create -n bci-essentials
+>2.conda activate bci_essentials
 3. navigate to the bci-essentials-python directory and activate virtual env if desired
 >cd <your-local-bci-essentials-python-directory>
 4. install with pip
 >pip install .
 5. M1 Macs tensorflow install
->Navigate to https://drive.google.com/drive/folders/1oSipZLnoeQB0Awz8U68KYeCPsULy_dQ7
->Download tensorflow-2.4.1-py3-none-any.whl and place it in main directory
->Navigate to directory
->Use pip install tensorflow-2.4.1-py3-none-any.whl once venv is activated
+>1.Navigate to https://drive.google.com/drive/folders/1oSipZLnoeQB0Awz8U68KYeCPsULy_dQ7
+>2.Download tensorflow-2.4.1-py3-none-any.whl and place it in main directory
+>3.Navigate to directory
+>4.Use pip install tensorflow-2.4.1-py3-none-any.whl once venv is activated
 
 
 ## Offline processing
