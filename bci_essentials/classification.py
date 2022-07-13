@@ -44,8 +44,6 @@ from scipy import signal
 from bci_essentials.visuals import *
 from bci_essentials.signal_processing import *
 
-from adam_ML import logistic_regression_NP
-
 # TODO : move this to signal processing???
 def lico(X,y,expansion_factor=3, sum_num=2, shuffle=False):
     """
@@ -763,6 +761,10 @@ class switch_classifier(generic_classifier):
         self.cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_seed)
         self.rebuild = rebuild
 
+        tf.random.set_seed(
+            random_seed
+        )
+
         # CHANGE THE CLASSIFIER HERE IF YOU WANT
         self.clf0and1 = Sequential([
             Flatten(),
@@ -834,14 +836,14 @@ class switch_classifier(generic_classifier):
                     print("\nWorking on first model...")
                     self.clf0and1.compile(optimizer=Adam(learning_rate=0.001), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
                     # Fit the model
-                    self.clf0and1.fit(x=X_train_scaled, y=y_train, batch_size=5, epochs=5, shuffle=True, verbose=2, validation_data=(X_test_scaled, y_test)) # Need to reshape X_train
+                    self.clf0and1.fit(x=X_train_scaled, y=y_train, batch_size=5, epochs=4, shuffle=True, verbose=2, validation_data=(X_test_scaled, y_test)) # Need to reshape X_train
                     
                 else:
                     print("\nWorking on second model...")
                     # Compile the model
                     self.clf0and2.compile(optimizer=Adam(learning_rate=0.001), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
                     # Fit the model
-                    self.clf0and2.fit(x=X_train_scaled, y=y_train, batch_size=5, epochs=5, shuffle=True, verbose=2, validation_data=(X_test_scaled, y_test)) # Need to reshape X_train
+                    self.clf0and2.fit(x=X_train_scaled, y=y_train, batch_size=5, epochs=4, shuffle=True, verbose=2, validation_data=(X_test_scaled, y_test)) # Need to reshape X_train
 
             # Print performance stats
             # accuracy

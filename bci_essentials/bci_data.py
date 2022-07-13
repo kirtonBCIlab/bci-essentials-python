@@ -176,25 +176,25 @@ class EEG_data():
         print(self.channel_labels)
 
         # If a subset is to be used, define a new nchannels, channel labels, and eeg data
-        # if self.subset != []:
-        #     print("A subset was defined")
-        #     print("Original channels")
-        #     print(self.channel_labels)
+        if self.subset != []:
+            print("A subset was defined")
+            print("Original channels")
+            print(self.channel_labels)
 
-        #     self.nchannels = len(self.subset)
-        #     self.subset_indices = []
-        #     for s in self.subset:
-        #         self.subset_indices.append(self.channel_labels.index(s))
+            self.nchannels = len(self.subset)
+            self.subset_indices = []
+            for s in self.subset:
+                self.subset_indices.append(self.channel_labels.index(s))
 
-        #     self.channel_labels = self.subset
-        #     print("Subset channels")
-        #     print(self.channel_labels)
+            self.channel_labels = self.subset
+            print("Subset channels")
+            print(self.channel_labels)
 
-        #     # Apply the subset to the raw data
-        #     self.eeg_data = self.eeg_data[:, self.subset_indices]
+            # Apply the subset to the raw data
+            self.eeg_data = self.eeg_data[:, self.subset_indices]
 
-        # else:
-        #     self.subset_indices = list(range(0,self.nchannels))
+        else:
+            self.subset_indices = list(range(0,self.nchannels))
 
         # send channel labels to classifier
         try:
