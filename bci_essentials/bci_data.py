@@ -747,7 +747,7 @@ class EEG_data():
                 # TODO: Get this live update going
                 if live_update == True:
                     pred = self.classifier.predict(self.windows[self.nwindows, 0:self.nchannels, 0:self.nsamples-1])
-                    self.outlet.push_sample(["{}".format(int(pred))])
+                    self.outlet.push_sample(["{}".format(pred)])
 
                 # iterate to next window
                 self.marker_count += 1
