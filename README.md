@@ -13,8 +13,8 @@ Using the terminal
 1. clone from git
 >git clone https://github.com/kirtonBCIlab/bci-essentials-python.git
 2. Create and activate a conda environment (RECOMENDED)
->1.conda create -n bci-essentials
->2.conda activate bci_essentials
+>conda create -n bci-essentials
+>conda activate bci_essentials
 3. navigate to the bci-essentials-python directory and activate virtual env if desired
 >cd <your-local-bci-essentials-python-directory>
 4. install with pip
