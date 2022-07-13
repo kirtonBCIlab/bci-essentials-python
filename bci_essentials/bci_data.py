@@ -379,7 +379,7 @@ class EEG_data():
             self.marker_timestamps = np.array(list(self.marker_timestamps) + new_marker_timestamps)
 
         if include_eeg == True:
-            new_eeg_data, new_eeg_timestamps = self.eeg_inlet.pull_chunk(timeout=0.1)
+            new_eeg_data, new_eeg_timestamps = self.eeg_inlet.pull_chunk(timeout=1)
             new_eeg_data = np.array(new_eeg_data)
             
             #Handle the case when you are using subsets
