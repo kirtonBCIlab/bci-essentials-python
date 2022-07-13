@@ -21,8 +21,8 @@ test_switch = EEG_data()
 test_switch.classifier = switch_classifier()
 test_switch.classifier.set_switch_classifier_settings(n_splits=2, rebuild=True, random_seed=35)
 
-# Select a file to run, use a file that you have locally
-test_switch.load_offline_eeg_data(filename  = "examples/data/July5/AG/sub-P001/ses-S001/eeg/sub-P001_ses-S001_task-MISwitch_run-001_eeg.xdf") 
+# Select a file to run, use a file that you have locally 
+test_switch.load_offline_eeg_data(filename  = "examples/data/switch_example.xdf") 
 
 # Run it, brrr brrr
 test_switch.main(online=False, training=True)

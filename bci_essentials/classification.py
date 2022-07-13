@@ -904,10 +904,8 @@ class switch_classifier(generic_classifier):
         X_predict_scaled = scaler_train.transform(X_predict)
 
         pred0and1 = self.predict0and1.predict(X_predict_scaled)
-        print(f"\n0 and 1 classes:{pred0and1}")
-
         pred0and2 = self.predict0and2.predict(X_predict_scaled)
-        print(f"\n0 and 2 classes:{pred0and2}")
+
 
         final_predictions = np.array([])
 

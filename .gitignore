@@ -5,3 +5,4 @@ archive/
 .vscode/
 build/
 dist/
+*.DS_store
