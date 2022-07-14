@@ -428,6 +428,16 @@ class EEG_data():
         if return_eeg == True:
             return new_eeg_timestamps, new_eeg_data
 
+    def save_data(self, directory_name):
+        """
+        Save the data from different stages
+
+        Creates a directory with x files
+        data_pickle - includes raw EEG, markers, processed EEG, features
+
+
+        """
+
     # SIGNAL PROCESSING
     # Preprocessing goes here (windows are nchannels by nsamples)
     def preprocessing(self, window, option=None, order=5, fc=60, fl=10, fh=50):
@@ -482,7 +492,7 @@ class EEG_data():
             pp_type = "bandpass",   # preprocessing method
             pp_low=1,               # bandpass lower cutoff
             pp_high=40,             # bandpass upper cutoff
-            pp_order=5             # bandpass order
+            pp_order=5              # bandpass order
             ):
 
         """
@@ -503,7 +513,8 @@ class EEG_data():
             search_index = 0
 
             # initialize windows and labels
-            self.windows = np.zeros((max_windows,max_channels,max_samples))
+            self.raw_eeg_windows = np.zeros((max_windows,max_channels,max_samples))
+            self.processed_eeg_windows = self.raw_eeg_windows
             self.labels = np.zeros((max_windows))
 
             # initialize the numbers of markers and windows to zero
@@ -564,18 +575,19 @@ class EEG_data():
                             break
 
                         # Trim the unused ends of numpy arrays
-                        self.windows = self.windows[0:self.nwindows, 0:self.nchannels, 0:self.nsamples]
+                        self.raw_eeg_windows = self.raw_eeg_windows[0:self.nwindows, 0:self.nchannels, 0:self.nsamples]
+                        self.processed_eeg_windows = self.processed_eeg_windows[0:self.nwindows, 0:self.nchannels, 0:self.nsamples]
                         self.labels = self.labels[0:self.nwindows]
 
                         # TRAIN
                         if training == True:
-                            self.classifier.add_to_train(self.windows, self.labels)
+                            self.classifier.add_to_train(self.processed_eeg_windows, self.labels)
                             print(self.nwindows, " windows and labels added to training set")
 
                             # if iterative training is on and active then also make a prediction
                             if iterative_training == True:
                                 print("Added current samples to training set, now making a prediction")
-                                prediction = self.classifier.predict(self.windows)
+                                prediction = self.classifier.predict(self.processed_eeg_windows)
 
                                 # Send the prediction to Unity
                                 print("{} was selected by the iterative classifier, sending to Unity".format(prediction))
@@ -596,7 +608,7 @@ class EEG_data():
                                 break
 
 
-                            prediction =  self.classifier.predict(self.windows)
+                            prediction =  self.classifier.predict(self.processed_eeg_windows)
 
                             # Add online predictions
                             # if iterative_training == True:
@@ -626,7 +638,8 @@ class EEG_data():
                         # Reset windows and labels
                         self.marker_count += 1
                         self.nwindows = 0
-                        self.windows = np.zeros((max_windows,max_channels,max_samples))
+                        self.raw_eeg_windows = np.zeros((max_windows,max_channels,max_samples))
+                        self.processed_eeg_windows = self.raw_eeg_windows
                         self.labels = np.zeros((max_windows))
 
                     # If training completed then train the classifier
@@ -643,7 +656,7 @@ class EEG_data():
                         self.marker_count += 1
                         #continue
 
-                        print(self.windows.shape)
+                        print(self.raw_eeg_windows.shape)
 
                     elif self.marker_data[self.marker_count][0] == 'Update Classifier':
                         print("Updating the classifier")
@@ -728,13 +741,13 @@ class EEG_data():
                     channel_data = np.interp(self.window_timestamps, eeg_timestamps_adjusted, self.eeg_data[start_loc:end_loc,c])
 
                     # Third, sdd to the EEG window
-                    self.windows[self.nwindows,c,0:self.nsamples] = channel_data
+                    self.raw_eeg_windows[self.nwindows,c,0:self.nsamples] = channel_data
 
                 # This is where to do preprocessing
-                self.windows[self.nwindows,:self.nchannels,:self.nsamples] = self.preprocessing(window=self.windows[self.nwindows,:self.nchannels,:self.nsamples],option=pp_type, order=pp_order, fl=pp_low, fh=pp_high)
+                self.processed_eeg_windows[self.nwindows,:self.nchannels,:self.nsamples] = self.preprocessing(window=self.raw_eeg_windows[self.nwindows,:self.nchannels,:self.nsamples],option=pp_type, order=pp_order, fl=pp_low, fh=pp_high)
 
                 # This is where to do artefact rejection
-                self.windows[self.nwindows,:self.nchannels,:self.nsamples] = self.artefact_rejection(window=self.windows[self.nwindows,:self.nchannels,:self.nsamples],option=None)
+                self.processed_eeg_windows[self.nwindows,:self.nchannels,:self.nsamples] = self.artefact_rejection(window=self.processed_eeg_windows[self.nwindows,:self.nchannels,:self.nsamples],option=None)
 
                 
                 # Add the label if it exists, otherwise set a flag of -1 to denote that there is no label
@@ -746,7 +759,7 @@ class EEG_data():
 
                 # TODO: Get this live update going
                 if live_update == True:
-                    pred = self.classifier.predict(self.windows[self.nwindows, 0:self.nchannels, 0:self.nsamples-1])
+                    pred = self.classifier.predict(self.processed_eeg_windows[self.nwindows, 0:self.nchannels, 0:self.nsamples-1])
                     self.outlet.push_sample(["{}".format(pred)])
 
                 # iterate to next window
@@ -757,6 +770,12 @@ class EEG_data():
             # Wait a short period of time and then try to pull more data
             time.sleep(0.00001)
             loops += 1
+
+        # Trim all the data
+        self.raw_eeg_windows = self.raw_eeg_windows[0:self.nwindows, 0:self.nchannels, 0:self.nsamples]
+        self.processed_eeg_windows = self.processed_eeg_windows[0:self.nwindows, 0:self.nchannels, 0:self.nsamples]
+        self.labels = self.labels[0:self.nwindows]
+        self.predictions = self.predictions[0:self.nwindows]
 
 # ERP Data
 class ERP_data(EEG_data):
