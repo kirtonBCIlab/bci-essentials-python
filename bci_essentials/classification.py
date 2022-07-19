@@ -834,13 +834,14 @@ class switch_classifier(generic_classifier):
                     self.clf0and1.compile(optimizer=Adam(learning_rate=0.001), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
                     # Fit the model
                     self.clf0and1.fit(x=X_train_scaled, y=y_train, batch_size=5, epochs=4, shuffle=True, verbose=2, validation_data=(X_test_scaled, y_test)) # Need to reshape X_train
-                    
+                    self.weights1 = self.clf0and1.get_weights()
                 else:
                     print("\nWorking on second model...")
                     # Compile the model
                     self.clf0and2.compile(optimizer=Adam(learning_rate=0.001), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
                     # Fit the model
                     self.clf0and2.fit(x=X_train_scaled, y=y_train, batch_size=5, epochs=4, shuffle=True, verbose=2, validation_data=(X_test_scaled, y_test)) # Need to reshape X_train
+                    self.weights2 = self.clf0and2.get_weights()
 
             # Print performance stats
             # accuracy
@@ -866,9 +867,6 @@ class switch_classifier(generic_classifier):
             self.offline_cm = cm
             print("confusion matrix")
             print(cm)'''
-            
-        self.weights1 = self.clf0and1.get_weights()
-        #self.weights2 = self.clf0and2.get_weights()
 
     def predict(self, X):
         # if X is 2D, make it 3D with one as first dimension
@@ -899,24 +897,23 @@ class switch_classifier(generic_classifier):
         pred0and1 = self.predict0and1.predict(X_predict_scaled)
         pred0and2 = self.predict0and2.predict(X_predict_scaled)
 
-
         final_predictions = np.array([])
 
         for row1, row2 in zip(pred0and1, pred0and2):
             if row1[0] > row1[1] and row2[0] > row2[2]:
-                np.append(final_predictions, 0)
+                final_predictions = np.append(0, final_predictions)
             elif row1[0] > row1[1] and row2[0] < row2[2]:
-                np.append(final_predictions, 2)
+                final_predictions = np.append(2, final_predictions)
             elif row1[0] < row1[1] and row2[0] > row2[2]:
-                np.append(final_predictions, 1)
+                final_predictions = np.append(1, final_predictions)
             elif row1[0] < row1[1] and row2[0] < row2[2]:
                 if row1[1] > row2[2]:
-                    np.append(final_predictions, 1)
+                    final_predictions = np.append(1, final_predictions)
                 else:
-                    np.append(final_predictions, 2)
+                    final_predictions = np.append(2, final_predictions)
 
         return final_predictions
-
+        
 class null_classifier(generic_classifier):
     def fit(self):
 
