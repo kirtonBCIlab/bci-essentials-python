@@ -748,8 +748,18 @@ class mi_classifier(generic_classifier):
 
         # add a threhold
         #pred = (pred_proba[:] >= self.pred_threshold).astype(int) # set threshold as 0.3
+        #print(pred.shape)
 
-        return int(pred)
+
+        # print(pred)
+        # for p in pred:
+        #     p = int(p)
+        #     print(p)
+        # print(pred)
+
+        # pred = str(pred).replace(".", ",")
+
+        return pred
 
 class switch_classifier(generic_classifier):
     def set_switch_classifier_settings(self, n_splits = 2, rebuild = True, random_seed = 42, activation_main = 'relu', activation_class = 'sigmoid'):
