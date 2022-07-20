@@ -57,6 +57,9 @@ class EEG_data():
         self.ping_count = 0
         self.ping_interval = 5
 
+        # resting state
+        self.resting_state_exists = False
+
     # LOADING DATA
     # Explicit definition of settings, not recommended 
     def edit_settings(self, user_id='0000', nchannels=8, channel_labels=['?','?','?','?','?','?','?','?'], fsample=256, max_size=10000):
@@ -377,7 +380,7 @@ class EEG_data():
             self.marker_timestamps = np.array(list(self.marker_timestamps) + new_marker_timestamps)
 
         if include_eeg == True:
-            new_eeg_data, new_eeg_timestamps = self.eeg_inlet.pull_chunk(timeout=1)
+            new_eeg_data, new_eeg_timestamps = self.eeg_inlet.pull_chunk(timeout=0.1)
             new_eeg_data = np.array(new_eeg_data)
             
             #Handle the case when you are using subsets
@@ -460,8 +463,70 @@ class EEG_data():
             new_window = window
             return new_window
 
-        # other preprocessing options go here
-    
+        # other preprocessing options go here\
+
+    def package_resting_state_data(self):
+        print("Packaging resting state data")
+
+        eyes_open_start_time = []
+        eyes_open_end_time = []
+        eyes_closed_start_time = []
+        eyes_closed_end_time = []
+        rest_start_time = []
+        rest_end_time = []
+
+        for i in range(len(self.marker_data)):
+            # get eyes open start times
+            if self.marker_data[i][0] == "Start Eyes Open RS: 1":
+                eyes_open_start_time.append(self.marker_timestamps[i])
+
+            # get eyes open end times
+            if self.marker_data[i][0] == "End Eyes Open RS: 1":
+                eyes_open_end_time.append(self.marker_timestamps[i])
+
+            # get eyes closed start times
+            if self.marker_data[i][0] == "Start Eyes Closed RS: 2":
+                eyes_closed_start_time.append(self.marker_timestamps[i])
+
+            # get eyes closed end times
+            if self.marker_data[i][0] == "End Eyes Closed RS: 2":
+                eyes_closed_end_time.append(self.marker_timestamps[i])
+
+            # get rest start times
+            if self.marker_data[i][0] == "Start Rest for RS: 0":
+                rest_start_time.append(self.marker_timestamps[i])
+
+            # get rest end times
+            if self.marker_data[i][0] == "End Rest for RS: 0":
+                rest_end_time.append(self.marker_timestamps[i])
+
+        # Now copy EEG for these windows
+
+        # Initialize window size
+        self.eyes_open_rest = np.ndarray((len(eyes_open_start_time), self.nchannels, 10000))
+        self.eyes_closed_rest = np.ndarray((len(eyes_closed_start_time), self.nchannels, 10000))
+        self.rest_rest = np.ndarray((len(rest_start_time), self.nchannels, 10000))
+
+        eyes_open_start_ind = []
+        eyes_open_end_ind = []
+        eyes_closed_start_ind = []
+        eyes_closed_end_ind = []
+        rest_start_ind = []
+        rest_end_ind = []
+
+        eor = 0
+        ecr = 0
+        rr = 0
+
+        # Get the indices corresponding to timepoints
+        for i in range(len(self.eeg_timestamps)):
+            if eyes_open_start_time[eor] > self.eeg_timestamps[i]:
+                eyes_open_start_ind = i
+
+            # continue
+
+
+        print("debug")
 
     # main
     # add pp_low, pp_high, pp_order, subset
@@ -549,7 +614,15 @@ class EEG_data():
                         # send feedback for each marker that you receive
                         self.outlet.push_sample(["marker received : {}".format(self.marker_data[self.marker_count][0])])
 
-                    if self.marker_data[self.marker_count][0] == 'Trial Started':
+                    ############
+                    print(self.marker_data[self.marker_count][0])
+
+                    # once all resting state data is collected then go and compile it
+                    if self.marker_data[self.marker_count][0] == "Done with all RS collection":
+                        self.package_resting_state_data()
+                        self.marker_count += 1
+
+                    elif self.marker_data[self.marker_count][0] == 'Trial Started':
                         print("Trial started")
                         # Note that a marker occured, but do nothing else
                         self.marker_count += 1
@@ -871,12 +944,22 @@ class ERP_data(EEG_data):
                 if len(self.marker_data[self.marker_count][0].split(',')) == 1:
                     # print(self.marker_data[self.marker_count])
                     # if there is a P300 start flag move on
+
+                    ############debug
+                    # print(self.marker_data[self.marker_count][0])
+
                     # if self.marker_data[self.marker_count][0] == 'P300 SingleFlash Begins' or 'P300 SingleFlash Started':
                     if self.marker_data[self.marker_count][0] == 'P300 SingleFlash Started' or self.marker_data[self.marker_count][0] == 'P300 SingleFlash Begins' or self.marker_data[self.marker_count][0] == 'Trial Started':
                         # Note that a marker occured, but do nothing else
                         print("Trial Started")
                         self.marker_count += 1
-                    
+
+                    # once all resting state data is collected then go and compile it
+                    elif self.marker_data[self.marker_count][0] == "Done with all RS collection":
+                        self.package_resting_state_data()
+                        self.marker_count += 1
+
+
                     # If training completed then train the classifier
                     elif self.marker_data[self.marker_count][0] == 'Training Complete' and train_complete == False:
 
@@ -952,6 +1035,8 @@ class ERP_data(EEG_data):
 
                         # UPDATE THE SEARCH START LOC
                         #continue
+                    else:
+                        self.marker_count += 1
 
                     time.sleep(0.01)
                     loops += 1
