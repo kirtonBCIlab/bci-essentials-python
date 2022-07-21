@@ -589,7 +589,6 @@ class EEG_data():
                 self.rest_windows[i,c,:] = channel_data
                 self.rest_timestamps
 
-        print("debug")
 
     # main
     # add pp_low, pp_high, pp_order, subset
