@@ -742,21 +742,10 @@ class EEG_data():
                                     self.outlet.push_sample(["{}".format(prediction)])
                         
                         # PREDICT
-                        elif train_complete == True:
+                        elif train_complete == True and self.nwindows != 0:
                             print("making a prediction based on ", self.nwindows ," windows")
 
-                            if self.nwindows == 0:
-                                print("No windows to make a decision")
-                                self.marker_count += 1
-                                break
-
-
                             prediction =  self.classifier.predict(self.windows)
-
-                            # Add online predictions
-                            # if iterative_training == True:
-                                
-                            #     self.online_predictions.append(prediction)
 
 
                             print("Recieved prediction from classifier")
@@ -770,13 +759,9 @@ class EEG_data():
                                 print("okay, actually sending now...")
                                 self.outlet.push_sample(["{}".format(prediction)])
 
-
-                        # elif iterativeTraining == True:
-                        #     print("Doing iterative training, ")
-
                         # OH DEAR
                         else:
-                            print("No training data and no trained classifier, oh dear...")
+                            print("Unable to classify... womp womp")
                         
                         # Reset windows and labels
                         self.marker_count += 1
