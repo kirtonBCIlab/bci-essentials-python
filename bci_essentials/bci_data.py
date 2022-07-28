@@ -718,6 +718,12 @@ class EEG_data():
                             self.marker_count += 1
                             break
 
+                        # # If there are no windows for classification then move on
+                        # if self.windows.shape[0] == 0:
+                        #     print("No windows for classification")
+                        #     self.marker_count += 1 
+                        #     break
+
                         # Trim the unused ends of numpy arrays
                         self.windows = self.windows[0:self.nwindows, 0:self.nchannels, 0:self.nsamples]
                         self.labels = self.labels[0:self.nwindows]
@@ -742,13 +748,17 @@ class EEG_data():
                                     self.outlet.push_sample(["{}".format(prediction)])
                         
                         # PREDICT
-                        elif train_complete == True:
+                        elif train_complete == True and self.nwindows != 0:
                             print("making a prediction based on ", self.nwindows ," windows")
 
-                            if self.nwindows == 0:
-                                print("No windows to make a decision")
-                                self.marker_count += 1
-                                break
+                            # if self.nwindows == 0:
+                            #     print("No windows to make a decision")
+
+                            #     # Reset self.windows?
+
+
+                            #     self.marker_count += 1
+                            #     break
 
 
                             prediction =  self.classifier.predict(self.windows)
@@ -776,7 +786,7 @@ class EEG_data():
 
                         # OH DEAR
                         else:
-                            print("No training data and no trained classifier, oh dear...")
+                            print("Unable to classify... womp womp")
                         
                         # Reset windows and labels
                         self.marker_count += 1
