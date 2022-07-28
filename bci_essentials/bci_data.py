@@ -718,12 +718,6 @@ class EEG_data():
                             self.marker_count += 1
                             break
 
-                        # # If there are no windows for classification then move on
-                        # if self.windows.shape[0] == 0:
-                        #     print("No windows for classification")
-                        #     self.marker_count += 1 
-                        #     break
-
                         # Trim the unused ends of numpy arrays
                         self.windows = self.windows[0:self.nwindows, 0:self.nchannels, 0:self.nsamples]
                         self.labels = self.labels[0:self.nwindows]
@@ -751,22 +745,7 @@ class EEG_data():
                         elif train_complete == True and self.nwindows != 0:
                             print("making a prediction based on ", self.nwindows ," windows")
 
-                            # if self.nwindows == 0:
-                            #     print("No windows to make a decision")
-
-                            #     # Reset self.windows?
-
-
-                            #     self.marker_count += 1
-                            #     break
-
-
                             prediction =  self.classifier.predict(self.windows)
-
-                            # Add online predictions
-                            # if iterative_training == True:
-                                
-                            #     self.online_predictions.append(prediction)
 
 
                             print("Recieved prediction from classifier")
@@ -779,10 +758,6 @@ class EEG_data():
                             if online == True:
                                 print("okay, actually sending now...")
                                 self.outlet.push_sample(["{}".format(prediction)])
-
-
-                        # elif iterativeTraining == True:
-                        #     print("Doing iterative training, ")
 
                         # OH DEAR
                         else:
