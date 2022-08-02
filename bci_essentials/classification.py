@@ -558,7 +558,7 @@ class ssvep_basic_classifier(generic_classifier):
         #print(preds)
         print(prediction)
 
-        return prediction
+        return int(prediction)
 
 # Train free classifier
 # SSVEP CCA Classifier Sans Training
@@ -611,7 +611,7 @@ class ssvep_basic_classifier_tf(generic_classifier):
 
         print(prediction)
 
-        return prediction
+        return int(prediction)
 
 # TODO : Add a SSVEP CCA Classifier
 
@@ -748,6 +748,16 @@ class mi_classifier(generic_classifier):
 
         # add a threhold
         #pred = (pred_proba[:] >= self.pred_threshold).astype(int) # set threshold as 0.3
+        #print(pred.shape)
+
+
+        # print(pred)
+        # for p in pred:
+        #     p = int(p)
+        #     print(p)
+        # print(pred)
+
+        # pred = str(pred).replace(".", ",")
 
         return pred
 
@@ -999,16 +1009,6 @@ class switch_classifier(generic_classifier):
 
         return final_predictions
         
-class null_classifier(generic_classifier):
-    def fit(self):
-
-        print("This is a null classifier, there is no fitting")
-
-    def predict(self, X):
-        return 0
-
-
-
 class null_classifier(generic_classifier):
     def fit(self):
 
