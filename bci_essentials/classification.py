@@ -1004,8 +1004,8 @@ class switch_classifier(generic_classifier):
             final_predictions = np.append(final_predictions, preds)
 
         # Need to find out how to compare the values
-        final_predictions[final_predictions > 0.5] = len(self.clfs)
-        final_predictions[final_predictions < 0.5] = 0
+        # final_predictions[final_predictions > 0.5] = len(self.clfs)
+        # final_predictions[final_predictions < 0.5] = 0
 
         return final_predictions
         
