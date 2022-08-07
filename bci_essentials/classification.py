@@ -919,10 +919,13 @@ class switch_classifier(generic_classifier):
             Dense(units=16, activation=self.activation_main)
         ])
 
-        self.clfs = []
-        self.weights = []
-
     def fit(self):
+        # Check for list and correct if needed
+        if isinstance(self.X, list):
+            print("Error. Self.X should not be a list")
+            print("Correcting now...")
+            self.X = np.array(self.X)
+
         # get dimensions
         nwindows, nchannels, nsamples = self.X.shape 
 
@@ -930,13 +933,17 @@ class switch_classifier(generic_classifier):
         X = np.array(self.X)
         y = np.array(self.y)
 
+        self.clfs = []
+        self.weights = []
+
         # find the number of classes in y there shoud be N + 1, where N is the number of objects in the scene and also the number of classifiers
         self.num_classifiers = len(list(np.unique(self.y))) - 1
+        self.max_label = max(list(np.unique(self.y)))
         print(f"Number of classes: {self.num_classifiers}")
 
         if len(self.clf.layers) == 3:
-            self.clf.add(Dense(units=self.num_classifiers+1, activation=self.activation_class))
-            self.clf_model.add(Dense(units=self.num_classifiers+1, activation=self.activation_class))
+            self.clf.add(Dense(units=self.max_label+1, activation=self.activation_class))
+            self.clf_model.add(Dense(units=self.max_label+1, activation=self.activation_class))
 
         # loop through and build the classifiers
         for i in range(self.num_classifiers):
@@ -949,6 +956,7 @@ class switch_classifier(generic_classifier):
             # Try rebuilding the classifier each time
             if self.rebuild == True:
                 self.next_fit_window = 0
+                # tf.keras.backend.clear_session()
 
             subX = X_class[self.next_fit_window:,:,:]
             suby = y_class[self.next_fit_window:]
@@ -995,17 +1003,12 @@ class switch_classifier(generic_classifier):
         scaler_train = preprocessing.StandardScaler().fit(X_predict)
         X_predict_scaled = scaler_train.transform(X_predict)
 
-        final_predictions = np.array([])
+        final_predictions = []
 
-        # Making predictions
-        for i in range(len(self.clfs) - 1):
-            print(f"In the for loop. i value = {i}")
+        # Make predictions
+        for i in range(len(self.clfs)):
             preds = self.clfs[i].predict(X_predict_scaled)
-            final_predictions = np.append(final_predictions, preds)
-
-        # Need to find out how to compare the values
-        # final_predictions[final_predictions > 0.5] = len(self.clfs)
-        # final_predictions[final_predictions < 0.5] = 0
+            final_predictions.append(preds)
 
         return final_predictions
         

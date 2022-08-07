@@ -886,7 +886,14 @@ class EEG_data():
 
                 # TODO: Get this live update going
                 if live_update == True:
-                    pred = self.classifier.predict(self.windows[self.nwindows, 0:self.nchannels, 0:self.nsamples-1])
+                    '''Made changes - Adam. Removed the minus 1 so it's 0:self.nsamples instead of 0:self.nsamples-1
+                    The minus one was not working with eeg_lsl_sim.py. Predict function for switch was incompatible
+                    '''
+                    if int(self.nsamples) % int(self.fsample) == 0:
+                        pred = self.classifier.predict(self.windows[self.nwindows, 0:self.nchannels, 0:self.nsamples])
+                    else:
+                        pred = self.classifier.predict(self.windows[self.nwindows, 0:self.nchannels, 0:self.nsamples-1])
+
                     self.outlet.push_sample(["{}".format(pred)])
 
                 # iterate to next window

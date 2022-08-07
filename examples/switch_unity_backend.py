@@ -22,7 +22,6 @@ switch_data = EEG_data()
 
 # OR
 
-
 # LETS TRY IT OUT WITH A WHOLE NEW SWITCH CLASSIFIER
 switch_data.classifier = switch_classifier()
 
@@ -33,6 +32,5 @@ switch_data.stream_online_eeg_data()
 
 # Run
 switch_data.main(online=True, training=True)
-
 
 # f.close()
