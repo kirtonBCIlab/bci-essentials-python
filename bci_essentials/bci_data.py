@@ -617,6 +617,7 @@ class EEG_data():
             train_complete=False, 
             iterative_training = False, 
             live_update = False,
+            print_markers = True,
             
             pp_type = "bandpass",   # preprocessing method
             pp_low=1,               # bandpass lower cutoff
@@ -697,7 +698,8 @@ class EEG_data():
                         self.outlet.push_sample(["marker received : {}".format(self.marker_data[self.marker_count][0])])
 
                     ############
-                    print(self.marker_data[self.marker_count][0])
+                    if print_markers == True:
+                        print(self.marker_data[self.marker_count][0])
 
                     # once all resting state data is collected then go and compile it
                     if self.marker_data[self.marker_count][0] == "Done with all RS collection":
@@ -705,12 +707,14 @@ class EEG_data():
                         self.marker_count += 1
 
                     elif self.marker_data[self.marker_count][0] == 'Trial Started':
-                        print("Trial started")
+                        if print_markers == True:
+                            print("Trial started")
                         # Note that a marker occured, but do nothing else
                         self.marker_count += 1
 
                     elif self.marker_data[self.marker_count][0] == 'Trial Ends':
-                        print("Trial ended")
+                        if print_markers == True:
+                            print("Trial ended")
 
                         # If no classifier, then ideally just continue adding to the windows and labels arrays
                         if self.classifier_defined == False:
@@ -834,7 +838,8 @@ class EEG_data():
                         self.marker_count += 1
                         break
 
-                print(marker_info)
+                if print_markers == True:
+                    print(marker_info)
 
                 # send feedback to unity if there is an available outlet
                 if self.stream_outlet == True:
@@ -915,6 +920,9 @@ class ERP_data(EEG_data):
             max_loops=1000000000, 
             training=False, 
             online=False,
+            print_markers=True,
+
+
             # Preprocessing
             pp_type = "bandpass",   # preprocessing method
             pp_low=1,               # bandpass lower cutoff
@@ -1009,16 +1017,12 @@ class ERP_data(EEG_data):
             while(len(self.marker_timestamps) > self.marker_count):
                 loops = 0
                 if len(self.marker_data[self.marker_count][0].split(',')) == 1:
-                    # print(self.marker_data[self.marker_count])
-                    # if there is a P300 start flag move on
-
-                    ############debug
-                    # print(self.marker_data[self.marker_count][0])
 
                     # if self.marker_data[self.marker_count][0] == 'P300 SingleFlash Begins' or 'P300 SingleFlash Started':
                     if self.marker_data[self.marker_count][0] == 'P300 SingleFlash Started' or self.marker_data[self.marker_count][0] == 'P300 SingleFlash Begins' or self.marker_data[self.marker_count][0] == 'Trial Started':
                         # Note that a marker occured, but do nothing else
-                        print("Trial Started")
+                        if print_markers == True:
+                            print("Trial Started")
                         self.marker_count += 1
 
                     # once all resting state data is collected then go and compile it
@@ -1039,14 +1043,14 @@ class ERP_data(EEG_data):
                         #continue
 
                     # if there is a P300 end flag increment the decision_index by one
-                    # print(self.marker_data[self.marker_count][0])
                     elif self.marker_data[self.marker_count][0] == 'P300 SingleFlash Ends' or self.marker_data[self.marker_count][0] == 'Trial Ends':
                         if self.plot_erp == True:
                             fig1.show()
                             fig2.show()
 
+                        if print_markers == True:
+                            print(self.marker_data[self.marker_count][0])
 
-                        print(self.marker_data[self.marker_count][0])
                         self.marker_count += 1
 
                         # ADD IN A CHECK TO MAKE SURE THERE IS SUFFICIENT INFO TO MAKE A DECISION
@@ -1159,7 +1163,8 @@ class ERP_data(EEG_data):
                     
                     #current_target = target_order[self.decision_count]
                     if unity_train == True:
-                        print(marker_info)
+                        if print_markers == True:
+                            print(marker_info)
                         current_target = unity_label
 
                     self.training_labels[self.nwindows] = current_target
