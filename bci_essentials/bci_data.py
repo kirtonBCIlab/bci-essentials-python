@@ -57,6 +57,9 @@ class EEG_data():
         self.ping_count = 0
         self.ping_interval = 5
 
+        # resting state
+        self.resting_state_exists = False
+
     # LOADING DATA
     # Explicit definition of settings, not recommended 
     def edit_settings(self, user_id='0000', nchannels=8, channel_labels=['?','?','?','?','?','?','?','?'], fsample=256, max_size=10000):
@@ -377,7 +380,7 @@ class EEG_data():
             self.marker_timestamps = np.array(list(self.marker_timestamps) + new_marker_timestamps)
 
         if include_eeg == True:
-            new_eeg_data, new_eeg_timestamps = self.eeg_inlet.pull_chunk(timeout=1)
+            new_eeg_data, new_eeg_timestamps = self.eeg_inlet.pull_chunk(timeout=0.1)
             new_eeg_data = np.array(new_eeg_data)
             
             #Handle the case when you are using subsets
@@ -470,8 +473,144 @@ class EEG_data():
             new_window = window
             return new_window
 
-        # other preprocessing options go here
-    
+        # other preprocessing options go here\
+
+    def package_resting_state_data(self):
+        print("Packaging resting state data")
+
+        eyes_open_start_time = []
+        eyes_open_end_time = []
+        eyes_closed_start_time = []
+        eyes_closed_end_time = []
+        rest_start_time = []
+        rest_end_time = []
+
+        # Initialize start and end locations
+        eyes_open_start_loc = []
+        eyes_open_end_loc = []
+        eyes_closed_start_loc = []
+        eyes_closed_end_loc = []
+        rest_start_loc = []
+        rest_end_loc = []
+
+        current_time = self.eeg_timestamps[0]
+        current_timestamp_loc = 0
+
+        for i in range(len(self.marker_data)):
+            # Increment the EEG until just past the marker timestamp
+            while current_time < self.marker_timestamps[i]:
+                current_timestamp_loc += 1
+                current_time = self.eeg_timestamps[current_timestamp_loc]
+
+            # get eyes open start times
+            if self.marker_data[i][0] == "Start Eyes Open RS: 1":
+                eyes_open_start_time.append(self.marker_timestamps[i])
+                eyes_open_start_loc.append(current_timestamp_loc - 1)
+                #print("received eyes open start")
+
+            # get eyes open end times
+            if self.marker_data[i][0] == "End Eyes Open RS: 1":
+                eyes_open_end_time.append(self.marker_timestamps[i])
+                eyes_open_end_loc.append(current_timestamp_loc)
+                # print("received eyes open end")
+
+            # get eyes closed start times
+            if self.marker_data[i][0] == "Start Eyes Closed RS: 2":
+                eyes_closed_start_time.append(self.marker_timestamps[i])
+                eyes_closed_start_loc.append(current_timestamp_loc - 1)
+                # print("received eyes closed start")
+
+            # get eyes closed end times
+            if self.marker_data[i][0] == "End Eyes Closed RS: 2":
+                eyes_closed_end_time.append(self.marker_timestamps[i])
+                eyes_closed_end_loc.append(current_timestamp_loc)
+                # print("received eyes closed end")
+
+            # get rest start times
+            if self.marker_data[i][0] == "Start Rest for RS: 0":
+                rest_start_time.append(self.marker_timestamps[i])
+                rest_start_loc.append(current_timestamp_loc - 1)
+                # print("received rest start")
+            # get rest end times
+            if self.marker_data[i][0] == "End Rest for RS: 0":
+                rest_end_time.append(self.marker_timestamps[i])
+                rest_end_loc.append(current_timestamp_loc)
+                # print("received rest end")
+
+        
+        # Eyes open
+        # Get duration, nsmaples
+
+        if len(eyes_open_end_loc) > 0:
+            duration = np.floor(eyes_open_end_time[0] - eyes_open_start_time[0])
+            nsamples = int(duration * self.fsample) 
+
+            self.eyes_open_timestamps = np.array(range(nsamples)) / self.fsample
+            self.eyes_open_windows = np.ndarray((len(eyes_open_start_time), self.nchannels, nsamples))
+            # Now copy EEG for these windows
+            for i in range(len(eyes_open_start_time)):
+
+                # For each channel of the EEG, interpolate to uniform sampling rate
+                for c in range(self.nchannels):
+                    # First, adjust the EEG timestamps to start from zero
+                    eeg_timestamps_adjusted = self.eeg_timestamps[eyes_open_start_loc[i]:eyes_open_end_loc[i]] - self.eeg_timestamps[eyes_open_start_loc[i]]
+                    
+                    # Second, interpolate to timestamps at a uniform sampling rate
+                    channel_data = np.interp(self.eyes_open_timestamps, eeg_timestamps_adjusted, self.eeg_data[eyes_open_start_loc[i]:eyes_open_end_loc[i],c])
+
+                    # Third, add to the EEG window
+                    self.eyes_open_windows[i,c,:] = channel_data
+                    self.eyes_open_timestamps
+
+        print("Done packaging resting state data")
+
+        # Eyes closed 
+
+        if len(eyes_closed_end_loc) > 0:
+            # Get duration, nsmaples
+            duration = np.floor(eyes_closed_end_time[0] - eyes_closed_start_time[0])
+            nsamples = int(duration * self.fsample) 
+
+            self.eyes_closed_timestamps = np.array(range(nsamples)) / self.fsample
+            self.eyes_closed_windows = np.ndarray((len(eyes_closed_start_time), self.nchannels, nsamples))
+            # Now copy EEG for these windows
+            for i in range(len(eyes_closed_start_time)):
+
+                # For each channel of the EEG, interpolate to uniform sampling rate
+                for c in range(self.nchannels):
+                    # First, adjust the EEG timestamps to start from zero
+                    eeg_timestamps_adjusted = self.eeg_timestamps[eyes_closed_start_loc[i]:eyes_closed_end_loc[i]] - self.eeg_timestamps[eyes_closed_start_loc[i]]
+                    
+                    # Second, interpolate to timestamps at a uniform sampling rate
+                    channel_data = np.interp(self.eyes_closed_timestamps, eeg_timestamps_adjusted, self.eeg_data[eyes_closed_start_loc[i]:eyes_closed_end_loc[i],c])
+
+                    # Third, add to the EEG window
+                    self.eyes_closed_windows[i,c,:] = channel_data
+                    self.eyes_closed_timestamps
+
+        # Rest
+        if len(rest_end_loc) > 0:
+            # Get duration, nsmaples
+            duration = np.floor(rest_end_time[0] - rest_start_time[0])
+            nsamples = int(duration * self.fsample) 
+
+            self.rest_timestamps = np.array(range(nsamples)) / self.fsample
+            self.rest_windows = np.ndarray((len(rest_start_time), self.nchannels, nsamples))
+            # Now copy EEG for these windows
+            for i in range(len(rest_start_time)):
+
+                # For each channel of the EEG, interpolate to uniform sampling rate
+                for c in range(self.nchannels):
+                    # First, adjust the EEG timestamps to start from zero
+                    eeg_timestamps_adjusted = self.eeg_timestamps[rest_start_loc[i]:rest_end_loc[i]] - self.eeg_timestamps[rest_start_loc[i]]
+                    
+                    # Second, interpolate to timestamps at a uniform sampling rate
+                    channel_data = np.interp(self.rest_timestamps, eeg_timestamps_adjusted, self.eeg_data[rest_start_loc[i]:rest_end_loc[i],c])
+
+                    # Third, add to the EEG window
+                    self.rest_windows[i,c,:] = channel_data
+                    self.rest_timestamps
+
 
     # main
     # add pp_low, pp_high, pp_order, subset
@@ -482,7 +621,7 @@ class EEG_data():
             max_channels = 64, 
             max_samples = 2560, 
             max_windows = 1000,
-            max_loops=100000, 
+            max_loops=1000, 
             training=True, 
             online=True, 
             train_complete=False, 
@@ -526,6 +665,14 @@ class EEG_data():
 
         # start the main loop, stops after pulling now data, max_loops times
         while loops < max_loops:
+
+            # 
+            if loops % 100 == 0:
+                print(loops)
+
+            if loops == max_loops - 1:
+                print("last loop")
+
             # if offline, then all data is already loaded, no need to iterate
             if online == False:
                 loops = max_loops
@@ -560,7 +707,15 @@ class EEG_data():
                         # send feedback for each marker that you receive
                         self.outlet.push_sample(["marker received : {}".format(self.marker_data[self.marker_count][0])])
 
-                    if self.marker_data[self.marker_count][0] == 'Trial Started':
+                    ############
+                    print(self.marker_data[self.marker_count][0])
+
+                    # once all resting state data is collected then go and compile it
+                    if self.marker_data[self.marker_count][0] == "Done with all RS collection":
+                        self.package_resting_state_data()
+                        self.marker_count += 1
+
+                    elif self.marker_data[self.marker_count][0] == 'Trial Started':
                         print("Trial started")
                         # Note that a marker occured, but do nothing else
                         self.marker_count += 1
@@ -599,7 +754,7 @@ class EEG_data():
                                     self.outlet.push_sample(["{}".format(prediction)])
                         
                         # PREDICT
-                        elif train_complete == True:
+                        elif train_complete == True and self.nwindows != 0:
                             print("making a prediction based on ", self.nwindows ," windows")
 
                             if self.nwindows == 0:
@@ -608,11 +763,6 @@ class EEG_data():
                                 break
                             
                             prediction =  self.classifier.predict(self.processed_eeg_windows)
-
-                            # Add online predictions
-                            # if iterative_training == True:
-                                
-                            #     self.online_predictions.append(prediction)
 
 
                             print("Recieved prediction from classifier")
@@ -626,13 +776,9 @@ class EEG_data():
                                 print("okay, actually sending now...")
                                 self.outlet.push_sample(["{}".format(prediction)])
 
-
-                        # elif iterativeTraining == True:
-                        #     print("Doing iterative training, ")
-
                         # OH DEAR
                         else:
-                            print("No training data and no trained classifier, oh dear...")
+                            print("Unable to classify... womp womp")
                         
                         # Reset windows and labels
                         self.marker_count += 1
@@ -891,12 +1037,22 @@ class ERP_data(EEG_data):
                 if len(self.marker_data[self.marker_count][0].split(',')) == 1:
                     # print(self.marker_data[self.marker_count])
                     # if there is a P300 start flag move on
+
+                    ############debug
+                    # print(self.marker_data[self.marker_count][0])
+
                     # if self.marker_data[self.marker_count][0] == 'P300 SingleFlash Begins' or 'P300 SingleFlash Started':
                     if self.marker_data[self.marker_count][0] == 'P300 SingleFlash Started' or self.marker_data[self.marker_count][0] == 'P300 SingleFlash Begins' or self.marker_data[self.marker_count][0] == 'Trial Started':
                         # Note that a marker occured, but do nothing else
                         print("Trial Started")
                         self.marker_count += 1
-                    
+
+                    # once all resting state data is collected then go and compile it
+                    elif self.marker_data[self.marker_count][0] == "Done with all RS collection":
+                        self.package_resting_state_data()
+                        self.marker_count += 1
+
+
                     # If training completed then train the classifier
                     elif self.marker_data[self.marker_count][0] == 'Training Complete' and train_complete == False:
 
@@ -972,6 +1128,8 @@ class ERP_data(EEG_data):
 
                         # UPDATE THE SEARCH START LOC
                         #continue
+                    else:
+                        self.marker_count += 1
 
                     time.sleep(0.01)
                     loops += 1
