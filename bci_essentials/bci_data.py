@@ -759,8 +759,10 @@ class EEG_data():
 
                 # TODO: Get this live update going
                 if live_update == True:
-                    pred = self.classifier.predict(self.processed_eeg_windows[self.nwindows, 0:self.nchannels, 0:self.nsamples-1])
-                    self.outlet.push_sample(["{}".format(pred)])
+                    if len(self.nsamples) != 0:
+                        # pred = self.classifier.predict(self.windows[self.nwindows, 0:self.nchannels, 0:self.nsamples-1])
+                        pred = self.classifier.predict(self.windows[self.nwindows, 0:self.nchannels, 0:self.nsamples])
+                        self.outlet.push_sample(["{}".format(pred)])
 
                 # iterate to next window
                 self.marker_count += 1
@@ -849,7 +851,7 @@ class ERP_data(EEG_data):
             # ERP decision blocks
             self.windows_per_decision = np.zeros((self.num_options))
             self.decision_blocks = np.ndarray((self.max_decisions, self.num_options, self.nchannels, self.nsamples))
-            self.big_decision_blocks = np.ndarray((self.max_decisions, self.num_options, self.max_windows_per_option, self.nchannels, self.nsamples))
+            self.big_decision_blocks = np.ndarray((self.max_decisions, self.num_options, self.max_windows_per_option, self.nchannels, self.nsamples)) # unused
             
             # predictions
             self.predictions = np.ndarray((self.max_decisions))
