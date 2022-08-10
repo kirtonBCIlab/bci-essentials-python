@@ -606,8 +606,7 @@ class EEG_data():
                                 print("No windows to make a decision")
                                 self.marker_count += 1
                                 break
-
-
+                            
                             prediction =  self.classifier.predict(self.processed_eeg_windows)
 
                             # Add online predictions
