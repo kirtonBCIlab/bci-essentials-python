@@ -80,7 +80,7 @@ class EEG_data():
 
     # Load data from a variety of sources
     # Currently only suports .xdf format
-    def load_offline_eeg_data(self, filename, format='xdf', subset=[]):
+    def load_offline_eeg_data(self, filename, format='xdf', subset=[], print_output=True):
         """
         Loads offline data from a file
 
@@ -89,7 +89,8 @@ class EEG_data():
         self.subset = subset
 
         if(format == 'xdf'):
-            print("loading ERP data from {}".format(filename))
+            if print_output:
+                print("loading ERP data from {}".format(filename))
 
             # load from xdf
             data, self.header = pyxdf.load_xdf(filename)
@@ -98,8 +99,9 @@ class EEG_data():
             for i in range(len(data)):
                 namestring = data[i]['info']['name'][0]
                 typestring = data[i]['info']['type'][0]
-                print(namestring)
-                print(typestring)
+                if print_output:
+                    print(namestring)
+                    print(typestring)
 
                 if typestring == "EEG":
                     self.eeg_index = i
@@ -116,7 +118,7 @@ class EEG_data():
 
             # Unless explicit settings are desired, get settings from headset
             #if self.explicit_settings == False:
-            self.get_info_from_file(data)
+            self.get_info_from_file(data, print_output)
 
 
 
@@ -127,7 +129,7 @@ class EEG_data():
             print("Error: file format not supported")
 
     # Get metadata saved to the offline data file to fill in headset information
-    def get_info_from_file(self, data):
+    def get_info_from_file(self, data, print_output=True):
         """
         Get EEG metadata from the stream
 
@@ -151,12 +153,16 @@ class EEG_data():
         except:
             for i in range(self.nchannels):
                 self.channel_labels.append("?")
-        print(self.channel_labels)
+        
+        if print_output:
+            print(self.channel_labels)
 
         # if it is the DSI7 flex, relabel the channels, may want to make this more flexible in the future
-        print(self.headset_string)
+        if print_output:
+            print(self.headset_string)
         if self.headset_string == "DSI7":
-            print(self.channel_labels)
+            if print_output:
+                print(self.channel_labels)
             self.channel_labels[self.channel_labels.index('S1')] = 'O1'
             self.channel_labels[self.channel_labels.index('S2')] = 'Pz'
             self.channel_labels[self.channel_labels.index('S3')] = 'O2'
@@ -178,9 +184,10 @@ class EEG_data():
 
         # If a subset is to be used, define a new nchannels, channel labels, and eeg data
         if self.subset != []:
-            print("A subset was defined")
-            print("Original channels")
-            print(self.channel_labels)
+            if print_output:
+                print("A subset was defined")
+                print("Original channels")
+                print(self.channel_labels)
 
             self.nchannels = len(self.subset)
             self.subset_indices = []
@@ -188,8 +195,9 @@ class EEG_data():
                 self.subset_indices.append(self.channel_labels.index(s))
 
             self.channel_labels = self.subset
-            print("Subset channels")
-            print(self.channel_labels)
+            if print_output:
+                print("Subset channels")
+                print(self.channel_labels)
 
             # Apply the subset to the raw data
             self.eeg_data = self.eeg_data[:, self.subset_indices]
@@ -201,10 +209,12 @@ class EEG_data():
         try:
             self.classifier.channel_labels = self.channel_labels
         except:
-            print("no classifier defined")
+            if print_output:
+                print("no classifier defined")
 
-        print(self.headset_string)
-        print(self.channel_labels)
+        if print_output:
+            print(self.headset_string)
+            print(self.channel_labels)
 
     # ONLINE
     # stream data from an online source
@@ -628,6 +638,9 @@ class EEG_data():
             iterative_training = False, 
             live_update = False,
             print_markers = True,
+            print_training=True,
+            print_performance=True,
+            print_predicitons=True,
             
             pp_type = "bandpass",   # preprocessing method
             pp_low=1,               # bandpass lower cutoff
@@ -927,7 +940,7 @@ class EEG_data():
         self.raw_eeg_windows = self.raw_eeg_windows[0:self.nwindows, 0:self.nchannels, 0:self.nsamples]
         self.processed_eeg_windows = self.processed_eeg_windows[0:self.nwindows, 0:self.nchannels, 0:self.nsamples]
         self.labels = self.labels[0:self.nwindows]
-        self.predictions = self.predictions[0:self.nwindows]
+        #self.predictions = self.predictions[0:self.nwindows]
 
 # ERP Data
 class ERP_data(EEG_data):
@@ -947,6 +960,9 @@ class ERP_data(EEG_data):
             training=False, 
             online=False,
             print_markers=True,
+            print_training=True,
+            print_performance=True,
+            print_predicitons=True,
 
 
             # Preprocessing
@@ -1007,7 +1023,7 @@ class ERP_data(EEG_data):
             self.big_decision_blocks = np.ndarray((self.max_decisions, self.num_options, self.max_windows_per_option, self.nchannels, self.nsamples)) # unused
             
             # predictions
-            self.predictions = np.ndarray((self.max_decisions))
+            #self.predictions = np.ndarray((self.max_decisions))
 
             loops = 0
             train_complete = False 
@@ -1272,4 +1288,4 @@ class ERP_data(EEG_data):
         self.stim_labels = self.stim_labels[0:self.nwindows, :]
         self.decision_blocks = self.decision_blocks[0:self.decision_count, 0:self.num_options, 0:self.nchannels, 0:self.nsamples]
         self.big_decision_blocks = self.big_decision_blocks[0:self.decision_count, 0:self.num_options, :, 0:self.nchannels, 0:self.nsamples]
-        self.predictions = self.predictions[0:self.decision_count-1]
+        #self.predictions = self.predictions[0:self.decision_count-1]
