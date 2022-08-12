@@ -638,7 +638,7 @@ class EEG_data():
             iterative_training = False, 
             live_update = False,
             print_markers = True,
-            print_training=True,
+            print_fit=True,
             print_performance=True,
             print_predicitons=True,
             
@@ -812,7 +812,7 @@ class EEG_data():
                             break
 
                         print("Training the classifier")
-                        self.classifier.fit()
+                        self.classifier.fit(print_fit = print_fit, print_performance=print_performance)
                         train_complete = True
                         training = False
                         self.marker_count += 1
@@ -823,7 +823,7 @@ class EEG_data():
                     elif self.marker_data[self.marker_count][0] == 'Update Classifier':
                         print("Updating the classifier")
 
-                        self.classifier.fit()
+                        self.classifier.fit(print_fit = print_fit, print_performance=print_performance)
 
                         iterative_training = True
                         if online == True:
@@ -960,7 +960,7 @@ class ERP_data(EEG_data):
             training=False, 
             online=False,
             print_markers=True,
-            print_training=True,
+            print_fit=True,
             print_performance=True,
             print_predicitons=True,
 
@@ -1078,7 +1078,7 @@ class ERP_data(EEG_data):
 
                         if train_complete == False:
                             print("Training the classifier")
-                            self.classifier.fit()
+                            self.classifier.fit(print_fit = print_fit, print_performance=print_performance)
                         train_complete = True
                         training = False
                         self.marker_count += 1
@@ -1119,7 +1119,7 @@ class ERP_data(EEG_data):
 
                                         # FIT
                                         print("training the classifier")
-                                        self.classifier.fit(n_splits=len(self.labels))
+                                        self.classifier.fit(n_splits=len(self.labels), print_fit = print_fit, print_performance=print_performance)
 
                             # else do the predict the label
                             else:
