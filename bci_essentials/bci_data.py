@@ -669,7 +669,9 @@ class EEG_data():
             # initialize windows and labels
             self.raw_eeg_windows = np.zeros((max_windows,max_channels,max_samples))
             self.processed_eeg_windows = self.raw_eeg_windows
-            self.labels = np.zeros((max_windows))
+            self.labels = np.zeros((max_windows))               # temporary labels
+            self.training_labels = np.zeros((max_windows))      # permanent training labels
+
 
             # initialize the numbers of markers and windows to zero
             self.marker_count = 0
@@ -756,6 +758,7 @@ class EEG_data():
                         # TRAIN
                         if training == True:
                             self.classifier.add_to_train(self.processed_eeg_windows, self.labels, print_training=print_training)
+
                             if print_training:
                                 print(self.nwindows, " windows and labels added to training set")
 
@@ -826,6 +829,8 @@ class EEG_data():
                     elif self.marker_data[self.marker_count][0] == 'Update Classifier':
                         if print_training:
                             print("Retraining the classifier")
+
+                        #self.training_labels = self.labels[0:self.nwindows]
 
                         self.classifier.fit(print_fit = print_fit, print_performance=print_performance)
 
@@ -918,10 +923,11 @@ class EEG_data():
 
                 
                 # Add the label if it exists, otherwise set a flag of -1 to denote that there is no label
-                if training == True:
-                    self.labels[self.nwindows] = label
-                else:
-                    self.labels[self.nwindows] = -1
+                # if training == True:
+                #     self.labels[self.nwindows] = label
+                # else:
+                #     self.labels[self.nwindows] = -1
+                # self.labels[self.nwindows] = label
 
 
                 # TODO: Get this live update going
@@ -1015,13 +1021,14 @@ class ERP_data(EEG_data):
             self.decision_count = 0
 
 
-            self.training_labels= np.ndarray((self.max_windows), dtype=int)
+            self.training_labels= np.zeros((self.max_windows), dtype=int)
             self.stim_labels = np.zeros((self.max_windows, self.num_options), dtype=bool)
             self.target_index = np.ndarray((self.max_windows), bool)
             
             # initialize the data structures in numpy arrays
             # ERP window
-            self.erp_windows = np.ndarray((self.max_windows, self.nchannels, self.nsamples))
+            self.erp_windows = np.zeros((self.max_windows, self.nchannels, self.nsamples))
+            self.raw_erp_windows = np.zeros((self.max_windows, self.nchannels, self.nsamples))
             # ERP decision blocks
             self.windows_per_decision = np.zeros((self.num_options))
             self.decision_blocks = np.ndarray((self.max_decisions, self.num_options, self.nchannels, self.nsamples))
@@ -1080,7 +1087,6 @@ class ERP_data(EEG_data):
 
                     # If training completed then train the classifier
                     elif self.marker_data[self.marker_count][0] == 'Training Complete' and train_complete == False:
-
                         if train_complete == False:
                             if print_training:
                                 print("Training the classifier")
@@ -1253,6 +1259,9 @@ class ERP_data(EEG_data):
 
                         channel_data = np.interp(self.window_timestamps, eeg_timestamps_adjusted, self.eeg_data[start_loc:end_loc,c])
 
+                        # add to raw ERP windows
+                        self.raw_erp_windows[self.nwindows, c, 0:self.nsamples] = channel_data
+
                         if pp_type == "bandpass":
                             channel_data_2 = bandpass(channel_data[np.newaxis,:], pp_low, pp_high, pp_order, self.fsample)
                             channel_data = channel_data_2[0,:]
@@ -1267,6 +1276,9 @@ class ERP_data(EEG_data):
                             elif non_target_plot == 99 or non_target_plot == flash_index:
                                 axs2[c].plot(range(self.nsamples),channel_data)
                                 non_target_plot = flash_index
+
+                        # add to processed ERP windows
+                        self.erp_windows[self.nwindows, c, 0:self.nsamples] = channel_data
 
                         # Does the ensemble avearging
                         self.decision_blocks[self.decision_count, flash_index, c, 0:self.nsamples] += channel_data
@@ -1291,6 +1303,7 @@ class ERP_data(EEG_data):
             self.target_index = self.target_index[0:self.nwindows-1]
 
         self.erp_windows = self.erp_windows[0:self.nwindows, 0:self.nchannels, 0:self.nsamples]
+        self.raw_erp_windows = self.raw_erp_windows[0:self.nwindows, 0:self.nchannels, 0:self.nsamples]
         self.target_index = self.target_index[0:self.nwindows]
         self.training_labels = self.training_labels[0:self.nwindows]
         self.stim_labels = self.stim_labels[0:self.nwindows, :]
