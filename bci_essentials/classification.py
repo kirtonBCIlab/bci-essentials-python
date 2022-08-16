@@ -160,8 +160,8 @@ class generic_classifier():
 
     
     # add training data, to the training set using a decision block and a label
-    def add_to_train(self, decision_block, labels, num_options = 0, meta = [], print_output=True):
-        if print_output:
+    def add_to_train(self, decision_block, labels, num_options = 0, meta = [], print_training=True):
+        if print_training:
             print("adding to training set")
         # reshape from [n,m,p] to [p,n,m]
         # n = number of channels
@@ -191,12 +191,12 @@ class generic_classifier():
             self.y = np.append(self.y, labels, axis=0)
 
     # predict a label based on a decision block
-    def predict_decision_block(self, decision_block, print_output=True):
+    def predict_decision_block(self, decision_block, print_predict=True):
 
         decision_block = self.get_subset(decision_block)
 
 
-        if print_output:
+        if print_predict:
             print("making a prediction")
 
         # # reshape from [n,m,p] to [p,n,m]
@@ -221,7 +221,7 @@ class generic_classifier():
 
         log_proba = np.log(relative_proba)
 
-        if print_output:
+        if print_predict:
             print("log relative probabilities")
             print(log_proba)
 
@@ -247,8 +247,8 @@ class erp_rg_classifier(generic_classifier):
         self.undersample_ratio = undersample_ratio
         self.random_seed = random_seed
 
-    def add_to_train(self, decision_block, label_idx, print_output=True):
-        if print_output:
+    def add_to_train(self, decision_block, label_idx, print_training=True):
+        if print_training:
             print("adding to training set")
         # n = number of channels
         # m = number of samples
@@ -261,7 +261,8 @@ class erp_rg_classifier(generic_classifier):
         # get labels from label_idx
         labels = np.zeros([p])
         labels[label_idx] = 1
-        print(labels)
+        if print_training:
+            print(labels)
 
         # If the classifier has no data then initialize
         if self.X == []:
@@ -597,7 +598,7 @@ class ssvep_basic_classifier_tf(generic_classifier):
         print("I DO NOT NEED TRAINING.")
         print("THIS IS MY FINAL FORM")
 
-    def predict(self, X):
+    def predict(self, X, print_predict):
         # get the shape
         nwindows, nchannels, nsamples = X.shape
         # The first time it is called it must be set up
@@ -909,7 +910,7 @@ class switch_classifier(generic_classifier):
         self.weights1 = self.clf0and1.get_weights()
         #self.weights2 = self.clf0and2.get_weights()
 
-    def predict(self, X):
+    def predict(self, X, print_predict):
         # if X is 2D, make it 3D with one as first dimension
         if len(X.shape) < 3:
             X = X[np.newaxis, ...]
@@ -961,5 +962,5 @@ class null_classifier(generic_classifier):
 
         print("This is a null classifier, there is no fitting")
 
-    def predict(self, X):
+    def predict(self, X, print_predict):
         return 0

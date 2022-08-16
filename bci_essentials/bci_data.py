@@ -638,9 +638,10 @@ class EEG_data():
             iterative_training = False, 
             live_update = False,
             print_markers = True,
+            print_training =True,
             print_fit=True,
             print_performance=True,
-            print_predicitons=True,
+            print_predict=True,
             
             pp_type = "bandpass",   # preprocessing method
             pp_low=1,               # bandpass lower cutoff
@@ -682,7 +683,8 @@ class EEG_data():
 
             # 
             if loops % 100 == 0:
-                print(loops)
+                if print_markers:
+                    print(loops)
 
             if loops == max_loops - 1:
                 print("last loop")
@@ -753,44 +755,45 @@ class EEG_data():
 
                         # TRAIN
                         if training == True:
-                            self.classifier.add_to_train(self.processed_eeg_windows, self.labels)
-                            print(self.nwindows, " windows and labels added to training set")
+                            self.classifier.add_to_train(self.processed_eeg_windows, self.labels, print_training=print_training)
+                            if print_training:
+                                print(self.nwindows, " windows and labels added to training set")
 
                             # if iterative training is on and active then also make a prediction
                             if iterative_training == True:
-                                print("Added current samples to training set, now making a prediction")
-                                prediction = self.classifier.predict(self.processed_eeg_windows)
+                                if print_predict:
+                                    print("Added current samples to training set, now making a prediction")
+                                prediction = self.classifier.predict(self.processed_eeg_windows, print_predict=print_predict)
 
                                 # Send the prediction to Unity
-                                print("{} was selected by the iterative classifier, sending to Unity".format(prediction))
+                                if print_predict:
+                                    print("{} was selected by the iterative classifier, sending to Unity".format(prediction))
                                 # pick a sample to send an wait for a bit
                                 
                                 # if online, send the packet to Unity
                                 if online == True:
-                                    print("okay, actually sending now...")
                                     self.outlet.push_sample(["{}".format(prediction)])
                         
                         # PREDICT
                         elif train_complete == True and self.nwindows != 0:
-                            print("making a prediction based on ", self.nwindows ," windows")
+                            if print_predict:
+                                print("making a prediction based on ", self.nwindows ," windows")
 
                             if self.nwindows == 0:
                                 print("No windows to make a decision")
                                 self.marker_count += 1
                                 break
                             
-                            prediction =  self.classifier.predict(self.processed_eeg_windows)
+                            prediction =  self.classifier.predict(self.processed_eeg_windows, print_predict)
 
+                            if print_predict:
+                                print("Recieved prediction from classifier")
 
-                            print("Recieved prediction from classifier")
-
-                            # Send the prediction to Unity
-                            print("{} was selected, sending to Unity".format(prediction))
-                            # pick a sample to send an wait for a bit
+                                # Send the prediction to Unity
+                                print("{} was selected, sending to Unity".format(prediction))
                             
                             # if online, send the packet to Unity
                             if online == True:
-                                print("okay, actually sending now...")
                                 self.outlet.push_sample(["{}".format(prediction)])
 
                         # OH DEAR
@@ -810,18 +813,19 @@ class EEG_data():
                             print("NO CLASSIFIER DEFINED")
                             self.marker_count += 1
                             break
-
-                        print("Training the classifier")
+                        if print_training:
+                            print("Training the classifier")
                         self.classifier.fit(print_fit = print_fit, print_performance=print_performance)
                         train_complete = True
                         training = False
                         self.marker_count += 1
                         #continue
 
-                        print(self.raw_eeg_windows.shape)
+                        #print(self.raw_eeg_windows.shape)
 
                     elif self.marker_data[self.marker_count][0] == 'Update Classifier':
-                        print("Updating the classifier")
+                        if print_training:
+                            print("Retraining the classifier")
 
                         self.classifier.fit(print_fit = print_fit, print_performance=print_performance)
 
@@ -924,7 +928,7 @@ class EEG_data():
                 if live_update == True:
                     if len(self.nsamples) != 0:
                         # pred = self.classifier.predict(self.windows[self.nwindows, 0:self.nchannels, 0:self.nsamples-1])
-                        pred = self.classifier.predict(self.windows[self.nwindows, 0:self.nchannels, 0:self.nsamples])
+                        pred = self.classifier.predict(self.windows[self.nwindows, 0:self.nchannels, 0:self.nsamples], print_predict=print_predict)
                         self.outlet.push_sample(["{}".format(pred)])
 
                 # iterate to next window
@@ -960,9 +964,10 @@ class ERP_data(EEG_data):
             training=False, 
             online=False,
             print_markers=True,
+            print_training=True,
             print_fit=True,
             print_performance=True,
-            print_predicitons=True,
+            print_predict=True,
 
 
             # Preprocessing
@@ -1077,7 +1082,8 @@ class ERP_data(EEG_data):
                     elif self.marker_data[self.marker_count][0] == 'Training Complete' and train_complete == False:
 
                         if train_complete == False:
-                            print("Training the classifier")
+                            if print_training:
+                                print("Training the classifier")
                             self.classifier.fit(print_fit = print_fit, print_performance=print_performance)
                         train_complete = True
                         training = False
@@ -1105,14 +1111,16 @@ class ERP_data(EEG_data):
                             if train_complete == False:
                                 # ADD to training set
                                 if unity_train == True:
-                                    print("adding decision block {} to the classifier with label {}".format(self.decision_count, unity_label))
-                                    self.classifier.add_to_train(self.decision_blocks[self.decision_count,:,:,:], unity_label)
+                                    if print_training:
+                                        print("adding decision block {} to the classifier with label {}".format(self.decision_count, unity_label))
+                                    self.classifier.add_to_train(self.decision_blocks[self.decision_count,:,:,:], unity_label, print_training=print_training)
 
                                     # plot what was added
                                     #decision_vis(self.decision_blocks[self.decision_count,:,:,:], self.fsample, unity_label, self.channel_labels)
                                 else:
-                                    print("adding decision block {} to the classifier with label {}".format(self.decision_count, self.labels[self.decision_count]))
-                                    self.classifier.add_to_train(self.decision_blocks[self.decision_count,:,:,:], self.labels[self.decision_count])
+                                    if print_training:
+                                        print("adding decision block {} to the classifier with label {}".format(self.decision_count, self.labels[self.decision_count]))
+                                    self.classifier.add_to_train(self.decision_blocks[self.decision_count,:,:,:], self.labels[self.decision_count], print_train=print_training)
 
                                     # if the last of the labelled data was just added
                                     if self.decision_count == len(self.labels) - 1:
@@ -1126,15 +1134,15 @@ class ERP_data(EEG_data):
                                 # PREDICT
 
                                 # CHANGED THIS
-                                prediction = self.classifier.predict_decision_block(decision_block=self.decision_blocks[self.decision_count,0:self.num_options,:,:])                      
+                                prediction = self.classifier.predict_decision_block(decision_block=self.decision_blocks[self.decision_count,0:self.num_options,:,:], print_predict=print_predict)                      
 
                                 # Send the prediction to Unity
-                                print("{} was selected, sending to Unity".format(prediction))
+                                if print_predict:
+                                    print("{} was selected, sending to Unity".format(prediction))
                                 # pick a sample to send an wait for a bit
                                 
                                 # if online, send the packet to Unity
                                 if online == True:
-                                    print("okay, actually sending now...")
                                     self.outlet.push_sample(["{}".format(prediction)])
                     
                         # TODO
