@@ -667,6 +667,10 @@ class EEG_data():
             search_index = 0
 
             # initialize windows and labels
+            current_raw_eeg_windows = np.zeros((max_windows,max_channels,max_samples))
+            current_processed_eeg_windows = current_raw_eeg_windows
+            current_labels = np.zeros((max_windows))
+
             self.raw_eeg_windows = np.zeros((max_windows,max_channels,max_samples))
             self.processed_eeg_windows = self.raw_eeg_windows
             self.labels = np.zeros((max_windows))               # temporary labels
@@ -675,6 +679,7 @@ class EEG_data():
 
             # initialize the numbers of markers and windows to zero
             self.marker_count = 0
+            current_nwindows = 0
             self.nwindows = 0
 
             # initialize loop count
@@ -751,22 +756,22 @@ class EEG_data():
                             break
 
                         # Trim the unused ends of numpy arrays
-                        self.raw_eeg_windows = self.raw_eeg_windows[0:self.nwindows, 0:self.nchannels, 0:self.nsamples]
-                        self.processed_eeg_windows = self.processed_eeg_windows[0:self.nwindows, 0:self.nchannels, 0:self.nsamples]
-                        self.labels = self.labels[0:self.nwindows]
+                        current_raw_eeg_windows = current_raw_eeg_windows[0:current_nwindows, 0:self.nchannels, 0:self.nsamples]
+                        current_processed_eeg_windows = current_processed_eeg_windows[0:current_nwindows, 0:self.nchannels, 0:self.nsamples]
+                        current_labels = current_labels[0:current_nwindows]
 
                         # TRAIN
                         if training == True:
-                            self.classifier.add_to_train(self.processed_eeg_windows, self.labels, print_training=print_training)
+                            self.classifier.add_to_train(current_processed_eeg_windows, current_labels, print_training=print_training)
 
                             if print_training:
-                                print(self.nwindows, " windows and labels added to training set")
+                                print(current_nwindows, " windows and labels added to training set")
 
                             # if iterative training is on and active then also make a prediction
                             if iterative_training == True:
                                 if print_predict:
                                     print("Added current samples to training set, now making a prediction")
-                                prediction = self.classifier.predict(self.processed_eeg_windows, print_predict=print_predict)
+                                prediction = self.classifier.predict(current_processed_eeg_windows, print_predict=print_predict)
 
                                 # Send the prediction to Unity
                                 if print_predict:
@@ -778,16 +783,16 @@ class EEG_data():
                                     self.outlet.push_sample(["{}".format(prediction)])
                         
                         # PREDICT
-                        elif train_complete == True and self.nwindows != 0:
+                        elif train_complete == True and current_nwindows != 0:
                             if print_predict:
-                                print("making a prediction based on ", self.nwindows ," windows")
+                                print("making a prediction based on ", current_nwindows ," windows")
 
-                            if self.nwindows == 0:
+                            if current_nwindows == 0:
                                 print("No windows to make a decision")
                                 self.marker_count += 1
                                 break
                             
-                            prediction =  self.classifier.predict(self.processed_eeg_windows, print_predict)
+                            prediction =  self.classifier.predict(current_processed_eeg_windows, print_predict)
 
                             if print_predict:
                                 print("Recieved prediction from classifier")
@@ -805,10 +810,10 @@ class EEG_data():
                         
                         # Reset windows and labels
                         self.marker_count += 1
-                        self.nwindows = 0
-                        self.raw_eeg_windows = np.zeros((max_windows,max_channels,max_samples))
-                        self.processed_eeg_windows = self.raw_eeg_windows
-                        self.labels = np.zeros((max_windows))
+                        current_nwindows = 0
+                        current_raw_eeg_windows = np.zeros((max_windows,max_channels,max_samples))
+                        current_processed_eeg_windows = current_raw_eeg_windows
+                        current_labels = np.zeros((max_windows))
 
                     # If training completed then train the classifier
                     elif self.marker_data[self.marker_count][0] == 'Training Complete' and train_complete == False:
@@ -824,13 +829,13 @@ class EEG_data():
                         self.marker_count += 1
                         #continue
 
-                        #print(self.raw_eeg_windows.shape)
+                        #print(current_raw_eeg_windows.shape)
 
                     elif self.marker_data[self.marker_count][0] == 'Update Classifier':
                         if print_training:
                             print("Retraining the classifier")
 
-                        #self.training_labels = self.labels[0:self.nwindows]
+                        #self.training_labels = current_labels[0:current_nwindows]
 
                         self.classifier.fit(print_fit = print_fit, print_performance=print_performance)
 
@@ -913,32 +918,37 @@ class EEG_data():
                     channel_data = np.interp(self.window_timestamps, eeg_timestamps_adjusted, self.eeg_data[start_loc:end_loc,c])
 
                     # Third, sdd to the EEG window
-                    self.raw_eeg_windows[self.nwindows,c,0:self.nsamples] = channel_data
+                    current_raw_eeg_windows[current_nwindows,c,0:self.nsamples] = channel_data
 
                 # This is where to do preprocessing
-                self.processed_eeg_windows[self.nwindows,:self.nchannels,:self.nsamples] = self.preprocessing(window=self.raw_eeg_windows[self.nwindows,:self.nchannels,:self.nsamples],option=pp_type, order=pp_order, fl=pp_low, fh=pp_high)
+                current_processed_eeg_windows[current_nwindows,:self.nchannels,:self.nsamples] = self.preprocessing(window=current_raw_eeg_windows[current_nwindows,:self.nchannels,:self.nsamples],option=pp_type, order=pp_order, fl=pp_low, fh=pp_high)
 
                 # This is where to do artefact rejection
-                self.processed_eeg_windows[self.nwindows,:self.nchannels,:self.nsamples] = self.artefact_rejection(window=self.processed_eeg_windows[self.nwindows,:self.nchannels,:self.nsamples],option=None)
-
+                current_processed_eeg_windows[current_nwindows,:self.nchannels,:self.nsamples] = self.artefact_rejection(window=current_processed_eeg_windows[current_nwindows,:self.nchannels,:self.nsamples],option=None)
                 
                 # Add the label if it exists, otherwise set a flag of -1 to denote that there is no label
                 # if training == True:
-                #     self.labels[self.nwindows] = label
+                #     current_labels[current_nwindows] = label
                 # else:
-                #     self.labels[self.nwindows] = -1
-                # self.labels[self.nwindows] = label
+                #     current_labels[current_nwindows] = -1
+                current_labels[current_nwindows] = label
+
+                # copy to the eeg_data object
+                self.raw_eeg_windows[self.nwindows,0:self.nchannels,0:self.nsamples] = current_raw_eeg_windows[current_nwindows,0:self.nchannels,0:self.nsamples]
+                self.processed_eeg_windows[self.nwindows,0:self.nchannels,0:self.nsamples] = current_processed_eeg_windows[current_nwindows,0:self.nchannels,0:self.nsamples]
+                self.labels[self.nwindows] = current_labels[current_nwindows]
 
 
                 # TODO: Get this live update going
                 if live_update == True:
                     if len(self.nsamples) != 0:
-                        # pred = self.classifier.predict(self.windows[self.nwindows, 0:self.nchannels, 0:self.nsamples-1])
-                        pred = self.classifier.predict(self.windows[self.nwindows, 0:self.nchannels, 0:self.nsamples], print_predict=print_predict)
+                        # pred = self.classifier.predict(self.windows[current_nwindows, 0:self.nchannels, 0:self.nsamples-1])
+                        pred = self.classifier.predict(self.windows[current_nwindows, 0:self.nchannels, 0:self.nsamples], print_predict=print_predict)
                         self.outlet.push_sample(["{}".format(pred)])
 
                 # iterate to next window
                 self.marker_count += 1
+                current_nwindows += 1
                 self.nwindows += 1
                 search_index = start_loc
 
