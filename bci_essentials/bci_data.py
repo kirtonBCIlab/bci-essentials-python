@@ -682,6 +682,10 @@ class EEG_data():
             current_nwindows = 0
             self.nwindows = 0
 
+            #
+            self.num_online_selections = 0
+            self.online_selection_indices = []
+
             # initialize loop count
             loops = 0
 
@@ -792,7 +796,12 @@ class EEG_data():
                                 self.marker_count += 1
                                 break
                             
-                            prediction =  self.classifier.predict(current_processed_eeg_windows, print_predict)
+                            # save the online selection indices
+                            selection_inds = list(range(self.nwindows - current_nwindows, self.nwindows))
+                            self.online_selection_indices.append(selection_inds)
+
+                            # make the prediciton
+                            prediction = self.classifier.predict(current_processed_eeg_windows, print_predict)
 
                             if print_predict:
                                 print("Recieved prediction from classifier")
@@ -906,6 +915,7 @@ class EEG_data():
                     if s > start_time:
                         start_loc = search_index + i - 1
                         break
+
                 # Get the end location for the window
                 end_loc = int(start_loc + self.nsamples + 1)
 
