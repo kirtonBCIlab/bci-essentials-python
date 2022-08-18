@@ -8,9 +8,10 @@ from bci_essentials.bci_data import *
 # f = open("test.txt", 'w')
 # sys.stdout = f
 
-# Define the sWITCH data object
+# Define the SWITCH data object
 switch_data = EEG_data()
 
+num_of_classifiers = 2
 
 # # LETS TRY IT OUT WITH JUST THE MI CLASSIFIER
 # # Select a classifier
@@ -25,10 +26,9 @@ switch_data = EEG_data()
 # LETS TRY IT OUT WITH A WHOLE NEW SWITCH CLASSIFIER
 switch_data.classifier = switch_classifier()
 
-switch_data.classifier.set_switch_classifier_settings(n_splits=3, rebuild=True, random_seed=35)
+switch_data.classifier.set_switch_classifier_settings(n_splits=3, rebuild=True, random_seed=35, num_classifiers = num_of_classifiers)
 # Connect the streams
 switch_data.stream_online_eeg_data()
-
 
 # Run
 switch_data.main(online=True, training=True)

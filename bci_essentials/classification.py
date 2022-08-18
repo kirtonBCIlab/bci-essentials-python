@@ -762,8 +762,9 @@ class mi_classifier(generic_classifier):
         return pred
 
 class switch_classifier(generic_classifier):
-    def set_switch_classifier_settings(self, n_splits = 2, rebuild = True, random_seed = 42, activation_main = 'relu', activation_class = 'sigmoid'):
+    def set_switch_classifier_settings(self, n_splits = 2, rebuild = True, random_seed = 42, num_classifiers = 2, activation_main = 'relu', activation_class = 'sigmoid'):
 
+        self.num_classifiers = num_classifiers
         self.activation_main = activation_main
         self.activation_class = activation_class
 
@@ -779,13 +780,15 @@ class switch_classifier(generic_classifier):
         self.clf = Sequential([
             Flatten(),
             Dense(units=8, input_shape=(4,), activation=self.activation_main),
-            Dense(units=16, activation=self.activation_main)
+            Dense(units=16, activation=self.activation_main),
+            Dense(units=self.num_classifiers+1, activation=self.activation_class)
         ])
 
         self.clf_model = Sequential([
             Flatten(),
             Dense(units=8, input_shape=(4,), activation=self.activation_main),
-            Dense(units=16, activation=self.activation_main)
+            Dense(units=16, activation=self.activation_main),
+            Dense(units=self.num_classifiers+1, activation=self.activation_class)
         ])
 
     def fit(self):
@@ -806,13 +809,7 @@ class switch_classifier(generic_classifier):
         self.weights = []
 
         # find the number of classes in y there shoud be N + 1, where N is the number of objects in the scene and also the number of classifiers
-        self.num_classifiers = len(list(np.unique(self.y))) - 1
-        self.max_label = max(list(np.unique(self.y)))
         print(f"Number of classes: {self.num_classifiers}")
-
-        if len(self.clf.layers) == 3:
-            self.clf.add(Dense(units=self.max_label+1, activation=self.activation_class))
-            self.clf_model.add(Dense(units=self.max_label+1, activation=self.activation_class))
 
         # loop through and build the classifiers
         for i in range(self.num_classifiers):
@@ -858,29 +855,53 @@ class switch_classifier(generic_classifier):
             self.clf = self.clf_model
 
     def predict(self, X):
-        # if X is 2D, make it 3D with one as first dimension
-        if len(X.shape) < 3:
-            X = X[np.newaxis, ...]
+            # if X is 2D, make it 3D with one as first dimension
+            if len(X.shape) < 3:
+                X = X[np.newaxis, ...]
 
-        print("the shape of X is", X.shape)
+            print("the shape of X is", X.shape)
 
-        self.pred_clfs = []
+            self.pred_clfs = []
 
-        # Reshaping data
-        z_dim, y_dim, x_dim = X.shape
-        X_predict = X.reshape(z_dim, x_dim*y_dim)
-        scaler_train = preprocessing.StandardScaler().fit(X_predict)
-        X_predict_scaled = scaler_train.transform(X_predict)
+            # Reshaping data
+            z_dim, y_dim, x_dim = X.shape
+            X_predict = X.reshape(z_dim, x_dim*y_dim)
+            scaler_train = preprocessing.StandardScaler().fit(X_predict)
+            X_predict_scaled = scaler_train.transform(X_predict)
 
-        final_predictions = []
+            final_predictions = []
 
-        # Make predictions
-        for i in range(len(self.clfs)):
-            preds = self.clfs[i].predict(X_predict_scaled)
-            final_predictions.append(preds)
+            # Make predictions
+            for i in range(len(self.clfs)):
+                preds = self.clfs[i].predict(X_predict_scaled)
+                final_predictions.append(np.ndarray.tolist(preds))
 
-        return final_predictions
-        
+            iterations = 0
+            temp_list = []
+            final_preds = []
+
+            for i in final_predictions:
+                for sub_list in i:
+                    temp_list.append(sub_list[iterations+1])
+
+                iterations += 1
+                final_preds.append(temp_list)
+                temp_list = []
+
+            '''This will format predictions so that unity can understand them. 
+            However, it only works with two objects right now because of the x and y in zip'''
+
+            temp_list_new = []
+            formatted_preds = []
+            for x, y in zip(final_preds[0], final_preds[1]):
+                temp_list_new.append(x)
+                temp_list_new.append(y)
+                formatted_preds.append(temp_list_new)
+                
+                temp_list_new = []
+
+            return formatted_preds
+
 class null_classifier(generic_classifier):
     def fit(self):
 
