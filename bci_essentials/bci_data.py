@@ -983,7 +983,8 @@ class ERP_data(EEG_data):
             window_end=0.8, 
             eeg_start=0, 
             buffer=0.01, 
-            num_selections=9,
+            max_num_options=30,
+            max_windows_per_option=20,
             max_windows=10000, 
             max_decisions=500, 
             max_loops=1000000000, 
@@ -1009,7 +1010,7 @@ class ERP_data(EEG_data):
         """
 
         unity_train = True
-        self.num_options = num_selections
+        self.num_options = max_num_options
 
         # plot settings
         self.plot_erp = plot_erp
@@ -1024,12 +1025,10 @@ class ERP_data(EEG_data):
             self.window_size = window_end - window_start
             self.nsamples = int(np.ceil(self.window_size * self.fsample) + 1)
             self.window_end_buffer = buffer
-            self.num_options = num_selections
+            self.num_options = max_num_options
             self.max_windows = max_windows
-            self.max_windows_per_option = 20
+            self.max_windows_per_option = max_windows_per_option
             self.max_decisions = max_decisions
-
-            self.windows_per_option = np.zeros(self.num_options, dtype=int)
 
             search_index = 0
 
@@ -1046,16 +1045,23 @@ class ERP_data(EEG_data):
             self.target_index = np.ndarray((self.max_windows), bool)
             
             # initialize the data structures in numpy arrays
-            # ERP window
-            self.erp_windows = np.zeros((self.max_windows, self.nchannels, self.nsamples))
-            self.raw_erp_windows = np.zeros((self.max_windows, self.nchannels, self.nsamples))
-            # ERP decision blocks
+            # ERP windows
+            self.erp_windows_raw = np.zeros((self.max_windows, self.nchannels, self.nsamples))
+            self.erp_windows_processed = np.zeros((self.max_windows, self.nchannels, self.nsamples))
+
+            # Windows per decision, ie. the number of times each stimulus has flashed
             self.windows_per_decision = np.zeros((self.num_options))
-            self.decision_blocks = np.ndarray((self.max_decisions, self.num_options, self.nchannels, self.nsamples))
-            self.big_decision_blocks = np.ndarray((self.max_decisions, self.num_options, self.max_windows_per_option, self.nchannels, self.nsamples)) # unused
-            
-            # predictions
-            #self.predictions = np.ndarray((self.max_decisions))
+
+            # Decision blocks are the ensemble averages of all windows collected for each stimulus object
+            self.decision_blocks_raw = np.ndarray((self.max_decisions, self.num_options, self.nchannels, self.nsamples))
+            self.decision_blocks_processed = np.ndarray((self.max_decisions, self.num_options, self.nchannels, self.nsamples))
+
+            # Big decision blocks contain all decisions, all stimulus objects, all windows, all channels, and all samples (they are BIG)
+            self.big_decision_blocks_raw = np.ndarray((self.max_decisions, self.num_options, self.max_windows_per_option, self.nchannels, self.nsamples))
+            self.big_decision_blocks_processed = np.ndarray((self.max_decisions, self.num_options, self.max_windows_per_option, self.nchannels, self.nsamples))
+
+            # Initialize the
+            self.num_options_per_decision = np.zeros((max_decisions))
 
             loops = 0
             train_complete = False 
@@ -1118,6 +1124,24 @@ class ERP_data(EEG_data):
 
                     # if there is a P300 end flag increment the decision_index by one
                     elif self.marker_data[self.marker_count][0] == 'P300 SingleFlash Ends' or self.marker_data[self.marker_count][0] == 'Trial Ends':
+
+                        # get the smallest number of windows per decision in the case the are not the same
+                        num_ensemble_windows = int(np.min(self.windows_per_decision))
+
+                        # save the number of options
+                        self.num_options_per_decision[self.decision_count] = int(self.num_options)
+
+                        # Raw ensemble average
+                        ensemble_average_block = np.mean(self.big_decision_blocks_raw[self.decision_count, 0:self.num_options, 0:num_ensemble_windows, 0:self.nchannels, 0:self.nsamples], axis=1)
+                        self.decision_blocks_raw[self.decision_count, 0:self.num_options, 0:self.nchannels, 0:self.nsamples] = ensemble_average_block
+
+                        # Processed ensemble average
+                        ensemble_average_block = np.mean(self.big_decision_blocks_processed[self.decision_count, 0:self.num_options, 0:num_ensemble_windows, 0:self.nchannels, 0:self.nsamples], axis=1)
+                        self.decision_blocks_processed[self.decision_count, 0:self.num_options, 0:self.nchannels, 0:self.nsamples] = ensemble_average_block
+
+                        # Reset windows per decision
+                        self.windows_per_decision = np.zeros((self.num_options))
+
                         if self.plot_erp == True:
                             fig1.show()
                             fig2.show()
@@ -1139,14 +1163,14 @@ class ERP_data(EEG_data):
                                 if unity_train == True:
                                     if print_training:
                                         print("adding decision block {} to the classifier with label {}".format(self.decision_count, unity_label))
-                                    self.classifier.add_to_train(self.decision_blocks[self.decision_count,:,:,:], unity_label, print_training=print_training)
+                                    self.classifier.add_to_train(self.decision_blocks_processed[self.decision_count,:self.num_options,:,:], unity_label, print_training=print_training)
 
                                     # plot what was added
                                     #decision_vis(self.decision_blocks[self.decision_count,:,:,:], self.fsample, unity_label, self.channel_labels)
                                 else:
                                     if print_training:
                                         print("adding decision block {} to the classifier with label {}".format(self.decision_count, self.labels[self.decision_count]))
-                                    self.classifier.add_to_train(self.decision_blocks[self.decision_count,:,:,:], self.labels[self.decision_count], print_train=print_training)
+                                    self.classifier.add_to_train(self.decision_blocks_processed[self.decision_count,:self.num_options,:,:], self.labels[self.decision_count], print_train=print_training)
 
                                     # if the last of the labelled data was just added
                                     if self.decision_count == len(self.labels) - 1:
@@ -1158,9 +1182,9 @@ class ERP_data(EEG_data):
                             # else do the predict the label
                             else:
                                 # PREDICT
+                                prediction = self.classifier.predict_decision_block(decision_block=self.decision_blocks_processed[self.decision_count,0:self.num_options,:,:], print_predict=print_predict)    
 
-                                # CHANGED THIS
-                                prediction = self.classifier.predict_decision_block(decision_block=self.decision_blocks[self.decision_count,0:self.num_options,:,:], print_predict=print_predict)                      
+                                # save the selection indices                  
 
                                 # Send the prediction to Unity
                                 if print_predict:
@@ -1222,8 +1246,6 @@ class ERP_data(EEG_data):
 
                             # Resize on the first marker
                             self.windows_per_decision = np.zeros((self.num_options))
-                            self.decision_blocks = np.ndarray((self.max_decisions, self.num_options, self.nchannels, self.nsamples))
-                            # self.big_decision_blocks = np.ndarray((self.max_decisions, self.num_options, self.max_windows, self.nchannels, self.nsamples))
                     elif i == 3:
                         unity_label = int(info)
                     elif i >= 4:
@@ -1269,7 +1291,7 @@ class ERP_data(EEG_data):
                 end_loc = start_loc + self.nsamples + 1
 
                 # Adjust windows per option
-                self.windows_per_option = np.zeros(self.num_options, dtype=int)
+                #self.windows_per_option = np.zeros(self.num_options, dtype=int)
 
                 #print("start loc, end loc ", start_loc, end_loc)
                 # linear interpolation and add to numpy array
@@ -1280,14 +1302,15 @@ class ERP_data(EEG_data):
                         channel_data = np.interp(self.window_timestamps, eeg_timestamps_adjusted, self.eeg_data[start_loc:end_loc,c])
 
                         # add to raw ERP windows
-                        self.raw_erp_windows[self.nwindows, c, 0:self.nsamples] = channel_data
+                        self.erp_windows_raw[self.nwindows, c, 0:self.nsamples] = channel_data
+                        #self.decision_blocks_raw[self.decision_count, self.nwindows, c, 0:self.nsamples]
 
-                        if pp_type == "bandpass":
-                            channel_data_2 = bandpass(channel_data[np.newaxis,:], pp_low, pp_high, pp_order, self.fsample)
-                            channel_data = channel_data_2[0,:]
+                        # if pp_type == "bandpass":
+                        #     channel_data_2 = bandpass(channel_data[np.newaxis,:], pp_low, pp_high, pp_order, self.fsample)
+                        #     channel_data = channel_data_2[0,:]
 
-                        # Add to the instance count
-                        self.windows_per_decision[flash_index] += 1
+                        # # Add to the instance count
+                        # self.windows_per_decision[flash_index] += 1
 
                         if self.plot_erp == True:
                             if flash_index == current_target:
@@ -1297,14 +1320,25 @@ class ERP_data(EEG_data):
                                 axs2[c].plot(range(self.nsamples),channel_data)
                                 non_target_plot = flash_index
 
-                        # add to processed ERP windows
-                        self.erp_windows[self.nwindows, c, 0:self.nsamples] = channel_data
+                        # # add to processed ERP windows
+                        # self.erp_windows[self.nwindows, c, 0:self.nsamples] = channel_data
 
-                        # Does the ensemble avearging
-                        self.decision_blocks[self.decision_count, flash_index, c, 0:self.nsamples] += channel_data
+                        # # Does the ensemble avearging
+                        # self.decision_blocks[self.decision_count, flash_index, c, 0:self.nsamples] += channel_data
+
+                    # This is where to do preprocessing
+                    self.erp_windows_processed[self.nwindows,:self.nchannels,:self.nsamples] = self.preprocessing(window=self.erp_windows_raw[self.nwindows,:self.nchannels,:self.nsamples],option=pp_type, order=pp_order, fl=pp_low, fh=pp_high)
+
+                    # This is where to do artefact rejection
+                    self.erp_windows_processed[self.nwindows,:self.nchannels,:self.nsamples] = self.artefact_rejection(window=self.erp_windows_processed[self.nwindows,:self.nchannels,:self.nsamples],option=None)
+
+                    # Add the raw window to the raw decision blocks
+                    #self.decision_blocks_raw[self.decision_count, flash_index, 0:self.nchannels, 0:self.nsamples] +=  self.erp_windows_processed
+                    self.big_decision_blocks_raw[self.decision_count, flash_index, int(self.windows_per_decision[flash_index] - 1), 0:self.nchannels, 0:self.nsamples] = self.erp_windows_raw[self.nwindows,:self.nchannels,:self.nsamples]
+
+                    self.big_decision_blocks_processed[self.decision_count, flash_index, int(self.windows_per_decision[flash_index] - 1), 0:self.nchannels, 0:self.nsamples] = self.erp_windows_processed[self.nwindows,:self.nchannels,:self.nsamples]
                     
-                    self.windows_per_option[flash_index] += 1
-
+                    # self.windows_per_decision[flash_index] += 1
                 # Reset for the next decision
 
 
@@ -1322,11 +1356,13 @@ class ERP_data(EEG_data):
             self.training_labels = self.training_labels[0:self.nwindows-1]
             self.target_index = self.target_index[0:self.nwindows-1]
 
-        self.erp_windows = self.erp_windows[0:self.nwindows, 0:self.nchannels, 0:self.nsamples]
-        self.raw_erp_windows = self.raw_erp_windows[0:self.nwindows, 0:self.nchannels, 0:self.nsamples]
+        # self.erp_windows = self.erp_windows[0:self.nwindows, 0:self.nchannels, 0:self.nsamples]
+        self.erp_windows_raw = self.erp_windows_raw[0:self.nwindows, 0:self.nchannels, 0:self.nsamples]
         self.target_index = self.target_index[0:self.nwindows]
         self.training_labels = self.training_labels[0:self.nwindows]
         self.stim_labels = self.stim_labels[0:self.nwindows, :]
-        self.decision_blocks = self.decision_blocks[0:self.decision_count, 0:self.num_options, 0:self.nchannels, 0:self.nsamples]
-        self.big_decision_blocks = self.big_decision_blocks[0:self.decision_count, 0:self.num_options, :, 0:self.nchannels, 0:self.nsamples]
-        #self.predictions = self.predictions[0:self.decision_count-1]
+        self.num_options_per_decision = self.num_options_per_decision[0:self.decision_count]
+        self.decision_blocks_raw = self.decision_blocks_raw[0:self.decision_count, :, 0:self.nchannels, 0:self.nsamples]
+        self.decision_blocks_processed = self.decision_blocks_processed[0:self.decision_count, :, 0:self.nchannels, 0:self.nsamples]
+        self.big_decision_blocks_raw = self.big_decision_blocks_raw[0:self.decision_count, :, :, 0:self.nchannels, 0:self.nsamples]
+        self.big_decision_blocks_processed = self.big_decision_blocks_processed[0:self.decision_count, :, :, 0:self.nchannels, 0:self.nsamples]
