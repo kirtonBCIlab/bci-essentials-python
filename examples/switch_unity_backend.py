@@ -11,8 +11,6 @@ from bci_essentials.bci_data import *
 # Define the SWITCH data object
 switch_data = EEG_data()
 
-num_of_classifiers = 2
-
 # # LETS TRY IT OUT WITH JUST THE MI CLASSIFIER
 # # Select a classifier
 # switch_data.classifier = mi_classifier()
@@ -26,7 +24,7 @@ num_of_classifiers = 2
 # LETS TRY IT OUT WITH A WHOLE NEW SWITCH CLASSIFIER
 switch_data.classifier = switch_classifier()
 
-switch_data.classifier.set_switch_classifier_settings(n_splits=3, rebuild=True, random_seed=35, num_classifiers = num_of_classifiers)
+switch_data.classifier.set_switch_classifier_settings(n_splits=3, rebuild=True, random_seed=35)
 # Connect the streams
 switch_data.stream_online_eeg_data()
 

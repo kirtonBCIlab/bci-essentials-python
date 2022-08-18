@@ -762,35 +762,41 @@ class mi_classifier(generic_classifier):
         return pred
 
 class switch_classifier(generic_classifier):
-    def set_switch_classifier_settings(self, n_splits = 2, rebuild = True, random_seed = 42, num_classifiers = 2, activation_main = 'relu', activation_class = 'sigmoid'):
+    def set_switch_classifier_settings(self, n_splits = 2, rebuild = True, random_seed = 42, activation_main = 'relu', activation_class = 'sigmoid'):
 
-        self.num_classifiers = num_classifiers
+        # Definining activation functions
         self.activation_main = activation_main
         self.activation_class = activation_class
 
+        # Defining training splits
         self.n_splits = n_splits
         self.cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_seed)
         self.rebuild = rebuild
 
+        # Setting random seed for tensorflow so results remain the same for each model
         tf.random.set_seed(
             random_seed
         )
 
-        # CHANGE THE CLASSIFIER HERE IF YOU WANT
+        '''Defining the neural network:
+            self.clf: This is the classifier that will be trained and whose weights will differ. At the end of training the classifier is appended to a list
+            self.clf_model: This will remain an unweighted version of the neural network and will be used to reset self.clf'''
+
         self.clf = Sequential([
             Flatten(),
             Dense(units=8, input_shape=(4,), activation=self.activation_main),
             Dense(units=16, activation=self.activation_main),
-            Dense(units=self.num_classifiers+1, activation=self.activation_class)
+            Dense(units=3, activation=self.activation_class)
         ])
 
         self.clf_model = Sequential([
             Flatten(),
             Dense(units=8, input_shape=(4,), activation=self.activation_main),
             Dense(units=16, activation=self.activation_main),
-            Dense(units=self.num_classifiers+1, activation=self.activation_class)
+            Dense(units=3, activation=self.activation_class)
         ])
 
+    # Fit function called in bci_data
     def fit(self):
         # Check for list and correct if needed
         if isinstance(self.X, list):
@@ -805,24 +811,29 @@ class switch_classifier(generic_classifier):
         X = np.array(self.X)
         y = np.array(self.y)
 
+        # list of classifiers
         self.clfs = []
-        self.weights = []
+
+        # Determining number of classes (0, 1, 2 normally)
+        self.num_classes = len(np.unique(y))
 
         # find the number of classes in y there shoud be N + 1, where N is the number of objects in the scene and also the number of classifiers
-        print(f"Number of classes: {self.num_classifiers}")
+        print(f"Number of classes: {self.num_classes}")
 
-        # loop through and build the classifiers
-        for i in range(self.num_classifiers):
+        # loop through and build the classifiers. Classification should occur between neutral and an activation state
+        for i in range(self.num_classes - 1):
+            print("\nStarting on model...")
             # take a subset / do spatial filtering
             X = X[:,:,:] # Does nothing for now
 
+            # Changing the x array and y array so that their indicies match up and appropriate features are trained with appropraite labels
+            # Thsi is so training can be done on 0 vs 1 dataset and 0 vs 2 dataset
             X_class = X[np.logical_or(y==0, y==(i+1)),:,:]
             y_class = y[np.logical_or(y==0, y==(i+1)),]
 
             # Try rebuilding the classifier each time
             if self.rebuild == True:
                 self.next_fit_window = 0
-                # tf.keras.backend.clear_session()
 
             subX = X_class[self.next_fit_window:,:,:]
             suby = y_class[self.next_fit_window:]
@@ -832,11 +843,14 @@ class switch_classifier(generic_classifier):
                 X_train, X_test = subX[train_idx], subX[test_idx]
                 y_train, y_test = suby[train_idx], suby[test_idx]
 
+                # Reshaping the training data makes it easier to fit it to the neural network and other machine learning models
                 z_dim, y_dim, x_dim = X_train.shape
                 X_train = X_train.reshape(z_dim, x_dim*y_dim)
+                # Scaling the data
                 scaler_train = preprocessing.StandardScaler().fit(X_train)
                 X_train_scaled = scaler_train.transform(X_train)
 
+                # Repeating preprocessing steps done for training data on testing data
                 z_dim, y_dim, x_dim = X_test.shape
                 X_test = X_test.reshape(z_dim, x_dim*y_dim)
                 scaler_test = preprocessing.StandardScaler().fit(X_test)
@@ -847,12 +861,12 @@ class switch_classifier(generic_classifier):
                 # Fit the model
                 self.clf.fit(x=X_train_scaled, y=y_train, batch_size=5, epochs=4, shuffle=True, verbose=2, validation_data=(X_test_scaled, y_test)) # Need to reshape X_train
             
-            self.weights = self.clf.get_weights()
-
+            # Append classifier to list 
             self.clfs.append(self.clf)
-            self.weights.append(self.weights)
-
+            # Remove weights on classifer for next run through for loop
             self.clf = self.clf_model
+
+            print("\nFinished model.")
 
     def predict(self, X):
             # if X is 2D, make it 3D with one as first dimension
@@ -861,14 +875,13 @@ class switch_classifier(generic_classifier):
 
             print("the shape of X is", X.shape)
 
-            self.pred_clfs = []
-
-            # Reshaping data
+            # Reshaping data and preprocessing the same way as done in fit
             z_dim, y_dim, x_dim = X.shape
             X_predict = X.reshape(z_dim, x_dim*y_dim)
             scaler_train = preprocessing.StandardScaler().fit(X_predict)
             X_predict_scaled = scaler_train.transform(X_predict)
 
+            # Final predictions is good once everything is appended - but data needs to be reformatted in a way that Unity understands
             final_predictions = []
 
             # Make predictions
@@ -876,10 +889,12 @@ class switch_classifier(generic_classifier):
                 preds = self.clfs[i].predict(X_predict_scaled)
                 final_predictions.append(np.ndarray.tolist(preds))
 
+            # This part of predict is about reformatting the data
             iterations = 0
             temp_list = []
             final_preds = []
 
+            # Copying the important values from final_predictions into new list
             for i in final_predictions:
                 for sub_list in i:
                     temp_list.append(sub_list[iterations+1])
