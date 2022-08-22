@@ -817,7 +817,7 @@ class switch_classifier(generic_classifier):
         ])
 
     # Fit function called in bci_data
-    def fit(self):
+    def fit(self, print_fit=True, print_performance=True):
         '''
         Fitting function for switch_classifier.
 
@@ -826,6 +826,8 @@ class switch_classifier(generic_classifier):
 
         Parameters:
         self: Takes all variables from the class
+        print_fit (boolean): Determines if we should print fitting info
+        print_performance (boolean): Determines if we should print performance info
 
         Returns:
         Nothing - Models created used in predict()      
@@ -872,6 +874,8 @@ class switch_classifier(generic_classifier):
             suby = y_class[self.next_fit_window:]
             self.next_fit_window = nwindows
 
+            preds = np.zeros(nwindows)
+
             for train_idx, test_idx in self.cv.split(subX,suby):
                 X_train, X_test = subX[train_idx], subX[test_idx]
                 y_train, y_test = suby[train_idx], suby[test_idx]
@@ -893,13 +897,47 @@ class switch_classifier(generic_classifier):
                 self.clf.compile(optimizer=Adam(learning_rate=0.001), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
                 # Fit the model
                 self.clf.fit(x=X_train_scaled, y=y_train, batch_size=5, epochs=4, shuffle=True, verbose=2, validation_data=(X_test_scaled, y_test)) # Need to reshape X_train
-            
-            # Append classifier to list 
-            self.clfs.append(self.clf)
-            # Remove weights on classifer for next run through for loop
-            self.clf = self.clf_model
 
-            print("\nFinished model.")
+                preds[test_idx] = self.clf.predict(X_test_scaled)
+                
+            # Print performance stats
+            # accuracy
+            correct = preds == self.y
+
+            self.offline_window_count = nwindows
+            self.offline_window_counts.append(self.offline_window_count)
+
+            # accuracy
+            accuracy = sum(preds == self.y)/len(preds)
+            self.offline_accuracy.append(accuracy)
+            if print_performance:
+                print("accuracy = {}".format(accuracy))
+
+            # precision
+            precision = precision_score(self.y,preds)
+            self.offline_precision.append(precision)
+            if print_performance:
+                print("precision = {}".format(precision))
+
+            # recall
+            recall = recall_score(self.y, preds)
+            self.offline_recall.append(recall)
+            if print_performance:
+                print("recall = {}".format(recall))
+
+            # confusion matrix in command line
+            cm = confusion_matrix(self.y, preds)
+            self.offline_cm = cm
+            if print_performance:
+                print("confusion matrix")
+                print(cm)
+
+        # Append classifier to list 
+        self.clfs.append(self.clf)
+        # Remove weights on classifer for next run through for loop
+        self.clf = self.clf_model
+
+        print("\nFinished model.")
 
     def predict(self, X):
         '''
