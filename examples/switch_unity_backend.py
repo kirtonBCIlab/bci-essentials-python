@@ -23,6 +23,7 @@ switch_data = EEG_data()
 
 # LETS TRY IT OUT WITH A WHOLE NEW SWITCH CLASSIFIER
 switch_data.classifier = switch_classifier()
+print(switch_data.classifier.__doc__)
 
 switch_data.classifier.set_switch_classifier_settings(n_splits=3, rebuild=True, random_seed=35)
 # Connect the streams

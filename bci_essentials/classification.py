@@ -10,6 +10,7 @@
 
 # Outputs a predction 
 
+import string
 import numpy as np
 import random
 
@@ -762,6 +763,13 @@ class mi_classifier(generic_classifier):
         return pred
 
 class switch_classifier(generic_classifier):
+    '''\nThis is a switch_classifier. This means that classification occurs between neutral and one other label (i.e. Binary classification). 
+    The produced probabilities between labels are then compared for one final classification.
+    This function has three methods. 
+    1. set_switch_classifier_settings() which has 6 parameters and defines two neural networks. One that will have weights and another that will not
+    2. fit() which uses the StratifiedKFold() function to split the data and then preprocess it using StandardScalar(). The neural network is then fit and appended to a list before being reset
+    3. predict() which is passed an array of size (X, 8, 512) from bci_data.py where it will predict upon the likelihood of state 1 vs state 2. Only works for three states currently\n'''
+
     def set_switch_classifier_settings(self, n_splits = 2, rebuild = True, random_seed = 42, activation_main = 'relu', activation_class = 'sigmoid'):
 
         # Definining activation functions
@@ -816,6 +824,7 @@ class switch_classifier(generic_classifier):
 
         # Determining number of classes (0, 1, 2 normally)
         self.num_classes = len(np.unique(y))
+        print(f"Unique self.y: {np.unique(self.y)}")
 
         # find the number of classes in y there shoud be N + 1, where N is the number of objects in the scene and also the number of classifiers
         print(f"Number of classes: {self.num_classes}")
@@ -885,6 +894,7 @@ class switch_classifier(generic_classifier):
             final_predictions = []
 
             # Make predictions
+            print(f"The number of classsifiers in the list are: {len(self.clfs)}")
             for i in range(len(self.clfs)):
                 preds = self.clfs[i].predict(X_predict_scaled)
                 final_predictions.append(np.ndarray.tolist(preds))
@@ -905,18 +915,33 @@ class switch_classifier(generic_classifier):
 
             '''This will format predictions so that unity can understand them. 
             However, it only works with two objects right now because of the x and y in zip'''
-
-            temp_list_new = []
-            formatted_preds = []
-            for x, y in zip(final_preds[0], final_preds[1]):
-                temp_list_new.append(x)
-                temp_list_new.append(y)
-                formatted_preds.append(temp_list_new)
-                
+            
+            try:
                 temp_list_new = []
+                formatted_preds = []
+                for x, y in zip(final_preds[0], final_preds[1]):
+                    temp_list_new.append(x)
+                    temp_list_new.append(y)
+                    formatted_preds.append(temp_list_new)
+                    
+                    temp_list_new = []
 
-            return formatted_preds
+                string_list = []
 
+                for preds_list in formatted_preds:
+                    for some_float in preds_list:
+                        string_list.append(str(some_float))
+
+                final_string = ', '.join(string_list)
+
+                print(f"final preds is: {final_preds}")
+                print(f"string_preds are: {final_string}")
+                
+                return final_string
+            except:
+                print("Error - there are not an appropriate amount of labels (three) to complete predictions on")
+                return None
+                
 class null_classifier(generic_classifier):
     def fit(self):
 
@@ -924,3 +949,4 @@ class null_classifier(generic_classifier):
 
     def predict(self, X):
         return 0
+
