@@ -763,15 +763,27 @@ class mi_classifier(generic_classifier):
         return pred
 
 class switch_classifier(generic_classifier):
-    '''\nThis is a switch_classifier. This means that classification occurs between neutral and one other label (i.e. Binary classification). 
-    The produced probabilities between labels are then compared for one final classification.
-    This function has three methods. 
-    1. set_switch_classifier_settings() which has 6 parameters and defines two neural networks. One that will have weights and another that will not
-    2. fit() which uses the StratifiedKFold() function to split the data and then preprocess it using StandardScalar(). The neural network is then fit and appended to a list before being reset
-    3. predict() which is passed an array of size (X, 8, 512) from bci_data.py where it will predict upon the likelihood of state 1 vs state 2. Only works for three states currently\n'''
+    '''This is a switch_classifier. This means that classification occurs between neutral and one other label (i.e. Binary classification). 
+    The produced probabilities between labels are then compared for one final classification.'''
 
     def set_switch_classifier_settings(self, n_splits = 2, rebuild = True, random_seed = 42, activation_main = 'relu', activation_class = 'sigmoid'):
+        '''
+        Function defines all basic settings for classification.
 
+        Function has 6 parameters and defines two neural networks. One that will have weights and another that will not. 
+
+        Parameters:
+        self: Takes all variables from the class
+        n_splits (int): Number of splits for StratifiedKFold
+        rebuild (boolean): Resetting index for each call of fit
+        random_seed (int): Ensures the same output for neural net each run if no parameters are changed
+        activation_main (string): Activation function between hidden layers
+        activation_class (string): Activation function for final layer in neural network
+
+        Returns:
+        Nothing - Networks created are used in fit()
+
+        '''            
         # Definining activation functions
         self.activation_main = activation_main
         self.activation_class = activation_class
@@ -806,6 +818,18 @@ class switch_classifier(generic_classifier):
 
     # Fit function called in bci_data
     def fit(self):
+        '''
+        Fitting function for switch_classifier.
+
+        Function uses the StratifiedKFold() function to split the data and then preprocess it using StandardScalar().
+        The neural network is then fit and appended to a list before being reset.
+
+        Parameters:
+        self: Takes all variables from the class
+
+        Returns:
+        Nothing - Models created used in predict()      
+        '''
         # Check for list and correct if needed
         if isinstance(self.X, list):
             print("Error. Self.X should not be a list")
@@ -878,69 +902,81 @@ class switch_classifier(generic_classifier):
             print("\nFinished model.")
 
     def predict(self, X):
-            # if X is 2D, make it 3D with one as first dimension
-            if len(X.shape) < 3:
-                X = X[np.newaxis, ...]
+        '''
+        Predict function which preprocessing data and makes prediction.
 
-            print("the shape of X is", X.shape)
+        Function is passed an array of size (X, 8, 512) from bci_data.py where it will predict upon the likelihood of state 1 vs state 2. Only works for three states currently.
+        
+        Parameters:
+        self: Takes all class variables
+        X (array): An array that will be predicted upon by previously trained models
 
-            # Reshaping data and preprocessing the same way as done in fit
-            z_dim, y_dim, x_dim = X.shape
-            X_predict = X.reshape(z_dim, x_dim*y_dim)
-            scaler_train = preprocessing.StandardScaler().fit(X_predict)
-            X_predict_scaled = scaler_train.transform(X_predict)
+        Returns:
+        string_preds (string): Formatted predictions in the form of a string for Unity to process it
+        '''
+        # if X is 2D, make it 3D with one as first dimension
+        if len(X.shape) < 3:
+            X = X[np.newaxis, ...]
 
-            # Final predictions is good once everything is appended - but data needs to be reformatted in a way that Unity understands
-            final_predictions = []
+        print("the shape of X is", X.shape)
 
-            # Make predictions
-            print(f"The number of classsifiers in the list are: {len(self.clfs)}")
-            for i in range(len(self.clfs)):
-                preds = self.clfs[i].predict(X_predict_scaled)
-                final_predictions.append(np.ndarray.tolist(preds))
+        # Reshaping data and preprocessing the same way as done in fit
+        z_dim, y_dim, x_dim = X.shape
+        X_predict = X.reshape(z_dim, x_dim*y_dim)
+        scaler_train = preprocessing.StandardScaler().fit(X_predict)
+        X_predict_scaled = scaler_train.transform(X_predict)
 
-            # This part of predict is about reformatting the data
-            iterations = 0
+        # Final predictions is good once everything is appended - but data needs to be reformatted in a way that Unity understands
+        final_predictions = []
+
+        # Make predictions
+        print(f"The number of classsifiers in the list are: {len(self.clfs)}")
+        for i in range(len(self.clfs)):
+            preds = self.clfs[i].predict(X_predict_scaled)
+            final_predictions.append(np.ndarray.tolist(preds))
+
+        # This part of predict is about reformatting the data
+        iterations = 0
+        temp_list = []
+        final_preds = []
+
+        # Copying the important values from final_predictions into new list
+        for i in final_predictions:
+            for sub_list in i:
+                temp_list.append(sub_list[iterations+1])
+
+            iterations += 1
+            final_preds.append(temp_list)
             temp_list = []
-            final_preds = []
 
-            # Copying the important values from final_predictions into new list
-            for i in final_predictions:
-                for sub_list in i:
-                    temp_list.append(sub_list[iterations+1])
-
-                iterations += 1
-                final_preds.append(temp_list)
-                temp_list = []
-
-            '''This will format predictions so that unity can understand them. 
-            However, it only works with two objects right now because of the x and y in zip'''
-            
-            try:
-                temp_list_new = []
-                formatted_preds = []
-                for x, y in zip(final_preds[0], final_preds[1]):
-                    temp_list_new.append(x)
-                    temp_list_new.append(y)
-                    formatted_preds.append(temp_list_new)
-                    
-                    temp_list_new = []
-
-                string_list = []
-
-                for preds_list in formatted_preds:
-                    for some_float in preds_list:
-                        string_list.append(str(some_float))
-
-                final_string = ', '.join(string_list)
-
-                print(f"final preds is: {final_preds}")
-                print(f"string_preds are: {final_string}")
+        '''This will format predictions so that unity can understand them. 
+        However, it only works with two objects right now because of the x and y in zip'''
+        
+        try:
+            temp_list_new = []
+            formatted_preds = []
+            for x, y in zip(final_preds[0], final_preds[1]):
+                temp_list_new.append(x)
+                temp_list_new.append(y)
+                formatted_preds.append(temp_list_new)
                 
-                return final_string
-            except:
-                print("Error - there are not an appropriate amount of labels (three) to complete predictions on")
-                return None
+                temp_list_new = []
+
+            string_list = []
+
+            for preds_list in formatted_preds:
+                for some_float in preds_list:
+                    string_list.append(str(some_float))
+
+            final_string = ', '.join(string_list)
+
+            print(f"final preds is: {final_preds}")
+            print(f"string_preds are: {final_string}")
+            
+            return final_string
+        except:
+            print("Error - there are not an appropriate amount of labels (three) to complete predictions on")
+            return None
                 
 class null_classifier(generic_classifier):
     def fit(self):
