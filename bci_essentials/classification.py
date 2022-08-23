@@ -229,6 +229,9 @@ class generic_classifier():
 
         prediction = int(np.where(proba == np.amax(proba))[0][0])
 
+        self.predictions.append(prediction)
+        self.pred_probas.append(proba_mat)
+
         return prediction
 
 

@@ -857,7 +857,8 @@ class EEG_data():
                     else:
                         self.marker_count += 1
 
-                    time.sleep(0.01)
+                    if online:
+                        time.sleep(0.01)
                     loops += 1
                     continue
   
@@ -963,7 +964,8 @@ class EEG_data():
                 search_index = start_loc
 
             # Wait a short period of time and then try to pull more data
-            time.sleep(0.00001)
+            if online:
+                time.sleep(0.00001)
             loops += 1
 
         # Trim all the data
@@ -1209,7 +1211,8 @@ class ERP_data(EEG_data):
                     else:
                         self.marker_count += 1
 
-                    time.sleep(0.01)
+                    if online:
+                        time.sleep(0.01)
                     loops += 1
                     continue
 
@@ -1346,9 +1349,11 @@ class ERP_data(EEG_data):
                 self.marker_count += 1
                 self.nwindows += 1
                 search_index = start_loc
-                time.sleep(0.000001)
+                if online:
+                    time.sleep(0.000001)
 
-            time.sleep(0.000001)
+            if online:
+                time.sleep(0.000001)
             loops += 1
             
         # Trim the unused ends of numpy arrays
