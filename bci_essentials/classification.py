@@ -765,7 +765,7 @@ class mi_classifier(generic_classifier):
 class switch_classifier(generic_classifier):
     '''This is a switch_classifier. This means that classification occurs between neutral and one other label (i.e. Binary classification). 
     The produced probabilities between labels are then compared for one final classification.'''
-
+    
     def set_switch_classifier_settings(self, n_splits = 2, rebuild = True, random_seed = 42, activation_main = 'relu', activation_class = 'sigmoid'):
         '''
         Function defines all basic settings for classification.
@@ -793,6 +793,8 @@ class switch_classifier(generic_classifier):
         self.cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_seed)
         self.rebuild = rebuild
 
+        self.random_seed = random_seed
+
         # Setting random seed for tensorflow so results remain the same for each model
         tf.random.set_seed(
             random_seed
@@ -816,7 +818,6 @@ class switch_classifier(generic_classifier):
             Dense(units=3, activation=self.activation_class)
         ])
 
-    # Fit function called in bci_data
     def fit(self, print_fit=True, print_performance=True):
         '''
         Fitting function for switch_classifier.
@@ -862,19 +863,22 @@ class switch_classifier(generic_classifier):
             X = X[:,:,:] # Does nothing for now
 
             # Changing the x array and y array so that their indicies match up and appropriate features are trained with appropraite labels
-            # Thsi is so training can be done on 0 vs 1 dataset and 0 vs 2 dataset
+            # This is so training can be done on 0 vs 1 dataset and 0 vs 2 dataset
             X_class = X[np.logical_or(y==0, y==(i+1)),:,:]
             y_class = y[np.logical_or(y==0, y==(i+1)),]
+
+            X_class_train, X_class_test, y_class_train, y_class_test = train_test_split(X_class, y_class, test_size=0.15, random_state=self.random_seed)
 
             # Try rebuilding the classifier each time
             if self.rebuild == True:
                 self.next_fit_window = 0
 
-            subX = X_class[self.next_fit_window:,:,:]
-            suby = y_class[self.next_fit_window:]
+            subX = X_class_train[self.next_fit_window:,:,:]
+            suby = y_class_train[self.next_fit_window:]
             self.next_fit_window = nwindows
 
-            preds = np.zeros(nwindows)
+            preds = np.zeros((nwindows, self.num_classes))
+            preds_multiclass = np.zeros(nwindows)
 
             for train_idx, test_idx in self.cv.split(subX,suby):
                 X_train, X_test = subX[train_idx], subX[test_idx]
@@ -897,47 +901,59 @@ class switch_classifier(generic_classifier):
                 self.clf.compile(optimizer=Adam(learning_rate=0.001), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
                 # Fit the model
                 self.clf.fit(x=X_train_scaled, y=y_train, batch_size=5, epochs=4, shuffle=True, verbose=2, validation_data=(X_test_scaled, y_test)) # Need to reshape X_train
+                # preds[test_idx,:] = self.clf.predict(X_test_scaled)
 
-                preds[test_idx] = self.clf.predict(X_test_scaled)
-                
-            # Print performance stats
-            # accuracy
-            correct = preds == self.y
+            # Append classifier to list 
+            self.clfs.append(self.clf)
+            # Remove weights on classifer for next run through for loop
+            self.clf = self.clf_model
+
+            print("\nFinished model.")
 
             self.offline_window_count = nwindows
             self.offline_window_counts.append(self.offline_window_count)
 
             # accuracy
-            accuracy = sum(preds == self.y)/len(preds)
-            self.offline_accuracy.append(accuracy)
             if print_performance:
+                z_dim, y_dim, x_dim = X_class_test.shape
+                X_class_test = X_class_test.reshape(z_dim, x_dim*y_dim)
+                # Scaling the data
+                scaler_train = preprocessing.StandardScaler().fit(X_class_test)
+                X_class_test_scaled = scaler_train.transform(X_class_test)  
+
+                preds = self.clf.predict(X_class_test_scaled) 
+
+                final_preds = np.array([])
+
+                print(f"preds is: {preds}")
+
+                for row in preds:
+                    print(f"row is: {row}")
+                    if i == 0:
+                        if row[0] > row[1]:
+                            final_preds = np.append(final_preds, 0)
+                        elif row[0] < row[1]:
+                            final_preds = np.append(final_preds, 1)
+                    elif i == 1:
+                        if row[0] > row[2]:
+                            final_preds = np.append(final_preds, 0)
+                        elif row[0] < row[2]:
+                            final_preds = np.append(final_preds, 2)
+                            
+                accuracy = accuracy_score(y_class_test, final_preds)
+                self.offline_accuracy.append(accuracy)
+
+                print(f"final_preds is: {final_preds}")
+                print(f"y_class_test is: {y_class_test}")
+
                 print("accuracy = {}".format(accuracy))
 
-            # precision
-            precision = precision_score(self.y,preds)
-            self.offline_precision.append(precision)
-            if print_performance:
-                print("precision = {}".format(precision))
-
-            # recall
-            recall = recall_score(self.y, preds)
-            self.offline_recall.append(recall)
-            if print_performance:
-                print("recall = {}".format(recall))
-
             # confusion matrix in command line
-            cm = confusion_matrix(self.y, preds)
+            cm = confusion_matrix(y_class_test, final_preds)
             self.offline_cm = cm
             if print_performance:
                 print("confusion matrix")
                 print(cm)
-
-        # Append classifier to list 
-        self.clfs.append(self.clf)
-        # Remove weights on classifer for next run through for loop
-        self.clf = self.clf_model
-
-        print("\nFinished model.")
 
     def predict(self, X):
         '''
