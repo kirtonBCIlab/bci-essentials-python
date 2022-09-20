@@ -160,8 +160,9 @@ class generic_classifier():
 
     
     # add training data, to the training set using a decision block and a label
-    def add_to_train(self, decision_block, labels, num_options = 0, meta = []):
-        print("adding to training set")
+    def add_to_train(self, decision_block, labels, num_options = 0, meta = [], print_training=True):
+        if print_training:
+            print("adding to training set")
         # reshape from [n,m,p] to [p,n,m]
         # n = number of channels
         # m = number of samples
@@ -190,11 +191,13 @@ class generic_classifier():
             self.y = np.append(self.y, labels, axis=0)
 
     # predict a label based on a decision block
-    def predict_decision_block(self, decision_block):
+    def predict_decision_block(self, decision_block, print_predict=True):
 
         decision_block = self.get_subset(decision_block)
 
-        print("making a prediction")
+
+        if print_predict:
+            print("making a prediction")
 
         # # reshape from [n,m,p] to [p,n,m]
         # n,m,p = decision_block.shape
@@ -217,12 +220,17 @@ class generic_classifier():
         # print(relative_proba)
 
         log_proba = np.log(relative_proba)
-        print("log relative probabilities")
-        print(log_proba)
+
+        if print_predict:
+            print("log relative probabilities")
+            print(log_proba)
 
         # the selection is the highest probability
 
         prediction = int(np.where(proba == np.amax(proba))[0][0])
+
+        self.predictions.append(prediction)
+        self.pred_probas.append(proba_mat)
 
         return prediction
 
@@ -242,8 +250,9 @@ class erp_rg_classifier(generic_classifier):
         self.undersample_ratio = undersample_ratio
         self.random_seed = random_seed
 
-    def add_to_train(self, decision_block, label_idx):
-        print("adding to training set")
+    def add_to_train(self, decision_block, label_idx, print_training=True):
+        if print_training:
+            print("adding to training set")
         # n = number of channels
         # m = number of samples
         # p = number of windows
@@ -255,7 +264,8 @@ class erp_rg_classifier(generic_classifier):
         # get labels from label_idx
         labels = np.zeros([p])
         labels[label_idx] = 1
-        print(labels)
+        if print_training:
+            print(labels)
 
         # If the classifier has no data then initialize
         if self.X == []:
@@ -267,10 +277,11 @@ class erp_rg_classifier(generic_classifier):
             self.X = np.append(self.X, decision_block, axis=0)
             self.y = np.append(self.y, labels, axis=0)
 
-    def fit(self, n_splits = 2, plot_cm=False, plot_roc=False, lico_expansion_factor = 1):
-        print("Fitting the model using RG")
-
-        print(self.X.shape, self.y.shape)
+    def fit(self, n_splits = 2, plot_cm=False, plot_roc=False, lico_expansion_factor = 1, print_fit=True, print_performance=True):
+        
+        if print_fit:
+            print("Fitting the model using RG")
+            print(self.X.shape, self.y.shape)
 
         # Define the strategy for cross validation
         cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=self.random_seed)
@@ -289,12 +300,15 @@ class erp_rg_classifier(generic_classifier):
             X_test = self.X[test_idx]
 
             #LICO
-            print ("Before LICO: Shape X",X_train.shape,"Shape y", y_train.shape)
+            if print_fit:
+                print ("Before LICO: Shape X",X_train.shape,"Shape y", y_train.shape)
             if sum(y_train) > 2:
                 if lico_expansion_factor > 1:
                     X_train, y_train = lico(X_train, y_train, expansion_factor=lico_expansion_factor, sum_num=2, shuffle=False)
-                    print("y_train =",y_train)
-            print("After LICO: Shape X",X_train.shape,"Shape y", y_train.shape)
+                    if print_fit:
+                        print("y_train =",y_train)
+            if print_fit:
+                print("After LICO: Shape X",X_train.shape,"Shape y", y_train.shape)
 
             # Oversampling
             if self.oversample_ratio > 0:
@@ -368,11 +382,12 @@ class erp_rg_classifier(generic_classifier):
             #TODO handle exception where two probabilities are the same
             prediction = int(np.where(predprobs == np.amax(predprobs))[0][0])
 
-            print("y_test =",y_test)
+            if print_fit:
+                print("y_test =",y_test)
 
-            print(predproba)
-            print(real[0])
-            print(prediction)
+                print(predproba)
+                print(real[0])
+                print(prediction)
 
             # a,pred_proba[test_idx] = self.clf.predict_proba(self.X[test_idx])
             # print(preds[test_idx])
@@ -382,23 +397,27 @@ class erp_rg_classifier(generic_classifier):
         # accuracy
         accuracy = sum(preds == self.y)/len(preds)
         self.offline_accuracy = accuracy
-        print("accuracy = {}".format(accuracy))
+        if print_performance:
+            print("accuracy = {}".format(accuracy))
 
         # precision
         precision = precision_score(self.y,preds)
         self.offline_precision = precision
-        print("precision = {}".format(precision))
+        if print_performance:
+            print("precision = {}".format(precision))
 
         # recall
         recall = recall_score(self.y, preds)
         self.offline_recall = recall
-        print("recall = {}".format(recall))
+        if print_performance:
+            print("recall = {}".format(recall))
 
         # confusion matrix in command line
         cm = confusion_matrix(self.y, preds)
         self.offline_cm = cm
-        print("confusion matrix")
-        print(cm)
+        if print_performance:
+            print("confusion matrix")
+            print(cm)
 
 
         if plot_cm == True:
@@ -433,7 +452,7 @@ class ssvep_basic_classifier(generic_classifier):
 
 
 
-    def fit(self):
+    def fit(self, print_fit=True, print_performance=True):
         # get dimensions
         nwindows, nchannels, nsamples = self.X.shape 
 
@@ -496,7 +515,9 @@ class ssvep_basic_classifier(generic_classifier):
         # accuracy
         accuracy = sum(preds == self.y)/len(preds)
         self.offline_accuracy.append(accuracy)
-        print("accuracy = {}".format(accuracy))
+
+        if print_performance:
+            print("accuracy = {}".format(accuracy))
 
         # # precision
         # precision = precision_score(self.y,preds)
@@ -511,15 +532,16 @@ class ssvep_basic_classifier(generic_classifier):
         # confusion matrix in command line
         cm = confusion_matrix(self.y, preds)
         self.offline_cm = cm
-        print("confusion matrix")
-        print(cm)
+        if print_performance:
+            print("confusion matrix")
+            print(cm)
 
         # if plot_cm == True:
         #     cm = confusion_matrix(self.y, preds)
         #     ConfusionMatrixDisplay(cm).plot()
         #     plt.show()
 
-    def predict(self, X = None):
+    def predict(self, X = None, print_predict=True):
 
         if type(X) == None:
             X = self.X
@@ -539,7 +561,8 @@ class ssvep_basic_classifier(generic_classifier):
 
         # predicts for each window
         preds = self.clf.predict(Xfeatures)
-        print(preds)
+        if print_predict:
+            print(preds)
 
 
         # predict the value from predictions which appear in the most windows
@@ -556,7 +579,8 @@ class ssvep_basic_classifier(generic_classifier):
 
         # Print the predictions for sanity
         #print(preds)
-        print(prediction)
+        if print_predict:
+            print(prediction)
 
         return int(prediction)
 
@@ -572,12 +596,12 @@ class ssvep_basic_classifier_tf(generic_classifier):
         self.target_freqs = target_freqs
         self.setup = False
 
-    def fit(self):
+    def fit(self, print_fit=True, print_performance=True):
         print("Oh deary me you must have mistaken me for another classifier which requires training")
         print("I DO NOT NEED TRAINING.")
         print("THIS IS MY FINAL FORM")
 
-    def predict(self, X):
+    def predict(self, X, print_predict):
         # get the shape
         nwindows, nchannels, nsamples = X.shape
         # The first time it is called it must be set up
@@ -659,7 +683,7 @@ class mi_classifier(generic_classifier):
 
 
 
-    def fit(self):
+    def fit(self, print_fit=True, print_performance=True):
         # get dimensions
         nwindows, nchannels, nsamples = self.X.shape 
 
@@ -706,25 +730,29 @@ class mi_classifier(generic_classifier):
         # accuracy
         accuracy = sum(preds == self.y)/len(preds)
         self.offline_accuracy.append(accuracy)
-        print("accuracy = {}".format(accuracy))
+        if print_performance:
+            print("accuracy = {}".format(accuracy))
 
         # precision
         precision = precision_score(self.y,preds)
         self.offline_precision.append(precision)
-        print("precision = {}".format(precision))
+        if print_performance:
+            print("precision = {}".format(precision))
 
         # recall
         recall = recall_score(self.y, preds)
         self.offline_recall.append(recall)
-        print("recall = {}".format(recall))
+        if print_performance:
+            print("recall = {}".format(recall))
 
         # confusion matrix in command line
         cm = confusion_matrix(self.y, preds)
         self.offline_cm = cm
-        print("confusion matrix")
-        print(cm)
+        if print_performance:
+            print("confusion matrix")
+            print(cm)
 
-    def predict(self, X):
+    def predict(self, X, print_predict=True):
         # if X is 2D, make it 3D with one as first dimension
         if len(X.shape) < 3:
             X = X[np.newaxis, ...]
@@ -734,13 +762,18 @@ class mi_classifier(generic_classifier):
         # Troubleshooting
         #X = self.X[-6:,:,:]
 
-        print("the shape of X is", X.shape)
+        if print_predict:
+            print("the shape of X is", X.shape)
 
         X_cov = Covariances().transform(X)
         #X_cov = X_cov[0,:,:]
 
         pred = self.clf.predict(X_cov)
         pred_proba = self.clf.predict_proba(X_cov)
+
+        if print_predict:
+            print(pred)
+            print(pred_proba)
 
         for i in range(len(pred)):
             self.predictions.append(pred[i])
@@ -790,7 +823,7 @@ class switch_classifier(generic_classifier):
         # self.clf0and1 = MDM()
 
 
-    def fit(self):
+    def fit(self, print_fit=True, print_performance=True):
         # get dimensions
         nwindows, nchannels, nsamples = self.X.shape 
 
@@ -880,7 +913,7 @@ class switch_classifier(generic_classifier):
         self.weights1 = self.clf0and1.get_weights()
         #self.weights2 = self.clf0and2.get_weights()
 
-    def predict(self, X):
+    def predict(self, X, print_predict):
         # if X is 2D, make it 3D with one as first dimension
         if len(X.shape) < 3:
             X = X[np.newaxis, ...]
@@ -928,9 +961,9 @@ class switch_classifier(generic_classifier):
         return final_predictions
 
 class null_classifier(generic_classifier):
-    def fit(self):
+    def fit(self, print_fit=True, print_performance=True):
 
         print("This is a null classifier, there is no fitting")
 
-    def predict(self, X):
+    def predict(self, X, print_predict):
         return 0

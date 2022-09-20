@@ -80,7 +80,7 @@ class EEG_data():
 
     # Load data from a variety of sources
     # Currently only suports .xdf format
-    def load_offline_eeg_data(self, filename, format='xdf', subset=[]):
+    def load_offline_eeg_data(self, filename, format='xdf', subset=[], print_output=True):
         """
         Loads offline data from a file
 
@@ -89,7 +89,8 @@ class EEG_data():
         self.subset = subset
 
         if(format == 'xdf'):
-            print("loading ERP data from {}".format(filename))
+            if print_output:
+                print("loading ERP data from {}".format(filename))
 
             # load from xdf
             data, self.header = pyxdf.load_xdf(filename)
@@ -98,8 +99,9 @@ class EEG_data():
             for i in range(len(data)):
                 namestring = data[i]['info']['name'][0]
                 typestring = data[i]['info']['type'][0]
-                print(namestring)
-                print(typestring)
+                if print_output:
+                    print(namestring)
+                    print(typestring)
 
                 if typestring == "EEG":
                     self.eeg_index = i
@@ -116,7 +118,7 @@ class EEG_data():
 
             # Unless explicit settings are desired, get settings from headset
             #if self.explicit_settings == False:
-            self.get_info_from_file(data)
+            self.get_info_from_file(data, print_output)
 
 
 
@@ -127,7 +129,7 @@ class EEG_data():
             print("Error: file format not supported")
 
     # Get metadata saved to the offline data file to fill in headset information
-    def get_info_from_file(self, data):
+    def get_info_from_file(self, data, print_output=True):
         """
         Get EEG metadata from the stream
 
@@ -151,12 +153,16 @@ class EEG_data():
         except:
             for i in range(self.nchannels):
                 self.channel_labels.append("?")
-        print(self.channel_labels)
+        
+        if print_output:
+            print(self.channel_labels)
 
         # if it is the DSI7 flex, relabel the channels, may want to make this more flexible in the future
-        print(self.headset_string)
+        if print_output:
+            print(self.headset_string)
         if self.headset_string == "DSI7":
-            print(self.channel_labels)
+            if print_output:
+                print(self.channel_labels)
             self.channel_labels[self.channel_labels.index('S1')] = 'O1'
             self.channel_labels[self.channel_labels.index('S2')] = 'Pz'
             self.channel_labels[self.channel_labels.index('S3')] = 'O2'
@@ -178,9 +184,10 @@ class EEG_data():
 
         # If a subset is to be used, define a new nchannels, channel labels, and eeg data
         if self.subset != []:
-            print("A subset was defined")
-            print("Original channels")
-            print(self.channel_labels)
+            if print_output:
+                print("A subset was defined")
+                print("Original channels")
+                print(self.channel_labels)
 
             self.nchannels = len(self.subset)
             self.subset_indices = []
@@ -188,8 +195,9 @@ class EEG_data():
                 self.subset_indices.append(self.channel_labels.index(s))
 
             self.channel_labels = self.subset
-            print("Subset channels")
-            print(self.channel_labels)
+            if print_output:
+                print("Subset channels")
+                print(self.channel_labels)
 
             # Apply the subset to the raw data
             self.eeg_data = self.eeg_data[:, self.subset_indices]
@@ -201,10 +209,12 @@ class EEG_data():
         try:
             self.classifier.channel_labels = self.channel_labels
         except:
-            print("no classifier defined")
+            if print_output:
+                print("no classifier defined")
 
-        print(self.headset_string)
-        print(self.channel_labels)
+        if print_output:
+            print(self.headset_string)
+            print(self.channel_labels)
 
     # ONLINE
     # stream data from an online source
@@ -431,6 +441,16 @@ class EEG_data():
         if return_eeg == True:
             return new_eeg_timestamps, new_eeg_data
 
+    def save_data(self, directory_name):
+        """
+        Save the data from different stages
+
+        Creates a directory with x files
+        data_pickle - includes raw EEG, markers, processed EEG, features
+
+
+        """
+
     # SIGNAL PROCESSING
     # Preprocessing goes here (windows are nchannels by nsamples)
     def preprocessing(self, window, option=None, order=5, fc=60, fl=10, fh=50):
@@ -617,11 +637,16 @@ class EEG_data():
             train_complete=False, 
             iterative_training = False, 
             live_update = False,
+            print_markers = True,
+            print_training =True,
+            print_fit=True,
+            print_performance=True,
+            print_predict=True,
             
             pp_type = "bandpass",   # preprocessing method
             pp_low=1,               # bandpass lower cutoff
             pp_high=40,             # bandpass upper cutoff
-            pp_order=5             # bandpass order
+            pp_order=5              # bandpass order
             ):
 
         """
@@ -642,12 +667,24 @@ class EEG_data():
             search_index = 0
 
             # initialize windows and labels
-            self.windows = np.zeros((max_windows,max_channels,max_samples))
-            self.labels = np.zeros((max_windows))
+            current_raw_eeg_windows = np.zeros((max_windows,max_channels,max_samples))
+            current_processed_eeg_windows = current_raw_eeg_windows
+            current_labels = np.zeros((max_windows))
+
+            self.raw_eeg_windows = np.zeros((max_windows,max_channels,max_samples))
+            self.processed_eeg_windows = self.raw_eeg_windows
+            self.labels = np.zeros((max_windows))               # temporary labels
+            self.training_labels = np.zeros((max_windows))      # permanent training labels
+
 
             # initialize the numbers of markers and windows to zero
             self.marker_count = 0
+            current_nwindows = 0
             self.nwindows = 0
+
+            #
+            self.num_online_selections = 0
+            self.online_selection_indices = []
 
             # initialize loop count
             loops = 0
@@ -657,7 +694,8 @@ class EEG_data():
 
             # 
             if loops % 100 == 0:
-                print(loops)
+                if print_markers:
+                    print(loops)
 
             if loops == max_loops - 1:
                 print("last loop")
@@ -697,7 +735,8 @@ class EEG_data():
                         self.outlet.push_sample(["marker received : {}".format(self.marker_data[self.marker_count][0])])
 
                     ############
-                    print(self.marker_data[self.marker_count][0])
+                    if print_markers == True:
+                        print(self.marker_data[self.marker_count][0])
 
                     # once all resting state data is collected then go and compile it
                     if self.marker_data[self.marker_count][0] == "Done with all RS collection":
@@ -705,12 +744,14 @@ class EEG_data():
                         self.marker_count += 1
 
                     elif self.marker_data[self.marker_count][0] == 'Trial Started':
-                        print("Trial started")
+                        if print_markers == True:
+                            print("Trial started")
                         # Note that a marker occured, but do nothing else
                         self.marker_count += 1
 
                     elif self.marker_data[self.marker_count][0] == 'Trial Ends':
-                        print("Trial ended")
+                        if print_markers == True:
+                            print("Trial ended")
 
                         # If no classifier, then ideally just continue adding to the windows and labels arrays
                         if self.classifier_defined == False:
@@ -719,44 +760,57 @@ class EEG_data():
                             break
 
                         # Trim the unused ends of numpy arrays
-                        self.windows = self.windows[0:self.nwindows, 0:self.nchannels, 0:self.nsamples]
-                        self.labels = self.labels[0:self.nwindows]
+                        current_raw_eeg_windows = current_raw_eeg_windows[0:current_nwindows, 0:self.nchannels, 0:self.nsamples]
+                        current_processed_eeg_windows = current_processed_eeg_windows[0:current_nwindows, 0:self.nchannels, 0:self.nsamples]
+                        current_labels = current_labels[0:current_nwindows]
 
                         # TRAIN
                         if training == True:
-                            self.classifier.add_to_train(self.windows, self.labels)
-                            print(self.nwindows, " windows and labels added to training set")
+                            self.classifier.add_to_train(current_processed_eeg_windows, current_labels, print_training=print_training)
+
+                            if print_training:
+                                print(current_nwindows, " windows and labels added to training set")
 
                             # if iterative training is on and active then also make a prediction
                             if iterative_training == True:
-                                print("Added current samples to training set, now making a prediction")
-                                prediction = self.classifier.predict(self.windows)
+                                if print_predict:
+                                    print("Added current samples to training set, now making a prediction")
+                                prediction = self.classifier.predict(current_processed_eeg_windows, print_predict=print_predict)
 
                                 # Send the prediction to Unity
-                                print("{} was selected by the iterative classifier, sending to Unity".format(prediction))
+                                if print_predict:
+                                    print("{} was selected by the iterative classifier, sending to Unity".format(prediction))
                                 # pick a sample to send an wait for a bit
                                 
                                 # if online, send the packet to Unity
                                 if online == True:
-                                    print("okay, actually sending now...")
                                     self.outlet.push_sample(["{}".format(prediction)])
                         
                         # PREDICT
-                        elif train_complete == True and self.nwindows != 0:
-                            print("making a prediction based on ", self.nwindows ," windows")
+                        elif train_complete == True and current_nwindows != 0:
+                            if print_predict:
+                                print("making a prediction based on ", current_nwindows ," windows")
 
-                            prediction =  self.classifier.predict(self.windows)
+                            if current_nwindows == 0:
+                                print("No windows to make a decision")
+                                self.marker_count += 1
+                                break
+                            
+                            # save the online selection indices
+                            selection_inds = list(range(self.nwindows - current_nwindows, self.nwindows))
+                            self.online_selection_indices.append(selection_inds)
 
+                            # make the prediciton
+                            prediction = self.classifier.predict(current_processed_eeg_windows, print_predict)
 
-                            print("Recieved prediction from classifier")
+                            if print_predict:
+                                print("Recieved prediction from classifier")
 
-                            # Send the prediction to Unity
-                            print("{} was selected, sending to Unity".format(prediction))
-                            # pick a sample to send an wait for a bit
+                                # Send the prediction to Unity
+                                print("{} was selected, sending to Unity".format(prediction))
                             
                             # if online, send the packet to Unity
                             if online == True:
-                                print("okay, actually sending now...")
                                 self.outlet.push_sample(["{}".format(prediction)])
 
                         # OH DEAR
@@ -765,9 +819,10 @@ class EEG_data():
                         
                         # Reset windows and labels
                         self.marker_count += 1
-                        self.nwindows = 0
-                        self.windows = np.zeros((max_windows,max_channels,max_samples))
-                        self.labels = np.zeros((max_windows))
+                        current_nwindows = 0
+                        current_raw_eeg_windows = np.zeros((max_windows,max_channels,max_samples))
+                        current_processed_eeg_windows = current_raw_eeg_windows
+                        current_labels = np.zeros((max_windows))
 
                     # If training completed then train the classifier
                     elif self.marker_data[self.marker_count][0] == 'Training Complete' and train_complete == False:
@@ -775,20 +830,23 @@ class EEG_data():
                             print("NO CLASSIFIER DEFINED")
                             self.marker_count += 1
                             break
-
-                        print("Training the classifier")
-                        self.classifier.fit()
+                        if print_training:
+                            print("Training the classifier")
+                        self.classifier.fit(print_fit = print_fit, print_performance=print_performance)
                         train_complete = True
                         training = False
                         self.marker_count += 1
                         #continue
 
-                        print(self.windows.shape)
+                        #print(current_raw_eeg_windows.shape)
 
                     elif self.marker_data[self.marker_count][0] == 'Update Classifier':
-                        print("Updating the classifier")
+                        if print_training:
+                            print("Retraining the classifier")
 
-                        self.classifier.fit()
+                        #self.training_labels = current_labels[0:current_nwindows]
+
+                        self.classifier.fit(print_fit = print_fit, print_performance=print_performance)
 
                         iterative_training = True
                         if online == True:
@@ -799,7 +857,8 @@ class EEG_data():
                     else:
                         self.marker_count += 1
 
-                    time.sleep(0.01)
+                    if online:
+                        time.sleep(0.01)
                     loops += 1
                     continue
   
@@ -834,7 +893,8 @@ class EEG_data():
                         self.marker_count += 1
                         break
 
-                print(marker_info)
+                if print_markers == True:
+                    print(marker_info)
 
                 # send feedback to unity if there is an available outlet
                 if self.stream_outlet == True:
@@ -856,6 +916,7 @@ class EEG_data():
                     if s > start_time:
                         start_loc = search_index + i - 1
                         break
+
                 # Get the end location for the window
                 end_loc = int(start_loc + self.nsamples + 1)
 
@@ -867,36 +928,51 @@ class EEG_data():
                     # Second, interpolate to timestamps at a uniform sampling rate
                     channel_data = np.interp(self.window_timestamps, eeg_timestamps_adjusted, self.eeg_data[start_loc:end_loc,c])
 
-                    # Third, add to the EEG window
-                    self.windows[self.nwindows,c,0:self.nsamples] = channel_data
+                    # Third, sdd to the EEG window
+                    current_raw_eeg_windows[current_nwindows,c,0:self.nsamples] = channel_data
 
                 # This is where to do preprocessing
-                self.windows[self.nwindows,:self.nchannels,:self.nsamples] = self.preprocessing(window=self.windows[self.nwindows,:self.nchannels,:self.nsamples],option=pp_type, order=pp_order, fl=pp_low, fh=pp_high)
+                current_processed_eeg_windows[current_nwindows,:self.nchannels,:self.nsamples] = self.preprocessing(window=current_raw_eeg_windows[current_nwindows,:self.nchannels,:self.nsamples],option=pp_type, order=pp_order, fl=pp_low, fh=pp_high)
 
                 # This is where to do artefact rejection
-                self.windows[self.nwindows,:self.nchannels,:self.nsamples] = self.artefact_rejection(window=self.windows[self.nwindows,:self.nchannels,:self.nsamples],option=None)
-
+                current_processed_eeg_windows[current_nwindows,:self.nchannels,:self.nsamples] = self.artefact_rejection(window=current_processed_eeg_windows[current_nwindows,:self.nchannels,:self.nsamples],option=None)
                 
                 # Add the label if it exists, otherwise set a flag of -1 to denote that there is no label
-                if training == True:
-                    self.labels[self.nwindows] = label
-                else:
-                    self.labels[self.nwindows] = -1
+                # if training == True:
+                #     current_labels[current_nwindows] = label
+                # else:
+                #     current_labels[current_nwindows] = -1
+                current_labels[current_nwindows] = label
+
+                # copy to the eeg_data object
+                self.raw_eeg_windows[self.nwindows,0:self.nchannels,0:self.nsamples] = current_raw_eeg_windows[current_nwindows,0:self.nchannels,0:self.nsamples]
+                self.processed_eeg_windows[self.nwindows,0:self.nchannels,0:self.nsamples] = current_processed_eeg_windows[current_nwindows,0:self.nchannels,0:self.nsamples]
+                self.labels[self.nwindows] = current_labels[current_nwindows]
 
 
                 # TODO: Get this live update going
                 if live_update == True:
-                    pred = self.classifier.predict(self.windows[self.nwindows, 0:self.nchannels, 0:self.nsamples-1])
-                    self.outlet.push_sample(["{}".format(pred)])
+                    if len(self.nsamples) != 0:
+                        # pred = self.classifier.predict(self.windows[current_nwindows, 0:self.nchannels, 0:self.nsamples-1])
+                        pred = self.classifier.predict(self.windows[current_nwindows, 0:self.nchannels, 0:self.nsamples], print_predict=print_predict)
+                        self.outlet.push_sample(["{}".format(pred)])
 
                 # iterate to next window
                 self.marker_count += 1
+                current_nwindows += 1
                 self.nwindows += 1
                 search_index = start_loc
 
             # Wait a short period of time and then try to pull more data
-            time.sleep(0.00001)
+            if online:
+                time.sleep(0.00001)
             loops += 1
+
+        # Trim all the data
+        self.raw_eeg_windows = self.raw_eeg_windows[0:self.nwindows, 0:self.nchannels, 0:self.nsamples]
+        self.processed_eeg_windows = self.processed_eeg_windows[0:self.nwindows, 0:self.nchannels, 0:self.nsamples]
+        self.labels = self.labels[0:self.nwindows]
+        #self.predictions = self.predictions[0:self.nwindows]
 
 # ERP Data
 class ERP_data(EEG_data):
@@ -909,12 +985,20 @@ class ERP_data(EEG_data):
             window_end=0.8, 
             eeg_start=0, 
             buffer=0.01, 
-            num_selections=9,
+            max_num_options=30,
+            max_windows_per_option=20,
             max_windows=10000, 
             max_decisions=500, 
             max_loops=1000000000, 
             training=False, 
             online=False,
+            print_markers=True,
+            print_training=True,
+            print_fit=True,
+            print_performance=True,
+            print_predict=True,
+
+
             # Preprocessing
             pp_type = "bandpass",   # preprocessing method
             pp_low=1,               # bandpass lower cutoff
@@ -928,7 +1012,7 @@ class ERP_data(EEG_data):
         """
 
         unity_train = True
-        self.num_options = num_selections
+        self.num_options = max_num_options
 
         # plot settings
         self.plot_erp = plot_erp
@@ -943,12 +1027,10 @@ class ERP_data(EEG_data):
             self.window_size = window_end - window_start
             self.nsamples = int(np.ceil(self.window_size * self.fsample) + 1)
             self.window_end_buffer = buffer
-            self.num_options = num_selections
+            self.num_options = max_num_options
             self.max_windows = max_windows
-            self.max_windows_per_option = 20
+            self.max_windows_per_option = max_windows_per_option
             self.max_decisions = max_decisions
-
-            self.windows_per_option = np.zeros(self.num_options, dtype=int)
 
             search_index = 0
 
@@ -960,20 +1042,28 @@ class ERP_data(EEG_data):
             self.decision_count = 0
 
 
-            self.training_labels= np.ndarray((self.max_windows), dtype=int)
+            self.training_labels= np.zeros((self.max_windows), dtype=int)
             self.stim_labels = np.zeros((self.max_windows, self.num_options), dtype=bool)
             self.target_index = np.ndarray((self.max_windows), bool)
             
             # initialize the data structures in numpy arrays
-            # ERP window
-            self.erp_windows = np.ndarray((self.max_windows, self.nchannels, self.nsamples))
-            # ERP decision blocks
+            # ERP windows
+            self.erp_windows_raw = np.zeros((self.max_windows, self.nchannels, self.nsamples))
+            self.erp_windows_processed = np.zeros((self.max_windows, self.nchannels, self.nsamples))
+
+            # Windows per decision, ie. the number of times each stimulus has flashed
             self.windows_per_decision = np.zeros((self.num_options))
-            self.decision_blocks = np.ndarray((self.max_decisions, self.num_options, self.nchannels, self.nsamples))
-            self.big_decision_blocks = np.ndarray((self.max_decisions, self.num_options, self.max_windows_per_option, self.nchannels, self.nsamples))
-            
-            # predictions
-            self.predictions = np.ndarray((self.max_decisions))
+
+            # Decision blocks are the ensemble averages of all windows collected for each stimulus object
+            self.decision_blocks_raw = np.ndarray((self.max_decisions, self.num_options, self.nchannels, self.nsamples))
+            self.decision_blocks_processed = np.ndarray((self.max_decisions, self.num_options, self.nchannels, self.nsamples))
+
+            # Big decision blocks contain all decisions, all stimulus objects, all windows, all channels, and all samples (they are BIG)
+            self.big_decision_blocks_raw = np.ndarray((self.max_decisions, self.num_options, self.max_windows_per_option, self.nchannels, self.nsamples))
+            self.big_decision_blocks_processed = np.ndarray((self.max_decisions, self.num_options, self.max_windows_per_option, self.nchannels, self.nsamples))
+
+            # Initialize the
+            self.num_options_per_decision = np.zeros((max_decisions))
 
             loops = 0
             train_complete = False 
@@ -1009,16 +1099,12 @@ class ERP_data(EEG_data):
             while(len(self.marker_timestamps) > self.marker_count):
                 loops = 0
                 if len(self.marker_data[self.marker_count][0].split(',')) == 1:
-                    # print(self.marker_data[self.marker_count])
-                    # if there is a P300 start flag move on
-
-                    ############debug
-                    # print(self.marker_data[self.marker_count][0])
 
                     # if self.marker_data[self.marker_count][0] == 'P300 SingleFlash Begins' or 'P300 SingleFlash Started':
                     if self.marker_data[self.marker_count][0] == 'P300 SingleFlash Started' or self.marker_data[self.marker_count][0] == 'P300 SingleFlash Begins' or self.marker_data[self.marker_count][0] == 'Trial Started':
                         # Note that a marker occured, but do nothing else
-                        print("Trial Started")
+                        if print_markers == True:
+                            print("Trial Started")
                         self.marker_count += 1
 
                     # once all resting state data is collected then go and compile it
@@ -1029,24 +1115,42 @@ class ERP_data(EEG_data):
 
                     # If training completed then train the classifier
                     elif self.marker_data[self.marker_count][0] == 'Training Complete' and train_complete == False:
-
                         if train_complete == False:
-                            print("Training the classifier")
-                            self.classifier.fit()
+                            if print_training:
+                                print("Training the classifier")
+                            self.classifier.fit(print_fit = print_fit, print_performance=print_performance)
                         train_complete = True
                         training = False
                         self.marker_count += 1
                         #continue
 
                     # if there is a P300 end flag increment the decision_index by one
-                    # print(self.marker_data[self.marker_count][0])
                     elif self.marker_data[self.marker_count][0] == 'P300 SingleFlash Ends' or self.marker_data[self.marker_count][0] == 'Trial Ends':
+
+                        # get the smallest number of windows per decision in the case the are not the same
+                        num_ensemble_windows = int(np.min(self.windows_per_decision))
+
+                        # save the number of options
+                        self.num_options_per_decision[self.decision_count] = int(self.num_options)
+
+                        # Raw ensemble average
+                        ensemble_average_block = np.mean(self.big_decision_blocks_raw[self.decision_count, 0:self.num_options, 0:num_ensemble_windows, 0:self.nchannels, 0:self.nsamples], axis=1)
+                        self.decision_blocks_raw[self.decision_count, 0:self.num_options, 0:self.nchannels, 0:self.nsamples] = ensemble_average_block
+
+                        # Processed ensemble average
+                        ensemble_average_block = np.mean(self.big_decision_blocks_processed[self.decision_count, 0:self.num_options, 0:num_ensemble_windows, 0:self.nchannels, 0:self.nsamples], axis=1)
+                        self.decision_blocks_processed[self.decision_count, 0:self.num_options, 0:self.nchannels, 0:self.nsamples] = ensemble_average_block
+
+                        # Reset windows per decision
+                        self.windows_per_decision = np.zeros((self.num_options))
+
                         if self.plot_erp == True:
                             fig1.show()
                             fig2.show()
 
+                        if print_markers == True:
+                            print(self.marker_data[self.marker_count][0])
 
-                        print(self.marker_data[self.marker_count][0])
                         self.marker_count += 1
 
                         # ADD IN A CHECK TO MAKE SURE THERE IS SUFFICIENT INFO TO MAKE A DECISION
@@ -1059,36 +1163,38 @@ class ERP_data(EEG_data):
                             if train_complete == False:
                                 # ADD to training set
                                 if unity_train == True:
-                                    print("adding decision block {} to the classifier with label {}".format(self.decision_count, unity_label))
-                                    self.classifier.add_to_train(self.decision_blocks[self.decision_count,:,:,:], unity_label)
+                                    if print_training:
+                                        print("adding decision block {} to the classifier with label {}".format(self.decision_count, unity_label))
+                                    self.classifier.add_to_train(self.decision_blocks_processed[self.decision_count,:self.num_options,:,:], unity_label, print_training=print_training)
 
                                     # plot what was added
                                     #decision_vis(self.decision_blocks[self.decision_count,:,:,:], self.fsample, unity_label, self.channel_labels)
                                 else:
-                                    print("adding decision block {} to the classifier with label {}".format(self.decision_count, self.labels[self.decision_count]))
-                                    self.classifier.add_to_train(self.decision_blocks[self.decision_count,:,:,:], self.labels[self.decision_count])
+                                    if print_training:
+                                        print("adding decision block {} to the classifier with label {}".format(self.decision_count, self.labels[self.decision_count]))
+                                    self.classifier.add_to_train(self.decision_blocks_processed[self.decision_count,:self.num_options,:,:], self.labels[self.decision_count], print_train=print_training)
 
                                     # if the last of the labelled data was just added
                                     if self.decision_count == len(self.labels) - 1:
 
                                         # FIT
                                         print("training the classifier")
-                                        self.classifier.fit(n_splits=len(self.labels))
+                                        self.classifier.fit(n_splits=len(self.labels), print_fit = print_fit, print_performance=print_performance)
 
                             # else do the predict the label
                             else:
                                 # PREDICT
+                                prediction = self.classifier.predict_decision_block(decision_block=self.decision_blocks_processed[self.decision_count,0:self.num_options,:,:], print_predict=print_predict)    
 
-                                # CHANGED THIS
-                                prediction = self.classifier.predict_decision_block(decision_block=self.decision_blocks[self.decision_count,0:self.num_options,:,:])                      
+                                # save the selection indices                  
 
                                 # Send the prediction to Unity
-                                print("{} was selected, sending to Unity".format(prediction))
+                                if print_predict:
+                                    print("{} was selected, sending to Unity".format(prediction))
                                 # pick a sample to send an wait for a bit
                                 
                                 # if online, send the packet to Unity
                                 if online == True:
-                                    print("okay, actually sending now...")
                                     self.outlet.push_sample(["{}".format(prediction)])
                     
                         # TODO
@@ -1105,7 +1211,8 @@ class ERP_data(EEG_data):
                     else:
                         self.marker_count += 1
 
-                    time.sleep(0.01)
+                    if online:
+                        time.sleep(0.01)
                     loops += 1
                     continue
 
@@ -1142,8 +1249,6 @@ class ERP_data(EEG_data):
 
                             # Resize on the first marker
                             self.windows_per_decision = np.zeros((self.num_options))
-                            self.decision_blocks = np.ndarray((self.max_decisions, self.num_options, self.nchannels, self.nsamples))
-                            # self.big_decision_blocks = np.ndarray((self.max_decisions, self.num_options, self.max_windows, self.nchannels, self.nsamples))
                     elif i == 3:
                         unity_label = int(info)
                     elif i >= 4:
@@ -1159,7 +1264,8 @@ class ERP_data(EEG_data):
                     
                     #current_target = target_order[self.decision_count]
                     if unity_train == True:
-                        print(marker_info)
+                        if print_markers == True:
+                            print(marker_info)
                         current_target = unity_label
 
                     self.training_labels[self.nwindows] = current_target
@@ -1188,7 +1294,7 @@ class ERP_data(EEG_data):
                 end_loc = start_loc + self.nsamples + 1
 
                 # Adjust windows per option
-                self.windows_per_option = np.zeros(self.num_options, dtype=int)
+                #self.windows_per_option = np.zeros(self.num_options, dtype=int)
 
                 #print("start loc, end loc ", start_loc, end_loc)
                 # linear interpolation and add to numpy array
@@ -1198,12 +1304,16 @@ class ERP_data(EEG_data):
 
                         channel_data = np.interp(self.window_timestamps, eeg_timestamps_adjusted, self.eeg_data[start_loc:end_loc,c])
 
-                        if pp_type == "bandpass":
-                            channel_data_2 = bandpass(channel_data[np.newaxis,:], pp_low, pp_high, pp_order, self.fsample)
-                            channel_data = channel_data_2[0,:]
+                        # add to raw ERP windows
+                        self.erp_windows_raw[self.nwindows, c, 0:self.nsamples] = channel_data
+                        #self.decision_blocks_raw[self.decision_count, self.nwindows, c, 0:self.nsamples]
 
-                        # Add to the instance count
-                        self.windows_per_decision[flash_index] += 1
+                        # if pp_type == "bandpass":
+                        #     channel_data_2 = bandpass(channel_data[np.newaxis,:], pp_low, pp_high, pp_order, self.fsample)
+                        #     channel_data = channel_data_2[0,:]
+
+                        # # Add to the instance count
+                        # self.windows_per_decision[flash_index] += 1
 
                         if self.plot_erp == True:
                             if flash_index == current_target:
@@ -1213,11 +1323,25 @@ class ERP_data(EEG_data):
                                 axs2[c].plot(range(self.nsamples),channel_data)
                                 non_target_plot = flash_index
 
-                        # Does the ensemble avearging
-                        self.decision_blocks[self.decision_count, flash_index, c, 0:self.nsamples] += channel_data
-                    
-                    self.windows_per_option[flash_index] += 1
+                        # # add to processed ERP windows
+                        # self.erp_windows[self.nwindows, c, 0:self.nsamples] = channel_data
 
+                        # # Does the ensemble avearging
+                        # self.decision_blocks[self.decision_count, flash_index, c, 0:self.nsamples] += channel_data
+
+                    # This is where to do preprocessing
+                    self.erp_windows_processed[self.nwindows,:self.nchannels,:self.nsamples] = self.preprocessing(window=self.erp_windows_raw[self.nwindows,:self.nchannels,:self.nsamples],option=pp_type, order=pp_order, fl=pp_low, fh=pp_high)
+
+                    # This is where to do artefact rejection
+                    self.erp_windows_processed[self.nwindows,:self.nchannels,:self.nsamples] = self.artefact_rejection(window=self.erp_windows_processed[self.nwindows,:self.nchannels,:self.nsamples],option=None)
+
+                    # Add the raw window to the raw decision blocks
+                    #self.decision_blocks_raw[self.decision_count, flash_index, 0:self.nchannels, 0:self.nsamples] +=  self.erp_windows_processed
+                    self.big_decision_blocks_raw[self.decision_count, flash_index, int(self.windows_per_decision[flash_index] - 1), 0:self.nchannels, 0:self.nsamples] = self.erp_windows_raw[self.nwindows,:self.nchannels,:self.nsamples]
+
+                    self.big_decision_blocks_processed[self.decision_count, flash_index, int(self.windows_per_decision[flash_index] - 1), 0:self.nchannels, 0:self.nsamples] = self.erp_windows_processed[self.nwindows,:self.nchannels,:self.nsamples]
+                    
+                    # self.windows_per_decision[flash_index] += 1
                 # Reset for the next decision
 
 
@@ -1225,9 +1349,11 @@ class ERP_data(EEG_data):
                 self.marker_count += 1
                 self.nwindows += 1
                 search_index = start_loc
-                time.sleep(0.000001)
+                if online:
+                    time.sleep(0.000001)
 
-            time.sleep(0.000001)
+            if online:
+                time.sleep(0.000001)
             loops += 1
             
         # Trim the unused ends of numpy arrays
@@ -1235,10 +1361,13 @@ class ERP_data(EEG_data):
             self.training_labels = self.training_labels[0:self.nwindows-1]
             self.target_index = self.target_index[0:self.nwindows-1]
 
-        self.erp_windows = self.erp_windows[0:self.nwindows, 0:self.nchannels, 0:self.nsamples]
+        # self.erp_windows = self.erp_windows[0:self.nwindows, 0:self.nchannels, 0:self.nsamples]
+        self.erp_windows_raw = self.erp_windows_raw[0:self.nwindows, 0:self.nchannels, 0:self.nsamples]
         self.target_index = self.target_index[0:self.nwindows]
         self.training_labels = self.training_labels[0:self.nwindows]
         self.stim_labels = self.stim_labels[0:self.nwindows, :]
-        self.decision_blocks = self.decision_blocks[0:self.decision_count, 0:self.num_options, 0:self.nchannels, 0:self.nsamples]
-        self.big_decision_blocks = self.big_decision_blocks[0:self.decision_count, 0:self.num_options, :, 0:self.nchannels, 0:self.nsamples]
-        self.predictions = self.predictions[0:self.decision_count-1]
+        self.num_options_per_decision = self.num_options_per_decision[0:self.decision_count]
+        self.decision_blocks_raw = self.decision_blocks_raw[0:self.decision_count, :, 0:self.nchannels, 0:self.nsamples]
+        self.decision_blocks_processed = self.decision_blocks_processed[0:self.decision_count, :, 0:self.nchannels, 0:self.nsamples]
+        self.big_decision_blocks_raw = self.big_decision_blocks_raw[0:self.decision_count, :, :, 0:self.nchannels, 0:self.nsamples]
+        self.big_decision_blocks_processed = self.big_decision_blocks_processed[0:self.decision_count, :, :, 0:self.nchannels, 0:self.nsamples]
