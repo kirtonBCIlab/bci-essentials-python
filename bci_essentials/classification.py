@@ -645,30 +645,38 @@ class ssvep_basic_classifier_tf(generic_classifier):
 #     def set_ssvep_rg_classifier_settings(self, n_splits, type="MDM")
 
 class mi_classifier(generic_classifier):
-    def set_mi_classifier_settings(self, n_splits=3, type="TS", pred_threshold=0.5, random_seed = 42):
+    def set_mi_classifier_settings(self, n_splits=3, type="TS", pred_threshold=0.5, random_seed = 42, n_jobs=1):
         # Build the cross-validation split
         self.n_splits = n_splits
         self.cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_seed)
+        
+        # Shrinkage LDA
+        if type == "sLDA":
+            slda = LinearDiscriminantAnalysis(solver='eigen',shrinkage='auto')
+            self.clf_model = Pipeline([("Shrinkage LDA", slda)])
+            self.clf = Pipeline([("Shrinkage LDA", slda)])
 
-        # Initialize the classifier type
-        ts = TSclassifier()
-        mdm = MDM(metric=dict(mean='riemann', distance='riemann'))
-        lr = LogisticRegression()
-        #csp = CSP()
+        # Random Forest
+        elif type == "RandomForest":
+            rf = RandomForestClassifier()
+            self.clf_model = Pipeline([("Random Forest", rf)])
+            self.clf = Pipeline([("Random Forest", rf)])
 
         # Tangent Space Logistic Regression
-        if type == "TS":
+        elif type == "TS":
             ts = TSclassifier()
             self.clf_model = Pipeline([("Tangent Space", ts)])
             self.clf = Pipeline([("Tangent Space", ts)])
 
         # Minimum Distance to Mean 
         elif type == "MDM":
+            mdm = MDM(metric=dict(mean='riemann', distance='riemann'), n_jobs = n_jobs)
             self.clf_model = Pipeline([("MDM", mdm)])
             self.clf = Pipeline([("MDM", mdm)])
 
         # CSP + Logistic Regression (REQUIRES MNE CSP)
         # elif type == "CSP-LR":
+        #     lr = LogisticRegression()
         #     self.clf_model = Pipeline([('CSP', csp), ('LogisticRegression', lr)])
         #     self.clf = Pipeline([('CSP', csp), ('LogisticRegression', lr)])
 

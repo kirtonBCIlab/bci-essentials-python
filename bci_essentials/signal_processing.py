@@ -87,9 +87,14 @@ def bandpass(data, f_low, f_high, order, fsample):
         # reshape to N,M,P
         data_reshape = np.swapaxes(np.swapaxes(data, 1, 2), 0, 2)
 
+        # # subtract the mean
+        # data_reshape = data_reshape - np.mean(data_reshape, axis=1)
+
         new_data = np.ndarray(shape=(N, M, P), dtype=float) 
         for p in range(0,P):
-            new_data[0:N,0:M,p] = signal.filtfilt(b, a, data_reshape[0:N,0:M,p], axis=1, padlen=30)
+
+
+            new_data[0:N,0:M,p] = signal.filtfilt(b, a, data_reshape[0:N,0:M,p], axis=1, padlen=0)
 
         # Visualize the effect of the filter
         # fig, axs = plt.subplots(N)
@@ -112,8 +117,12 @@ def bandpass(data, f_low, f_high, order, fsample):
         
     except:
         N, M = np.shape(data)
+
+        # # subtract the mean
+        # data = [data[n,:] - np.mean(data[n,:]) for n in range(N)]
+
         new_data = np.ndarray(shape=(N, M), dtype=float) 
-        new_data = signal.filtfilt(b, a, data, axis=1, padlen=30)
+        new_data = signal.filtfilt(b, a, data, axis=1, padlen=0)
 
         # # Visualize the effect of the filter
         # fig, axs = plt.subplots(N)
