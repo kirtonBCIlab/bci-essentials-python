@@ -26,6 +26,7 @@ from pyriemann.estimation import ERPCovariances, XdawnCovariances, Covariances
 from pyriemann.tangentspace import TangentSpace
 from pyriemann.classification import MDM, TSclassifier
 from pyriemann.utils.viz import plot_confusion_matrix
+from pyriemann.channelselection import FlatChannelRemover, ElectrodeSelection
 
 import tensorflow as tf
 from tensorflow import keras
@@ -645,7 +646,7 @@ class ssvep_basic_classifier_tf(generic_classifier):
 #     def set_ssvep_rg_classifier_settings(self, n_splits, type="MDM")
 
 class mi_classifier(generic_classifier):
-    def set_mi_classifier_settings(self, n_splits=3, type="TS", pred_threshold=0.5, random_seed = 42, n_jobs=1):
+    def set_mi_classifier_settings(self, n_splits=3, type="TS", remove_flats=True, channel_selection="none", pred_threshold=0.5, random_seed = 42, n_jobs=1):
         # Build the cross-validation split
         self.n_splits = n_splits
         self.cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_seed)
@@ -682,6 +683,14 @@ class mi_classifier(generic_classifier):
 
         else:
             print("Classifier type not defined") 
+
+        if channel_selection == "riemann":
+            rcs = ElectrodeSelection()
+            self.clf_model.steps.insert(0, ["Channel Selection", rcs])
+
+        if remove_flats:
+            rf = FlatChannelRemover()
+            self.clf_model.steps.insert(0, ["Remove Flat Channels", rf])
 
         # Threshold
         self.pred_threshold = pred_threshold
