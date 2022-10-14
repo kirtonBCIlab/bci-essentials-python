@@ -43,6 +43,7 @@ from scipy import signal
 
 from bci_essentials.visuals import *
 from bci_essentials.signal_processing import *
+from bci_essentials.channel_selection import *
 
 # TODO : move this to signal processing???
 def lico(X,y,expansion_factor=3, sum_num=2, shuffle=False):
@@ -83,6 +84,7 @@ class generic_classifier():
         self.subset_defined = False
         self.subset = subset
         self.channel_labels = []
+        self.channel_selection_setup = False
 
         # Lists for plotting classifier performance over time
         self.offline_accuracy = []
@@ -160,6 +162,17 @@ class generic_classifier():
             print("something went wrong, no subset taken")
             return X
 
+    def setup_channel_selection(self):
+        # Add these to settings later
+        self.chs_initial_subset = ['FC3', 'FCz', 'FC4', 'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'Pz']
+        self.chs_method = "SBS"     # method to add/remove channels
+        self.chs_n_jobs = 1         # number of threads
+        self.chs_max_time = 60      # max time in seconds
+        self.chs_metric = "accuracy"# metric by which to measure channel usefulness
+
+        self.channel_selection_setup = True
+
+
 
     
     # add training data, to the training set using a decision block and a label
@@ -174,7 +187,7 @@ class generic_classifier():
         # n,m,p = decision_block.shape
 
 
-        decision_block = self.get_subset(decision_block)
+        # decision_block = self.get_subset(decision_block)
 
         self.num_options = num_options
         self.meta = meta
@@ -648,7 +661,7 @@ class ssvep_basic_classifier_tf(generic_classifier):
 #     def set_ssvep_rg_classifier_settings(self, n_splits, type="MDM")
 
 class mi_classifier(generic_classifier):
-    def set_mi_classifier_settings(self, n_splits=3, type="TS", remove_flats=True, whitening=False, covariance_estimator="scm", artifact_rejection="none", channel_selection="none", pred_threshold=0.5, random_seed = 42, n_jobs=1):
+    def set_mi_classifier_settings(self, n_splits=5, type="TS", remove_flats=False, whitening=False, covariance_estimator="scm", artifact_rejection="none", channel_selection="none", pred_threshold=0.5, random_seed = 42, n_jobs=1):
         # Build the cross-validation split
         self.n_splits = n_splits
         self.cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_seed)
@@ -731,9 +744,6 @@ class mi_classifier(generic_classifier):
             self.next_fit_window = 0
             self.clf = self.clf_model
 
-        # get channel subset
-        #self.get_subset()
-
         # get temporal subset
         subX = self.X[self.next_fit_window:,:,:]
         suby = self.y[self.next_fit_window:]
@@ -742,23 +752,49 @@ class mi_classifier(generic_classifier):
         # Init predictions to all false 
         preds = np.zeros(nwindows)
 
+        def mi_inner_func(subX, suby):
+            for train_idx, test_idx in self.cv.split(subX,suby):
+                self.clf = self.clf_model
+
+                X_train, X_test = subX[train_idx], subX[test_idx]
+                y_train, y_test = suby[train_idx], suby[test_idx]
+
+                # get the covariance matrices for the training set
+                X_train_cov = Covariances(estimator=self.covariance_estimator).transform(X_train)
+                X_test_cov = Covariances(estimator=self.covariance_estimator).transform(X_test)
+
+                # fit the classsifier
+                self.clf.fit(X_train_cov, y_train)
+                preds[test_idx] = self.clf.predict(X_test_cov)
+
+                accuracy = sum(preds == self.y)/len(preds)
+                precision = precision_score(self.y,preds)
+                recall = recall_score(self.y, preds)
+
+            model = self.clf
+
+            return model, preds, accuracy, precision, recall
+
         
-        for train_idx, test_idx in self.cv.split(subX,suby):
-            X_train, X_test = subX[train_idx], subX[test_idx]
-            y_train, y_test = suby[train_idx], suby[test_idx]
+        # Check if channel selection is true
+        if self.channel_selection_setup:
+            print("Doing channel selection")
+            print("Initial subset ", self.chs_initial_subset)
 
-            # get the covariance matrices for the training set
-            X_train_cov = Covariances(estimator=self.covariance_estimator).transform(X_train)
-            X_test_cov = Covariances(estimator=self.covariance_estimator).transform(X_test)
+            if self.chs_method == "SBS":
+                updated_subset, self.clf, preds, accuracy, precision, recall = sbs(mi_inner_func, subX, suby, self.channel_labels, max_time=self.chs_max_time, metric="accuracy", n_jobs=-1)
+                
+            print("The optimal subset is ", updated_subset)
 
-            # fit the classsifier
-            self.clf.fit(X_train_cov, y_train)
-            preds[test_idx] = self.clf.predict(X_test_cov)
+            self.subset = updated_subset
+        else: 
+            print("Not doing channel selection")
+            preds, accuracy, precision, recall = mi_inner_func(subX, suby)
+
+        
+
 
         # Print performance stats
-        # accuracy
-        correct = preds == self.y
-        #print(correct)
 
         self.offline_window_count = nwindows
         self.offline_window_counts.append(self.offline_window_count)
