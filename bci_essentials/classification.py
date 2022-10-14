@@ -22,11 +22,13 @@ from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, precision_
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn import preprocessing
 
+from pyriemann.preprocessing import Whitening
 from pyriemann.estimation import ERPCovariances, XdawnCovariances, Covariances
 from pyriemann.tangentspace import TangentSpace
 from pyriemann.classification import MDM, TSclassifier
 from pyriemann.utils.viz import plot_confusion_matrix
 from pyriemann.channelselection import FlatChannelRemover, ElectrodeSelection
+from pyriemann.clustering import Potato
 
 import tensorflow as tf
 from tensorflow import keras
@@ -646,10 +648,12 @@ class ssvep_basic_classifier_tf(generic_classifier):
 #     def set_ssvep_rg_classifier_settings(self, n_splits, type="MDM")
 
 class mi_classifier(generic_classifier):
-    def set_mi_classifier_settings(self, n_splits=3, type="TS", remove_flats=True, channel_selection="none", pred_threshold=0.5, random_seed = 42, n_jobs=1):
+    def set_mi_classifier_settings(self, n_splits=3, type="TS", remove_flats=True, whitening=False, covariance_estimator="scm", artifact_rejection="none", channel_selection="none", pred_threshold=0.5, random_seed = 42, n_jobs=1):
         # Build the cross-validation split
         self.n_splits = n_splits
         self.cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_seed)
+
+        self.covariance_estimator = covariance_estimator
         
         # Shrinkage LDA
         if type == "sLDA":
@@ -684,13 +688,28 @@ class mi_classifier(generic_classifier):
         else:
             print("Classifier type not defined") 
 
+
+
+        if artifact_rejection == "potato":
+            print("Potato not implemented")
+            # self.clf_model.steps.insert(0, ["Riemannian Potato", Potato()])
+            # self.clf.steps.insert(0, ["Riemannian Potato", Potato()])
+
+        if whitening == True:
+            self.clf_model.steps.insert(0, ["Whitening", Whitening()])
+            self.clf.steps.insert(0, ["Whitening", Whitening()])
+
         if channel_selection == "riemann":
             rcs = ElectrodeSelection()
             self.clf_model.steps.insert(0, ["Channel Selection", rcs])
+            self.clf.steps.insert(0, ["Channel Selection", rcs])
 
         if remove_flats:
             rf = FlatChannelRemover()
             self.clf_model.steps.insert(0, ["Remove Flat Channels", rf])
+            self.clf.steps.insert(0, ["Remove Flat Channels", rf])
+
+
 
         # Threshold
         self.pred_threshold = pred_threshold
@@ -729,8 +748,8 @@ class mi_classifier(generic_classifier):
             y_train, y_test = suby[train_idx], suby[test_idx]
 
             # get the covariance matrices for the training set
-            X_train_cov = Covariances().transform(X_train)
-            X_test_cov = Covariances().transform(X_test)
+            X_train_cov = Covariances(estimator=self.covariance_estimator).transform(X_train)
+            X_test_cov = Covariances(estimator=self.covariance_estimator).transform(X_test)
 
             # fit the classsifier
             self.clf.fit(X_train_cov, y_train)
@@ -782,7 +801,7 @@ class mi_classifier(generic_classifier):
         if print_predict:
             print("the shape of X is", X.shape)
 
-        X_cov = Covariances().transform(X)
+        X_cov = Covariances(estimator=self.covariance_estimator).transform(X)
         #X_cov = X_cov[0,:,:]
 
         pred = self.clf.predict(X_cov)
