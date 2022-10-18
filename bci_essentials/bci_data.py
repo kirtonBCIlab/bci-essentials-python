@@ -801,17 +801,23 @@ class EEG_data():
                             self.online_selection_indices.append(selection_inds)
 
                             # make the prediciton
-                            prediction = self.classifier.predict(current_processed_eeg_windows, print_predict)
-
-                            if print_predict:
-                                print("Recieved prediction from classifier")
-
-                                # Send the prediction to Unity
-                                print("{} was selected, sending to Unity".format(prediction))
+                            try:
+                                prediction = self.classifier.predict(current_processed_eeg_windows, print_predict)
                             
-                            # if online, send the packet to Unity
-                            if online == True:
-                                self.outlet.push_sample(["{}".format(prediction)])
+
+                                if print_predict:
+                                    print("Recieved prediction from classifier")
+
+                                    # Send the prediction to Unity
+                                    print("{} was selected, sending to Unity".format(prediction))
+                                
+                                # if online, send the packet to Unity
+                                if online == True:
+                                    self.outlet.push_sample(["{}".format(prediction)])
+
+                            except:
+                                if print_predict:
+                                    print("This classification failed...")
 
                         # OH DEAR
                         else:

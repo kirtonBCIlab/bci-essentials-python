@@ -789,7 +789,7 @@ class mi_classifier(generic_classifier):
             self.subset = updated_subset
         else: 
             print("Not doing channel selection")
-            preds, accuracy, precision, recall = mi_inner_func(subX, suby)
+            model, preds, accuracy, precision, recall = mi_inner_func(subX, suby)
 
         
 
