@@ -23,10 +23,13 @@ test_erp.classifier = erp_rg_classifier() # you can add a subset here
 test_erp.classifier.set_p300_clf_settings(n_splits=5, lico_expansion_factor=4, oversample_ratio=0, undersample_ratio=0.4, random_seed=35)
 
 # Define channel selection
-test_erp.classifier.setup_channel_selection()
+test_erp.classifier.setup_channel_selection(initial_subset=[], method="SBS", metric="accuracy", max_time=60, n_jobs=-1)
 
 # Load the xdf
-test_erp.load_offline_eeg_data(filename = "C:/Users/brian/Documents/BCIEssentials/fatigueDataAnalysis/fatigueData/participants/sub-P01_p300/ses-P300/eeg/sub-P01_ses-P300_task-T1_run-001_eeg.xdf", format='xdf', print_output=False, subset=['P3', 'C3', 'F3', 'Fz', 'F4', 'C4', 'P4', 'Cz', 'Pz', 'Fp1', 'Fp2', 'T5', 'O1', 'O2', 'F7', 'F8', 'T6', 'T3', 'T4'])  # you can also add a subset here) # you can also add a subset here
+test_erp.load_offline_eeg_data(filename = "examples/data/p300_example.xdf", format='xdf', print_output=False) # you can also add a subset here
+
+# # Load the xdf
+# test_erp.load_offline_eeg_data(filename = "C:/Users/brian/Documents/BCIEssentials/fatigueDataAnalysis/fatigueData/participants/sub-P01_p300/ses-P300/eeg/sub-P01_ses-P300_task-T1_run-001_eeg.xdf", format='xdf', print_output=False, subset=['P3', 'C3', 'F3', 'Fz', 'F4', 'C4', 'P4', 'Cz', 'Pz', 'Fp1', 'Fp2', 'T5', 'O1', 'O2', 'F7', 'F8', 'T6', 'T3', 'T4'])  # you can also add a subset here) # you can also add a subset here
 
 # Run main loop, this will do all of the classification for online or offline
 test_erp.main(training=True, pp_low=0.1, pp_high=10, pp_order=5, plot_erp=False, window_start=0.0, window_end=0.8, print_markers=False, print_training=False, print_fit=False, print_performance=True, print_predict=True)

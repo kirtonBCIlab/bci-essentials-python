@@ -427,8 +427,7 @@ class erp_rg_classifier(generic_classifier):
             print("Doing channel selection")
             print("Initial subset ", self.chs_initial_subset)
 
-            if self.chs_method == "SBS":
-                updated_subset, self.clf, preds, accuracy, precision, recall = sbs(erp_rg_kernel, self.X, self.y, self.channel_labels, max_time=self.chs_max_time, metric="accuracy", n_jobs=-1)
+            updated_subset, self.clf, preds, accuracy, precision, recall = channel_selection_by_method(erp_rg_kernel, self.X, self.y, self.channel_labels, method=self.chs_method, max_time=self.chs_max_time, metric="accuracy", n_jobs=-1)
                 
             print("The optimal subset is ", updated_subset)
 
@@ -811,8 +810,7 @@ class mi_classifier(generic_classifier):
             print("Doing channel selection")
             print("Initial subset ", self.chs_initial_subset)
 
-            if self.chs_method == "SBS":
-                updated_subset, self.clf, preds, accuracy, precision, recall = sbs(mi_kernel, subX, suby, self.channel_labels, max_time=self.chs_max_time, metric="accuracy", n_jobs=-1)
+            updated_subset, self.clf, preds, accuracy, precision, recall = channel_selection_by_method(mi_kernel, subX, suby, self.channel_labels, method=self.chs_method, max_time=self.chs_max_time, metric="accuracy", n_jobs=-1)
                 
             print("The optimal subset is ", updated_subset)
 

@@ -27,6 +27,11 @@ from joblib import Parallel, delayed
 import time
 import numpy as np
 
+def channel_selection_by_method(kernel_func, X, y, channel_labels, method = "SBS", max_time= 999, metric="accuracy", n_jobs=1):
+    if method == "SBS":
+        return sbs(kernel_func, X, y, channel_labels = channel_labels, max_time= max_time, metric=metric, n_jobs=n_jobs)
+
+
 def sbs(kernel_func, X, y, channel_labels, max_time= 999, metric="accuracy", n_jobs=1):
     nwindows, nchannels, nsamples = X.shape
     sbs_subset = list(range(nchannels))
