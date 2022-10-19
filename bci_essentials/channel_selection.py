@@ -3,12 +3,31 @@ Channel Selection
 
 This module includes functions for selecting channels in order to improve BCI performance.
 
+
+Inputs:
+ kernel_func    - a function, the classification kernel, which does feature extraction and classification, different for MI, P300, SSVEP, etc.
+ X              - training data for the classifier (np array, dimensions are nwindows X nchannels X nsamples)
+ y              - training labels for the classifier (np array, dimensions are nwindow X 1)
+ channel_labels - the set of channel labels corresponding to nchannels 
+ max_time       - the maximum amount of time, in seconds, that the function will search for the optimal solution
+ metric         - the metric used to measure the "goodness" of the classifier, default is accuracy
+ n_jobs         - number of threads to dedicate to this calculation
+
+ Outputs:
+ new_channel_subset     - the new best channel set
+ model                  - the trained model
+ preds                  - the predictions from the model, same shape as y
+ accuracy               - classifier accuracy
+ precision              - classifier precision
+ recall                 - classifier recall
+
+
 """
 from joblib import Parallel, delayed
 import time
 import numpy as np
 
-def sbs(inner_func, X, y, channel_labels, max_time= 999, metric="accuracy", n_jobs=1):
+def sbs(kernel_func, X, y, channel_labels, max_time= 999, metric="accuracy", n_jobs=1):
     nwindows, nchannels, nsamples = X.shape
     sbs_subset = list(range(nchannels))
 
@@ -19,7 +38,7 @@ def sbs(inner_func, X, y, channel_labels, max_time= 999, metric="accuracy", n_jo
     stop_criterion = False
 
     preds = []
-    accuarcy = 0
+    accuracy = 0
     precision = 0
     recall = 0
 
@@ -39,7 +58,8 @@ def sbs(inner_func, X, y, channel_labels, max_time= 999, metric="accuracy", n_jo
 
             X_to_try.append(new_X)
 
-        outputs = Parallel(n_jobs=n_jobs)(delayed(inner_func)(Xtest,y) for Xtest in X_to_try) 
+        # This handles the multithreading to check multiple channel combinations at once it n_jobs > 1
+        outputs = Parallel(n_jobs=n_jobs)(delayed(kernel_func)(Xtest,y) for Xtest in X_to_try) 
             
         models = []
         predictions = []
@@ -81,10 +101,4 @@ def sbs(inner_func, X, y, channel_labels, max_time= 999, metric="accuracy", n_jo
     print("Time to optimal subset: ", time.time()-start_time, "s")
 
     return new_channel_subset, model, preds, accuracy, precision, recall
-
-        # check
-
-
-
-    return 
 
