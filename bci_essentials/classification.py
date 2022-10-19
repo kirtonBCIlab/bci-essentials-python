@@ -162,13 +162,16 @@ class generic_classifier():
             print("something went wrong, no subset taken")
             return X
 
-    def setup_channel_selection(self):
+    def setup_channel_selection(self, initial_subset=[], method="SBS", metric="accuracy", max_time=60, n_jobs=1):
         # Add these to settings later
-        self.chs_initial_subset = ['FC3', 'FCz', 'FC4', 'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'Pz']
-        self.chs_method = "SBS"     # method to add/remove channels
-        self.chs_n_jobs = 1         # number of threads
-        self.chs_max_time = 60      # max time in seconds
-        self.chs_metric = "accuracy"# metric by which to measure channel usefulness
+        if initial_subset == []:
+            self.chs_initial_subset = self.channel_labels
+        else:
+            self.chs_initial_subset = initial_subset
+        self.chs_method = method        # method to add/remove channels
+        self.chs_n_jobs = n_jobs        # number of threads
+        self.chs_max_time = max_time    # max time in seconds
+        self.chs_metric = metric        # metric by which to measure channel usefulness
 
         self.channel_selection_setup = True
 
@@ -309,105 +312,132 @@ class erp_rg_classifier(generic_classifier):
         preds = np.zeros(len(self.y))
 
         # 
-        for train_idx, test_idx in cv.split(self.X,self.y):
-            y_train, y_test = self.y[train_idx], self.y[test_idx]
+        def erp_rg_kernel(X,y):
+            for train_idx, test_idx in cv.split(X,y):
+                y_train, y_test = y[train_idx], y[test_idx]
 
-            X_train = self.X[train_idx]
-            X_test = self.X[test_idx]
+                X_train = X[train_idx]
+                X_test = X[test_idx]
 
-            #LICO
-            if print_fit:
-                print ("Before LICO: Shape X",X_train.shape,"Shape y", y_train.shape)
-            if sum(y_train) > 2:
-                if lico_expansion_factor > 1:
-                    X_train, y_train = lico(X_train, y_train, expansion_factor=lico_expansion_factor, sum_num=2, shuffle=False)
-                    if print_fit:
-                        print("y_train =",y_train)
-            if print_fit:
-                print("After LICO: Shape X",X_train.shape,"Shape y", y_train.shape)
+                #LICO
+                if print_fit:
+                    print ("Before LICO: Shape X",X_train.shape,"Shape y", y_train.shape)
+                if sum(y_train) > 2:
+                    if lico_expansion_factor > 1:
+                        X_train, y_train = lico(X_train, y_train, expansion_factor=lico_expansion_factor, sum_num=2, shuffle=False)
+                        if print_fit:
+                            print("y_train =",y_train)
+                if print_fit:
+                    print("After LICO: Shape X",X_train.shape,"Shape y", y_train.shape)
 
-            # Oversampling
-            if self.oversample_ratio > 0:
-                p_count = sum(y_train)
-                n_count = len(y_train) - sum(y_train)
+                # Oversampling
+                if self.oversample_ratio > 0:
+                    p_count = sum(y_train)
+                    n_count = len(y_train) - sum(y_train)
 
-                num_to_add = int(np.floor((self.oversample_ratio * n_count) - p_count))
+                    num_to_add = int(np.floor((self.oversample_ratio * n_count) - p_count))
 
-                # Add num_to_add random selections from the positive 
-                true_X_train = X_train[y_train == 1]
+                    # Add num_to_add random selections from the positive 
+                    true_X_train = X_train[y_train == 1]
 
-                len_X_train = len(true_X_train)
+                    len_X_train = len(true_X_train)
 
-                for s in range(num_to_add):
-                    to_add_X = true_X_train[random.randrange(0,len_X_train),:,:]
+                    for s in range(num_to_add):
+                        to_add_X = true_X_train[random.randrange(0,len_X_train),:,:]
 
-                    X_train = np.append(X_train,to_add_X[np.newaxis,:],axis=0)
-                    y_train = np.append(y_train,[1],axis=0)
-                
-
-            # Undersampling
-            if self.undersample_ratio > 0:
-                p_count = sum(y_train)
-                n_count = len(y_train) - sum(y_train)
-
-                num_to_remove = int(np.floor(n_count - (p_count / self.undersample_ratio)))
-
-                ind_range = np.arange(len(y_train))
-                ind_list = list(ind_range)
-                to_remove = []
-
-                # Remove num_to_remove random selections from the negative
-                false_ind = list(ind_range[y_train == 0])
-
-                for s in range(num_to_remove):
-                    # select a random value from the list of false indices
-                    remove_at = false_ind[random.randrange(0,len(false_ind))]
-
-                    # remove that value from the false ind list
-                    false_ind.remove(remove_at)
-                    #to_remove.append(remove_at)
-
-                    # add the index to be removed to a list
-                    to_remove.append(remove_at)
-
-                    #np.delete(false_ind,remove_at,axis=0)
+                        X_train = np.append(X_train,to_add_X[np.newaxis,:],axis=0)
+                        y_train = np.append(y_train,[1],axis=0)
                     
-                    #ind_range
 
-                    #np.delete(X_train,remove_at,axis=0)
+                # Undersampling
+                if self.undersample_ratio > 0:
+                    p_count = sum(y_train)
+                    n_count = len(y_train) - sum(y_train)
 
-                #X_train = X_train[false]
-                #X_train = X_train[]
+                    num_to_remove = int(np.floor(n_count - (p_count / self.undersample_ratio)))
 
-                remaining_ind = ind_list
-                for i in range(len(to_remove)):
-                    remaining_ind.remove(to_remove[i])
+                    ind_range = np.arange(len(y_train))
+                    ind_list = list(ind_range)
+                    to_remove = []
 
-                X_train = X_train[remaining_ind,:,:]
-                y_train = y_train[remaining_ind]
+                    # Remove num_to_remove random selections from the negative
+                    false_ind = list(ind_range[y_train == 0])
+
+                    for s in range(num_to_remove):
+                        # select a random value from the list of false indices
+                        remove_at = false_ind[random.randrange(0,len(false_ind))]
+
+                        # remove that value from the false ind list
+                        false_ind.remove(remove_at)
+                        #to_remove.append(remove_at)
+
+                        # add the index to be removed to a list
+                        to_remove.append(remove_at)
+
+                        #np.delete(false_ind,remove_at,axis=0)
+                        
+                        #ind_range
+
+                        #np.delete(X_train,remove_at,axis=0)
+
+                    #X_train = X_train[false]
+                    #X_train = X_train[]
+
+                    remaining_ind = ind_list
+                    for i in range(len(to_remove)):
+                        remaining_ind.remove(to_remove[i])
+
+                    X_train = X_train[remaining_ind,:,:]
+                    y_train = y_train[remaining_ind]
 
 
-            self.clf.fit(X_train, y_train)
-            preds[test_idx] = self.clf.predict(X_test)
-            predproba = self.clf.predict_proba(X_test)
+                self.clf.fit(X_train, y_train)
+                preds[test_idx] = self.clf.predict(X_test)
+                predproba = self.clf.predict_proba(X_test)
 
-            # Use pred proba to show what would be predicted
-            predprobs = predproba[:,1]
-            real = np.where(y_test == 1)
+                # Use pred proba to show what would be predicted
+                predprobs = predproba[:,1]
+                real = np.where(y_test == 1)
 
-            #TODO handle exception where two probabilities are the same
-            prediction = int(np.where(predprobs == np.amax(predprobs))[0][0])
+                #TODO handle exception where two probabilities are the same
+                prediction = int(np.where(predprobs == np.amax(predprobs))[0][0])
 
-            if print_fit:
-                print("y_test =",y_test)
+                if print_fit:
+                    print("y_test =",y_test)
 
-                print(predproba)
-                print(real[0])
-                print(prediction)
+                    print(predproba)
+                    print(real[0])
+                    print(prediction)
 
-            # a,pred_proba[test_idx] = self.clf.predict_proba(self.X[test_idx])
-            # print(preds[test_idx])
-            # print(predproba)
+                # a,pred_proba[test_idx] = self.clf.predict_proba(self.X[test_idx])
+                # print(preds[test_idx])
+                # print(predproba)
+
+            model = self.clf
+
+            accuracy = sum(preds == self.y)/len(preds)
+            precision = precision_score(self.y,preds)
+            recall = recall_score(self.y, preds)
+
+            return model, preds, accuracy, precision, recall
+
+        
+        # Check if channel selection is true
+        if self.channel_selection_setup:
+            print("Doing channel selection")
+            print("Initial subset ", self.chs_initial_subset)
+
+            if self.chs_method == "SBS":
+                updated_subset, self.clf, preds, accuracy, precision, recall = sbs(erp_rg_kernel, self.X, self.y, self.channel_labels, max_time=self.chs_max_time, metric="accuracy", n_jobs=-1)
+                
+            print("The optimal subset is ", updated_subset)
+
+            self.subset = updated_subset
+        else: 
+            print("Not doing channel selection")
+            model, preds, accuracy, precision, recall = erp_rg_kernel(self.X, self.y)
+
+        
 
         # Print performance stats
         # accuracy
@@ -752,7 +782,7 @@ class mi_classifier(generic_classifier):
         # Init predictions to all false 
         preds = np.zeros(nwindows)
 
-        def mi_inner_func(subX, suby):
+        def mi_kernel(subX, suby):
             for train_idx, test_idx in self.cv.split(subX,suby):
                 self.clf = self.clf_model
 
@@ -782,14 +812,14 @@ class mi_classifier(generic_classifier):
             print("Initial subset ", self.chs_initial_subset)
 
             if self.chs_method == "SBS":
-                updated_subset, self.clf, preds, accuracy, precision, recall = sbs(mi_inner_func, subX, suby, self.channel_labels, max_time=self.chs_max_time, metric="accuracy", n_jobs=-1)
+                updated_subset, self.clf, preds, accuracy, precision, recall = sbs(mi_kernel, subX, suby, self.channel_labels, max_time=self.chs_max_time, metric="accuracy", n_jobs=-1)
                 
             print("The optimal subset is ", updated_subset)
 
             self.subset = updated_subset
         else: 
             print("Not doing channel selection")
-            model, preds, accuracy, precision, recall = mi_inner_func(subX, suby)
+            model, preds, accuracy, precision, recall = mi_kernel(subX, suby)
 
         
 

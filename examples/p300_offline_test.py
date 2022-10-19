@@ -20,7 +20,7 @@ test_erp = ERP_data()
 test_erp.classifier = erp_rg_classifier() # you can add a subset here
 
 # Set classifier settings
-test_erp.classifier.set_p300_clf_settings(n_splits=5, lico_expansion_factor=4, oversample_ratio=0, undersample_ratio=0.4, random_seed=35)
+test_erp.classifier.set_p300_clf_settings(n_splits=5, lico_expansion_factor=4, oversample_ratio=0, undersample_ratio=0, random_seed=35)
 
 # Load the xdf
 test_erp.load_offline_eeg_data(filename = "examples/data/p300_example.xdf", format='xdf', print_output=False) # you can also add a subset here
