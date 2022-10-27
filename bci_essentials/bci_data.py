@@ -685,6 +685,7 @@ class EEG_data():
             #
             self.num_online_selections = 0
             self.online_selection_indices = []
+            self.online_selections = []
 
             # initialize loop count
             loops = 0
@@ -803,6 +804,7 @@ class EEG_data():
                             # make the prediciton
                             try:
                                 prediction = self.classifier.predict(current_processed_eeg_windows, print_predict)
+                                self.online_selections.append(prediction)
                             
 
                                 if print_predict:
