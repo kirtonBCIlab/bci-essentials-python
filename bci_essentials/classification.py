@@ -162,16 +162,21 @@ class generic_classifier():
             print("something went wrong, no subset taken")
             return X
 
-    def setup_channel_selection(self, initial_subset=[], method="SBS", metric="accuracy", max_time=60, n_jobs=1):
+    def setup_channel_selection(self, method = "SBS", metric="accuracy", initial_channels = [],             # wrapper setup
+                                max_time= 999, min_channels=1, max_channels=999, performance_delta= 0.001,  # stopping criterion
+                                n_jobs=1):                                                                  # njobs
         # Add these to settings later
-        if initial_subset == []:
+        if initial_channels == []:
             self.chs_initial_subset = self.channel_labels
         else:
-            self.chs_initial_subset = initial_subset
-        self.chs_method = method        # method to add/remove channels
-        self.chs_n_jobs = n_jobs        # number of threads
-        self.chs_max_time = max_time    # max time in seconds
-        self.chs_metric = metric        # metric by which to measure channel usefulness
+            self.chs_initial_subset = initial_channels
+        self.chs_method = method                        # method to add/remove channels
+        self.chs_metric = metric                        # metric by which to measure performance
+        self.chs_n_jobs = n_jobs                        # number of threads
+        self.chs_max_time = max_time                    # max time in seconds
+        self.chs_min_channels = min_channels            # minimum number of channels
+        self.chs_max_channels = max_channels            # maximum number of channels
+        self.chs_performance_delta = performance_delta  # smallest performance increment to justify continuing search
 
         self.channel_selection_setup = True
 
@@ -427,7 +432,10 @@ class erp_rg_classifier(generic_classifier):
             print("Doing channel selection")
             print("Initial subset ", self.chs_initial_subset)
 
-            updated_subset, self.clf, preds, accuracy, precision, recall = channel_selection_by_method(erp_rg_kernel, self.X, self.y, self.channel_labels, method=self.chs_method, max_time=self.chs_max_time, metric="accuracy", n_jobs=-1)
+            updated_subset, self.clf, preds, accuracy, precision, recall = channel_selection_by_method(erp_rg_kernel, self.X, self.y, self.channel_labels,                  # kernel setup
+                                                                            self.chs_method, self.chs_metric, self.chs_initial_subset,                                      # wrapper setup
+                                                                            self.chs_max_time, self.chs_min_channels, self.chs_max_channels, self.chs_performance_delta,    # stopping criterion
+                                                                            self.chs_n_jobs)                                                                                # njobs
                 
             print("The optimal subset is ", updated_subset)
 
@@ -810,7 +818,11 @@ class mi_classifier(generic_classifier):
             print("Doing channel selection")
             print("Initial subset ", self.chs_initial_subset)
 
-            updated_subset, self.clf, preds, accuracy, precision, recall = channel_selection_by_method(mi_kernel, subX, suby, self.channel_labels, method=self.chs_method, max_time=self.chs_max_time, metric="accuracy", n_jobs=-1)
+            updated_subset, self.clf, preds, accuracy, precision, recall = channel_selection_by_method(mi_kernel, self.X, self.y, self.channel_labels,                      # kernel setup
+                                                                            self.chs_method, self.chs_metric, self.chs_initial_subset,                                      # wrapper setup
+                                                                            self.chs_max_time, self.chs_min_channels, self.chs_max_channels, self.chs_performance_delta,    # stopping criterion
+                                                                            self.chs_n_jobs)  
+            # channel_selection_by_method(mi_kernel, subX, suby, self.channel_labels, method=self.chs_method, max_time=self.chs_max_time, metric="accuracy", n_jobs=-1)
                 
             print("The optimal subset is ", updated_subset)
 

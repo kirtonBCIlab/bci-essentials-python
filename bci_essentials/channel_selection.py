@@ -10,6 +10,7 @@ Inputs:
  y              - training labels for the classifier (np array, dimensions are nwindow X 1)
  channel_labels - the set of channel labels corresponding to nchannels 
  max_time       - the maximum amount of time, in seconds, that the function will search for the optimal solution
+ min_nchannels  - the minimum number of channels 
  metric         - the metric used to measure the "goodness" of the classifier, default is accuracy
  n_jobs         - number of threads to dedicate to this calculation
 
@@ -27,16 +28,82 @@ from joblib import Parallel, delayed
 import time
 import numpy as np
 
-def channel_selection_by_method(kernel_func, X, y, channel_labels, method = "SBS", max_time= 999, metric="accuracy", n_jobs=1):
+
+def channel_selection_by_method(kernel_func, X, y, channel_labels,                                          # kernel setup
+                                method = "SBS", metric="accuracy", initial_channels = [],                   # wrapper setup
+                                max_time= 999, min_channels=1, max_channels=999, performance_delta= 0.001,  # stopping criterion
+                                n_jobs=1):                                                                  # njobs
+    """
+    Passes the BCI kernel function into a wrapper defined by method.
+
+    kernel_func         - the kernel to be wrapped
+    X                   - training data (nwindows X nchannels X nsamples)
+    y                   - training labels (nwindows X 1)
+    channel_labels      - channel labels, in a list of strings (nchannels X 1)
+
+    method              - the wrapper method (ex. SBS, SFS, SFFS, SBFS)
+    metric              - the method by which performance is measured, default is "accuracy"
+    initial_channels    - initial guess of channels defaults to empty/full set for forward/backwardselections, respectively
+    
+    max_time            - max time for the algorithm to search
+    min_channels        - min channels, default is 1
+    max_channels        - max channels, default is nchannels
+    performance_delta   - performance delta, under which the algorithm is considered to be close enough to optimal, default is 0.001
+    """
+
+    # max length can't be greater than the length of channel labels
+    if max_channels > len(channel_labels):
+        max_channels = len(channel_labels)
+
     if method == "SBS":
-        return sbs(kernel_func, X, y, channel_labels = channel_labels, max_time= max_time, metric=metric, n_jobs=n_jobs)
+        if initial_channels == []:
+            initial_channels = channel_labels
+
+        # pass arguments to SBS
+        return sbs(kernel_func, X, y, channel_labels=channel_labels, 
+                metric=metric, initial_channels=initial_channels, 
+                max_time=max_time, min_channels=min_channels, max_channels=max_channels, performance_delta=performance_delta,
+                n_jobs=n_jobs)
+
+def check_stopping_criterion(current_time, nchannels, current_performance_delta, max_time, min_channels, max_channels, performance_delta, print_output=True):
+    if current_time > max_time:
+        if print_output:
+            print("Stopping based on time")
+        return True
+
+    elif nchannels <= min_channels:
+        if print_output:
+            print("Stopping because minimum number of channels reached")
+        return True
+
+    elif nchannels >= max_channels:
+        if print_output:
+            print("Stopping because maximum number of channels reached")
+        return True
+
+    elif current_performance_delta < performance_delta:
+        if print_output:
+            print("Stopping because performance improvements are declining")
+        return True
+
+    else:
+        return False
+
+def sbs(kernel_func, X, y, channel_labels, 
+        metric, initial_channels,
+        max_time, min_channels, max_channels, performance_delta,
+        n_jobs):
 
 
-def sbs(kernel_func, X, y, channel_labels, max_time= 999, metric="accuracy", n_jobs=1):
+
     nwindows, nchannels, nsamples = X.shape
-    sbs_subset = list(range(nchannels))
+    sbs_subset = []
 
-    best_overall_accuracy = 0
+    for i,c in enumerate(channel_labels):
+        if c in initial_channels:
+            sbs_subset.append(i)
+
+    previous_performance = 0
 
     start_time = time.time()
 
@@ -47,7 +114,7 @@ def sbs(kernel_func, X, y, channel_labels, max_time= 999, metric="accuracy", n_j
     precision = 0
     recall = 0
 
-    while((time.time()-start_time) < max_time and len(sbs_subset) > 2 and stop_criterion == False):
+    while(stop_criterion == False):
         sets_to_try = []
         X_to_try = []
         for c in sbs_subset:
@@ -63,8 +130,11 @@ def sbs(kernel_func, X, y, channel_labels, max_time= 999, metric="accuracy", n_j
 
             X_to_try.append(new_X)
 
+
+        # iter_start = time.time()
         # This handles the multithreading to check multiple channel combinations at once it n_jobs > 1
         outputs = Parallel(n_jobs=n_jobs)(delayed(kernel_func)(Xtest,y) for Xtest in X_to_try) 
+        # iter_time = time.time() - iter_start
             
         models = []
         predictions = []
@@ -80,26 +150,38 @@ def sbs(kernel_func, X, y, channel_labels, max_time= 999, metric="accuracy", n_j
             precisions.append(output[3])
             recalls.append(output[4])
 
+
+
+
         if metric == "accuracy":
             best_set_index = accuracies.index(np.max(accuracies))
 
-        # If if starts getting worse
-        if np.max(accuracies) < best_overall_accuracy:
-            stop_criterion = True
-            print("accuracy declined, stopping sbs")
+        # If it starts getting worse
+        # if np.max(accuracies) < best_overall_accuracy:
+        #     stop_criterion = True
+        #     print("accuracy declined, stopping sbs")
 
-        else:
-            sbs_subset = sets_to_try[best_set_index]
-            new_channel_subset = [channel_labels[c] for c in sbs_subset]
-            model = models[best_set_index]
-            preds = predictions[best_set_index]
-            accuracy = accuracies[best_set_index]
-            best_overall_accuracy = accuracy
-            precision = precisions[best_set_index]
-            recall = recalls[best_set_index]
-            print("new subset ", new_channel_subset)
-            print("accuracy ", accuracy)
-            print("accuracies ", accuracies)
+        # else:
+        sbs_subset = sets_to_try[best_set_index]
+        new_channel_subset = [channel_labels[c] for c in sbs_subset]
+        model = models[best_set_index]
+        preds = predictions[best_set_index]
+        accuracy = accuracies[best_set_index]
+        best_overall_accuracy = accuracy
+        precision = precisions[best_set_index]
+        recall = recalls[best_set_index]
+        print("new subset ", new_channel_subset)
+        print("accuracy ", accuracy)
+        print("accuracies ", accuracies)
+
+        if metric == "accuracy":
+            current_performance = accuracy
+
+        p_delta = current_performance - previous_performance
+        previous_performance = current_performance
+
+
+        stop_criterion = check_stopping_criterion(time.time() - start_time, len(new_channel_subset), p_delta, max_time, min_channels, max_channels, performance_delta, print_output=True)
 
     new_channel_subset = [channel_labels[c] for c in sbs_subset]
 
