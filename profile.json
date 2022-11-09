@@ -1,0 +1,143 @@
+{
+    "elapsed_time_sec": 3.105135202407837,
+    "files": {
+        "C:\\Users\\brian\\.conda\\envs\\debug\\lib\\site-packages\\scalene\\scalene_profiler.py": {
+            "functions": [
+                {
+                    "line": "Thread.windows_timer_loop",
+                    "lineno": 420,
+                    "memory_samples": [],
+                    "n_avg_mb": 0.0,
+                    "n_copy_mb_s": 0.0,
+                    "n_cpu_percent_c": 1.7654650709265818,
+                    "n_cpu_percent_python": 0.0,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0.0,
+                    "n_growth_mb": 0.0,
+                    "n_malloc_mb": 0.0,
+                    "n_mallocs": 0,
+                    "n_peak_mb": 0.0,
+                    "n_python_fraction": 0,
+                    "n_sys_percent": 23.100621303362004,
+                    "n_usage_fraction": 0
+                },
+                {
+                    "line": "compute_frames_to_record",
+                    "lineno": 1018,
+                    "memory_samples": [],
+                    "n_avg_mb": 0.0,
+                    "n_copy_mb_s": 0.0,
+                    "n_cpu_percent_c": 0.11048651724346605,
+                    "n_cpu_percent_python": 1.6574947043155277,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 25.089605734767026,
+                    "n_growth_mb": 0.0,
+                    "n_malloc_mb": 0.0,
+                    "n_mallocs": 0,
+                    "n_peak_mb": 0.0,
+                    "n_python_fraction": 0,
+                    "n_sys_percent": 23.27665665367815,
+                    "n_usage_fraction": 0
+                }
+            ],
+            "leaks": {},
+            "lines": [
+                {
+                    "line": "            time.sleep(Scalene.__args.cpu_sampling_rate)\n",
+                    "lineno": 425,
+                    "memory_samples": [],
+                    "n_avg_mb": 0.0,
+                    "n_copy_mb_s": 0.0,
+                    "n_cpu_percent_c": 1.7654650709265818,
+                    "n_cpu_percent_python": 0.0,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0.0,
+                    "n_growth_mb": 0.0,
+                    "n_malloc_mb": 0.0,
+                    "n_mallocs": 0,
+                    "n_peak_mb": 0.0,
+                    "n_python_fraction": 0,
+                    "n_sys_percent": 23.100621303362004,
+                    "n_usage_fraction": 0
+                },
+                {
+                    "line": "        return new_frames\n",
+                    "lineno": 1071,
+                    "memory_samples": [],
+                    "n_avg_mb": 0.0,
+                    "n_copy_mb_s": 0.0,
+                    "n_cpu_percent_c": 0.11048651724346605,
+                    "n_cpu_percent_python": 1.6574947043155277,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 25.089605734767026,
+                    "n_growth_mb": 0.0,
+                    "n_malloc_mb": 0.0,
+                    "n_mallocs": 0,
+                    "n_peak_mb": 0.0,
+                    "n_python_fraction": 0,
+                    "n_sys_percent": 23.27665665367815,
+                    "n_usage_fraction": 0
+                }
+            ],
+            "percent_cpu_time": 49.910724249525245
+        },
+        "C:\\Users\\brian\\.conda\\envs\\debug\\lib\\site-packages\\scalene\\scalene_sigqueue.py": {
+            "functions": [
+                {
+                    "line": "run",
+                    "lineno": 39,
+                    "memory_samples": [],
+                    "n_avg_mb": 0.0,
+                    "n_copy_mb_s": 0.0,
+                    "n_cpu_percent_c": 3.5359624431179566,
+                    "n_cpu_percent_python": 0.0,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0.0,
+                    "n_growth_mb": 0.0,
+                    "n_malloc_mb": 0.0,
+                    "n_mallocs": 0,
+                    "n_peak_mb": 0.0,
+                    "n_python_fraction": 0,
+                    "n_sys_percent": 46.55331330735585,
+                    "n_usage_fraction": 0
+                }
+            ],
+            "leaks": {},
+            "lines": [
+                {
+                    "line": "            item = self.queue.get()\n",
+                    "lineno": 44,
+                    "memory_samples": [],
+                    "n_avg_mb": 0.0,
+                    "n_copy_mb_s": 0.0,
+                    "n_cpu_percent_c": 3.5359624431179566,
+                    "n_cpu_percent_python": 0.0,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0.0,
+                    "n_growth_mb": 0.0,
+                    "n_malloc_mb": 0.0,
+                    "n_mallocs": 0,
+                    "n_peak_mb": 0.0,
+                    "n_python_fraction": 0,
+                    "n_sys_percent": 46.55331330735585,
+                    "n_usage_fraction": 0
+                }
+            ],
+            "percent_cpu_time": 50.08927575047381
+        }
+    },
+    "gpu": true,
+    "growth_rate": 0.0,
+    "max_footprint_fname": null,
+    "max_footprint_lineno": null,
+    "max_footprint_mb": 0,
+    "memory": false,
+    "program": "mi_ch_select_test.py",
+    "samples": []
+}

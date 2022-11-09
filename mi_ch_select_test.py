@@ -6,8 +6,8 @@ Test Motor Imagery (MI) classification offline using data from an existing strea
 import os
 import sys
 
-# # Add parent directory to path to access bci_essentials
-# sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),os.pardir))
+# Add parent directory to path to access bci_essentials
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),os.pardir))
 
 # from src.bci_data import *
 from bci_essentials.bci_data import *
@@ -25,9 +25,9 @@ test_mi.classifier.set_mi_classifier_settings(n_splits=5, type="TS", random_seed
 # Define channel selection settings
 # test_mi.classifier.setup_channel_selection(initial_channels=[], method="SBS", metric="accuracy", max_time=60, n_jobs=-1)
 initial_subset=[]
-test_mi.classifier.setup_channel_selection(method = "SBS", metric="accuracy", initial_channels = initial_subset,    # wrapper setup
-                                max_time= 999, min_channels=1, max_channels=999, performance_delta=-0.001,      # stopping criterion
-                                n_jobs=-1) 
+test_mi.classifier.setup_channel_selection(method = "SBFS", metric="accuracy", initial_channels = initial_subset,    # wrapper setup
+                                max_time= 999, min_channels=2, max_channels=16, performance_delta=0,      # stopping criterion
+                                n_jobs=-1, print_output="verbose") 
 
 # Load the xdf
 
