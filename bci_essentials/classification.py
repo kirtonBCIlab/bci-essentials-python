@@ -433,7 +433,7 @@ class erp_rg_classifier(generic_classifier):
             print("Doing channel selection")
             # print("Initial subset ", self.chs_initial_subset)
 
-            updated_subset, updated_model, preds, accuracy, precision, recall = channel_selection_by_method(erp_rg_kernel, self.X, self.y, self.channel_labels,                  # kernel setup
+            updated_subset, updated_model, preds, accuracy, precision, recall = channel_selection_by_method(erp_rg_kernel, self.X, self.y, self.channel_labels,             # kernel setup
                                                                             self.chs_method, self.chs_metric, self.chs_initial_subset,                                      # wrapper setup
                                                                             self.chs_max_time, self.chs_min_channels, self.chs_max_channels, self.chs_performance_delta,    # stopping criterion
                                                                             self.chs_n_jobs, self.chs_output)                                                               # njobs, output messages
@@ -441,10 +441,10 @@ class erp_rg_classifier(generic_classifier):
             print("The optimal subset is ", updated_subset)
 
             self.subset = updated_subset
-            self.model = updated_model
+            self.clf = updated_model
         else:
             print("Not doing channel selection")
-            model, preds, accuracy, precision, recall = erp_rg_kernel(self.X, self.y)
+            self.clf, preds, accuracy, precision, recall = erp_rg_kernel(self.X, self.y)
 
         
 
@@ -831,7 +831,7 @@ class mi_classifier(generic_classifier):
             self.clf = updated_model
         else: 
             print("Not doing channel selection")
-            model, preds, accuracy, precision, recall = mi_kernel(subX, suby)
+            self.clf, preds, accuracy, precision, recall = mi_kernel(subX, suby)
 
         
 
