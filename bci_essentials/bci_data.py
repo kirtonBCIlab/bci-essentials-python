@@ -111,10 +111,23 @@ class EEG_data():
                     self.response_index = i
 
             # fill up the marker and eeg buffers with the saved data
-            self.marker_data = data[self.marker_index]['time_series']
-            self.marker_timestamps = data[self.marker_index]['time_stamps']
-            self.eeg_data = data[self.eeg_index]['time_series']
-            self.eeg_timestamps = data[self.eeg_index]['time_stamps']
+            try:
+                self.marker_data = data[self.marker_index]['time_series']
+                self.marker_timestamps = data[self.marker_index]['time_stamps']
+            except: 
+                print("Marker data not available")
+
+            try:
+                self.eeg_data = data[self.eeg_index]['time_series']
+                self.eeg_timestamps = data[self.eeg_index]['time_stamps']
+            except: 
+                print("EEG data not available")
+
+            try:
+                self.response_data = data[self.response_index]['time_series']
+                self.response_timestamps = data[self.response_index]['time_stamps']
+            except: 
+                print("Response data not available")
 
             # Unless explicit settings are desired, get settings from headset
             #if self.explicit_settings == False:
@@ -163,9 +176,9 @@ class EEG_data():
         if self.headset_string == "DSI7":
             if print_output:
                 print(self.channel_labels)
-            self.channel_labels[self.channel_labels.index('S1')] = 'O1'
-            self.channel_labels[self.channel_labels.index('S2')] = 'Pz'
-            self.channel_labels[self.channel_labels.index('S3')] = 'O2'
+            # self.channel_labels[self.channel_labels.index('S1')] = 'O1'
+            # self.channel_labels[self.channel_labels.index('S2')] = 'Pz'
+            # self.channel_labels[self.channel_labels.index('S3')] = 'O2'
 
             self.nchannels = 7
             self.channel_labels.pop()
