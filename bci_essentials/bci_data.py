@@ -614,7 +614,13 @@ class EEG_data():
         # Rest
         if len(rest_end_loc) > 0:
             # Get duration, nsmaples
+            while(rest_end_time[0] < rest_start_time[0]):
+                rest_end_time.pop(0)
+                rest_end_loc.pop(0)
+
             duration = np.floor(rest_end_time[0] - rest_start_time[0])
+            
+
             nsamples = int(duration * self.fsample) 
 
             self.rest_timestamps = np.array(range(nsamples)) / self.fsample
