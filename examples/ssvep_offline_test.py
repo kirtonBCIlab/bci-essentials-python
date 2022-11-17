@@ -5,9 +5,8 @@ import os
 import sys
 
 
-# # Add parent directory to path to access bci_essentials
-# sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),os.pardir))
-
+# Add parent directory to path to access bci_essentials
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),os.pardir))
 
 
 # # from src.bci_data import *
@@ -39,6 +38,7 @@ test_ssvep.classifier.set_ssvep_settings(n_splits=3, sampling_freq=300, target_f
 
 test_ssvep.main(online=False, training=True, max_samples= 5120)
 
+print("debug")
 
 # # Plot the EEG for inspection
 # eeg = np.array(test_ssvep.eeg_data)
