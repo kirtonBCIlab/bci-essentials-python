@@ -69,7 +69,21 @@ def lico(X,y,expansion_factor=3, sum_num=2, shuffle=False):
 
     return over_X, over_y
 
-def get_ssvep_supertrial(X, target_freqs, fsample, f_width=0.2, n_harmonics=2, covariance_estimator="scm"):
+def get_ssvep_supertrial(X, target_freqs, fsample, f_width=0.4, n_harmonics=2, covariance_estimator="scm"):
+    """
+    Creates the Riemannian Geometry supertrial for SSVEP
+
+    Inputs
+    X - Windows of EEG data, nwindows X nchannels X nsamples
+    target_freqs - The target frequencies for the SSVEP
+    fsample - the sampling rate of the EEG
+    f_width - width of frequency bins to be used around the target frequencies(default 0.4)
+    n_harmonics - number of harmonics of each target frequency to be used (default 2)"
+    covariance_sestimator - the estimator used to calculate covariance (see Covariances - pyriemann) (default "scm")
+
+    Outputs
+    super_X - the supertrials of X with the dimensions nwindows X (nchannels*number of target_freqs) X (nchannels*number of target_freqs)
+    """
     nwindows, nchannels, nsamples = X.shape
     n_target_freqs = len(target_freqs)
 
