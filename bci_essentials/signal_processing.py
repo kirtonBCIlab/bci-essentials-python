@@ -78,6 +78,9 @@ def lowpass(data, f_high, order, fsample):
     return new_data
 
 def bandpass(data, f_low, f_high, order, fsample):
+    """
+    
+    """
     Wn = [f_low/(fsample/2), f_high/(fsample/2)]
     b, a = signal.butter(order, Wn, btype='bandpass')
 
@@ -92,9 +95,7 @@ def bandpass(data, f_low, f_high, order, fsample):
 
         new_data = np.ndarray(shape=(N, M, P), dtype=float) 
         for p in range(0,P):
-
-
-            new_data[0:N,0:M,p] = signal.filtfilt(b, a, data_reshape[0:N,0:M,p], axis=1, padlen=0)
+            new_data[0:N,0:M,p] = signal.filtfilt(b, a, data_reshape[0:N,0:M,p], axis=1, padlen=30)
 
         # Visualize the effect of the filter
         # fig, axs = plt.subplots(N)

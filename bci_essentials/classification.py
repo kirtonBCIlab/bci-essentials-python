@@ -68,6 +68,33 @@ def lico(X,y,expansion_factor=3, sum_num=2, shuffle=False):
     over_y = np.append(y,np.ones([new_n]))
 
     return over_X, over_y
+
+def get_ssvep_supertrial(X, target_freqs, fsample, f_width=0.2, n_harmonics=2, covariance_estimator="scm"):
+    nwindows, nchannels, nsamples = X.shape
+    n_target_freqs = len(target_freqs)
+
+    super_X = np.zeros([nwindows, nchannels*n_target_freqs, nchannels*n_target_freqs])
+
+    # Create super trial of all trials filtered at all bands
+    for w in range(nwindows):
+        for tf, target_freq in enumerate(target_freqs):
+            lower_bound = int((nchannels*tf))
+            upper_bound = int((nchannels*tf)+nchannels)
+
+            signal = X[w,:,:]
+            for f in range(n_harmonics):
+                if f == 0:
+                    filt_signal = bandpass(signal, f_low=target_freq-(f_width/2), f_high=target_freq+(f_width/2), order=5, fsample=fsample)
+                else:
+                    filt_signal += bandpass(signal, f_low=(target_freq*(f+1))-(f_width/2), f_high=(target_freq*(f+1))+(f_width/2), order=5, fsample=fsample)
+
+            cov_mat = Covariances(estimator=covariance_estimator).transform(np.expand_dims(filt_signal, axis=0))
+
+            cov_mat_diag = np.diag(np.diag(cov_mat[0,:,:]))
+
+            super_X[w, lower_bound:upper_bound, lower_bound:upper_bound] = cov_mat_diag
+
+    return super_X
     
 
 # Write function that add to training set, fit, and predict
@@ -490,79 +517,100 @@ class ssvep_basic_classifier(generic_classifier):
     Classifies SSVEP based on relative band power at the expected frequencies
     """
 
-    def set_ssvep_settings(self, n_splits=3, sampling_freq=256, target_freqs = [1, 2, 3, 4, 5, 6, 7, 8, 9], random_seed=42, clf_type="Random Forest"):
-        self.sampling_freq = sampling_freq
-        self.target_freqs = target_freqs
-
+    def set_ssvep_settings(self, n_splits=3, random_seed=42, n_harmonics=2, f_width=0.2):
         # Build the cross-validation split
+
         self.n_splits = n_splits
         self.cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_seed)
 
-        # Define the classifier
-        if clf_type == "LDA":
-            self.clf = LinearDiscriminantAnalysis(solver='eigen',shrinkage='auto')
+        self.rebuild = True
 
-        if clf_type == "Random Forest":
-            self.clf = RandomForestClassifier(n_estimators=100)
+        self.n_harmonics = n_harmonics
+        self.f_width = f_width
 
+        # Use an MDM classifier
+        mdm = MDM(metric=dict(mean='riemann', distance='riemann'), n_jobs = 1)
+        self.clf_model = Pipeline([("MDM", mdm)])
+        self.clf = Pipeline([("MDM", mdm)])
+
+        # # Define the classifier
+        # if clf_type == "LDA":
+        #     self.clf = LinearDiscriminantAnalysis(solver='eigen',shrinkage='auto')
+
+        # if clf_type == "Random Forest":
+        #     self.clf = RandomForestClassifier(n_estimators=100)
+
+        # if clf_type = "MDM"
 
 
     def fit(self, print_fit=True, print_performance=True):
         # get dimensions
+        X = self.X
+
+
+        # Convert each window of X into a SPD of dimensions [nwindows, nchannels*nfreqs, nchannels*nfreqs]
         nwindows, nchannels, nsamples = self.X.shape 
 
-        print("Target freqs:", self.target_freqs)
+        #################
+        # Try rebuilding the classifier each time
+        if self.rebuild == True:
+            self.next_fit_window = 0
+            self.clf = self.clf_model
 
-        # do the rest of the training if train_free is false
-        self.X = np.array(self.X)
-        self.X = self.X[:,:,:]
-
-        # get subset
-        #self.get_subset()
-
-        # Extract features, the bandpowers of the bands around each of the target frequencies
-
-        # Get the PSD of the windows using Welch's method
-        f, Pxx = signal.welch(self.X, fs=self.sampling_freq, nperseg=256)
-
-        # X features are the PSDs from 0 to the max target frequency + some buffer
-        upper_buffer = 5
-        newf = f[f < (np.amax(self.target_freqs) + upper_buffer)]
-
-        self.Xfeatures = Pxx[:,:,len(newf)]
+        # get temporal subset
+        subX = self.X[self.next_fit_window:,:,:]
+        suby = self.y[self.next_fit_window:]
+        self.next_fit_window = nwindows
 
         # Init predictions to all false 
         preds = np.zeros(nwindows)
-        predproba = np.zeros((nwindows,len(self.target_freqs)))
 
-        for train_idx, test_idx in self.cv.split(self.Xfeatures,self.y):
-            y_train, y_test = self.y[train_idx], self.y[test_idx]
+        def ssvep_kernel(subX, suby):
+            for train_idx, test_idx in self.cv.split(subX,suby):
+                self.clf = self.clf_model
 
-            train_data = self.Xfeatures[train_idx,:]
+                X_train, X_test = subX[train_idx], subX[test_idx]
+                y_train, y_test = suby[train_idx], suby[test_idx]
+
+                # get the covariance matrices for the training set
+                X_train_super = get_ssvep_supertrial(X_train, self.target_freqs, fsample=256, n_harmonics=self.n_harmonics, f_width=self.f_width)
+                X_test_super = get_ssvep_supertrial(X_test, self.target_freqs, fsample=256, n_harmonics=self.n_harmonics, f_width=self.f_width)
+
+                # fit the classsifier
+                self.clf.fit(X_train_super, y_train)
+                preds[test_idx] = self.clf.predict(X_test_super)
+
+            accuracy = sum(preds == self.y)/len(preds)
+            precision = precision_score(self.y,preds, average="micro")
+            recall = recall_score(self.y, preds, average="micro")
+
+            model = self.clf
+
+            return model, preds, accuracy, precision, recall
+
+        
+        # Check if channel selection is true
+        if self.channel_selection_setup:
+            print("Doing channel selection")
+
+            updated_subset, updated_model, preds, accuracy, precision, recall = channel_selection_by_method(ssvep_kernel, self.X, self.y, self.channel_labels,             # kernel setup
+                                                                            self.chs_method, self.chs_metric, self.chs_initial_subset,                                      # wrapper setup
+                                                                            self.chs_max_time, self.chs_min_channels, self.chs_max_channels, self.chs_performance_delta,    # stopping criterion
+                                                                            self.chs_n_jobs, self.chs_output)  
+            # channel_selection_by_method(mi_kernel, subX, suby, self.channel_labels, method=self.chs_method, max_time=self.chs_max_time, metric="accuracy", n_jobs=-1)
+                
+            print("The optimal subset is ", updated_subset)
+
+            self.subset = updated_subset
+            self.clf = updated_model
+        else: 
+            print("Not doing channel selection")
+            self.clf, preds, accuracy, precision, recall= ssvep_kernel(subX, suby)
+
+        
 
 
-            self.clf.fit(train_data, y_train)
-            preds[test_idx] = self.clf.predict(self.Xfeatures[test_idx])
-            #predproba[test_idx] = self.clf.predict_proba(self.Xfeatures[test_idx])
-
-
-
-        # for train_idx, test_idx in self.cv.split(subX,suby):
-        #     X_train, X_test = subX[train_idx], subX[test_idx]
-        #     y_train, y_test = suby[train_idx], suby[test_idx]
-
-        #     # get the covariance matrices for the training set
-        #     X_train_cov = Covariances().transform(X_train)
-        #     X_test_cov = Covariances().transform(X_test)
-
-        #     # fit the classsifier
-        #     self.clf.fit(X_train_cov, y_train)
-        #     preds[test_idx] = self.clf.predict(X_test_cov)
-
-        # # Print performance stats
-        # # accuracy
-        # correct = preds == self.y
-        #print(correct)
+        # Print performance stats
 
         self.offline_window_count = nwindows
         self.offline_window_counts.append(self.offline_window_count)
@@ -570,19 +618,20 @@ class ssvep_basic_classifier(generic_classifier):
         # accuracy
         accuracy = sum(preds == self.y)/len(preds)
         self.offline_accuracy.append(accuracy)
-
         if print_performance:
             print("accuracy = {}".format(accuracy))
 
         # # precision
         # precision = precision_score(self.y,preds)
         # self.offline_precision.append(precision)
-        # print("precision = {}".format(precision))
+        # if print_performance:
+        #     print("precision = {}".format(precision))
 
         # # recall
         # recall = recall_score(self.y, preds)
         # self.offline_recall.append(recall)
-        # print("recall = {}".format(recall))
+        # if print_performance:
+        #     print("recall = {}".format(recall))
 
         # confusion matrix in command line
         cm = confusion_matrix(self.y, preds)
@@ -591,53 +640,96 @@ class ssvep_basic_classifier(generic_classifier):
             print("confusion matrix")
             print(cm)
 
-        # if plot_cm == True:
-        #     cm = confusion_matrix(self.y, preds)
-        #     ConfusionMatrixDisplay(cm).plot()
-        #     plt.show()
+        ###############
 
-    def predict(self, X = None, print_predict=True):
+        print("Target freqs:", self.target_freqs)
 
-        if type(X) == None:
-            X = self.X
+        n_target_freqs = len(self.target_freqs)
 
-        subX = self.get_subset(X)
+    def predict(self, X, print_predict=True):
+        # if X is 2D, make it 3D with one as first dimension
+        if len(X.shape) < 3:
+            X = X[np.newaxis, ...]
 
-        # Extract features, the bandpowers of the bands around each of the target frequencies
+        X = self.get_subset(X)
 
-        # Get the PSD of the windows using Welch's method
-        f, Pxx = signal.welch(subX, fs=self.sampling_freq, nperseg=256)
+        # Troubleshooting
+        #X = self.X[-6:,:,:]
 
-        # X features are the PSDs from 0 to the max target frequency + some buffer
-        upper_buffer = 5
-        newf = f[f < (np.amax(self.target_freqs) + upper_buffer)]
-
-        Xfeatures = Pxx[:,:,len(newf)]
-
-        # predicts for each window
-        preds = self.clf.predict(Xfeatures)
         if print_predict:
-            print(preds)
+            print("the shape of X is", X.shape)
 
+        X_super = get_ssvep_supertrial(X, self.target_freqs, fsample=256, n_harmonics=self.n_harmonics, f_width=self.f_width)
+        #X_cov = X_cov[0,:,:]
 
-        # predict the value from predictions which appear in the most windows
-        pred_counts = [0] * 99
-        for i in range(preds.size):
-            pred_counts[int(preds[i])] += 1
+        pred = self.clf.predict(X_super)
+        pred_proba = self.clf.predict_proba(X_super)
 
-        #print(pred_counts)
-
-        prediction = 0
-        for i in pred_counts:
-            if pred_counts[i+1] > pred_counts[prediction]:
-                prediction = i+1
-
-        # Print the predictions for sanity
-        #print(preds)
         if print_predict:
-            print(prediction)
+            print(pred)
+            print(pred_proba)
 
-        return int(prediction)
+        for i in range(len(pred)):
+            self.predictions.append(pred[i])
+            self.pred_probas.append(pred_proba[i])
+
+        # add a threhold
+        #pred = (pred_proba[:] >= self.pred_threshold).astype(int) # set threshold as 0.3
+        #print(pred.shape)
+
+
+        # print(pred)
+        # for p in pred:
+        #     p = int(p)
+        #     print(p)
+        # print(pred)
+
+        # pred = str(pred).replace(".", ",")
+
+        return pred
+
+    # def predict(self, X = None, print_predict=True):
+
+    #     if type(X) == None:
+    #         X = self.X
+
+    #     subX = self.get_subset(X)
+
+    #     # Extract features, the bandpowers of the bands around each of the target frequencies
+
+    #     # Get the PSD of the windows using Welch's method
+    #     f, Pxx = signal.welch(subX, fs=self.sampling_freq, nperseg=256)
+
+    #     # X features are the PSDs from 0 to the max target frequency + some buffer
+    #     upper_buffer = 5
+    #     newf = f[f < (np.amax(self.target_freqs) + upper_buffer)]
+
+    #     Xfeatures = Pxx[:,:,len(newf)]
+
+    #     # predicts for each window
+    #     preds = self.clf.predict(Xfeatures)
+    #     if print_predict:
+    #         print(preds)
+
+
+    #     # predict the value from predictions which appear in the most windows
+    #     pred_counts = [0] * 99
+    #     for i in range(preds.size):
+    #         pred_counts[int(preds[i])] += 1
+
+    #     #print(pred_counts)
+
+    #     prediction = 0
+    #     for i in pred_counts:
+    #         if pred_counts[i+1] > pred_counts[prediction]:
+    #             prediction = i+1
+
+    #     # Print the predictions for sanity
+    #     #print(preds)
+    #     if print_predict:
+    #         print(prediction)
+
+    #     return int(prediction)
 
 # Train free classifier
 # SSVEP CCA Classifier Sans Training
@@ -655,6 +747,8 @@ class ssvep_basic_classifier_tf(generic_classifier):
         print("Oh deary me you must have mistaken me for another classifier which requires training")
         print("I DO NOT NEED TRAINING.")
         print("THIS IS MY FINAL FORM")
+
+    
 
     def predict(self, X, print_predict):
         # get the shape
@@ -806,9 +900,9 @@ class mi_classifier(generic_classifier):
                 self.clf.fit(X_train_cov, y_train)
                 preds[test_idx] = self.clf.predict(X_test_cov)
 
-                accuracy = sum(preds == self.y)/len(preds)
-                precision = precision_score(self.y,preds)
-                recall = recall_score(self.y, preds)
+            accuracy = sum(preds == self.y)/len(preds)
+            precision = precision_score(self.y,preds)
+            recall = recall_score(self.y, preds)
 
             model = self.clf
 

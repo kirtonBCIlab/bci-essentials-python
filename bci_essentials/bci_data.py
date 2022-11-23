@@ -34,6 +34,8 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
+import scipy
+
 from pylsl import StreamInlet, resolve_byprop, StreamOutlet, StreamInfo, proc_dejitter
 from pylsl.pylsl import IRREGULAR_RATE
 
@@ -320,9 +322,9 @@ class EEG_data():
         # if it is the DSI7 flex, relabel the channels, may want to make this more flexible in the future
         if self.headset_string == "DSI7":  #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             # print(self.channel_labels)
-            self.channel_labels[self.channel_labels.index('S1')] = 'O1'
-            self.channel_labels[self.channel_labels.index('S2')] = 'Pz'
-            self.channel_labels[self.channel_labels.index('S3')] = 'O2'
+            # self.channel_labels[self.channel_labels.index('S1')] = 'O1'
+            # self.channel_labels[self.channel_labels.index('S2')] = 'Pz'
+            # self.channel_labels[self.channel_labels.index('S3')] = 'O2'
 
             self.channel_labels.pop()
             self.nchannels = 7
@@ -859,6 +861,26 @@ class EEG_data():
                             break
                         if print_training:
                             print("Training the classifier")
+
+
+                            ##################
+                            # debug_dat_all = bandpass(self.eeg_data.transpose(), 8, 30, 5, 300).transpose()
+                            # debug_dat = debug_dat_all[:,0]
+
+                            # # plt.plot(debug_dat)
+                            # # plt.show()
+                            # for chl in range(len(self.channel_labels)):
+                            #     f, t, Sxx = scipy.signal.spectrogram(debug_dat_all[:,chl],300, nfft=2100, nperseg=2100, noverlap=300)
+                            #     # f, t, Sxx = scipy.signal.spectrogram(current_processed_eeg_windows[0,0,:600],300, nfft=300)
+                            #     plt.pcolormesh(t, f, Sxx, shading='gouraud')
+                            #     plt.ylabel('Frequency [Hz]')
+                            #     plt.xlabel('Time [sec]')
+                            #     plt.ylim([0,20])
+                            #     plt.show()
+
+                            ########################
+
+
                         self.classifier.fit(print_fit = print_fit, print_performance=print_performance)
                         train_complete = True
                         training = False
@@ -902,12 +924,14 @@ class EEG_data():
                     for i in range(4,len(marker_info)):
                         self.meta.__add__([marker_info[i]])
 
-                    # If it is SSVEP then check to make sure the correct freqs are being used
+                    # Load the correct SSVEP freqs
                     if marker_info[0] == "ssvep":
+                        clf.target_freqs = [1] * (len(marker_info) - 4)
+                        clf.sampling_freq = self.fsample
                         for i in range(4,len(marker_info)):
-                            if clf.target_freqs[i - 4] != float(marker_info[i]):
-                                clf.target_freqs[i - 4] = float(marker_info[i])
-                                print("changed ", i-4, "target frequency to", marker_info[i])
+
+                            clf.target_freqs[i - 4] = float(marker_info[i])
+                            # print("changed ", i-4, "target frequency to", marker_info[i])
 
                 # Check if the whole EEG window corresponding to the marker is available
                 end_time_plus_buffer = self.marker_timestamps[self.marker_count] + self.window_length + buffer

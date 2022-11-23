@@ -218,6 +218,9 @@ def sbfs(kernel_func, X, y, channel_labels,
     max_time, min_channels, max_channels, performance_delta,
     n_jobs, print_output):
 
+    if len(initial_channels) <= min_channels:
+        initial_channels = channel_labels
+
     start_time = time.time()
 
     nwindows, nchannels, nsamples = X.shape
@@ -291,6 +294,7 @@ def sbfs(kernel_func, X, y, channel_labels,
         else:
             print("performance metric invalid, defaulting to accuracy")
             performances = accuracies
+
 
         best_performance = np.max(performances)
         best_set_index = accuracies.index(best_performance)
