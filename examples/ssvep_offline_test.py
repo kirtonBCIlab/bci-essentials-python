@@ -20,18 +20,10 @@ import matplotlib.pyplot as plt
 test_ssvep = EEG_data()
 
 # Define the classifier
-test_ssvep.classifier = ssvep_basic_classifier(subset=[])
+test_ssvep.classifier = ssvep_riemannian_mdm_classifier(subset=[])
 
 # Load from xdf into erp_data format
-# test_ssvep.load_offline_eeg_data(filename = "examples\data\ssvep_example.xdf", format='xdf', subset = ["O1", "O2", "Oz"])
 test_ssvep.load_offline_eeg_data(filename = "examples\data\ssvep_example.xdf", format='xdf')
-
-
-# 
-# target_freqs = [9, 9.6, 10.28, 11.07, 12, 13.09, 14.4]
-# TODO add the frequencies from the marker string to target freqs
-
-#test_ssvep.classifier.set_ssvep_settings(sampling_freq = 300, target_freqs = target_freqs)
 
 test_ssvep.classifier.set_ssvep_settings(n_splits=3, random_seed=42, n_harmonics=3, f_width=0.5)
 
@@ -40,12 +32,11 @@ test_ssvep.classifier.set_ssvep_settings(n_splits=3, random_seed=42, n_harmonics
 #                                 max_time= 999, min_channels=2, max_channels=16, performance_delta=0,      # stopping criterion
 #                                 n_jobs=-1, print_output="verbose") 
 
-#test_ssvep.classifier.set_ssvep_settings(n_splits=3, sampling_freq=300, target_freqs = target_freqs, subset=[], random_seed=42, clf_type="LDA")
-
 test_ssvep.main(online=False, training=True, max_samples=5120, pp_type="bandpass", pp_low=3, pp_high=50)
 
 print("debug")
 
+# Some optional plotting
 # # plot a spectrogram of the session
 # for ci, ch in enumerate(test_ssvep.channel_labels):
 #     eeg = np.array(test_ssvep.classifier.X[0,ci,:])

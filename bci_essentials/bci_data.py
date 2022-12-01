@@ -652,7 +652,7 @@ class EEG_data():
             max_channels = 64, 
             max_samples = 2560, 
             max_windows = 1000,
-            max_loops=1000, 
+            max_loops=1000000, 
             training=True, 
             online=True, 
             train_complete=False, 
