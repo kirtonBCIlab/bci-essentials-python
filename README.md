@@ -31,21 +31,26 @@ cd <your-local-bci-essentials-python-directory>
 pip install .
 ```
 
+
 ### The following is only for M1 Mac tensorflow install
 
-5. Navigate to https://drive.google.com/drive/folders/1oSipZLnoeQB0Awz8U68KYeCPsULy_dQ7 
+5. The bci-essentials-python package depends on tensorflow, which does not officially support Apple silicon (as of December 2022).  However, there is an Apple supported build called [tensorflow-macos ](https://developer.apple.com/metal/tensorflow-plugin/) that will work.  To install:
 
-7. Download tensorflow-2.4.1-py3-none-any.whl and place it in main directory
+```
+conda install -c apple tensorflow-deps
+pip install numpy --upgrade
+pip install tensorflow-macos
+pip install tensorflow-metal
+```
 
-8. Navigate to directory
+6. In setup.py, change the tensorflow dependency to tensorflow-macos
+
+7. redo the install
+
 ```
-cd <your-local-bci-essentials-python-directory>
+pip install .
 ```
 
-8. Use pip install on file once venv is active
-```
-pip install tensorflow-2.4.1-py3-none-any.whl
-```
 
 ## Offline processing
 Offline processing can be done by running the corresponding offline test script (ie. mi_offline_test.py, p300_offline_test.py, etc.)
