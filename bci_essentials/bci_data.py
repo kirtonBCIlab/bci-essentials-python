@@ -1003,10 +1003,12 @@ class EEG_data():
 
                 # TODO: Get this live update going
                 if live_update == True:
-                    if len(self.nsamples) != 0:
+                    if self.nsamples != 0:
                         # pred = self.classifier.predict(self.windows[current_nwindows, 0:self.nchannels, 0:self.nsamples-1])
-                        pred = self.classifier.predict(self.windows[current_nwindows, 0:self.nchannels, 0:self.nsamples], print_predict=print_predict)
-                        self.outlet.push_sample(["{}".format(pred)])
+                        pred = self.classifier.predict(self.processed_eeg_windows[current_nwindows, 0:self.nchannels, 0:self.nsamples], print_predict=print_predict)
+                        self.outlet.push_sample(["{}".format(int(pred[0]))])
+                    # except:
+                    #     print("oh well")
 
                 # iterate to next window
                 self.marker_count += 1

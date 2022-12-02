@@ -22,7 +22,7 @@ test_erp.classifier.set_p300_clf_settings(n_splits=5, lico_expansion_factor=1, o
 #                             n_jobs=-1, print_output="verbose") 
 
 # Connect the streams
-test_erp.stream_online_eeg_data(subset = ['AF3', 'F7', 'F3', 'FC5', 'T7', 'P7', 'O1', 'O2', 'P8', 'T8', 'FC6', 'F4', 'F8', 'AF4']) # you can also add a subset here
+test_erp.stream_online_eeg_data() # you can also add a subset here
 
 # Run main
 # test_erp.main(online=True, training=True, pp_low=0.1, pp_high=15, pp_order=5, plot_erp=False, window_start=0.0, window_end=0.6)

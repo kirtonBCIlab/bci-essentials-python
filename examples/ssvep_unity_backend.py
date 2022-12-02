@@ -10,16 +10,8 @@ from bci_essentials.bci_data import *
 # Initialize the data class
 test_ssvep = EEG_data()
 
-# # Define a classifier
-# test_ssvep.classifier = ssvep_basic_classifier()
-
-
-
-# # Run
-# test_ssvep.main(online=True, training=True)
 # Define the classifier
 test_ssvep.classifier = ssvep_riemannian_mdm_classifier()
-
 
 # # Connect the streams
 test_ssvep.stream_online_eeg_data()
