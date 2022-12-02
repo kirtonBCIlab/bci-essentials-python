@@ -32,7 +32,7 @@ pip install .
 ```
 
 
-### The following is only for M1 Mac tensorflow install
+### The following is only for Apple silicon tensorflow install
 
 5. The bci-essentials-python package depends on tensorflow, which does not officially support Apple silicon (as of December 2022).  However, there is an Apple supported build called [tensorflow-macos ](https://developer.apple.com/metal/tensorflow-plugin/) that will work.  To install:
 
@@ -45,7 +45,7 @@ pip install tensorflow-metal
 
 6. In setup.py, change the tensorflow dependency to tensorflow-macos
 
-7. redo the install
+7. install with pip
 
 ```
 pip install .
