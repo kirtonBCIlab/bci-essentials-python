@@ -11,28 +11,53 @@ The front end for this package can be found in [bci-essentials-unity](https://ww
 
 Using the terminal
 1. clone from git
->git clone https://github.com/kirtonBCIlab/bci-essentials-python.git
+```
+git clone https://github.com/kirtonBCIlab/bci-essentials-python.git
+```
+
 2. Create and activate a conda environment (RECOMENDED)
->conda create -n bci-essentials
->conda activate bci_essentials
+```
+conda create -n bci-essentials
+conda activate bci_essentials
+```
+
 3. navigate to the bci-essentials-python directory and activate virtual env if desired
->cd <your-local-bci-essentials-python-directory>
+```
+cd <your-local-bci-essentials-python-directory>
+```
+
 4. install with pip
->pip install .
-The following is only for M1 Mac tensorflow install
-5. Navigate to https://drive.google.com/drive/folders/1oSipZLnoeQB0Awz8U68KYeCPsULy_dQ7 
-6. Download tensorflow-2.4.1-py3-none-any.whl and place it in main directory 
-7. Navigate to directory
->cd <your-local-bci-essentials-python-directory>
-8. Use pip install on file once venv is active
-> pip install tensorflow-2.4.1-py3-none-any.whl
+```
+pip install .
+```
+
+
+### The following is only for Apple silicon tensorflow install
+
+5. The bci-essentials-python package depends on tensorflow, which does not officially support Apple silicon (as of December 2022).  However, there is an Apple supported build called [tensorflow-macos ](https://developer.apple.com/metal/tensorflow-plugin/) that will work.  To install:
+
+```
+conda install -c apple tensorflow-deps
+pip install numpy --upgrade
+pip install tensorflow-macos
+pip install tensorflow-metal
+```
+
+6. In setup.py, change the tensorflow dependency to tensorflow-macos
+
+7. install with pip
+
+```
+pip install .
+```
 
 
 ## Offline processing
 Offline processing can be done by running the corresponding offline test script (ie. mi_offline_test.py, p300_offline_test.py, etc.)
 Change the filename in the script to point to the data you want to process.
->python examples/mi_offline_test.py
-
+```
+python examples/mi_offline_test.py
+```
 
 ## Online processing
 Online processing requires an EEG stream and a marker stream. These can both be simulated using eeg_lsl_sim.py and marker_lsl_sim.py.
@@ -40,7 +65,9 @@ Real EEG streams come from a headset connected over LSL. Real marker streams com
 Once these streams are running, simply begin the backend processing script ( ie. mi_unity_backend.py, p300_unity_bakend.py, etc.)
 It is recommended to save the EEG, marker, and response (created by the backend processing script) streams using 
 [Lab Recorder](https://github.com/labstreaminglayer/App-LabRecorder) for later offline processing.
->python examples/mi_unity_backend.py
+```
+python examples/mi_unity_backend.py
+```
 
 ## Directory
 ### bci_essentials

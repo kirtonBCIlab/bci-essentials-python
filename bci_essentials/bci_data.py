@@ -1010,6 +1010,7 @@ class EEG_data():
                     # except:
                     #     print("oh well")
 
+
                 # iterate to next window
                 self.marker_count += 1
                 current_nwindows += 1
