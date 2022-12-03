@@ -34,6 +34,8 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
+import scipy
+
 from pylsl import StreamInlet, resolve_byprop, StreamOutlet, StreamInfo, proc_dejitter
 from pylsl.pylsl import IRREGULAR_RATE
 
@@ -111,10 +113,23 @@ class EEG_data():
                     self.response_index = i
 
             # fill up the marker and eeg buffers with the saved data
-            self.marker_data = data[self.marker_index]['time_series']
-            self.marker_timestamps = data[self.marker_index]['time_stamps']
-            self.eeg_data = data[self.eeg_index]['time_series']
-            self.eeg_timestamps = data[self.eeg_index]['time_stamps']
+            try:
+                self.marker_data = data[self.marker_index]['time_series']
+                self.marker_timestamps = data[self.marker_index]['time_stamps']
+            except: 
+                print("Marker data not available")
+
+            try:
+                self.eeg_data = data[self.eeg_index]['time_series']
+                self.eeg_timestamps = data[self.eeg_index]['time_stamps']
+            except: 
+                print("EEG data not available")
+
+            try:
+                self.response_data = data[self.response_index]['time_series']
+                self.response_timestamps = data[self.response_index]['time_stamps']
+            except: 
+                print("Response data not available")
 
             # Unless explicit settings are desired, get settings from headset
             #if self.explicit_settings == False:
@@ -163,9 +178,9 @@ class EEG_data():
         if self.headset_string == "DSI7":
             if print_output:
                 print(self.channel_labels)
-            self.channel_labels[self.channel_labels.index('S1')] = 'O1'
-            self.channel_labels[self.channel_labels.index('S2')] = 'Pz'
-            self.channel_labels[self.channel_labels.index('S3')] = 'O2'
+            # self.channel_labels[self.channel_labels.index('S1')] = 'O1'
+            # self.channel_labels[self.channel_labels.index('S2')] = 'Pz'
+            # self.channel_labels[self.channel_labels.index('S3')] = 'O2'
 
             self.nchannels = 7
             self.channel_labels.pop()
@@ -307,9 +322,9 @@ class EEG_data():
         # if it is the DSI7 flex, relabel the channels, may want to make this more flexible in the future
         if self.headset_string == "DSI7":  #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             # print(self.channel_labels)
-            self.channel_labels[self.channel_labels.index('S1')] = 'O1'
-            self.channel_labels[self.channel_labels.index('S2')] = 'Pz'
-            self.channel_labels[self.channel_labels.index('S3')] = 'O2'
+            # self.channel_labels[self.channel_labels.index('S1')] = 'O1'
+            # self.channel_labels[self.channel_labels.index('S2')] = 'Pz'
+            # self.channel_labels[self.channel_labels.index('S3')] = 'O2'
 
             self.channel_labels.pop()
             self.nchannels = 7
@@ -601,7 +616,13 @@ class EEG_data():
         # Rest
         if len(rest_end_loc) > 0:
             # Get duration, nsmaples
+            while(rest_end_time[0] < rest_start_time[0]):
+                rest_end_time.pop(0)
+                rest_end_loc.pop(0)
+
             duration = np.floor(rest_end_time[0] - rest_start_time[0])
+            
+
             nsamples = int(duration * self.fsample) 
 
             self.rest_timestamps = np.array(range(nsamples)) / self.fsample
@@ -631,7 +652,7 @@ class EEG_data():
             max_channels = 64, 
             max_samples = 2560, 
             max_windows = 1000,
-            max_loops=1000, 
+            max_loops=1000000, 
             training=True, 
             online=True, 
             train_complete=False, 
@@ -685,6 +706,7 @@ class EEG_data():
             #
             self.num_online_selections = 0
             self.online_selection_indices = []
+            self.online_selections = []
 
             # initialize loop count
             loops = 0
@@ -801,17 +823,24 @@ class EEG_data():
                             self.online_selection_indices.append(selection_inds)
 
                             # make the prediciton
-                            prediction = self.classifier.predict(current_processed_eeg_windows, print_predict)
-
-                            if print_predict:
-                                print("Recieved prediction from classifier")
-
-                                # Send the prediction to Unity
-                                print("{} was selected, sending to Unity".format(prediction))
+                            try:
+                                prediction = self.classifier.predict(current_processed_eeg_windows, print_predict)
+                                self.online_selections.append(prediction)
                             
-                            # if online, send the packet to Unity
-                            if online == True:
-                                self.outlet.push_sample(["{}".format(prediction)])
+
+                                if print_predict:
+                                    print("Recieved prediction from classifier")
+
+                                    # Send the prediction to Unity
+                                    print("{} was selected, sending to Unity".format(prediction))
+                                
+                                # if online, send the packet to Unity
+                                if online == True:
+                                    self.outlet.push_sample(["{}".format(prediction)])
+
+                            except:
+                                if print_predict:
+                                    print("This classification failed...")
 
                         # OH DEAR
                         else:
@@ -832,6 +861,26 @@ class EEG_data():
                             break
                         if print_training:
                             print("Training the classifier")
+
+
+                            ##################
+                            # debug_dat_all = bandpass(self.eeg_data.transpose(), 8, 30, 5, 300).transpose()
+                            # debug_dat = debug_dat_all[:,0]
+
+                            # # plt.plot(debug_dat)
+                            # # plt.show()
+                            # for chl in range(len(self.channel_labels)):
+                            #     f, t, Sxx = scipy.signal.spectrogram(debug_dat_all[:,chl],300, nfft=2100, nperseg=2100, noverlap=300)
+                            #     # f, t, Sxx = scipy.signal.spectrogram(current_processed_eeg_windows[0,0,:600],300, nfft=300)
+                            #     plt.pcolormesh(t, f, Sxx, shading='gouraud')
+                            #     plt.ylabel('Frequency [Hz]')
+                            #     plt.xlabel('Time [sec]')
+                            #     plt.ylim([0,20])
+                            #     plt.show()
+
+                            ########################
+
+
                         self.classifier.fit(print_fit = print_fit, print_performance=print_performance)
                         train_complete = True
                         training = False
@@ -875,12 +924,14 @@ class EEG_data():
                     for i in range(4,len(marker_info)):
                         self.meta.__add__([marker_info[i]])
 
-                    # If it is SSVEP then check to make sure the correct freqs are being used
+                    # Load the correct SSVEP freqs
                     if marker_info[0] == "ssvep":
+                        clf.target_freqs = [1] * (len(marker_info) - 4)
+                        clf.sampling_freq = self.fsample
                         for i in range(4,len(marker_info)):
-                            if clf.target_freqs[i - 4] != float(marker_info[i]):
-                                clf.target_freqs[i - 4] = float(marker_info[i])
-                                print("changed ", i-4, "target frequency to", marker_info[i])
+
+                            clf.target_freqs[i - 4] = float(marker_info[i])
+                            # print("changed ", i-4, "target frequency to", marker_info[i])
 
                 # Check if the whole EEG window corresponding to the marker is available
                 end_time_plus_buffer = self.marker_timestamps[self.marker_count] + self.window_length + buffer
@@ -952,17 +1003,13 @@ class EEG_data():
 
                 # TODO: Get this live update going
                 if live_update == True:
-#<<<<<<< main
-#                    if len(self.nsamples) != 0:
-#                        # pred = self.classifier.predict(self.windows[current_nwindows, 0:self.nchannels, 0:self.nsamples-1])
-#                       pred = self.classifier.predict(self.windows[current_nwindows, 0:self.nchannels, 0:self.nsamples], print_predict=print_predict)
-#=======
-                    '''Made changes - Adam. Removed the minus 1 so it's 0:self.nsamples instead of 0:self.nsamples-1
-                    The minus one was not working with eeg_lsl_sim.py. Predict function for switch was incompatible
-                    '''
                     if self.nsamples != 0:
-                        pred = self.classifier.predict(self.windows[self.nwindows, 0:self.nchannels, 0:self.nsamples])
-                        self.outlet.push_sample(["{}".format(pred)])
+                        # pred = self.classifier.predict(self.windows[current_nwindows, 0:self.nchannels, 0:self.nsamples-1])
+                        pred = self.classifier.predict(self.processed_eeg_windows[current_nwindows, 0:self.nchannels, 0:self.nsamples], print_predict=print_predict)
+                        self.outlet.push_sample(["{}".format(int(pred[0]))])
+                    # except:
+                    #     print("oh well")
+
 
                 # iterate to next window
                 self.marker_count += 1
