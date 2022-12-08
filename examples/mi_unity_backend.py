@@ -23,5 +23,3 @@ mi_data.stream_online_eeg_data() # you can also add a subset here
 # Run
 mi_data.main(online=True, training=True)
 
-
-# f.close()

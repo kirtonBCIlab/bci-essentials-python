@@ -862,38 +862,14 @@ class EEG_data():
                         if print_training:
                             print("Training the classifier")
 
-
-                            ##################
-                            # debug_dat_all = bandpass(self.eeg_data.transpose(), 8, 30, 5, 300).transpose()
-                            # debug_dat = debug_dat_all[:,0]
-
-                            # # plt.plot(debug_dat)
-                            # # plt.show()
-                            # for chl in range(len(self.channel_labels)):
-                            #     f, t, Sxx = scipy.signal.spectrogram(debug_dat_all[:,chl],300, nfft=2100, nperseg=2100, noverlap=300)
-                            #     # f, t, Sxx = scipy.signal.spectrogram(current_processed_eeg_windows[0,0,:600],300, nfft=300)
-                            #     plt.pcolormesh(t, f, Sxx, shading='gouraud')
-                            #     plt.ylabel('Frequency [Hz]')
-                            #     plt.xlabel('Time [sec]')
-                            #     plt.ylim([0,20])
-                            #     plt.show()
-
-                            ########################
-
-
                         self.classifier.fit(print_fit = print_fit, print_performance=print_performance)
                         train_complete = True
                         training = False
                         self.marker_count += 1
-                        #continue
-
-                        #print(current_raw_eeg_windows.shape)
 
                     elif self.marker_data[self.marker_count][0] == 'Update Classifier':
                         if print_training:
                             print("Retraining the classifier")
-
-                        #self.training_labels = current_labels[0:current_nwindows]
 
                         self.classifier.fit(print_fit = print_fit, print_performance=print_performance)
 
@@ -1000,15 +976,14 @@ class EEG_data():
                 self.processed_eeg_windows[self.nwindows,0:self.nchannels,0:self.nsamples] = current_processed_eeg_windows[current_nwindows,0:self.nchannels,0:self.nsamples]
                 self.labels[self.nwindows] = current_labels[current_nwindows]
 
-
-                # TODO: Get this live update going
+                # Send live updates
                 if live_update == True:
-                    if self.nsamples != 0:
-                        # pred = self.classifier.predict(self.windows[current_nwindows, 0:self.nchannels, 0:self.nsamples-1])
-                        pred = self.classifier.predict(self.processed_eeg_windows[current_nwindows, 0:self.nchannels, 0:self.nsamples], print_predict=print_predict)
-                        self.outlet.push_sample(["{}".format(int(pred[0]))])
-                    # except:
-                    #     print("oh well")
+                    try:
+                        if self.nsamples != 0:
+                            pred = self.classifier.predict(current_processed_eeg_windows[current_nwindows, 0:self.nchannels, 0:self.nsamples], print_predict=print_predict)
+                            self.outlet.push_sample(["{}".format(int(pred[0]))])
+                    except: 
+                        print("unable to classify this window")
 
 
                 # iterate to next window
@@ -1039,8 +1014,8 @@ class ERP_data(EEG_data):
             window_end=0.8, 
             eeg_start=0, 
             buffer=0.01, 
-            max_num_options=30,
-            max_windows_per_option=20,
+            max_num_options=64,
+            max_windows_per_option=50,
             max_windows=10000, 
             max_decisions=500, 
             max_loops=1000000000, 
