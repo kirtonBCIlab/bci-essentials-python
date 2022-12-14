@@ -34,11 +34,19 @@ test_ssvep.classifier.set_ssvep_settings(n_splits=3, random_seed=42, n_harmonics
 
 test_ssvep.main(online=False, training=True, max_samples=5120, pp_type="bandpass", pp_low=3, pp_high=50)
 
+
+print("debug")
+mne_raw = test_ssvep.mne_export_resting_state_as_raw()
+mne_raw.plot()
+
+print("debug")
 mne_raw = test_ssvep.mne_export_as_raw()
 mne_raw.plot()
 
 print("debug")
 mne_epochs = test_ssvep.mne_export_as_epochs()
 mne_epochs.plot(picks='eeg')
+
+
 
 print("debug")

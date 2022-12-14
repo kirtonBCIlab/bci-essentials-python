@@ -555,6 +555,44 @@ class EEG_data():
 
         return epochs_array
 
+    def mne_export_resting_state_as_raw(self):
+        """
+        MNE Export
+
+        Exports the EEG data as an epoch object
+
+        * Requires MNE
+
+        """
+        print("mne_export_as_raw has not been implemented yet")
+        # Check for mne
+        try:
+            import mne
+        except:
+            print("Could not import mne, you may have to install (pip install mne)")
+
+        # create info from metadata
+        info = mne.create_info(ch_names=self.channel_labels, sfreq=self.fsample, ch_types='eeg')
+
+
+        try:
+            # create the MNE epochs, pass in the raw
+
+            # make sure that units match
+            raw_data = self.rest_windows[0,:,:]
+            raw_array = mne.io.RawArray(data=raw_data, info=info)
+
+            # change the last column of epochs array events to be the class labels
+            # raw_array.events[:, -1] = self.labels
+
+        except:
+            # could not find resting state data, sending the whole collection instead
+            print("NO PROPER RESTING STATE DATA FOUND, SENDING ALL OF THE EEG DATA INSTEAD")
+            raw_data = self.eeg_data.transpose()
+            raw_array = mne.io.RawArray(data=raw_data, info=info)
+        
+        return raw_array
+
 
     # SIGNAL PROCESSING
     # Preprocessing goes here (windows are nchannels by nsamples)
