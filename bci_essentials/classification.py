@@ -309,7 +309,7 @@ class erp_rg_classifier(generic_classifier):
                                 oversample_ratio = 0,           # traditional oversampling, float from 0.1-1 resulting ratio of erp class to non-erp class, 0 for no oversampling
                                 undersample_ratio = 0,          # traditional undersampling, float from 0.1-1 resulting ratio of erp class to non-erp classs, 0 for no undersampling 
                                 random_seed = 42,               # random seed
-                                covariance_estimator = 'lwf'    # Covarianc estimator, see pyriemann Covariances
+                                covariance_estimator = 'scm'    # Covarianc estimator, see pyriemann Covariances
                                 ):
 
         self.n_splits = n_splits                    
