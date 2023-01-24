@@ -160,6 +160,26 @@ class EEG_data():
         self.headset_string = data[self.eeg_index]['info']['name'][0]            # headset name in string format
         self.fsample = float(data[self.eeg_index]['info']['nominal_srate'][0])   # sampling rate
         self.nchannels = int(data[self.eeg_index]['info']['channel_count'][0])   # number of channels 
+        
+        #get chtypes, chunits
+        self.ch_type = []
+        self.ch_units = []
+        for i in range(self.nchannels):
+            # type
+            ch_type = data[self.eeg_index]['info']["desc"][0]["channels"][0]["channel"][i]["type"][0]
+            # send to lower case letters for mne
+            ch_type = ch_type.lower()
+            # save trigger channel as stim
+            if ch_type == "trg":
+                ch_type = 'stim'
+            #add to list
+            self.ch_type.append(ch_type)
+
+            #units
+            ch_units = data[self.eeg_index]['info']["desc"][0]["channels"][0]["channel"][i]["unit"][0]
+            self.ch_units.append(ch_units)
+
+
         self.channel_labels = []                                                 # channel labels/locations, 'TRG' means trigger
         try:
             for i in range(self.nchannels):
@@ -306,6 +326,8 @@ class EEG_data():
         self.headset_string = eeg_info.name()            # headset name in string format
         self.fsample = float(eeg_info.nominal_srate())   # sampling rate
         self.nchannels = int(eeg_info.channel_count())   # number of channels 
+
+        # get online channel types and units
 
         # iterate through children of <"channels"> to get the channel labels
         ch = eeg_info.desc().child("channels").child("channel")
@@ -465,6 +487,112 @@ class EEG_data():
 
 
         """
+
+    def mne_export_as_raw(self):
+        """
+        MNE Export
+
+        Exports the EEG data as an epoch object
+
+        * Requires MNE
+
+        """
+        print("mne_export_as_raw has not been implemented yet")
+        # Check for mne
+        try:
+            import mne
+        except:
+            print("Could not import mne, you may have to install (pip install mne)")
+
+        # create info from metadata
+        info = mne.create_info(ch_names=self.channel_labels, sfreq=self.fsample, ch_types='eeg')
+
+        # create the MNE epochs, pass in the raw
+
+        # make sure that units match
+        raw_data = self.eeg_data.transpose()
+        raw_array = mne.io.RawArray(data=raw_data, info=info)
+
+        # change the last column of epochs array events to be the class labels
+        # raw_array.events[:, -1] = self.labels
+
+        return raw_array
+
+
+    def mne_export_as_epochs(self):
+        """
+        MNE Export
+
+        Exports the EEG data as an epoch object
+
+        * Requires MNE
+
+        """
+
+        # Check for mne
+        try:
+            import mne
+        except:
+            print("Could not import mne, you may have to install (pip install mne)")
+
+        # create info from metadata
+        info = mne.create_info(ch_names=self.channel_labels, sfreq=self.fsample, ch_types=self.ch_type)
+
+        # create the MNE epochs, pass in the raw
+
+
+        # make sure that units match
+        epoch_data = self.raw_eeg_windows.copy()
+        for i, u in enumerate(self.ch_units):
+            if u == "microvolts":
+                # convert to volts
+                epoch_data[:,i,:] = epoch_data[:,i,:] / 1000000
+
+        epochs_array = mne.EpochsArray(data=epoch_data, info=info)
+
+        # change the last column of epochs array events to be the class labels
+        epochs_array.events[:, -1] = self.labels
+
+        return epochs_array
+
+    def mne_export_resting_state_as_raw(self):
+        """
+        MNE Export
+
+        Exports the EEG data as an epoch object
+
+        * Requires MNE
+
+        """
+        print("mne_export_as_raw has not been implemented yet")
+        # Check for mne
+        try:
+            import mne
+        except:
+            print("Could not import mne, you may have to install (pip install mne)")
+
+        # create info from metadata
+        info = mne.create_info(ch_names=self.channel_labels, sfreq=self.fsample, ch_types='eeg')
+
+
+        try:
+            # create the MNE epochs, pass in the raw
+
+            # make sure that units match
+            raw_data = self.rest_windows[0,:,:]
+            raw_array = mne.io.RawArray(data=raw_data, info=info)
+
+            # change the last column of epochs array events to be the class labels
+            # raw_array.events[:, -1] = self.labels
+
+        except:
+            # could not find resting state data, sending the whole collection instead
+            print("NO PROPER RESTING STATE DATA FOUND, SENDING ALL OF THE EEG DATA INSTEAD")
+            raw_data = self.eeg_data.transpose()
+            raw_array = mne.io.RawArray(data=raw_data, info=info)
+        
+        return raw_array
+
 
     # SIGNAL PROCESSING
     # Preprocessing goes here (windows are nchannels by nsamples)
@@ -1008,6 +1136,108 @@ class ERP_data(EEG_data):
     """
     Howdy
     """
+    def mne_export_as_raw(self):
+        """
+        MNE Export
+
+        Exports the EEG data as an epoch object
+
+        * Requires MNE
+
+        """
+        print("mne_export_as_raw has not been implemented yet")
+        # # Check for mne
+        # try:
+        #     import mne
+        # except:
+        #     print("Could not import mne, you may have to install (pip install mne)")
+
+        # # create info from metadata
+        # info = mne.create_info(ch_names=self.channel_labels, sfreq=self.fsample, ch_types='eeg')
+
+        # # create the MNE epochs, pass in the raw
+
+        # # make sure that units match
+        # epochs_array = mne.EpochsArray(data=self.raw_eeg_windows, info=info)
+
+        # # change the last column of epochs array events to be the class labels
+        # epochs_array.events[:, -1] = self.labels
+
+        # return epochs_array
+
+
+    def mne_export_as_epochs(self):
+        """
+        MNE Export
+
+        Exports the ERP data as an epoch object
+
+        * Requires MNE
+
+        """
+
+        # Check for mne
+        try:
+            import mne
+        except:
+            print("Could not import mne, you may have to install (pip install mne)")
+
+        # create info from metadata
+        info = mne.create_info(ch_names=self.channel_labels, sfreq=self.fsample, ch_types=self.ch_type)
+
+        # create the MNE epochs, pass in the raw
+
+
+        # make sure that units match
+        epoch_data = self.erp_windows_processed[:len(self.target_index),:,:].copy()
+        for i, u in enumerate(self.ch_units):
+            if u == "microvolts":
+                # convert to volts
+                epoch_data[:,i,:] = epoch_data[:,i,:] / 1000000
+
+        epochs_array = mne.EpochsArray(data=epoch_data, info=info)
+
+        # change the last column of epochs array events to be the class labels
+        epochs_array.events[:, -1] = self.target_index.astype(int)
+
+        return epochs_array
+
+    def mne_export_as_evoked(self):
+        """
+        MNE Export
+
+        Exports the EEG data as an epoch object
+
+        * Requires MNE
+
+        """
+        print("mne_export_as_evoked has not yet been implemented")
+        # # Check for mne
+        # try:
+        #     import mne
+        # except:
+        #     print("Could not import mne, you may have to install (pip install mne)")
+
+        # # create info from metadata
+        # info = mne.create_info(ch_names=self.channel_labels, sfreq=self.fsample, ch_types=self.ch_type)
+
+        # # create the MNE epochs, pass in the raw
+
+
+        # # make sure that units match
+        # evoked_data = self.raw_eeg_windows.copy()
+        # for i, u in enumerate(self.ch_units):
+        #     if u == "microvolts":
+        #         # convert to volts
+        #         evoked_data[:,i,:] = evoked_data[:,i,:] / 1000000
+
+        # evoked_array = mne.EpochsArray(data=evoked_data, info=info, tmin=self.window_start)
+
+        # # change the last column of epochs array events to be the class labels
+        # evoked_array.events[:, -1] = self.labels
+
+        # return evoked_array
+
     # Formats the ERP data, call this every time that a new chunk arrives
     def main(self, 
             window_start=0.0, 
