@@ -1,5 +1,5 @@
 """
-
+Signal Processing Tools
 
 """
 
@@ -28,6 +28,21 @@ import matplotlib.pyplot as plt
 #     return new_data
 
 def dc_reject(data):
+    """DC Reject
+
+    Filters out DC shifts in the data
+
+    Parameters
+    ----------
+    data : numpy array 
+        Windows of EEG data, nwindows X nchannels X nsamples
+
+    Returns
+    -------
+    new_data : numpy array
+        Windows of DC rejected EEG data, nwindows X nchannels X nsamples
+    """
+
     try:
         N, M, P = np.shape(data)
     except:
@@ -46,6 +61,20 @@ def dc_reject(data):
     return new_data
 
 def detrend(data):
+    """Detrend
+
+    Wrapper for the scipy.signal.detrend method
+
+    Parameters
+    ----------
+    data : numpy array 
+        Windows of EEG data, nwindows X nchannels X nsamples
+
+    Returns
+    -------
+    new_data : numpy array
+        Windows of detrended EEG data, nwindows X nchannels X nsamples
+    """
     # detrends the windows using the numpy detrend function
     try:
         N, M, P = np.shape(data)
@@ -61,6 +90,26 @@ def detrend(data):
     return new_data
 
 def lowpass(data, f_high, order, fsample):
+    """Lowpass Filter
+
+    Filters out frequencies above f_high with a Butterworth filter
+
+    Parameters
+    ----------
+    data : numpy array 
+        Windows of EEG data, nwindows X nchannels X nsamples
+    f_high : float
+        Upper corner frequency
+    order : int
+        Order of the filter
+    fsample : float
+        Sampling rate of signal
+
+    Returns
+    -------
+    new_data : numpy array
+        Windows of filtered EEG data, nwindows X nchannels X nsamples
+    """
     try:
         N, M, P = np.shape(data)
     except:
@@ -78,8 +127,27 @@ def lowpass(data, f_high, order, fsample):
     return new_data
 
 def bandpass(data, f_low, f_high, order, fsample):
-    """
-    
+    """Bandpass Filter
+
+    Filters out frequencies outside of f_low-f_high with a Butterworth filter
+
+    Parameters
+    ----------
+    data : numpy array 
+        Windows of EEG data, nwindows X nchannels X nsamples
+    f_low : float
+        Lower corner frequency    
+    f_high : float
+        Upper corner frequency
+    order : int
+        Order of the filter
+    fsample : float
+        Sampling rate of signal
+
+    Returns
+    -------
+    new_data : numpy array
+        Windows of filtered EEG data, nwindows X nchannels X nsamples
     """
     Wn = [f_low/(fsample/2), f_high/(fsample/2)]
     b, a = signal.butter(order, Wn, btype='bandpass')
@@ -90,28 +158,11 @@ def bandpass(data, f_low, f_high, order, fsample):
         # reshape to N,M,P
         data_reshape = np.swapaxes(np.swapaxes(data, 1, 2), 0, 2)
 
-        # # subtract the mean
-        # data_reshape = data_reshape - np.mean(data_reshape, axis=1)
-
         new_data = np.ndarray(shape=(N, M, P), dtype=float) 
         for p in range(0,P):
-            new_data[0:N,0:M,p] = signal.filtfilt(b, a, data_reshape[0:N,0:M,p], axis=1, padlen=30)
-
-        # Visualize the effect of the filter
-        # fig, axs = plt.subplots(N)
-        # for n in range(N):
-        #     axs[n].plot(data_reshape[n,0:M,2], label="before")
-        #     axs[n].plot(new_data[n,0:M,2], label="after")
-
-        #     axs[n].legend()
-
-        # # plt.plot(data_reshape[2,0:M,p], label="before")
-        # # plt.plot(new_data[2,0:M,p], label="after")
-        # # plt.legend()
-
-        # # plt.show()
-        # # plt.close()
-        # fig.show()
+            new_data[0:N,0:M,p] = signal.filtfilt(b, a, data_reshape[0:N,0:M,p], 
+                                                    axis=1, 
+                                                    padlen=30)
 
         new_data = np.swapaxes(np.swapaxes(new_data, 0, 2), 1, 2)
         return new_data
@@ -119,27 +170,35 @@ def bandpass(data, f_low, f_high, order, fsample):
     except:
         N, M = np.shape(data)
 
-        # # subtract the mean
-        # data = [data[n,:] - np.mean(data[n,:]) for n in range(N)]
-
         new_data = np.ndarray(shape=(N, M), dtype=float) 
         new_data = signal.filtfilt(b, a, data, axis=1, padlen=0)
-
-        # # Visualize the effect of the filter
-        # fig, axs = plt.subplots(N)
-        # for n in range(N):
-        #     axs[n].plot(data[n,0:M], label="before")
-        #     axs[n].plot(new_data[n,0:M], label="after")
-
-        #     axs[n].legend()
-
-        # # plt.show()
-        # # plt.close()
-        # fig.show()
 
         return new_data
 
 def notchfilt(data, fsample, Q=30, fc=60):
+    """Notch Filter
+
+    Notch filter for removing specific frequency components.
+
+    Parameters
+    ----------
+    data : numpy array 
+        Windows of EEG data, nwindows X nchannels X nsamples
+    fsample : float
+        Sampling rate of signal
+    Q : float
+        Quality factor. Dimensionless parameter that characterizes notch filter 
+        -3 dB bandwidth bw relative to its center frequency, Q = w0/bw.
+    fc : float
+        Frequency of notch
+
+    Returns
+    -------
+    new_data : numpy array
+        Windows of filtered EEG data, nwindows X nchannels X nsamples
+    """
+
+
     b, a = signal.iirnotch(fc, Q, fsample)
 
     try:
@@ -154,69 +213,3 @@ def notchfilt(data, fsample, Q=30, fc=60):
         new_data = np.ndarray(shape=(N, M), dtype=float) 
         new_data = signal.filtfilt(b, a, data, axis=1, padlen=30)
         return new_data
-
-
-
-def moving_average(data, window_length):
-    print("moooooo")
-
-# PIPELINE
-# select processing steps
-# def sp_pipeline(data, moving_average=0, bandpass=0):
-#     num_operations = moving_average + bandpass
-
-#     for i in range (1, num_operations):
-#         if moving_average == i:
-#             print("Doing a moving average filter")
-#         if bandpass == i:
-#             print("Doing a bandpass filter")
-    
-
-# def welch_psd(data, fsample):
-#     try:
-#         P, N, M = np.shape(data)
-
-#         # reshape to N,M,P
-#         data_reshape = np.swapaxes(np.swapaxes(data, 1, 2), 0, 2)
-
-#         new_data = np.ndarray(shape=(N, M, P), dtype=float) 
-#         for p in range(0,P):
-#             new_data[0:N,0:M,p] = signal.filtfilt(b, a, data_reshape[0:N,0:M,p], axis=1, padlen=30)
-
-#         # Visualize the effect of the filter
-#         # fig, axs = plt.subplots(N)
-#         # for n in range(N):
-#         #     axs[n].plot(data_reshape[n,0:M,2], label="before")
-#         #     axs[n].plot(new_data[n,0:M,2], label="after")
-
-#         #     axs[n].legend()
-
-#         # # plt.plot(data_reshape[2,0:M,p], label="before")
-#         # # plt.plot(new_data[2,0:M,p], label="after")
-#         # # plt.legend()
-
-#         # # plt.show()
-#         # # plt.close()
-#         # fig.show()
-
-#         new_data = np.swapaxes(np.swapaxes(new_data, 0, 2), 1, 2)
-#         return new_data
-        
-#     except:
-#         N, M = np.shape(data)
-#         new_data = np.ndarray(shape=(N, M), dtype=float) 
-#         new_data = signal.welch(data, fs=fsample, axis=1)
-
-#         # # Visualize the effect of the filter
-#         # fig, axs = plt.subplots(N)
-#         # for n in range(N):
-#         #     axs[n].plot(data[n,0:M], label="before")
-#         #     axs[n].plot(new_data[n,0:M], label="after")
-
-#         #     axs[n].legend()
-
-#         # # plt.show()
-#         # # plt.close()
-#         # fig.show()
-
-#         return new_data
