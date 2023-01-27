@@ -1,5 +1,5 @@
 """
-
+Classification Tools
 
 """
 
@@ -33,10 +33,6 @@ from pyriemann.clustering import Potato
 
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Activation, Dense, Flatten
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.metrics import categorical_crossentropy
 
 from scipy import signal
 
@@ -48,13 +44,30 @@ from bci_essentials.channel_selection import *
 
 # TODO : move this to signal processing???
 def lico(X,y,expansion_factor=3, sum_num=2, shuffle=False):
+
+    """Oversampling (linear combination oversampling (LiCO))
+
+    Samples random linear combinations of existing epochs of X.
+
+    Parameters
+    ----------
+    X : numpy array 
+        The file location of the spreadsheet
+    y : numpy array
+        A flag used to print the columns to the console
+    expansion_factor : int, optional
+        Number of times larger to make the output set over_X (default is 3)
+    sum_num : int, optional
+        Number of signals to be summed together (default is 2)
+
+    Returns
+    -------
+    over_X : numpy array
+        oversampled X
+    over_y : numpy array
+        oversampled y
     """
-    Oversampling (linear combination oversampling (LiCO))
-    X - data array
-    y - label array
-    expansion_factor - number of times larger to make the output set over_X
-    sum_num - number of signals to be summed together
-    """
+
     true_X = X[y == 1]
 
     n,m,p = true_X.shape
@@ -70,25 +83,44 @@ def lico(X,y,expansion_factor=3, sum_num=2, shuffle=False):
 
     return over_X, over_y
 
-def get_ssvep_supertrial(X, target_freqs, fsample, f_width=0.4, n_harmonics=2, covariance_estimator="scm"):
-    """
+def get_ssvep_supertrial(X, 
+        target_freqs, 
+        fsample, 
+        f_width=0.4, 
+        n_harmonics=2, 
+        covariance_estimator="scm"):
+    """Get SSVEP Supertrial
+
     Creates the Riemannian Geometry supertrial for SSVEP
 
-    Inputs
-    X - Windows of EEG data, nwindows X nchannels X nsamples
-    target_freqs - The target frequencies for the SSVEP
-    fsample - the sampling rate of the EEG
-    f_width - width of frequency bins to be used around the target frequencies(default 0.4)
-    n_harmonics - number of harmonics of each target frequency to be used (default 2)"
-    covariance_sestimator - the estimator used to calculate covariance (see Covariances - pyriemann) (default "scm")
+    Parameters
+    ----------
+    X : numpy array 
+        Windows of EEG data, nwindows X nchannels X nsamples
+    target_freqs : numpy array
+        Target frequencies for the SSVEP
+    fsample : float
+        Sampling rate
+    f_width : float, optional
+        Width of frequency bins to be used around the target frequencies 
+        (default 0.4)
+    n_harmonics : int, optional
+        Number of harmonics to be used for each frequency (default is 2)
+    covarianc_estimator : str, optional
+        Covariance Estimator (see Covariances - pyriemann) (default "scm")
 
-    Outputs
-    super_X - the supertrials of X with the dimensions nwindows X (nchannels*number of target_freqs) X (nchannels*number of target_freqs)
+    Returns
+    -------
+    super_X : numpy array
+        Supertrials of X with the dimensions nwindows 
+        by (nchannels*number of target_freqs) 
+        by (nchannels*number of target_freqs)
     """
     nwindows, nchannels, nsamples = X.shape
     n_target_freqs = len(target_freqs)
 
-    super_X = np.zeros([nwindows, nchannels*n_target_freqs, nchannels*n_target_freqs])
+    super_X = np.zeros([nwindows, nchannels*n_target_freqs, 
+                        nchannels*n_target_freqs])
 
     # Create super trial of all trials filtered at all bands
     for w in range(nwindows):
@@ -99,9 +131,16 @@ def get_ssvep_supertrial(X, target_freqs, fsample, f_width=0.4, n_harmonics=2, c
             signal = X[w,:,:]
             for f in range(n_harmonics):
                 if f == 0:
-                    filt_signal = bandpass(signal, f_low=target_freq-(f_width/2), f_high=target_freq+(f_width/2), order=5, fsample=fsample)
+                    filt_signal = bandpass(signal, 
+                                        f_low=target_freq-(f_width/2), 
+                                        f_high=target_freq+(f_width/2), 
+                                        order=5, 
+                                        fsample=fsample)
                 else:
-                    filt_signal += bandpass(signal, f_low=(target_freq*(f+1))-(f_width/2), f_high=(target_freq*(f+1))+(f_width/2), order=5, fsample=fsample)
+                    filt_signal += bandpass(signal, 
+                                        f_low=(target_freq*(f+1))-(f_width/2), 
+                                        f_high=(target_freq*(f+1))+(f_width/2), 
+                                        order=5, fsample=fsample)
 
             cov_mat = Covariances(estimator=covariance_estimator).transform(np.expand_dims(filt_signal, axis=0))
 
