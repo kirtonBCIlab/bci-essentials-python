@@ -109,11 +109,13 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
     Returns
     -------
     abs_bandpower : array_like
-        a np array of the absolute bandpower of provided bands, length
-        is equal to length of transition_freqs - 1
+        a np array of the absolute bandpower of provided bands, last 
+        item is the total bandpower, length is equal to length of 
+        transition_freqs
     norm_bandpower : array_like
-        a np array of the normalized bandpower of provided bands, length
-        is equal to length of transition_freqs - 1
+        a np array of the normalized bandpower of provided bands, last 
+        item is the total bandpower, length is equal to length of 
+        transition_freqs
     rel_bandpower_mat : array_like
         a np array of the relative bandpower of provided bands such
         location (R,C) is corresponds to the power of R relative to C,
