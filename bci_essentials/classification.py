@@ -719,7 +719,6 @@ class ssvep_basic_classifier_tf(generic_classifier):
         print("Oh deary me you must have mistaken me for another classifier which requires training")
         print("I DO NOT NEED TRAINING.")
         print("THIS IS MY FINAL FORM")
-
     
 
     def predict(self, X, print_predict):
@@ -735,33 +734,25 @@ class ssvep_basic_classifier_tf(generic_classifier):
         X = np.mean(X, axis=1)
 
         # Get the PSD estimate using Welch's method
-        f, Pxx = signal.welch(X, fs=self.sampling_freq, nperseg=256)
+        f, Pxx = signal.welch(X, fs=self.sampling_freq, nperseg=nsamples)
         
         # Get a vote for each window
-        votes = np.ndarray(nwindows)
+        prediction = np.zeros(nwindows)
         for w in range(nwindows):
             # Get the frequency with the greatest PSD
-            max_psd_freq = f[np.where(Pxx[w,:] == np.amax(Pxx[w,:]))]
+            f_bins = np.zeros(len(self.target_freqs))
+            Pxx_of_f_bins = np.zeros(len(self.target_freqs))
+            for i, tf in enumerate(self.target_freqs):
+                # Get the closest frequency bin
+                f_bins[i] = np.argmin(np.abs(f - tf))
 
-
-            dist = np.ndarray((len(self.target_freqs), 1))
-
-            # Calculate the minimum distance from each of the target freqs to the max_psd_freq
-            for tf in self.target_freqs:
-                dist = np.abs(max_psd_freq - tf)
-
-            votes[np.where(dist == np.amin(dist))] += 1
+                Pxx_of_f_bins[i] = Pxx[w][int(f_bins[i])]
             
-        prediction = np.where(votes == np.amax(votes))
+            prediction[w] = np.argmax(Pxx_of_f_bins)
 
-        print(prediction)
-
-        return int(prediction)
+        return prediction
 
 # TODO : Add a SSVEP CCA Classifier
-
-# class ssvep_rg_classifier(generic_classifier):
-#     def set_ssvep_rg_classifier_settings(self, n_splits, type="MDM")
 
 class mi_classifier(generic_classifier):
     def set_mi_classifier_settings(self, n_splits=5, type="TS", remove_flats=False, whitening=False, covariance_estimator="scm", artifact_rejection="none", channel_selection="none", pred_threshold=0.5, random_seed = 42, n_jobs=1):

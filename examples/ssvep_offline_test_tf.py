@@ -20,12 +20,12 @@ import matplotlib.pyplot as plt
 test_ssvep = EEG_data()
 
 # Define the classifier
-test_ssvep.classifier = ssvep_riemannian_mdm_classifier(subset=[])
+test_ssvep.classifier = ssvep_basic_classifier_tf(subset=[])
 
 # Load from xdf into erp_data format
 test_ssvep.load_offline_eeg_data(filename = "examples\data\ssvep_example.xdf", format='xdf')
 
-test_ssvep.classifier.set_ssvep_settings(n_splits=3, random_seed=42, n_harmonics=3, f_width=0.5)
+test_ssvep.classifier.set_ssvep_settings(sampling_freq=256, target_freqs=['24', '20.57143', '18', '16', '14.4', '12', '10.28571', '9', '8', '7.2', '6', '4.965517'])
 
 # initial_subset=['PO7', 'PO3', 'POz', 'PO4', 'PO8', 'O1', 'Oz', 'O2', 'Cp4', 'C4', 'F4', 'Cp3', 'C3', 'F3', 'Cz', 'Fz']
 # test_ssvep.classifier.setup_channel_selection(method = "SBS", metric="accuracy", initial_channels = initial_subset,    # wrapper setup
@@ -33,6 +33,7 @@ test_ssvep.classifier.set_ssvep_settings(n_splits=3, random_seed=42, n_harmonics
 #                                 n_jobs=-1, print_output="verbose") 
 
 # test_ssvep.main(online=False, training=True, max_samples=5120, pp_type="bandpass", pp_low=3, pp_high=50)
+test_ssvep.main(online=False, training=False, max_samples=5120, pp_type="bandpass", pp_low=3, pp_high=50)
 
 print("debug")
 
