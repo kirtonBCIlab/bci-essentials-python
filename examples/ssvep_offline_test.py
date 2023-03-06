@@ -32,7 +32,7 @@ test_ssvep.classifier.set_ssvep_settings(n_splits=3, random_seed=42, n_harmonics
 #                                 max_time= 999, min_channels=2, max_channels=16, performance_delta=0,      # stopping criterion
 #                                 n_jobs=-1, print_output="verbose") 
 
-# test_ssvep.main(online=False, training=True, max_samples=5120, pp_type="bandpass", pp_low=3, pp_high=50)
+test_ssvep.main(online=False, training=True, max_samples=5120, pp_type="bandpass", pp_low=3, pp_high=50)
 
 print("debug")
 
