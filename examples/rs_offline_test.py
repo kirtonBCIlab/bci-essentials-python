@@ -83,9 +83,20 @@ except:
     except:
         print("Couldn't find resting state data")
 
-eyes_open_windows = test_rs.eyes_open_windows
-eyes_closed_windows = test_rs.eyes_closed_windows
-rest_windows = test_rs.rest_windows
+try:
+    eyes_open_windows = test_rs.eyes_open_windows
+except:
+    print("Couldn't find eyes open data")
+
+try:
+    eyes_closed_windows = test_rs.eyes_closed_windows
+except:
+    print("Couldn't find eyes closed data")
+
+try:
+    rest_windows = test_rs.rest_windows
+except:
+    print("Couldn't find rest data")
 
 fsample = test_rs.fsample
 channel_labels = test_rs.channel_labels
@@ -94,7 +105,7 @@ channel_labels = test_rs.channel_labels
 
 
 # Get bandpower features from eyes open
-abs_bandpower, norm_bandpower, rel_bandpower_mat = get_bandpower_features(
+abs_bandpower, rel_bandpower, rel_bandpower_mat = get_bandpower_features(
     eyes_open_windows, fs=fsample, transition_freqs=[1, 4, 8, 12, 30]
 )
 

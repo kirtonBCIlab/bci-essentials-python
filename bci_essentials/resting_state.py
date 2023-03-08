@@ -155,11 +155,13 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
             fmin = transition_freqs[tf]
             fmax = transition_freqs[tf + 1]
 
-            # Normalize by sum
-            norm_Pxx = np.zeros(Pxx.shape)
-            for c in range(C):
-                norm_Pxx[c,:] = Pxx[c,:] / Pxx[c,:].sum()
-                # norm_Pxx[c,:] = Pxx[c,:] / Pxx[c,:].sum(axis=1).reshape((Pxx.shape[0], 1))
+            # # Normalize by sum
+            # norm_Pxx = np.zeros(Pxx.shape)
+            # whole_Pxx np.zeros(Pxx.shape)
+            # for c in range(C):
+            #     norm_Pxx[c,:] = Pxx[c,:] / Pxx[c,:].sum()
+            #     whole_Pxx[c,:]
+            #     # norm_Pxx[c,:] = Pxx[c,:] / Pxx[c,:].sum(axis=1).reshape((Pxx.shape[0], 1))
 
             ind_local_min = scipy.argmax(f > fmin) - 1
             ind_local_max = scipy.argmax(f > fmax) - 1
@@ -174,13 +176,17 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
                 # norm_power[ch] = scipy.trapz(
                 #     norm_Pxx[ch, ind_local_min:ind_local_max], f[ind_local_min:ind_local_max]
                 # )
-                norm_power[ch] = abs_power[ch] / scipy.trapz(
-                    Pxx[ch, ind_global_min:ind_global_max], f[ind_global_min:ind_global_max]
-                )
+                # norm_power[ch] = abs_power[ch] / scipy.trapz(
+                #     Pxx[ch, ind_global_min:ind_global_max], f[ind_global_min:ind_global_max]
+                # )
 
             # Average across all channels
             abs_bandpower[tf, win] = np.mean(abs_power)
-            norm_bandpower[tf, win] = np.mean(norm_power)
+
+
+        norm_bandpower[:, win] = abs_bandpower[:, win] / abs_bandpower[:, win].sum()
+
+
 
         # Calculate the relative power of each band
         for tf1 in range(len(transition_freqs)):
