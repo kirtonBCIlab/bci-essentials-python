@@ -103,7 +103,7 @@ channel_labels = test_rs.channel_labels
 
 # Get alpha peak from eyes closed?
 
-get_alpha_peak(eyes_closed_windows, alpha_min = 8, alpha_max = 12, plot_psd = True)
+get_alpha_peak(eyes_closed_windows, alpha_min = 8, alpha_max = 12, plot_psd = False)
 
 # Get bandpower features from eyes open
 abs_bandpower, rel_bandpower, rel_bandpower_mat = get_bandpower_features(

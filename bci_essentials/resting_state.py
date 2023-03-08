@@ -9,7 +9,7 @@ nchannels X nsamples X nwindows)
 """
 
 import numpy as np
-import scipy
+import scipy.signal
 
 from matplotlib import pyplot as plt
 
@@ -101,6 +101,8 @@ def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
 
     W, C, S = get_shape(data)
 
+    
+    
     for win in range(W):
         # Calculate PSD using Welch's method, nfft = nsamples
         f, Pxx = scipy.signal.welch(data[win, :, :], fs=fs, nperseg=S)
@@ -112,7 +114,15 @@ def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
         f = f[ind_min:ind_max]
         Pxx = Pxx[:, ind_min:ind_max]
 
+        try:
+            median_Pxx[win,:] = np.median(Pxx, axis=0)
+
+        except:
+            median_Pxx = np.zeros([W, len(f)])
+            median_Pxx[win,:] = np.median(Pxx, axis=0)
+
         alpha_peak = f[np.argmax(np.median(Pxx, axis=0))]
+        print("Alpha peak of window {} ".format(win), alpha_peak)
 
         if plot_psd:
             nrows = int(np.ceil(np.sqrt(C)))
@@ -137,9 +147,12 @@ def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
 
             plt.show()
 
-        print(alpha_peak)
+    overall_alpha_peak = f[np.argmax(np.median(median_Pxx, axis=0))]
+    print("Overall alpha peak:", overall_alpha_peak)
 
-    return
+
+
+    return overall_alpha_peak
 
 
 # Bandpower features
