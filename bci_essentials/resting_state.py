@@ -11,6 +11,8 @@ nchannels X nsamples X nwindows)
 import numpy as np
 import scipy
 
+from matplotlib import pyplot as plt
+
 
 def get_shape(data):
     """
@@ -70,14 +72,24 @@ def bandpower(data, fs, fmin, fmax, normalization=None):
 
 
 # Alpha Peak
-def get_alpha_peak(data):
+def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
     """
-    Get the alpha peak.
+    Get the alpha peak based on the all channel median PSD.
 
     Parameters
     ----------
     data : array_like
-        resting state EEG windows
+        resting state EEG window with eyes closed
+
+    alpha_min : float (default = 8)
+        lowest possible value of alpha peak (Hz)
+
+    alpha_max : float (default = 12)
+        highest possible value of alpha peak (Hz)
+
+    plot_psd : bool (default = False)
+        plot the PSD for inspection
+
 
     Returns
     -------
@@ -85,9 +97,47 @@ def get_alpha_peak(data):
         the peak alpha frequency
     """
 
+    fs=256
+
     W, C, S = get_shape(data)
 
-    print("SORRY THIS METHOD DOESN'T EXIST YET")
+    for win in range(W):
+        # Calculate PSD using Welch's method, nfft = nsamples
+        f, Pxx = scipy.signal.welch(data[win, :, :], fs=fs, nperseg=S)
+
+        # Limit f, Pxx to the band of interest
+        ind_min = scipy.argmax(f > alpha_min) - 1
+        ind_max = scipy.argmax(f > alpha_max) - 1
+
+        f = f[ind_min:ind_max]
+        Pxx = Pxx[:, ind_min:ind_max]
+
+        alpha_peak = f[np.argmax(np.median(Pxx, axis=0))]
+
+        if plot_psd:
+            nrows = int(np.ceil(np.sqrt(C)))
+            ncols = int(np.ceil(np.sqrt(C)))
+
+            fig, axs = plt.subplots(nrows, ncols, figsize=(10,8))
+            # fig.suptitle("Some PSDs")
+            for r in range(nrows):
+                for c in range(ncols):
+                    ch = (ncols*r) + c
+                    axs[r, c].set_title(ch)
+                    axs[r, c].plot(f, Pxx[ch,:])
+
+                    # # axs[r, c].set_ylim([-20, 20])
+                    # if r == 0 and c == 0:
+                    #     axs[r, c].legend(["Open", "Closed"])
+
+            plt.show()
+
+            plt.figure()
+            plt.plot(f, np.median(Pxx, axis=0))
+
+            plt.show()
+
+        print(alpha_peak)
 
     return
 
@@ -130,6 +180,7 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
     # Initialize
     abs_bandpower = np.zeros((len(transition_freqs), W))
     norm_bandpower = np.zeros((len(transition_freqs), W))
+    rel_bandpower = np.zeros((len(transition_freqs), W))
     rel_bandpower_mat = np.zeros((len(transition_freqs), len(transition_freqs), W))
 
     # for each window
@@ -184,7 +235,7 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
             abs_bandpower[tf, win] = np.mean(abs_power)
 
 
-        norm_bandpower[:, win] = abs_bandpower[:, win] / abs_bandpower[:, win].sum()
+        rel_bandpower[:, win] = abs_bandpower[:, win] / abs_bandpower[:, win].sum()
 
 
 
@@ -195,4 +246,4 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
                     abs_bandpower[tf1, win] / abs_bandpower[tf2, win]
                 )
 
-    return abs_bandpower, norm_bandpower, rel_bandpower_mat
+    return abs_bandpower, rel_bandpower, rel_bandpower_mat
