@@ -17,12 +17,12 @@ def get_shape(data):
     Get the shape of the input data.
     """
     try:
-        N, M, P = np.shape(data)
+        W, C, S = np.shape(data)
     except:
-        N, M = np.shape(data)
-        P = 1
+        C, S = np.shape(data)
+        W = 1
 
-    return N, M, P
+    return W, C, S
 
 
 def bandpower(data, fs, fmin, fmax, normalization=None):
@@ -59,12 +59,12 @@ def bandpower(data, fs, fmin, fmax, normalization=None):
     if normalization == "sum":
         Pxx = Pxx / Pxx.sum(axis=1).reshape((Pxx.shape[0], 1))
 
-    ind_min = scipy.argmax(f > fmin) - 1
-    ind_max = scipy.argmax(f > fmax) - 1
+    ind_local_min = scipy.argmax(f > fmin) - 1
+    ind_local_max = scipy.argmax(f > fmax) - 1
 
     power = np.zeros([nchannels])
     for i in range(nchannels):
-        power[i] = scipy.trapz(Pxx[i, ind_min:ind_max], f[ind_min:ind_max])
+        power[i] = scipy.trapz(Pxx[i, ind_local_min:ind_local_max], f[ind_local_min:ind_local_max])
 
     return power
 
@@ -85,7 +85,9 @@ def get_alpha_peak(data):
         the peak alpha frequency
     """
 
-    N, M, P = get_shape(data)
+    W, C, S = get_shape(data)
+
+    print("SORRY THIS METHOD DOESN'T EXIST YET")
 
     return
 
@@ -123,17 +125,24 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
         all bands such that (R,-1) is R relative to all bands
     """
     # Get Shape
-    N, M, P = get_shape(data)
+    W, C, S = get_shape(data)
 
     # Initialize
-    abs_bandpower = np.zeros((len(transition_freqs), P))
-    norm_bandpower = np.zeros((len(transition_freqs), P))
-    rel_bandpower_mat = np.zeros((len(transition_freqs), len(transition_freqs), P))
+    abs_bandpower = np.zeros((len(transition_freqs), W))
+    norm_bandpower = np.zeros((len(transition_freqs), W))
+    rel_bandpower_mat = np.zeros((len(transition_freqs), len(transition_freqs), W))
 
     # for each window
-    for win in range(P):
+    for win in range(W):
         # Calculate PSD using Welch's method, nfft = nsamples
-        f, Pxx = scipy.signal.welch(data[:, :, win], fs=fs, nperseg=M)
+        f, Pxx = scipy.signal.welch(data[win, :, :], fs=fs, nperseg=S)
+
+        # Limit f, Pxx to the band of interest
+        ind_global_min = scipy.argmax(f > min(transition_freqs)) - 1
+        ind_global_max = scipy.argmax(f > max(transition_freqs)) - 1
+
+        f = f[ind_global_min:ind_global_max]
+        Pxx = Pxx[:, ind_global_min:ind_global_max]
 
         # Calculate the absolute power of each band
         for tf in range(len(transition_freqs)):
@@ -147,20 +156,26 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
             fmax = transition_freqs[tf + 1]
 
             # Normalize by sum
-            norm_Pxx = Pxx / Pxx.sum(axis=1).reshape((Pxx.shape[0], 1))
+            norm_Pxx = np.zeros(Pxx.shape)
+            for c in range(C):
+                norm_Pxx[c,:] = Pxx[c,:] / Pxx[c,:].sum()
+                # norm_Pxx[c,:] = Pxx[c,:] / Pxx[c,:].sum(axis=1).reshape((Pxx.shape[0], 1))
 
-            ind_min = scipy.argmax(f > fmin) - 1
-            ind_max = scipy.argmax(f > fmax) - 1
+            ind_local_min = scipy.argmax(f > fmin) - 1
+            ind_local_max = scipy.argmax(f > fmax) - 1
 
             # Get power for each channel
-            abs_power = np.zeros([N])
-            norm_power = np.zeros([N])
-            for ch in range(N):
+            abs_power = np.zeros([C])
+            norm_power = np.zeros([C])
+            for ch in range(C):
                 abs_power[ch] = scipy.trapz(
-                    Pxx[ch, ind_min:ind_max], f[ind_min:ind_max]
+                    Pxx[ch, ind_local_min:ind_local_max], f[ind_local_min:ind_local_max]
                 )
-                norm_power[ch] = scipy.trapz(
-                    norm_Pxx[ch, ind_min:ind_max], f[ind_min:ind_max]
+                # norm_power[ch] = scipy.trapz(
+                #     norm_Pxx[ch, ind_local_min:ind_local_max], f[ind_local_min:ind_local_max]
+                # )
+                norm_power[ch] = abs_power[ch] / scipy.trapz(
+                    Pxx[ch, ind_global_min:ind_global_max], f[ind_global_min:ind_global_max]
                 )
 
             # Average across all channels
@@ -171,7 +186,7 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
         for tf1 in range(len(transition_freqs)):
             for tf2 in range(len(transition_freqs)):
                 rel_bandpower_mat[tf1, tf2] = (
-                    norm_bandpower[tf1, win] / norm_bandpower[tf2, win]
+                    abs_bandpower[tf1, win] / abs_bandpower[tf2, win]
                 )
 
     return abs_bandpower, norm_bandpower, rel_bandpower_mat
