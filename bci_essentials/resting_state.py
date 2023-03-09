@@ -212,8 +212,8 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
         for tf in range(len(transition_freqs)):
             # The last item is the total
             if tf == len(transition_freqs) - 1:
-                abs_bandpower[tf, win] = np.sum(abs_bandpower[: tf - 1, win])
-                norm_bandpower[tf, win] = np.sum(norm_bandpower[: tf - 1, win])
+                abs_bandpower[tf, win] = np.sum(abs_bandpower[:tf, win])
+                norm_bandpower[tf, win] = np.sum(norm_bandpower[:tf, win])
                 continue
 
             fmin = transition_freqs[tf]
@@ -244,18 +244,18 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
                 #     Pxx[ch, ind_global_min:ind_global_max], f[ind_global_min:ind_global_max]
                 # )
 
-            # Average across all channels
-            abs_bandpower[tf, win] = np.mean(abs_power)
+            # Median across all channels
+            abs_bandpower[tf, win] = np.median(abs_power)
 
 
-        rel_bandpower[:, win] = abs_bandpower[:, win] / abs_bandpower[:, win].sum()
+        rel_bandpower[:, win] = abs_bandpower[:, win] / abs_bandpower[-1, win]
 
 
 
         # Calculate the relative power of each band
         for tf1 in range(len(transition_freqs)):
             for tf2 in range(len(transition_freqs)):
-                rel_bandpower_mat[tf1, tf2] = (
+                rel_bandpower_mat[tf1, tf2, win] = (
                     abs_bandpower[tf1, win] / abs_bandpower[tf2, win]
                 )
 
