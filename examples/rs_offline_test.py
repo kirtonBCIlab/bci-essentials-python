@@ -11,6 +11,7 @@ from bci_essentials.visuals import *
 from bci_essentials.resting_state import *
 
 filename = "examples/data/rs_example.xdf"
+filename = 'C:\\Users\\brian\\OneDrive\\Documents\\BCI\\BCIEssentials\\fatigueDataAnalysis\\fatigueData\\participants\\sub-P18_mi\\ses-postRS_mi\\eeg\\sub-P18_mi_ses-postRS_mi_task-T1_run-001_eeg.xdf'
 
 try:
     # Initialize data object
