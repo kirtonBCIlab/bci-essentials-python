@@ -27,7 +27,7 @@ test_mi.classifier.set_mi_classifier_settings(n_splits=5, type="TS", random_seed
 initial_subset=[]
 test_mi.classifier.setup_channel_selection(method = "SBFS", metric="accuracy", initial_channels = [],    # wrapper setup
                                 max_time= 999, min_channels=1, max_channels=16, performance_delta=-1,      # stopping criterion
-                                n_jobs=-1, print_output="verbose", record_performance=True) 
+                                n_jobs=-3, print_output="verbose", record_performance=True) 
 
 # Load the xdf
 
