@@ -260,6 +260,7 @@ class generic_classifier():
         self.chs_performance_delta = performance_delta  # smallest performance increment to justify continuing search
         self.chs_output = print_output                  # output setting, silent, final, or verbose
         self.chs_record_performance = record_performance# record performance over time
+        self.chs_results = []                           # results of the search
 
         self.channel_selection_setup = True
 
@@ -881,7 +882,7 @@ class mi_classifier(generic_classifier):
                                                                             self.chs_n_jobs, self.chs_output, self.chs_record_performance)  
             # channel_selection_by_method(mi_kernel, subX, suby, self.channel_labels, method=self.chs_method, max_time=self.chs_max_time, metric="accuracy", n_jobs=-1)
 
-            self.chs_results = results_df
+            self.chs_results.append(results_df)
                 
             print("The optimal subset is ", updated_subset)
 

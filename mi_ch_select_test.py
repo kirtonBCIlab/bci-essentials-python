@@ -36,5 +36,4 @@ test_mi.load_offline_eeg_data(filename  = "examples/data/mi_example_2.xdf", prin
 # Run main loop, this will do all of the classification for online or offline
 test_mi.main(online=False, training=True, pp_low=5, pp_high=30, pp_order=5, print_markers=True, print_training=False, print_fit=False, print_performance=True, print_predict=False)
 
-
 print("debug")
