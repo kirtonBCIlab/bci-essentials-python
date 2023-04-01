@@ -245,7 +245,7 @@ class generic_classifier():
 
     def setup_channel_selection(self, method = "SBS", metric="accuracy", initial_channels = [],             # wrapper setup
                                 max_time= 999, min_channels=1, max_channels=999, performance_delta= 0.001,  # stopping criterion
-                                n_jobs=1, print_output="silent"):                                                                  # njobs
+                                n_jobs=1, print_output="silent", record_performance=False):                 # njobs
         # Add these to settings later
         if initial_channels == []:
             self.chs_initial_subset = self.channel_labels
@@ -258,7 +258,8 @@ class generic_classifier():
         self.chs_min_channels = min_channels            # minimum number of channels
         self.chs_max_channels = max_channels            # maximum number of channels
         self.chs_performance_delta = performance_delta  # smallest performance increment to justify continuing search
-        self.chs_output = print_output                        # output setting, silent, final, or verbose
+        self.chs_output = print_output                  # output setting, silent, final, or verbose
+        self.chs_record_performance = record_performance# record performance over time
 
         self.channel_selection_setup = True
 
@@ -874,11 +875,13 @@ class mi_classifier(generic_classifier):
         if self.channel_selection_setup:
             print("Doing channel selection")
 
-            updated_subset, updated_model, preds, accuracy, precision, recall = channel_selection_by_method(mi_kernel, self.X, self.y, self.channel_labels,                      # kernel setup
+            updated_subset, updated_model, preds, accuracy, precision, recall, results_df = channel_selection_by_method(mi_kernel, self.X, self.y, self.channel_labels,                      # kernel setup
                                                                             self.chs_method, self.chs_metric, self.chs_initial_subset,                                      # wrapper setup
                                                                             self.chs_max_time, self.chs_min_channels, self.chs_max_channels, self.chs_performance_delta,    # stopping criterion
-                                                                            self.chs_n_jobs, self.chs_output)  
+                                                                            self.chs_n_jobs, self.chs_output, self.chs_record_performance)  
             # channel_selection_by_method(mi_kernel, subX, suby, self.channel_labels, method=self.chs_method, max_time=self.chs_max_time, metric="accuracy", n_jobs=-1)
+
+            self.chs_results = results_df
                 
             print("The optimal subset is ", updated_subset)
 
@@ -887,9 +890,6 @@ class mi_classifier(generic_classifier):
         else: 
             print("Not doing channel selection")
             self.clf, preds, accuracy, precision, recall = mi_kernel(subX, suby)
-
-        
-
 
         # Print performance stats
 
@@ -922,46 +922,51 @@ class mi_classifier(generic_classifier):
             print(cm)
 
     def predict(self, X, print_predict=True):
-        # if X is 2D, make it 3D with one as first dimension
-        if len(X.shape) < 3:
-            X = X[np.newaxis, ...]
+        try:
+            # if X is 2D, make it 3D with one as first dimension
+            if len(X.shape) < 3:
+                X = X[np.newaxis, ...]
 
-        X = self.get_subset(X)
+            X = self.get_subset(X)
 
-        # Troubleshooting
-        #X = self.X[-6:,:,:]
+            # Troubleshooting
+            #X = self.X[-6:,:,:]
 
-        if print_predict:
-            print("the shape of X is", X.shape)
+            if print_predict:
+                print("the shape of X is", X.shape)
 
-        X_cov = Covariances(estimator=self.covariance_estimator).transform(X)
-        #X_cov = X_cov[0,:,:]
+            X_cov = Covariances(estimator=self.covariance_estimator).transform(X)
+            #X_cov = X_cov[0,:,:]
 
-        pred = self.clf.predict(X_cov)
-        pred_proba = self.clf.predict_proba(X_cov)
+            pred = self.clf.predict(X_cov)
+            pred_proba = self.clf.predict_proba(X_cov)
 
-        if print_predict:
-            print(pred)
-            print(pred_proba)
+            if print_predict:
+                print(pred)
+                print(pred_proba)
 
-        for i in range(len(pred)):
-            self.predictions.append(pred[i])
-            self.pred_probas.append(pred_proba[i])
+            for i in range(len(pred)):
+                self.predictions.append(pred[i])
+                self.pred_probas.append(pred_proba[i])
 
-        # add a threhold
-        #pred = (pred_proba[:] >= self.pred_threshold).astype(int) # set threshold as 0.3
-        #print(pred.shape)
+            # add a threhold
+            #pred = (pred_proba[:] >= self.pred_threshold).astype(int) # set threshold as 0.3
+            #print(pred.shape)
 
 
-        # print(pred)
-        # for p in pred:
-        #     p = int(p)
-        #     print(p)
-        # print(pred)
+            # print(pred)
+            # for p in pred:
+            #     p = int(p)
+            #     print(p)
+            # print(pred)
 
-        # pred = str(pred).replace(".", ",")
+            # pred = str(pred).replace(".", ",")
 
-        return pred
+            return pred
+
+        except:
+            print("Error in predict")
+            return None
 
 
 class switch_classifier_mdm(generic_classifier):
