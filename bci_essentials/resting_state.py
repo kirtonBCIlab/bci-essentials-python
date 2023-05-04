@@ -199,8 +199,8 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
 
     # for each window
     for win in range(W):
-        # Calculate PSD using Welch's method, nfft = nsamples
-        f, Pxx = scipy.signal.welch(data[win, :, :], fs=fs, nperseg=S)
+        # Calculate PSD using Welch's method
+        f, Pxx = scipy.signal.welch(data[win, :, :], fs=fs)
 
         # Limit f, Pxx to the band of interest
         ind_global_min = scipy.argmax(f > min(transition_freqs)) - 1
