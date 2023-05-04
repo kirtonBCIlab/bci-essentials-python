@@ -12,6 +12,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),os.pardi
 # from src.bci_data import *
 from bci_essentials.bci_data import *
 from bci_essentials.visuals import *
+from bci_essentials.classification import *
 
 # Initialize data object
 test_mi = EEG_data()
