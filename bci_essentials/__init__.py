@@ -9,4 +9,4 @@ from . import visuals
 from . import classification
 from . import signal_processing
 
-__all__ = ["bci_data", "visuals", "classification", "signal_processing"]
+__all__ = ["bci_data", "visuals", "classification", "signal_processing", "channel_selection", "resting_state"]
