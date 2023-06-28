@@ -1,0 +1,21 @@
+name: bci
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - pip
+  - numpy
+  - scipy
+  - scikit-learn
+  - joblib
+  - pandas
+  - pylsl
+  - pyxdf
+  - matplotlib
+  - seaborn
+  - wheel
+  - pyriemann
+  - tensorflow
+  - pip:
+    - pylsl
+    - tensorflow-macos
