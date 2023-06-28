@@ -9,13 +9,13 @@ dependencies:
   - scikit-learn
   - joblib
   - pandas
-  - pylsl
   - pyxdf
   - matplotlib
   - seaborn
   - wheel
   - pyriemann
   - tensorflow
+  - liblsl
   - pip:
     - pylsl
     - tensorflow-macos
