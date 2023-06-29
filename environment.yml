@@ -18,4 +18,5 @@ dependencies:
   - liblsl
   - pip:
     - pylsl
-    - tensorflow-macos
+    - tensorflow-macos; platform_machine == "arm64"
+    - tensorflow; platform_machine != "arm64"
