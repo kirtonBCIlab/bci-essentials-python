@@ -4,10 +4,9 @@ name: Pull request ci build
 
 on:
   push:
+    branches: ["new-dev-env"]
   #  pull_request:
   #    branches: ["main"]
-  branches:
-    - "new-dev-env"
 
 jobs:
   build:
@@ -16,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-latest]  #, "windows-latest", "ubuntu-latest"]
+        os: [macos-latest] # ["windows-latest", "ubuntu-latest"]
 
     steps:
       - uses: actions/checkout@v3
