@@ -9,7 +9,9 @@ on:
   #  pull_request:
   #    branches: ["main"]
 
-  miniconda:
+jobs:
+  build:
+
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -28,3 +30,4 @@ on:
     
       - name: Install Dependencies
         run: pip install .
+
