@@ -22,5 +22,6 @@ setup(
         "pyriemann",
         "tensorflow; platform_machine != 'arm64' ",
         "tensorflow-macos; platform_machine == 'arm64' ",
+        "tensorflow-metal; platform_machine == 'arm64' ",
     ],
 )
