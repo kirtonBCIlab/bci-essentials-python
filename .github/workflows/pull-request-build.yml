@@ -10,18 +10,21 @@ on:
   #    branches: ["main"]
 
   miniconda:
-    name: Miniconda ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+
     strategy:
         matrix:
-            os: ["ubuntu-latest", "windows-latest"]
+            os: ["windows-latest"]  #, "ubuntu-latest"]
+            # python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+
       - uses: conda-incubator/setup-miniconda@v2
         with:
-          activate-environment: test
-          environment-file: environment.yml
           auto-activate-base: false
+          environment-file: environment.yml
+          activate-environment: bci
     
       - name: Install Dependencies
         run: pip install .
