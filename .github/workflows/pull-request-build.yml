@@ -26,8 +26,8 @@ jobs:
           activate-environment: bci
     
       - run: |
-        conda activate bci
-        conda info
-        pip install .
+          conda activate bci
+          conda info
+          pip install .
 
 
