@@ -24,8 +24,10 @@ jobs:
         with:
           environment-file: environment.yml
           activate-environment: bci
-    
-      - run: |
+
+      - name: "Install dependencies"
+        shell: bash -el {0}
+        run: |
           conda activate bci
           conda info
           pip install .
