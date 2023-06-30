@@ -15,17 +15,16 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-latest] # ["windows-latest", "ubuntu-latest"]
+        os: ["ubuntu-latest"]
 
     steps:
       - uses: actions/checkout@v3
 
       - uses: conda-incubator/setup-miniconda@v2
         with:
-          auto-activate-base: false
           environment-file: environment.yml
           activate-environment: bci
     
-      - name: Install Dependencies
-        run: pip install .
+      - run: conda info
+      - run: pip install .
 
