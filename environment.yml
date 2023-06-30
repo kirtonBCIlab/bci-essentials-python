@@ -1,22 +1,5 @@
 name: bci
-channels:
-  - conda-forge
 dependencies:
   - python=3.9
-  - pip
-  - numpy
-  - scipy
-  - scikit-learn
-  - joblib
-  - pandas
-  - pyxdf
-  - matplotlib
-  - seaborn
-  - wheel
-  - pyriemann
-  - tensorflow
   - liblsl
-  - pip:
-    - pylsl
-    - tensorflow-macos; platform_machine == "arm64"
-    - tensorflow; platform_machine != "arm64"
+
