@@ -3,9 +3,11 @@
 name: Pull request ci build
 
 on:
-  push
-#  pull_request:
-#    branches: ["main"]
+  push:
+    branches:
+      - "new-dev-env"
+  #  pull_request:
+  #    branches: ["main"]
 
   miniconda:
     name: Miniconda ${{ matrix.os }}
