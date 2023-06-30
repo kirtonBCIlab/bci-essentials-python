@@ -3,10 +3,10 @@
 name: Check development environment on pull request
 
 on:
-  push:
-    branches: ["new-dev-env"]
-  #  pull_request:
-  #    branches: ["main"]
+  #push:
+  #  branches: ["my-test-branch"]
+  pull_request:
+    branches: ["main"]
 
 jobs:
   build:
