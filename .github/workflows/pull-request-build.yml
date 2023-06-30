@@ -25,6 +25,9 @@ jobs:
           environment-file: environment.yml
           activate-environment: bci
     
-      - run: conda info
-      - run: pip install .
+      - run: |
+        conda activate bci
+        conda info
+        pip install .
+
 
