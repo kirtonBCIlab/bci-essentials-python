@@ -10,43 +10,19 @@ The front end for this package can be found in [bci-essentials-unity](https://ww
 ## Getting Started
 
 Using the terminal
-1. clone from git
+1. Clone from git
 ```
 git clone https://github.com/kirtonBCIlab/bci-essentials-python.git
+cd bci-essentials-python
 ```
 
 2. Create and activate a conda environment (RECOMENDED)
 ```
-conda create -n bci-essentials
-conda activate bci_essentials
+conda env create -f ./environment.yml
+conda activate bci
 ```
 
-3. navigate to the bci-essentials-python directory and activate virtual env if desired
-```
-cd <your-local-bci-essentials-python-directory>
-```
-
-4. install with pip
-```
-pip install .
-```
-
-
-### The following is only for Apple silicon tensorflow install
-
-5. The bci-essentials-python package depends on tensorflow, which does not officially support Apple silicon (as of December 2022).  However, there is an Apple supported build called [tensorflow-macos ](https://developer.apple.com/metal/tensorflow-plugin/) that will work.  To install:
-
-```
-conda install -c apple tensorflow-deps
-pip install numpy --upgrade
-pip install tensorflow-macos
-pip install tensorflow-metal
-```
-
-6. In setup.py, change the tensorflow dependency to tensorflow-macos
-
-7. install with pip
-
+3. Install dependencies with pip
 ```
 pip install .
 ```
