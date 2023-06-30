@@ -1,6 +1,6 @@
-# When a pull request is created, this run checks on the changes to be merged
+# When a pull request is created, this action tests that the changes are ready to be merged
 
-name: Pull request ci build
+name: Check development environment on pull request
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        os: ["ubuntu-latest"]
+        os: ["ubuntu-latest", "windows-latest", "macos-latest"]
 
     steps:
       - uses: actions/checkout@v3
