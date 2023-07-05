@@ -1,5 +1,5 @@
 # bci-essentials-python
-This reposity contains python modules and scripts for the processing of EEG-based BCI. 
+This repository contains python modules and scripts for the processing of EEG-based BCI. 
 These modules are specifically designed to be equivalent whether run offline or online.
 
 
@@ -16,7 +16,7 @@ git clone https://github.com/kirtonBCIlab/bci-essentials-python.git
 cd bci-essentials-python
 ```
 
-2. Create and activate a conda environment (RECOMENDED)
+2. Create and activate a conda environment (RECOMMENDED)
 ```
 conda env create -f ./environment.yml
 conda activate bci
