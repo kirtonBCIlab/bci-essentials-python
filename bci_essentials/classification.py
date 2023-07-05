@@ -27,7 +27,7 @@ from pyriemann.preprocessing import Whitening
 from pyriemann.estimation import ERPCovariances, XdawnCovariances, Covariances
 from pyriemann.tangentspace import TangentSpace
 from pyriemann.classification import MDM, TSclassifier
-from pyriemann.utils.viz import plot_confusion_matrix
+#from pyriemann.utils.viz import plot_confusion_matrix
 from pyriemann.channelselection import FlatChannelRemover, ElectrodeSelection
 from pyriemann.clustering import Potato
 

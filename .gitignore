@@ -6,4 +6,5 @@ archive/
 build/
 dist/
 *.DS_Store/
+*.swp
 plugins/FeatureExtractorSSVEP
