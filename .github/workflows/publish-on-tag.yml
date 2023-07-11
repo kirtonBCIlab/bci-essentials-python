@@ -1,0 +1,39 @@
+# When a tag is pushed, this build will publish a release to the release repository
+
+name: Check development environment on pull request
+
+on:
+  push:
+    tags:
+      - v*.**   # run when a tag starts with vx.y (for a release), ex: v1.2.3
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: ["ubuntu-latest"] # source dist, no need to build anything
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          environment-file: environment.yml
+          activate-environment: bci
+
+      - name: "Install dependencies"
+        shell: bash -el {0}
+        env:
+          TWINE_USERNAME: ${{secrets.TWINE_USERNAME}}
+          TWINE_PASSWORD: ${{secrets.TWINE_PASSWORD}}
+        run: |
+          conda activate bci
+          conda info
+          pip -m build
+          twine upload  --non-interactive ./dist/*
+          
+
+
