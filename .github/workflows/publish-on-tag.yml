@@ -32,7 +32,7 @@ jobs:
         run: |
           conda activate bci
           conda info
-          pip -m build
+          python -m build
           twine upload  --non-interactive ./dist/*
           
 
