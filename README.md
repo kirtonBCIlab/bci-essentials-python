@@ -4,7 +4,6 @@ These modules are specifically designed to be equivalent whether run offline or 
 
 
 ## Related packages
-### bci-essentials-unity
 The front end for this package can be found in [bci-essentials-unity](https://www.github.com/kirtonBCIlab/bci-essentials-unity)
 
 ## Getting Started
@@ -15,7 +14,7 @@ BCI Essentials requires Python 3.9 or later.  To install for Windows, MacOS or L
 pip install bci-essentials
 ```
 
-On some systems, it may be necessary to install [liblsl](https://github.com/sccn/liblsl).  Alternatively, you can use the Conda to set up dependencies that are not provided by pip:
+On some systems, it may be necessary to install [liblsl](https://github.com/sccn/liblsl).  Alternatively, use the Conda [environment](/environment.yml) to set up dependencies that are not provided by pip:
 
 ```
 conda env create -f ./environment.yml
