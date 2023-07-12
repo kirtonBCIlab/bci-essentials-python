@@ -4,29 +4,22 @@ These modules are specifically designed to be equivalent whether run offline or 
 
 
 ## Related packages
-### bci-essentials-unity
 The front end for this package can be found in [bci-essentials-unity](https://www.github.com/kirtonBCIlab/bci-essentials-unity)
 
 ## Getting Started
 
-Using the terminal
-1. Clone from git
+BCI Essentials requires Python 3.9 or later.  To install for Windows, MacOS or Linux:
+
 ```
-git clone https://github.com/kirtonBCIlab/bci-essentials-python.git
-cd bci-essentials-python
+pip install bci-essentials
 ```
 
-2. Create and activate a conda environment (RECOMMENDED)
+On some systems, it may be necessary to install [liblsl](https://github.com/sccn/liblsl).  Alternatively, use the Conda [environment](/environment.yml) to set up dependencies that are not provided by pip:
+
 ```
 conda env create -f ./environment.yml
 conda activate bci
 ```
-
-3. Install dependencies with pip
-```
-pip install .
-```
-
 
 ## Offline processing
 Offline processing can be done by running the corresponding offline test script (ie. mi_offline_test.py, p300_offline_test.py, etc.)
