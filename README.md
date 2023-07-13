@@ -14,7 +14,7 @@ BCI Essentials requires Python 3.9 or later.  To install for Windows, MacOS or L
 pip install bci-essentials
 ```
 
-On some systems, it may be necessary to install [liblsl](https://github.com/sccn/liblsl).  Alternatively, use the Conda [environment](/environment.yml) to set up dependencies that are not provided by pip:
+On some systems, it may be necessary to install [liblsl](https://github.com/sccn/liblsl).  Alternatively, use the Conda [environment](https://github.com/kirtonBCIlab/bci-essentials-python/blob/main/environment.yml) to set up dependencies that are not provided by pip:
 
 ```
 conda env create -f ./environment.yml
