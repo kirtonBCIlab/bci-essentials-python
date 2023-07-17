@@ -12,13 +12,13 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),os.pardi
 # from src.bci_data import *
 from bci_essentials.bci_data import *
 from bci_essentials.visuals import *
-from bci_essentials.classification import *
+from bci_essentials.classifiers import MI_classifier
 
 # Initialize data object
 test_mi = EEG_data()
 
 # Select a classifier
-test_mi.classifier = mi_classifier() # you can add a subset here
+test_mi.classifier = MI_classifier() # you can add a subset here
 
 # Define the classifier settings
 test_mi.classifier.set_mi_classifier_settings(n_splits=5, type="TS", random_seed=35, channel_selection="riemann")
