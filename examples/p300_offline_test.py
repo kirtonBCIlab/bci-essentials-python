@@ -12,13 +12,13 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),os.pardi
 # from src.bci_data import *
 from bci_essentials.bci_data import *
 from bci_essentials.visuals import *
-from bci_essentials.classification import *
+from bci_essentials.classifiers import ERP_rg_classifier
 
 # Initialize the ERP data object
 test_erp = ERP_data()
 
 # Choose a classifier
-test_erp.classifier = erp_rg_classifier() # you can add a subset here
+test_erp.classifier = ERP_rg_classifier() # you can add a subset here
 
 # Set classifier settings
 test_erp.classifier.set_p300_clf_settings(n_splits=5, lico_expansion_factor=4, oversample_ratio=0, undersample_ratio=0, random_seed=35)
