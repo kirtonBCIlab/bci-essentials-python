@@ -31,5 +31,6 @@ jobs:
           conda activate bci
           conda info
           pip install .
+          python -m unittest
 
 
