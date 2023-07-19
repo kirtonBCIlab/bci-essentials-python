@@ -81,6 +81,9 @@ class TestLoadData(unittest.TestCase):
             plot_erp=False,
             window_start=0.0,
             window_end=0.8,
+            max_num_options=9,
+            max_windows_per_option=16,
+            max_decisions=20,
             print_markers=False,
             print_training=False,
             print_fit=False,
@@ -124,7 +127,6 @@ class TestLoadData(unittest.TestCase):
         ssvep_data.main(
             online=False,
             training=True,
-            max_samples=5120,
             pp_type="bandpass",
             pp_low=3,
             pp_high=50,
