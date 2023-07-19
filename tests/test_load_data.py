@@ -1,10 +1,11 @@
 import unittest
 from bci_essentials.bci_data import EEG_data
 
+
 class TestLoadData(unittest.TestCase):
     def test_load_rs_xdf(self):
         # Get the rs example data from /examples/data
-        rs_xdf_path = 'examples//data//rs_example.xdf'
+        rs_xdf_path = "examples//data//rs_example.xdf"
 
         # Load the data
         rs_data = EEG_data()
@@ -22,5 +23,6 @@ class TestLoadData(unittest.TestCase):
 
         self.assertEqual(rs_data.eeg_data.shape, (n_timestamps, n_channels))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()
