@@ -128,6 +128,12 @@ class TestLoadData(unittest.TestCase):
             pp_type="bandpass",
             pp_low=3,
             pp_high=50,
+            pp_order=5,
+            print_markers=False,
+            print_training=False,
+            print_fit=False,
+            print_performance=False,
+            print_predict=False,
         )
 
         # Check that a model was trained
