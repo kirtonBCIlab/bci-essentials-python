@@ -83,73 +83,7 @@ def lico(X,y,expansion_factor=3, sum_num=2, shuffle=False):
 
     return over_X, over_y
 
-def get_ssvep_supertrial(X, 
-        target_freqs, 
-        fsample, 
-        f_width=0.4, 
-        n_harmonics=2, 
-        covariance_estimator="scm"):
-    """Get SSVEP Supertrial
 
-    Creates the Riemannian Geometry supertrial for SSVEP
-
-    Parameters
-    ----------
-    X : numpy array 
-        Windows of EEG data, nwindows X nchannels X nsamples
-    target_freqs : numpy array
-        Target frequencies for the SSVEP
-    fsample : float
-        Sampling rate
-    f_width : float, optional
-        Width of frequency bins to be used around the target frequencies 
-        (default 0.4)
-    n_harmonics : int, optional
-        Number of harmonics to be used for each frequency (default is 2)
-    covarianc_estimator : str, optional
-        Covariance Estimator (see Covariances - pyriemann) (default "scm")
-
-    Returns
-    -------
-    super_X : numpy array
-        Supertrials of X with the dimensions nwindows 
-        by (nchannels*number of target_freqs) 
-        by (nchannels*number of target_freqs)
-    """
-    nwindows, nchannels, nsamples = X.shape
-    n_target_freqs = len(target_freqs)
-
-    super_X = np.zeros([nwindows, nchannels*n_target_freqs, 
-                        nchannels*n_target_freqs])
-
-    # Create super trial of all trials filtered at all bands
-    for w in range(nwindows):
-        for tf, target_freq in enumerate(target_freqs):
-            lower_bound = int((nchannels*tf))
-            upper_bound = int((nchannels*tf)+nchannels)
-
-            signal = X[w,:,:]
-            for f in range(n_harmonics):
-                if f == 0:
-                    filt_signal = bandpass(signal, 
-                                        f_low=target_freq-(f_width/2), 
-                                        f_high=target_freq+(f_width/2), 
-                                        order=5, 
-                                        fsample=fsample)
-                else:
-                    filt_signal += bandpass(signal, 
-                                        f_low=(target_freq*(f+1))-(f_width/2), 
-                                        f_high=(target_freq*(f+1))+(f_width/2), 
-                                        order=5, fsample=fsample)
-
-            cov_mat = Covariances(estimator=covariance_estimator).transform(np.expand_dims(filt_signal, axis=0))
-
-            cov_mat_diag = np.diag(np.diag(cov_mat[0,:,:]))
-
-            super_X[w, lower_bound:upper_bound, lower_bound:upper_bound] = cov_mat_diag
-
-    return super_X
-    
 
 # Write function that add to training set, fit, and predict
 
@@ -705,52 +639,7 @@ class ssvep_riemannian_mdm_classifier(generic_classifier):
 
 # Train free classifier
 # SSVEP CCA Classifier Sans Training
-class ssvep_basic_classifier_tf(generic_classifier):
-    """
-    Classifies SSVEP based on relative bandpower, taking only the maximum
-    """
 
-    def set_ssvep_settings(self, sampling_freq, target_freqs):
-        self.sampling_freq = sampling_freq
-        self.target_freqs = target_freqs
-        self.setup = False
-
-    def fit(self, print_fit=True, print_performance=True):
-        print("Oh deary me you must have mistaken me for another classifier which requires training")
-        print("I DO NOT NEED TRAINING.")
-        print("THIS IS MY FINAL FORM")
-    
-
-    def predict(self, X, print_predict):
-        # get the shape
-        nwindows, nchannels, nsamples = X.shape
-        # The first time it is called it must be set up
-        if self.setup == False:
-            print("setting up the training free classifier")
-
-            self.setup = True
-
-        # Build one augmented channel, here by just adding them all together
-        X = np.mean(X, axis=1)
-
-        # Get the PSD estimate using Welch's method
-        f, Pxx = signal.welch(X, fs=self.sampling_freq, nperseg=nsamples)
-        
-        # Get a vote for each window
-        prediction = np.zeros(nwindows)
-        for w in range(nwindows):
-            # Get the frequency with the greatest PSD
-            f_bins = np.zeros(len(self.target_freqs))
-            Pxx_of_f_bins = np.zeros(len(self.target_freqs))
-            for i, tf in enumerate(self.target_freqs):
-                # Get the closest frequency bin
-                f_bins[i] = np.argmin(np.abs(f - tf))
-
-                Pxx_of_f_bins[i] = Pxx[w][int(f_bins[i])]
-            
-            prediction[w] = np.argmax(Pxx_of_f_bins)
-
-        return prediction
 
 # TODO : Add a SSVEP CCA Classifier
 
@@ -1382,11 +1271,5 @@ class switch_classifier_deep(generic_classifier):
             print("Error - there are not an appropriate amount of labels (three) to complete predictions on")
             return None
                 
-class null_classifier(generic_classifier):
-    def fit(self, print_fit=True, print_performance=True):
 
-        print("This is a null classifier, there is no fitting")
-
-    def predict(self, X, print_predict):
-        return 0
 
