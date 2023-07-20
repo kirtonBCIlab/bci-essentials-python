@@ -15,6 +15,7 @@ Signal Processing Tools
 
 import numpy as np
 from scipy import signal
+import random
 
 import matplotlib.pyplot as plt
 
