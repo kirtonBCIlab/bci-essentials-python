@@ -32,4 +32,9 @@ jobs:
           conda info
           pip install .
 
+      - name: "Run smoke tests"
+        shell: bash -el {0}
+        run: |
+          python -m unittest
+
 
