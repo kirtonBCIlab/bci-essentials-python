@@ -11,6 +11,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),os.pardi
 
 # # from src.bci_data import *
 from bci_essentials.bci_data import *
+from bci_essentials.classifiers.ssvep_riemmanian_mdm_classifier import SSVEP_riemannian_mdm_classifier
 
 # import
 import matplotlib.pyplot as plt
@@ -20,7 +21,7 @@ import matplotlib.pyplot as plt
 test_ssvep = EEG_data()
 
 # Define the classifier
-test_ssvep.classifier = ssvep_riemannian_mdm_classifier(subset=[])
+test_ssvep.classifier = SSVEP_riemannian_mdm_classifier(subset=[])
 
 # Load from xdf into erp_data format
 test_ssvep.load_offline_eeg_data(filename = "examples\data\ssvep_example.xdf", format='xdf')
