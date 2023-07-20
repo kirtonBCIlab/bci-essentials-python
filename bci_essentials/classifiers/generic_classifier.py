@@ -187,3 +187,11 @@ class Generic_classifier():
         self.pred_probas.append(proba_mat)
 
         return prediction
+    
+    def fit(self, **kwargs):
+        """ Abstract method to fit classifier """
+        return None
+
+    def predict(self, **kwargs):
+        """ Abstract method to predict with classifier"""
+        return None
