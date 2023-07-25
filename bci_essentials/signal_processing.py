@@ -15,6 +15,7 @@ Signal Processing Tools
 
 import numpy as np
 from scipy import signal
+import random
 
 import matplotlib.pyplot as plt
 
@@ -213,3 +214,43 @@ def notchfilt(data, fsample, Q=30, fc=60):
         new_data = np.ndarray(shape=(N, M), dtype=float) 
         new_data = signal.filtfilt(b, a, data, axis=1, padlen=30)
         return new_data
+    
+def lico(X,y,expansion_factor=3, sum_num=2, shuffle=False):
+
+    """Oversampling (linear combination oversampling (LiCO))
+
+    Samples random linear combinations of existing epochs of X.
+
+    Parameters
+    ----------
+    X : numpy array 
+        The file location of the spreadsheet
+    y : numpy array
+        A flag used to print the columns to the console
+    expansion_factor : int, optional
+        Number of times larger to make the output set over_X (default is 3)
+    sum_num : int, optional
+        Number of signals to be summed together (default is 2)
+
+    Returns
+    -------
+    over_X : numpy array
+        oversampled X
+    over_y : numpy array
+        oversampled y
+    """
+
+    true_X = X[y == 1]
+
+    n,m,p = true_X.shape
+    print("Shape of ERPs only ", true_X.shape)
+    new_n = n*np.round(expansion_factor-1)
+    new_X = np.zeros([new_n,m,p])
+    for i in range(n):
+        for j in range(sum_num):
+            new_X[i,:,:] += true_X[random.choice(range(n)),:,:] / sum_num
+
+    over_X = np.append(X,new_X,axis=0)
+    over_y = np.append(y,np.ones([new_n]))
+
+    return over_X, over_y
