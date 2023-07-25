@@ -106,7 +106,7 @@ class Generic_classifier():
         self.chs_min_channels = min_channels            # minimum number of channels
         self.chs_max_channels = max_channels            # maximum number of channels
         self.chs_performance_delta = performance_delta  # smallest performance increment to justify continuing search
-        self.chs_output = print_output                        # output setting, silent, final, or verbose
+        self.chs_output = print_output                  # output setting, silent, final, or verbose
 
         self.channel_selection_setup = True
 
@@ -117,28 +117,19 @@ class Generic_classifier():
     def add_to_train(self, decision_block, labels, num_options = 0, meta = [], print_training=True):
         if print_training:
             print("adding to training set")
-        # reshape from [n,m,p] to [p,n,m]
         # n = number of channels
         # m = number of samples
-        # p = number of signals
+        # p = number of epochs
         p,n,m = decision_block.shape
-        # n,m,p = decision_block.shape
-
-
-        # decision_block = self.get_subset(decision_block)
 
         self.num_options = num_options
         self.meta = meta
-
-        # decision_block_reshape = np.swapaxes(np.swapaxes(decision_block,0,2),1,2)
 
         if self.X.size == 0:
             self.X = decision_block
             self.y = labels
 
         else:
-            # print(self.X.shape)
-            # print(self.y.shape)
             self.X = np.append(self.X, decision_block, axis=0)
             self.y = np.append(self.y, labels, axis=0)
 
@@ -151,25 +142,12 @@ class Generic_classifier():
         if print_predict:
             print("making a prediction")
 
-        # # reshape from [n,m,p] to [p,n,m]
-        # n,m,p = decision_block.shape
-        #decision_block_reshape = np.swapaxes(np.swapaxes(decision_block,0,2),1,2)
-
-        # # get prediction probabilities for all 
-        # proba_mat = self.clf.predict_proba(decision_block_reshape)
-
-        # decision_block = np.swapaxes(np.swapaxes(decision_block,0,2),1,2)
-
         # get prediction probabilities for all 
         proba_mat = self.clf.predict_proba(decision_block)
 
         proba = proba_mat[:,1]
-        # print("probabilities:")
-        # print(proba)
 
         relative_proba = proba / np.amax(proba)
-        # print("relative probabiities")
-        # print(relative_proba)
 
         log_proba = np.log(relative_proba)
 
