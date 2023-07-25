@@ -53,15 +53,9 @@ class ERP_rg_classifier(Generic_classifier):
             print(labels)
 
         # If the classifier has no data then initialize
-        try:
-            if self.X.size == 0:
-                self.X = decision_block
-                self.y = labels
-
-        except:
-            if self.X == []:
-                self.X = decision_block
-                self.y = labels
+        if self.X.size == 0:
+            self.X = decision_block
+            self.y = labels
 
         # If the classifier already has data then append
         else:

@@ -6,8 +6,8 @@ class Generic_classifier():
     
     def __init__(self, training_selection=0, subset=[]):
         print("initializing the classifier")
-        self.X = []
-        self.y = []
+        self.X = np.ndarray([0])
+        self.y = np.ndarray([0])
 
         #
         self.subset_defined = False
@@ -132,16 +132,9 @@ class Generic_classifier():
 
         # decision_block_reshape = np.swapaxes(np.swapaxes(decision_block,0,2),1,2)
 
-        #print(labels)
-        try:
-            if self.X.size == 0:
-                self.X = decision_block
-                self.y = labels
-
-        except:
-            if self.X == []:
-                self.X = decision_block
-                self.y = labels
+        if self.X.size == 0:
+            self.X = decision_block
+            self.y = labels
 
         else:
             # print(self.X.shape)
