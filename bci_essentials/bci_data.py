@@ -42,7 +42,7 @@ from pylsl.pylsl import IRREGULAR_RATE
 #from bci_essentials.bci_data_settings import *
 from bci_essentials.visuals import *
 from bci_essentials.signal_processing import *
-from bci_essentials.classifiers import *
+from bci_essentials.classification import *
 
 # EEG data
 class EEG_data():

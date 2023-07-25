@@ -7,6 +7,6 @@ A package for online/offline processing of EEG-based BCIs
 from . import bci_data
 from . import visuals
 from . import signal_processing
-from . import classifiers
+from . import classification
 
-__all__ = ["bci_data", "visuals", "classifiers", "signal_processing", "channel_selection", "resting_state"]
+__all__ = ["bci_data", "visuals", "classification", "signal_processing", "channel_selection", "resting_state"]

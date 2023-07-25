@@ -11,7 +11,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),os.pardi
 
 # # from src.bci_data import *
 from bci_essentials.bci_data import *
-from bci_essentials.classifiers import SSVEP_riemannian_mdm_classifier
+from bci_essentials.classification import SSVEP_riemannian_mdm_classifier
 
 # import
 import matplotlib.pyplot as plt
