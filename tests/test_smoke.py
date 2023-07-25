@@ -3,11 +3,12 @@ import os
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),os.pardir))
+
 from bci_essentials.bci_data import EEG_data, ERP_data
 from bci_essentials.classification import (
-    mi_classifier,
-    erp_rg_classifier,
-    ssvep_riemannian_mdm_classifier,
+    MI_classifier,
+    ERP_rg_classifier,
+    SSVEP_riemannian_mdm_classifier,
 )
 
 
@@ -21,7 +22,7 @@ class TestLoadData(unittest.TestCase):
         mi_data.load_offline_eeg_data(filename=mi_xdf_path, print_output=False)
 
         # Select a classifier
-        mi_data.classifier = mi_classifier()
+        mi_data.classifier = MI_classifier()
 
         # Define the classifier settings
         mi_data.classifier.set_mi_classifier_settings(
@@ -63,7 +64,7 @@ class TestLoadData(unittest.TestCase):
         p300_data.load_offline_eeg_data(filename=p300_xdf_path, print_output=False)
 
         # Select a classifier
-        p300_data.classifier = erp_rg_classifier()
+        p300_data.classifier = ERP_rg_classifier()
 
         # Define the classifier settings
         p300_data.classifier.set_p300_clf_settings(
@@ -115,7 +116,7 @@ class TestLoadData(unittest.TestCase):
         ssvep_data.load_offline_eeg_data(filename=ssvep_xdf_path, print_output=False)
 
         # Select a classifier
-        ssvep_data.classifier = ssvep_riemannian_mdm_classifier()
+        ssvep_data.classifier = SSVEP_riemannian_mdm_classifier()
 
         # Define the classifier settings
         ssvep_data.classifier.set_ssvep_settings(
