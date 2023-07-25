@@ -15,7 +15,7 @@ from pyriemann.channelselection import FlatChannelRemover, ElectrodeSelection
 # Custom libraries
 # - Append higher directory to import bci_essentials
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),os.pardir))
-from classifiers.generic_classifier import Generic_classifier
+from classification.generic_classifier import Generic_classifier
 from bci_essentials.visuals import *
 from bci_essentials.signal_processing import *
 from bci_essentials.channel_selection import *

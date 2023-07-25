@@ -4,7 +4,7 @@ import sys
 
 # Custom libraries
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),os.pardir))
-from classifiers.generic_classifier import Generic_classifier
+from classification.generic_classifier import Generic_classifier
 
 class Null_classifier(Generic_classifier):
     def fit(self, print_fit=True, print_performance=True):
