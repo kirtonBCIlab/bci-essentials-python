@@ -40,7 +40,7 @@ class ERP_rg_classifier(Generic_classifier):
             print("adding to training set")
         # n = number of channels
         # m = number of samples
-        # p = number of windows
+        # p = number of epochs
         p,n,m = decision_block.shape
 
         # get a subset
@@ -53,7 +53,7 @@ class ERP_rg_classifier(Generic_classifier):
             print(labels)
 
         # If the classifier has no data then initialize
-        if self.X == []:
+        if self.X.size == 0:
             self.X = decision_block
             self.y = labels
 
@@ -135,19 +135,9 @@ class ERP_rg_classifier(Generic_classifier):
 
                         # remove that value from the false ind list
                         false_ind.remove(remove_at)
-                        #to_remove.append(remove_at)
 
                         # add the index to be removed to a list
                         to_remove.append(remove_at)
-
-                        #np.delete(false_ind,remove_at,axis=0)
-                        
-                        #ind_range
-
-                        #np.delete(X_train,remove_at,axis=0)
-
-                    #X_train = X_train[false]
-                    #X_train = X_train[]
 
                     remaining_ind = ind_list
                     for i in range(len(to_remove)):
