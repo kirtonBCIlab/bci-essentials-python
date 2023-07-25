@@ -133,10 +133,15 @@ class Generic_classifier():
         # decision_block_reshape = np.swapaxes(np.swapaxes(decision_block,0,2),1,2)
 
         #print(labels)
-            
-        if self.X == []:
-            self.X = decision_block
-            self.y = labels
+        try:
+            if self.X.size == 0:
+                self.X = decision_block
+                self.y = labels
+
+        except:
+            if self.X == []:
+                self.X = decision_block
+                self.y = labels
 
         else:
             # print(self.X.shape)
