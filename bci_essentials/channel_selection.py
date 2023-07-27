@@ -33,14 +33,14 @@ def channel_selection_by_method(
     kernel_func,
     X,
     y,
-    channel_labels,  # kernel setup
+    channel_labels,
     method="SBS",
     metric="accuracy",
-    initial_channels=[],  # wrapper setup
+    initial_channels=[],
     max_time=999,
     min_channels=1,
     max_channels=999,
-    performance_delta=0.001,  # stopping criterion
+    performance_delta=0.001,
     n_jobs=1,
     print_output="silent",
 ):  # njobs
