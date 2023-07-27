@@ -26,7 +26,7 @@ This module provides data classes for different BCI paradigms. It includes the l
 
 
 
-data in                  xdf format or the live streaming of LSL data. The loaded/streamed data is added to a buffer such that offline and online processing pipelines are identical. Data is pre-processed (using the signal_processing module), windowed, and classified (using the classification module).
+data in                                                                                xdf format or the live streaming of LSL data. The loaded/streamed data is added to a buffer such that offline and online processing pipelines are identical. Data is pre-processed (using the signal_processing module), windowed, and classified (using the classification module).
 Classes:
 EEG_data - for processing continuous data in windows of a defined length
 ERP_data - for processing P300 or other Event Related Potentials (ERP)
