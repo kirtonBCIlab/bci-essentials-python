@@ -205,7 +205,7 @@ def notchfilt(data, fsample, Q=30, fc=60):
     new_data : numpy array
         Windows of filtered EEG data, nwindows X nchannels X nsamples
 
-    What if I add some code that exceeds                                                                                                                                                                                                                                                     The limits allowed
+    What if I add some code that exceeds                                                                                                                                                                                                                                                      The limits allowed
     """
 
     b, a = signal.iirnotch(fc, Q, fsample)
