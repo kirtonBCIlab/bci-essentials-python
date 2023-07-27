@@ -19,14 +19,15 @@ import random
 
 import matplotlib.pyplot as plt
 
-# 
+#
 
 # def common_average_reference(data):
 #     N,M,P = np.shape(data)
-    
+
 #     average = np.average(data,axis)
 
 #     return new_data
+
 
 def dc_reject(data):
     """DC Reject
@@ -35,7 +36,7 @@ def dc_reject(data):
 
     Parameters
     ----------
-    data : numpy array 
+    data : numpy array
         Windows of EEG data, nwindows X nchannels X nsamples
 
     Returns
@@ -47,7 +48,7 @@ def dc_reject(data):
     try:
         N, M, P = np.shape(data)
     except:
-        N, M =np.shape(data)
+        N, M = np.shape(data)
         P = 1
 
     new_data = np.ndarray(shape=(N, M, P), dtype=float)
@@ -57,9 +58,10 @@ def dc_reject(data):
 
     for p in range(0, P):
         for n in range(0, N):
-            new_data[n,...,p] = signal.filtfilt(b,a,data[n,...,p])
+            new_data[n, ..., p] = signal.filtfilt(b, a, data[n, ..., p])
 
     return new_data
+
 
 def detrend(data):
     """Detrend
@@ -68,7 +70,7 @@ def detrend(data):
 
     Parameters
     ----------
-    data : numpy array 
+    data : numpy array
         Windows of EEG data, nwindows X nchannels X nsamples
 
     Returns
@@ -80,15 +82,16 @@ def detrend(data):
     try:
         N, M, P = np.shape(data)
     except:
-        N, M =np.shape(data)
+        N, M = np.shape(data)
         P = 1
-        
+
     new_data = np.ndarray(shape=(N, M, P), dtype=float)
 
-    for p in range(0,P):
-        new_data[0:N,0:M,p] = signal.detrend(data[0:N,0:M,p], axis=1)
+    for p in range(0, P):
+        new_data[0:N, 0:M, p] = signal.detrend(data[0:N, 0:M, p], axis=1)
 
     return new_data
+
 
 def lowpass(data, f_high, order, fsample):
     """Lowpass Filter
@@ -97,7 +100,7 @@ def lowpass(data, f_high, order, fsample):
 
     Parameters
     ----------
-    data : numpy array 
+    data : numpy array
         Windows of EEG data, nwindows X nchannels X nsamples
     f_high : float
         Upper corner frequency
@@ -114,18 +117,21 @@ def lowpass(data, f_high, order, fsample):
     try:
         N, M, P = np.shape(data)
     except:
-        N, M =np.shape(data)
+        N, M = np.shape(data)
         P = 1
-    
-    Wn = f_high/(fsample/2)
-    new_data = np.ndarray(shape=(N, M, P), dtype=float) 
-    
-    b, a = signal.butter(order, Wn, btype='lowpass')
-    
-    for p in range(0,P):
-        new_data[0:N,0:M,p] = signal.filtfilt(b, a, data[0:N,0:M,p], axis=1, padlen=30)
-        
+
+    Wn = f_high / (fsample / 2)
+    new_data = np.ndarray(shape=(N, M, P), dtype=float)
+
+    b, a = signal.butter(order, Wn, btype="lowpass")
+
+    for p in range(0, P):
+        new_data[0:N, 0:M, p] = signal.filtfilt(
+            b, a, data[0:N, 0:M, p], axis=1, padlen=30
+        )
+
     return new_data
+
 
 def bandpass(data, f_low, f_high, order, fsample):
     """Bandpass Filter
@@ -134,10 +140,10 @@ def bandpass(data, f_low, f_high, order, fsample):
 
     Parameters
     ----------
-    data : numpy array 
+    data : numpy array
         Windows of EEG data, nwindows X nchannels X nsamples
     f_low : float
-        Lower corner frequency    
+        Lower corner frequency
     f_high : float
         Upper corner frequency
     order : int
@@ -150,8 +156,8 @@ def bandpass(data, f_low, f_high, order, fsample):
     new_data : numpy array
         Windows of filtered EEG data, nwindows X nchannels X nsamples
     """
-    Wn = [f_low/(fsample/2), f_high/(fsample/2)]
-    b, a = signal.butter(order, Wn, btype='bandpass')
+    Wn = [f_low / (fsample / 2), f_high / (fsample / 2)]
+    b, a = signal.butter(order, Wn, btype="bandpass")
 
     try:
         P, N, M = np.shape(data)
@@ -159,22 +165,23 @@ def bandpass(data, f_low, f_high, order, fsample):
         # reshape to N,M,P
         data_reshape = np.swapaxes(np.swapaxes(data, 1, 2), 0, 2)
 
-        new_data = np.ndarray(shape=(N, M, P), dtype=float) 
-        for p in range(0,P):
-            new_data[0:N,0:M,p] = signal.filtfilt(b, a, data_reshape[0:N,0:M,p], 
-                                                    axis=1, 
-                                                    padlen=30)
+        new_data = np.ndarray(shape=(N, M, P), dtype=float)
+        for p in range(0, P):
+            new_data[0:N, 0:M, p] = signal.filtfilt(
+                b, a, data_reshape[0:N, 0:M, p], axis=1, padlen=30
+            )
 
         new_data = np.swapaxes(np.swapaxes(new_data, 0, 2), 1, 2)
         return new_data
-        
+
     except:
         N, M = np.shape(data)
 
-        new_data = np.ndarray(shape=(N, M), dtype=float) 
+        new_data = np.ndarray(shape=(N, M), dtype=float)
         new_data = signal.filtfilt(b, a, data, axis=1, padlen=0)
 
         return new_data
+
 
 def notchfilt(data, fsample, Q=30, fc=60):
     """Notch Filter
@@ -183,12 +190,12 @@ def notchfilt(data, fsample, Q=30, fc=60):
 
     Parameters
     ----------
-    data : numpy array 
+    data : numpy array
         Windows of EEG data, nwindows X nchannels X nsamples
     fsample : float
         Sampling rate of signal
     Q : float
-        Quality factor. Dimensionless parameter that characterizes notch filter 
+        Quality factor. Dimensionless parameter that characterizes notch filter
         -3 dB bandwidth bw relative to its center frequency, Q = w0/bw.
     fc : float
         Frequency of notch
@@ -197,33 +204,36 @@ def notchfilt(data, fsample, Q=30, fc=60):
     -------
     new_data : numpy array
         Windows of filtered EEG data, nwindows X nchannels X nsamples
-    """
 
+    What if I add some code that exceeds                                                                                                                                                                                                                                                     The limits allowed
+    """
 
     b, a = signal.iirnotch(fc, Q, fsample)
 
     try:
         N, M, P = np.shape(data)
-        new_data = np.ndarray(shape=(N, M, P), dtype=float) 
-        for p in range(0,P):
-            new_data[0:N,0:M,p] = signal.filtfilt(b, a, data[0:N,0:M,p], axis=1, padlen=30)
+        new_data = np.ndarray(shape=(N, M, P), dtype=float)
+        for p in range(0, P):
+            new_data[0:N, 0:M, p] = signal.filtfilt(
+                b, a, data[0:N, 0:M, p], axis=1, padlen=30
+            )
         return new_data
-        
+
     except:
         N, M = np.shape(data)
-        new_data = np.ndarray(shape=(N, M), dtype=float) 
+        new_data = np.ndarray(shape=(N, M), dtype=float)
         new_data = signal.filtfilt(b, a, data, axis=1, padlen=30)
         return new_data
-    
-def lico(X,y,expansion_factor=3, sum_num=2, shuffle=False):
 
+
+def lico(X, y, expansion_factor=3, sum_num=2, shuffle=False):
     """Oversampling (linear combination oversampling (LiCO))
 
     Samples random linear combinations of existing epochs of X.
 
     Parameters
     ----------
-    X : numpy array 
+    X : numpy array
         The file location of the spreadsheet
     y : numpy array
         A flag used to print the columns to the console
@@ -242,15 +252,15 @@ def lico(X,y,expansion_factor=3, sum_num=2, shuffle=False):
 
     true_X = X[y == 1]
 
-    n,m,p = true_X.shape
+    n, m, p = true_X.shape
     print("Shape of ERPs only ", true_X.shape)
-    new_n = n*np.round(expansion_factor-1)
-    new_X = np.zeros([new_n,m,p])
+    new_n = n * np.round(expansion_factor - 1)
+    new_X = np.zeros([new_n, m, p])
     for i in range(n):
         for j in range(sum_num):
-            new_X[i,:,:] += true_X[random.choice(range(n)),:,:] / sum_num
+            new_X[i, :, :] += true_X[random.choice(range(n)), :, :] / sum_num
 
-    over_X = np.append(X,new_X,axis=0)
-    over_y = np.append(y,np.ones([new_n]))
+    over_X = np.append(X, new_X, axis=0)
+    over_y = np.append(y, np.ones([new_n]))
 
     return over_X, over_y
