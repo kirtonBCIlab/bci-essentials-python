@@ -23,7 +23,7 @@ import datetime
 from pylsl import StreamInfo, StreamOutlet
 
 # Add parent directory to path to access bci_essentials
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),os.pardir))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
 
 # Import local bci_essentials
 from bci_essentials.bci_data import EEG_data
@@ -32,8 +32,8 @@ from bci_essentials.bci_data import EEG_data
 start_now = False
 try:
     arg1 = sys.argv[1]
-    if arg1 == 'now' or arg1 == '-n':
-        print('starting stream immediately')
+    if arg1 == "now" or arg1 == "-n":
+        print("starting stream immediately")
         start_now = True
 except:
     start_now = False
@@ -42,7 +42,7 @@ except:
 nloops = 1
 try:
     nloops = int(sys.argv[2])
-    print('repeating for ', nloops, ' loops')
+    print("repeating for ", nloops, " loops")
 
 except:
     nloops = 1
@@ -64,7 +64,7 @@ eeg_time_series = eeg_stream.eeg_data
 time_start = min(marker_time_stamps)
 time_stop = max(marker_time_stamps)
 
-eeg_keep_ind = [(eeg_time_stamps > time_start)&(eeg_time_stamps < time_stop)]
+eeg_keep_ind = [(eeg_time_stamps > time_start) & (eeg_time_stamps < time_stop)]
 eeg_time_stamps = eeg_time_stamps[tuple(eeg_keep_ind)]
 eeg_time_series = eeg_time_series[tuple(eeg_keep_ind)]
 
@@ -74,31 +74,32 @@ fs_marker = round(len(marker_time_stamps) / (time_stop - time_start))
 fs_eeg = round(len(eeg_time_stamps) / (time_stop - time_start))
 
 # create the eeg stream
-info = StreamInfo('MockEEG', 'EEG', 8, fs_eeg, 'float32', 'mockeeg1')
+info = StreamInfo("MockEEG", "EEG", 8, fs_eeg, "float32", "mockeeg1")
 
 # add channel data
 channels = info.desc().append_child("channels")
 for c in eeg_stream.channel_labels:
-    channels.append_child("channel")\
-        .append_child_value("name", c)\
-        .append_child_value("unit", "microvolts")\
-        .append_child_value("type", "EEG")
+    channels.append_child("channel").append_child_value("name", c).append_child_value(
+        "unit", "microvolts"
+    ).append_child_value("type", "EEG")
 
 # create the EEG stream
 outlet = StreamOutlet(info)
 
 if start_now == False:
-    # publish to stream at the next rounded minute 
+    # publish to stream at the next rounded minute
     now_time = datetime.datetime.now()
     print("Current time is ", now_time)
     seconds = (now_time - now_time.min).seconds
     microseconds = now_time.microsecond
     # // is a floor division, not a comment on following line:
-    rounding = (seconds+60/2) // 60 * 60
-    round_time = now_time + datetime.timedelta(0,60+rounding-seconds,-microseconds)
+    rounding = (seconds + 60 / 2) // 60 * 60
+    round_time = now_time + datetime.timedelta(
+        0, 60 + rounding - seconds, -microseconds
+    )
     print(microseconds)
     print("Stream will begin at ", round_time)
-    time.sleep(60+rounding-seconds - (0.000001*microseconds))
+    time.sleep(60 + rounding - seconds - (0.000001 * microseconds))
 
 now_time = datetime.datetime.now()
 print("Current time is ", now_time)
@@ -110,10 +111,10 @@ while i < nloops:
         eeg_sample = eeg_time_series[j][:]
         outlet.push_sample(eeg_sample)
         if j != len(eeg_time_stamps):
-            time.sleep(eeg_time_stamps[j+1] - eeg_time_stamps[j])
+            time.sleep(eeg_time_stamps[j + 1] - eeg_time_stamps[j])
     i += 1
 
 # delete the outlet
-print("Deleting EEG stream")    
+print("Deleting EEG stream")
 outlet.__del__()
 print("Done.")

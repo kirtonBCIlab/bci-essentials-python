@@ -6,7 +6,7 @@ import sys
 
 
 # Add parent directory to path to access bci_essentials
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),os.pardir))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
 
 
 # # from src.bci_data import *
@@ -24,16 +24,27 @@ test_ssvep = EEG_data()
 test_ssvep.classifier = SSVEP_riemannian_mdm_classifier(subset=[])
 
 # Load from xdf into erp_data format
-test_ssvep.load_offline_eeg_data(filename = "examples\data\ssvep_example.xdf", format='xdf')
+test_ssvep.load_offline_eeg_data(
+    filename="examples\data\ssvep_example.xdf", format="xdf"
+)
 
-test_ssvep.classifier.set_ssvep_settings(n_splits=3, random_seed=42, n_harmonics=3, f_width=0.5)
+test_ssvep.classifier.set_ssvep_settings(
+    n_splits=3, random_seed=42, n_harmonics=3, f_width=0.5
+)
 
 # initial_subset=['PO7', 'PO3', 'POz', 'PO4', 'PO8', 'O1', 'Oz', 'O2', 'Cp4', 'C4', 'F4', 'Cp3', 'C3', 'F3', 'Cz', 'Fz']
 # test_ssvep.classifier.setup_channel_selection(method = "SBS", metric="accuracy", initial_channels = initial_subset,    # wrapper setup
 #                                 max_time= 999, min_channels=2, max_channels=16, performance_delta=0,      # stopping criterion
-#                                 n_jobs=-1, print_output="verbose") 
+#                                 n_jobs=-1, print_output="verbose")
 
-test_ssvep.main(online=False, training=True, max_samples=5120, pp_type="bandpass", pp_low=3, pp_high=50)
+test_ssvep.main(
+    online=False,
+    training=True,
+    max_samples=5120,
+    pp_type="bandpass",
+    pp_low=3,
+    pp_high=50,
+)
 
 print("debug")
 
@@ -69,7 +80,7 @@ print("debug")
 #     plt.vlines(x=[f_target,f_target*2,f_target*3], ymin=-1000, ymax=1000)
 #     plt.xlim([-0.5,50])
 #     plt.ylim([-0.5,20])
-    
+
 #     # spectrogram
 #     plt.subplot(313)
 #     plt.pcolormesh(t, f, Sxx, shading='gouraud')
@@ -84,4 +95,3 @@ print("debug")
 
 #     # clear
 #     plt.clf()
-
