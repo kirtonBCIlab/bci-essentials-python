@@ -13,7 +13,7 @@ test_ssvep = EEG_data()
 test_ssvep.train_complete = True
 
 # Define the classifier
-test_ssvep.classifier = ssvep_basic_classifier_tf()
+test_ssvep.classifier = ssvep_basic_tf_classifier()
 target_freqs = [9, 9.6, 10.28, 11.07, 12, 13.09, 14.4]
 
 # Connect the streams
