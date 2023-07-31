@@ -1,18 +1,21 @@
 """
-Signal Processing Tools
+Signal processing tools for processing windows OR decision blocks.
+
+For windows:
+- Inputs are N x M x P, where:
+    - N = number of windows (for a single window N = 1)
+    - M = number of channels
+    - P = number of samples
+- Outputs are the same dimensions (N x M x P)
+
+For decision blocks:
+- Inputs are N x M x P, where:
+    - N = number of possible selections
+    - M = number of channels
+    - P = number of samples
+- Outputs are the same dimensions (N x M x P)
 
 """
-
-# Signal processing tools for processing windows OR decision blocks
-
-# For windows:
-# Inputs are N x M x P where N = number of channels, M = number of samples, and P = number of windows, for single window P = 1
-# Outputs are the same dimensions
-
-# For decision blocks
-# Inputs are N x M x P where N = number of channels, M = number of samples, and P = number of possible selections
-# Outputs are the same dimensions
-
 import numpy as np
 from scipy import signal
 import random
@@ -30,9 +33,9 @@ import matplotlib.pyplot as plt
 
 
 def dc_reject(data):
-    """DC Reject
+    """DC Reject.
 
-    Filters out DC shifts in the data
+    Filters out DC shifts in the data.
 
     Parameters
     ----------
@@ -41,10 +44,13 @@ def dc_reject(data):
 
     Returns
     -------
-    new_data : numpy array
-        Windows of DC rejected EEG data, nwindows X nchannels X nsamples
-    """
+    new_data : numpy.ndarray
+        Windows of DC-rejected EEG data.
+        3D array containing data with `float` type.
 
+        shape = (`N_windows`,`M_channels`,`P_samples`)
+
+    """
     try:
         N, M, P = np.shape(data)
     except:
@@ -64,9 +70,9 @@ def dc_reject(data):
 
 
 def detrend(data):
-    """Detrend
+    """Detrend.
 
-    Wrapper for the scipy.signal.detrend method
+    Wrapper for the scipy.signal.detrend method.
 
     Parameters
     ----------
@@ -75,8 +81,12 @@ def detrend(data):
 
     Returns
     -------
-    new_data : numpy array
-        Windows of detrended EEG data, nwindows X nchannels X nsamples
+    new_data : numpy.ndarray
+        Windows of detrended EEG data.
+        3D array containing data with `float` type.
+
+        shape = (`N_windows`,`M_channels`,`P_samples`)
+
     """
     # detrends the windows using the numpy detrend function
     try:
@@ -94,25 +104,29 @@ def detrend(data):
 
 
 def lowpass(data, f_high, order, fsample):
-    """Lowpass Filter
+    """Lowpass Filter.
 
-    Filters out frequencies above f_high with a Butterworth filter
+    Filters out frequencies above f_high with a Butterworth filter.
 
     Parameters
     ----------
     data : numpy array
         Windows of EEG data, nwindows X nchannels X nsamples
     f_high : float
-        Upper corner frequency
+        Upper corner frequency.
     order : int
-        Order of the filter
+        Order of the filter.
     fsample : float
-        Sampling rate of signal
+        Sampling rate of signal.
 
     Returns
     -------
-    new_data : numpy array
-        Windows of filtered EEG data, nwindows X nchannels X nsamples
+    new_data : numpy.ndarray
+        Windows of filtered EEG data.
+        3D array containing data with `float` type.
+
+        shape = (`N_windows`,`M_channels`,`P_samples`)
+
     """
     try:
         N, M, P = np.shape(data)
@@ -134,9 +148,10 @@ def lowpass(data, f_high, order, fsample):
 
 
 def bandpass(data, f_low, f_high, order, fsample):
-    """Bandpass Filter
+    """Bandpass Filter.
 
-    Filters out frequencies outside of f_low-f_high with a Butterworth filter
+    Filters out frequencies outside of the range f_low to f_high with a
+    Butterworth filter.
 
     Parameters
     ----------
@@ -145,16 +160,19 @@ def bandpass(data, f_low, f_high, order, fsample):
     f_low : float
         Lower corner frequency
     f_high : float
-        Upper corner frequency
+        Upper corner frequency.
     order : int
-        Order of the filter
+        Order of the filter.
     fsample : float
-        Sampling rate of signal
+        Sampling rate of signal.
 
     Returns
     -------
-    new_data : numpy array
-        Windows of filtered EEG data, nwindows X nchannels X nsamples
+    new_data : numpy.ndarray
+        Windows of filtered EEG data.
+        3D array containing data with `float` type.
+
+        shape = (`N_windows`,`M_channels`,`P_samples`)
     """
     Wn = [f_low / (fsample / 2), f_high / (fsample / 2)]
     b, a = signal.butter(order, Wn, btype="bandpass")
@@ -184,7 +202,7 @@ def bandpass(data, f_low, f_high, order, fsample):
 
 
 def notchfilt(data, fsample, Q=30, fc=60):
-    """Notch Filter
+    """Notch Filter.
 
     Notch filter for removing specific frequency components.
 
@@ -193,19 +211,17 @@ def notchfilt(data, fsample, Q=30, fc=60):
     data : numpy array
         Windows of EEG data, nwindows X nchannels X nsamples
     fsample : float
-        Sampling rate of signal
+        Sampling rate of signal.
     Q : float
         Quality factor. Dimensionless parameter that characterizes notch filter
         -3 dB bandwidth bw relative to its center frequency, Q = w0/bw.
     fc : float
-        Frequency of notch
+        Frequency of notch.
 
     Returns
     -------
     new_data : numpy array
         Windows of filtered EEG data, nwindows X nchannels X nsamples
-
-    What if I add some code that exceeds                                                                                                                                                                                                                                                       The limits allowed
     """
 
     b, a = signal.iirnotch(fc, Q, fsample)
@@ -238,18 +254,20 @@ def lico(X, y, expansion_factor=3, sum_num=2, shuffle=False):
     y : numpy array
         A flag used to print the columns to the console
     expansion_factor : int, optional
-        Number of times larger to make the output set over_X (default is 3)
+        Number of times larger to make the output set over_X
+        (default is 3).
     sum_num : int, optional
-        Number of signals to be summed together (default is 2)
+        Number of signals to be summed together
+        (default is 2).
 
     Returns
     -------
-    over_X : numpy array
-        oversampled X
-    over_y : numpy array
-        oversampled y
-    """
+    over_X : numpy.ndarray
+        Oversampled X.
+    over_y : numpy.ndarray
+        Oversampled y.
 
+    """
     true_X = X[y == 1]
 
     n, m, p = true_X.shape
