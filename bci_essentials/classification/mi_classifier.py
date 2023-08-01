@@ -14,23 +14,38 @@ from pyriemann.channelselection import FlatChannelRemover, ElectrodeSelection
 
 # Custom libraries
 # - Append higher directory to import bci_essentials
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),os.pardir))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
 from classification.generic_classifier import Generic_classifier
 from bci_essentials.visuals import *
 from bci_essentials.signal_processing import *
 from bci_essentials.channel_selection import *
 
+
 class MI_classifier(Generic_classifier):
-    def set_mi_classifier_settings(self, n_splits=5, type="TS", remove_flats=False, whitening=False, covariance_estimator="scm", artifact_rejection="none", channel_selection="none", pred_threshold=0.5, random_seed = 42, n_jobs=1):
+    def set_mi_classifier_settings(
+        self,
+        n_splits=5,
+        type="TS",
+        remove_flats=False,
+        whitening=False,
+        covariance_estimator="scm",
+        artifact_rejection="none",
+        channel_selection="none",
+        pred_threshold=0.5,
+        random_seed=42,
+        n_jobs=1,
+    ):
         # Build the cross-validation split
         self.n_splits = n_splits
-        self.cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_seed)
+        self.cv = StratifiedKFold(
+            n_splits=n_splits, shuffle=True, random_state=random_seed
+        )
 
         self.covariance_estimator = covariance_estimator
-        
+
         # Shrinkage LDA
         if type == "sLDA":
-            slda = LinearDiscriminantAnalysis(solver='eigen',shrinkage='auto')
+            slda = LinearDiscriminantAnalysis(solver="eigen", shrinkage="auto")
             self.clf_model = Pipeline([("Shrinkage LDA", slda)])
             self.clf = Pipeline([("Shrinkage LDA", slda)])
 
@@ -46,9 +61,9 @@ class MI_classifier(Generic_classifier):
             self.clf_model = Pipeline([("Tangent Space", ts)])
             self.clf = Pipeline([("Tangent Space", ts)])
 
-        # Minimum Distance to Mean 
+        # Minimum Distance to Mean
         elif type == "MDM":
-            mdm = MDM(metric=dict(mean='riemann', distance='riemann'), n_jobs = n_jobs)
+            mdm = MDM(metric=dict(mean="riemann", distance="riemann"), n_jobs=n_jobs)
             self.clf_model = Pipeline([("MDM", mdm)])
             self.clf = Pipeline([("MDM", mdm)])
 
@@ -59,9 +74,7 @@ class MI_classifier(Generic_classifier):
         #     self.clf = Pipeline([('CSP', csp), ('LogisticRegression', lr)])
 
         else:
-            print("Classifier type not defined") 
-
-
+            print("Classifier type not defined")
 
         if artifact_rejection == "potato":
             print("Potato not implemented")
@@ -82,19 +95,15 @@ class MI_classifier(Generic_classifier):
             self.clf_model.steps.insert(0, ["Remove Flat Channels", rf])
             self.clf.steps.insert(0, ["Remove Flat Channels", rf])
 
-
-
         # Threshold
         self.pred_threshold = pred_threshold
 
         # Rebuild from scratch with each training
         self.rebuild = True
 
-
-
     def fit(self, print_fit=True, print_performance=True):
         # get dimensions
-        nwindows, nchannels, nsamples = self.X.shape 
+        nwindows, nchannels, nsamples = self.X.shape
 
         # do the rest of the training if train_free is false
         self.X = np.array(self.X)
@@ -105,57 +114,75 @@ class MI_classifier(Generic_classifier):
             self.clf = self.clf_model
 
         # get temporal subset
-        subX = self.X[self.next_fit_window:,:,:]
-        suby = self.y[self.next_fit_window:]
+        subX = self.X[self.next_fit_window :, :, :]
+        suby = self.y[self.next_fit_window :]
         self.next_fit_window = nwindows
 
-        # Init predictions to all false 
+        # Init predictions to all false
         preds = np.zeros(nwindows)
 
         def mi_kernel(subX, suby):
-            for train_idx, test_idx in self.cv.split(subX,suby):
+            for train_idx, test_idx in self.cv.split(subX, suby):
                 self.clf = self.clf_model
 
                 X_train, X_test = subX[train_idx], subX[test_idx]
                 y_train, y_test = suby[train_idx], suby[test_idx]
 
                 # get the covariance matrices for the training set
-                X_train_cov = Covariances(estimator=self.covariance_estimator).transform(X_train)
-                X_test_cov = Covariances(estimator=self.covariance_estimator).transform(X_test)
+                X_train_cov = Covariances(
+                    estimator=self.covariance_estimator
+                ).transform(X_train)
+                X_test_cov = Covariances(estimator=self.covariance_estimator).transform(
+                    X_test
+                )
 
                 # fit the classsifier
                 self.clf.fit(X_train_cov, y_train)
                 preds[test_idx] = self.clf.predict(X_test_cov)
 
-            accuracy = sum(preds == self.y)/len(preds)
-            precision = precision_score(self.y,preds, average = 'micro')
-            recall = recall_score(self.y, preds, average = 'micro')
+            accuracy = sum(preds == self.y) / len(preds)
+            precision = precision_score(self.y, preds, average="micro")
+            recall = recall_score(self.y, preds, average="micro")
 
             model = self.clf
 
             return model, preds, accuracy, precision, recall
 
-        
         # Check if channel selection is true
         if self.channel_selection_setup:
             print("Doing channel selection")
 
-            updated_subset, updated_model, preds, accuracy, precision, recall = channel_selection_by_method(mi_kernel, self.X, self.y, self.channel_labels,                      # kernel setup
-                                                                            self.chs_method, self.chs_metric, self.chs_initial_subset,                                      # wrapper setup
-                                                                            self.chs_max_time, self.chs_min_channels, self.chs_max_channels, self.chs_performance_delta,    # stopping criterion
-                                                                            self.chs_n_jobs, self.chs_output)  
+            (
+                updated_subset,
+                updated_model,
+                preds,
+                accuracy,
+                precision,
+                recall,
+            ) = channel_selection_by_method(
+                mi_kernel,
+                self.X,
+                self.y,
+                self.channel_labels,  # kernel setup
+                self.chs_method,
+                self.chs_metric,
+                self.chs_initial_subset,  # wrapper setup
+                self.chs_max_time,
+                self.chs_min_channels,
+                self.chs_max_channels,
+                self.chs_performance_delta,  # stopping criterion
+                self.chs_n_jobs,
+                self.chs_output,
+            )
             # channel_selection_by_method(mi_kernel, subX, suby, self.channel_labels, method=self.chs_method, max_time=self.chs_max_time, metric="accuracy", n_jobs=-1)
-                
+
             print("The optimal subset is ", updated_subset)
 
             self.subset = updated_subset
             self.clf = updated_model
-        else: 
+        else:
             print("Not doing channel selection")
             self.clf, preds, accuracy, precision, recall = mi_kernel(subX, suby)
-
-        
-
 
         # Print performance stats
 
@@ -163,19 +190,19 @@ class MI_classifier(Generic_classifier):
         self.offline_window_counts.append(self.offline_window_count)
 
         # accuracy
-        accuracy = sum(preds == self.y)/len(preds)
+        accuracy = sum(preds == self.y) / len(preds)
         self.offline_accuracy.append(accuracy)
         if print_performance:
             print("accuracy = {}".format(accuracy))
 
         # precision
-        precision = precision_score(self.y, preds, average = 'micro')
+        precision = precision_score(self.y, preds, average="micro")
         self.offline_precision.append(precision)
         if print_performance:
             print("precision = {}".format(precision))
 
         # recall
-        recall = recall_score(self.y, preds, average = 'micro')
+        recall = recall_score(self.y, preds, average="micro")
         self.offline_recall.append(recall)
         if print_performance:
             print("recall = {}".format(recall))
@@ -195,13 +222,13 @@ class MI_classifier(Generic_classifier):
         X = self.get_subset(X)
 
         # Troubleshooting
-        #X = self.X[-6:,:,:]
+        # X = self.X[-6:,:,:]
 
         if print_predict:
             print("the shape of X is", X.shape)
 
         X_cov = Covariances(estimator=self.covariance_estimator).transform(X)
-        #X_cov = X_cov[0,:,:]
+        # X_cov = X_cov[0,:,:]
 
         pred = self.clf.predict(X_cov)
         pred_proba = self.clf.predict_proba(X_cov)
@@ -215,9 +242,8 @@ class MI_classifier(Generic_classifier):
             self.pred_probas.append(pred_proba[i])
 
         # add a threhold
-        #pred = (pred_proba[:] >= self.pred_threshold).astype(int) # set threshold as 0.3
-        #print(pred.shape)
-
+        # pred = (pred_proba[:] >= self.pred_threshold).astype(int) # set threshold as 0.3
+        # print(pred.shape)
 
         # print(pred)
         # for p in pred:

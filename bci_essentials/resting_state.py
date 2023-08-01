@@ -66,7 +66,9 @@ def bandpower(data, fs, fmin, fmax, normalization=None):
 
     power = np.zeros([nchannels])
     for i in range(nchannels):
-        power[i] = np.trapz(Pxx[i, ind_local_min:ind_local_max], f[ind_local_min:ind_local_max])
+        power[i] = np.trapz(
+            Pxx[i, ind_local_min:ind_local_max], f[ind_local_min:ind_local_max]
+        )
 
     return power
 
@@ -97,12 +99,10 @@ def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
         the peak alpha frequency
     """
 
-    fs=256
+    fs = 256
 
     W, C, S = get_shape(data)
 
-    
-    
     for win in range(W):
         # Calculate PSD using Welch's method, nfft = nsamples
         f, Pxx = scipy.signal.welch(data[win, :, :], fs=fs, nperseg=S)
@@ -115,11 +115,11 @@ def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
         Pxx = Pxx[:, ind_min:ind_max]
 
         try:
-            median_Pxx[win,:] = np.median(Pxx, axis=0)
+            median_Pxx[win, :] = np.median(Pxx, axis=0)
 
         except:
             median_Pxx = np.zeros([W, len(f)])
-            median_Pxx[win,:] = np.median(Pxx, axis=0)
+            median_Pxx[win, :] = np.median(Pxx, axis=0)
 
         alpha_peak = f[np.argmax(np.median(Pxx, axis=0))]
         print("Alpha peak of window {} ".format(win), alpha_peak)
@@ -128,13 +128,13 @@ def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
             nrows = int(np.ceil(np.sqrt(C)))
             ncols = int(np.ceil(np.sqrt(C)))
 
-            fig, axs = plt.subplots(nrows, ncols, figsize=(10,8))
+            fig, axs = plt.subplots(nrows, ncols, figsize=(10, 8))
             # fig.suptitle("Some PSDs")
             for r in range(nrows):
                 for c in range(ncols):
-                    ch = (ncols*r) + c
+                    ch = (ncols * r) + c
                     axs[r, c].set_title(ch)
-                    axs[r, c].plot(f, Pxx[ch,:])
+                    axs[r, c].plot(f, Pxx[ch, :])
 
                     # # axs[r, c].set_ylim([-20, 20])
                     # if r == 0 and c == 0:
@@ -149,8 +149,6 @@ def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
 
     overall_alpha_peak = f[np.argmax(np.median(median_Pxx, axis=0))]
     print("Overall alpha peak:", overall_alpha_peak)
-
-
 
     return overall_alpha_peak
 
@@ -174,14 +172,14 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
     Returns
     -------
     abs_bandpower : array_like
-        a np array of the absolute bandpower of provided bands, last 
-        item is the total bandpower, length is equal to length of 
+        a np array of the absolute bandpower of provided bands, last
+        item is the total bandpower, length is equal to length of
         transition_freqs
     rel_bandpower : array_like
         a np array of the relative bandpower of provided bands with
         respect to the entire region of interest from transition_freqs[0]
-        to transition_freqs[-1], last item is the total relative 
-        bandpower and should always equal 1, length is equal to length 
+        to transition_freqs[-1], last item is the total relative
+        bandpower and should always equal 1, length is equal to length
         of transition_freqs
     rel_bandpower_mat : array_like
         a np array of the relative bandpower of provided bands such
@@ -232,7 +230,6 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
 
             # Median across all channels
             abs_bandpower[tf, win] = np.median(abs_power)
-
 
         rel_bandpower[:, win] = abs_bandpower[:, win] / abs_bandpower[-1, win]
 

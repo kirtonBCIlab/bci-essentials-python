@@ -1,9 +1,10 @@
 # Stock libraries
 import numpy as np
 
-class Generic_classifier():
-    """ Parent classifier class """
-    
+
+class Generic_classifier:
+    """Parent classifier class"""
+
     def __init__(self, training_selection=0, subset=[]):
         print("initializing the classifier")
         self.X = np.ndarray([0])
@@ -57,7 +58,7 @@ class Generic_classifier():
             # Or channel labels
             if type(self.subset[0]) == str:
                 print("Using channel labels and subset labels")
-                
+
                 # Replace indices with those described by labels
                 for sl in self.subset:
                     subset_indices.append(self.channel_labels.index(sl))
@@ -67,22 +68,21 @@ class Generic_classifier():
                 # nwindows, nchannels, nsamples = self.X.shape
 
                 if X == []:
-                    new_X = self.X[:,subset_indices,:]
+                    new_X = self.X[:, subset_indices, :]
                     self.X = new_X
                 else:
-                    new_X = X[:,subset_indices,:]
+                    new_X = X[:, subset_indices, :]
                     X = new_X
                     return X
-
 
             except:
                 # nchannels, nsamples = self.X.shape
                 if X == []:
-                    new_X = self.X[subset_indices,:]
+                    new_X = self.X[subset_indices, :]
                     self.X = new_X
 
                 else:
-                    new_X = X[subset_indices,:]
+                    new_X = X[subset_indices, :]
                     X = new_X
                     return X
 
@@ -91,36 +91,44 @@ class Generic_classifier():
             print("something went wrong, no subset taken")
             return X
 
-    def setup_channel_selection(self, method = "SBS", metric="accuracy", initial_channels = [],             # wrapper setup
-                                max_time= 999, min_channels=1, max_channels=999, performance_delta= 0.001,  # stopping criterion
-                                n_jobs=1, print_output="silent"):                                                                  # njobs
+    def setup_channel_selection(
+        self,
+        method="SBS",
+        metric="accuracy",
+        initial_channels=[],  # wrapper setup
+        max_time=999,
+        min_channels=1,
+        max_channels=999,
+        performance_delta=0.001,  # stopping criterion
+        n_jobs=1,
+        print_output="silent",
+    ):  # njobs
         # Add these to settings later
         if initial_channels == []:
             self.chs_initial_subset = self.channel_labels
         else:
             self.chs_initial_subset = initial_channels
-        self.chs_method = method                        # method to add/remove channels
-        self.chs_metric = metric                        # metric by which to measure performance
-        self.chs_n_jobs = n_jobs                        # number of threads
-        self.chs_max_time = max_time                    # max time in seconds
-        self.chs_min_channels = min_channels            # minimum number of channels
-        self.chs_max_channels = max_channels            # maximum number of channels
+        self.chs_method = method  # method to add/remove channels
+        self.chs_metric = metric  # metric by which to measure performance
+        self.chs_n_jobs = n_jobs  # number of threads
+        self.chs_max_time = max_time  # max time in seconds
+        self.chs_min_channels = min_channels  # minimum number of channels
+        self.chs_max_channels = max_channels  # maximum number of channels
         self.chs_performance_delta = performance_delta  # smallest performance increment to justify continuing search
-        self.chs_output = print_output                  # output setting, silent, final, or verbose
+        self.chs_output = print_output  # output setting, silent, final, or verbose
 
         self.channel_selection_setup = True
 
-
-
-    
     # add training data, to the training set using a decision block and a label
-    def add_to_train(self, decision_block, labels, num_options = 0, meta = [], print_training=True):
+    def add_to_train(
+        self, decision_block, labels, num_options=0, meta=[], print_training=True
+    ):
         if print_training:
             print("adding to training set")
         # n = number of channels
         # m = number of samples
         # p = number of epochs
-        p,n,m = decision_block.shape
+        p, n, m = decision_block.shape
 
         self.num_options = num_options
         self.meta = meta
@@ -135,17 +143,15 @@ class Generic_classifier():
 
     # predict a label based on a decision block
     def predict_decision_block(self, decision_block, print_predict=True):
-
         decision_block = self.get_subset(decision_block)
-
 
         if print_predict:
             print("making a prediction")
 
-        # get prediction probabilities for all 
+        # get prediction probabilities for all
         proba_mat = self.clf.predict_proba(decision_block)
 
-        proba = proba_mat[:,1]
+        proba = proba_mat[:, 1]
 
         relative_proba = proba / np.amax(proba)
 
@@ -163,11 +169,11 @@ class Generic_classifier():
         self.pred_probas.append(proba_mat)
 
         return prediction
-    
+
     def fit(self, **kwargs):
-        """ Abstract method to fit classifier """
+        """Abstract method to fit classifier"""
         return None
 
     def predict(self, **kwargs):
-        """ Abstract method to predict with classifier"""
+        """Abstract method to predict with classifier"""
         return None
