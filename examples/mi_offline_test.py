@@ -6,13 +6,11 @@ Test Motor Imagery (MI) classification offline using data from an existing strea
 import os
 import sys
 
+from bci_essentials.bci_data import EEG_data
+from bci_essentials.classification import MI_classifier
+
 # Add parent directory to path to access bci_essentials
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
-
-# from src.bci_data import *
-from bci_essentials.bci_data import *
-from bci_essentials.visuals import *
-from bci_essentials.classification import MI_classifier
 
 # Initialize data object
 test_mi = EEG_data()
