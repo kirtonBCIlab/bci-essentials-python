@@ -7,4 +7,5 @@ dependencies:
   - build
   - twine
   - black
+  - flake8
   - pre-commit
