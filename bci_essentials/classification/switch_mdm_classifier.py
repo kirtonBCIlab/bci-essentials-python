@@ -4,17 +4,16 @@ import sys
 import numpy as np
 from sklearn.model_selection import StratifiedKFold
 from sklearn.pipeline import Pipeline
-from sklearn.metrics import confusion_matrix, precision_score, recall_score
+
+# from sklearn.metrics import confusion_matrix, precision_score, recall_score
 from sklearn import preprocessing
 from pyriemann.classification import MDM
+
+from classification.generic_classifier import Generic_classifier
 
 # Custom libraries
 # - Append higher directory to import bci_essentials
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
-from classification.generic_classifier import Generic_classifier
-from bci_essentials.visuals import *
-from bci_essentials.signal_processing import *
-from bci_essentials.channel_selection import *
 
 
 # TODO: Missing correct implementation of this classifier
@@ -60,10 +59,10 @@ class Switch_mdm_classifier(Generic_classifier):
             X = X[:, :, :]  # Does nothing for now
 
             X_class = X[np.logical_or(y == 0, y == (i + 1)), :, :]
-            y_class = y[np.logical_or(y == 0, y == (i + 1)),]
+            y_class = y[np.logical_or(y == 0, y == (i + 1))]
 
             # Try rebuilding the classifier each time
-            if self.rebuild == True:
+            if self.rebuild:
                 self.next_fit_window = 0
                 # tf.keras.backend.clear_session()
 
@@ -91,7 +90,7 @@ class Switch_mdm_classifier(Generic_classifier):
                     # Compile the model
                     print("\nWorking on first model...")
                     self.clf0and1.compile(
-                        optimizer=Adam(learning_rate=0.001),
+                        # optimizer=Adam(learning_rate=0.001),
                         loss="sparse_categorical_crossentropy",
                         metrics=["accuracy"],
                     )
@@ -110,7 +109,7 @@ class Switch_mdm_classifier(Generic_classifier):
                     print("\nWorking on second model...")
                     # Compile the model
                     self.clf0and2.compile(
-                        optimizer=Adam(learning_rate=0.001),
+                        # optimizer=Adam(learning_rate=0.001),
                         loss="sparse_categorical_crossentropy",
                         metrics=["accuracy"],
                     )
@@ -130,6 +129,8 @@ class Switch_mdm_classifier(Generic_classifier):
             # correct = preds == self.y
             # #print(correct)
 
+            # COMMENTED OUT DUE TO INCOMPLETE IMPLEMENTATION
+            """
             self.offline_window_count = nwindows
             self.offline_window_counts.append(self.offline_window_count)
             # accuracy
@@ -149,6 +150,7 @@ class Switch_mdm_classifier(Generic_classifier):
             self.offline_cm = cm
             print("confusion matrix")
             print(cm)
+            """
 
     def predict(self, X, print_predict):
         # if X is 2D, make it 3D with one as first dimension
@@ -157,23 +159,23 @@ class Switch_mdm_classifier(Generic_classifier):
 
         print("the shape of X is", X.shape)
 
-        self.predict0and1 = Sequential(
-            [
-                Flatten(),
-                Dense(units=8, input_shape=(4,), activation="relu"),
-                Dense(units=16, activation="relu"),
-                Dense(units=3, activation="sigmoid"),
-            ]
-        )
+        # self.predict0and1 = Sequential(
+        #     [
+        #         Flatten(),
+        #         Dense(units=8, input_shape=(4,), activation="relu"),
+        #         Dense(units=16, activation="relu"),
+        #         Dense(units=3, activation="sigmoid"),
+        #     ]
+        # )
 
-        self.predict0and2 = Sequential(
-            [
-                Flatten(),
-                Dense(units=8, input_shape=(4,), activation="relu"),
-                Dense(units=16, activation="relu"),
-                Dense(units=3, activation="sigmoid"),
-            ]
-        )
+        # self.predict0and2 = Sequential(
+        #     [
+        #         Flatten(),
+        #         Dense(units=8, input_shape=(4,), activation="relu"),
+        #         Dense(units=16, activation="relu"),
+        #         Dense(units=3, activation="sigmoid"),
+        #     ]
+        # )
 
         z_dim, y_dim, x_dim = X.shape
         X_predict = X.reshape(z_dim, x_dim * y_dim)

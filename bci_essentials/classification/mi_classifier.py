@@ -12,13 +12,13 @@ from pyriemann.estimation import Covariances
 from pyriemann.classification import MDM, TSclassifier
 from pyriemann.channelselection import FlatChannelRemover, ElectrodeSelection
 
+from classification.generic_classifier import Generic_classifier
+
+from bci_essentials.channel_selection import channel_selection_by_method
+
 # Custom libraries
 # - Append higher directory to import bci_essentials
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
-from classification.generic_classifier import Generic_classifier
-from bci_essentials.visuals import *
-from bci_essentials.signal_processing import *
-from bci_essentials.channel_selection import *
 
 
 class MI_classifier(Generic_classifier):
@@ -78,10 +78,8 @@ class MI_classifier(Generic_classifier):
 
         if artifact_rejection == "potato":
             print("Potato not implemented")
-            # self.clf_model.steps.insert(0, ["Riemannian Potato", Potato()])
-            # self.clf.steps.insert(0, ["Riemannian Potato", Potato()])
 
-        if whitening == True:
+        if whitening:
             self.clf_model.steps.insert(0, ["Whitening", Whitening()])
             self.clf.steps.insert(0, ["Whitening", Whitening()])
 
@@ -109,7 +107,7 @@ class MI_classifier(Generic_classifier):
         self.X = np.array(self.X)
 
         # Try rebuilding the classifier each time
-        if self.rebuild == True:
+        if self.rebuild:
             self.next_fit_window = 0
             self.clf = self.clf_model
 
@@ -126,7 +124,8 @@ class MI_classifier(Generic_classifier):
                 self.clf = self.clf_model
 
                 X_train, X_test = subX[train_idx], subX[test_idx]
-                y_train, y_test = suby[train_idx], suby[test_idx]
+                # y_test not implemented
+                y_train = suby[train_idx]
 
                 # get the covariance matrices for the training set
                 X_train_cov = Covariances(
@@ -174,8 +173,6 @@ class MI_classifier(Generic_classifier):
                 self.chs_n_jobs,
                 self.chs_output,
             )
-            # channel_selection_by_method(mi_kernel, subX, suby, self.channel_labels, method=self.chs_method, max_time=self.chs_max_time, metric="accuracy", n_jobs=-1)
-
             print("The optimal subset is ", updated_subset)
 
             self.subset = updated_subset
@@ -221,14 +218,10 @@ class MI_classifier(Generic_classifier):
 
         X = self.get_subset(X)
 
-        # Troubleshooting
-        # X = self.X[-6:,:,:]
-
         if print_predict:
             print("the shape of X is", X.shape)
 
         X_cov = Covariances(estimator=self.covariance_estimator).transform(X)
-        # X_cov = X_cov[0,:,:]
 
         pred = self.clf.predict(X_cov)
         pred_proba = self.clf.predict_proba(X_cov)
@@ -240,17 +233,5 @@ class MI_classifier(Generic_classifier):
         for i in range(len(pred)):
             self.predictions.append(pred[i])
             self.pred_probas.append(pred_proba[i])
-
-        # add a threhold
-        # pred = (pred_proba[:] >= self.pred_threshold).astype(int) # set threshold as 0.3
-        # print(pred.shape)
-
-        # print(pred)
-        # for p in pred:
-        #     p = int(p)
-        #     print(p)
-        # print(pred)
-
-        # pred = str(pred).replace(".", ",")
 
         return pred
