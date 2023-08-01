@@ -20,8 +20,6 @@ import numpy as np
 from scipy import signal
 import random
 
-import matplotlib.pyplot as plt
-
 #
 
 # def common_average_reference(data):
@@ -53,7 +51,7 @@ def dc_reject(data):
     """
     try:
         N, M, P = np.shape(data)
-    except:
+    except Exception:
         N, M = np.shape(data)
         P = 1
 
@@ -91,7 +89,7 @@ def detrend(data):
     # detrends the windows using the numpy detrend function
     try:
         N, M, P = np.shape(data)
-    except:
+    except Exception:
         N, M = np.shape(data)
         P = 1
 
@@ -130,7 +128,7 @@ def lowpass(data, f_high, order, fsample):
     """
     try:
         N, M, P = np.shape(data)
-    except:
+    except Exception:
         N, M = np.shape(data)
         P = 1
 
@@ -192,7 +190,7 @@ def bandpass(data, f_low, f_high, order, fsample):
         new_data = np.swapaxes(np.swapaxes(new_data, 0, 2), 1, 2)
         return new_data
 
-    except:
+    except Exception:
         N, M = np.shape(data)
 
         new_data = np.ndarray(shape=(N, M), dtype=float)
@@ -235,7 +233,7 @@ def notchfilt(data, fsample, Q=30, fc=60):
             )
         return new_data
 
-    except:
+    except Exception:
         N, M = np.shape(data)
         new_data = np.ndarray(shape=(N, M), dtype=float)
         new_data = signal.filtfilt(b, a, data, axis=1, padlen=30)

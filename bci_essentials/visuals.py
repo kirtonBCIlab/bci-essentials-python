@@ -123,7 +123,6 @@ def plot_big_decision_block(
                 # plot the average of all W in bold
                 color_string = "C{}".format(int(n))
             else:
-                wmax = w - 1
                 break
 
         win_mean_bdb = np.mean(big_decision_block[d, erp_label, :, :, :], axis=0)
@@ -159,7 +158,6 @@ def plot_big_decision_block(
                 # plot the average of all W in bold
                 color_string = "C{}".format(int(n))
             else:
-                wmax = w - 1
                 break
 
         win_mean_bdb = np.mean(big_decision_block[d, non_erp_label, :, :, :], axis=0)

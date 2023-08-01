@@ -4,7 +4,7 @@ Resting State
 A module for processing resting state data.
 
 The inputs for each function are either a single window (dimensions are
-nchannels X nsamples) or a set of windows (dimensions are 
+nchannels X nsamples) or a set of windows (dimensions are
 nchannels X nsamples X nwindows)
 """
 
@@ -20,7 +20,7 @@ def get_shape(data):
     """
     try:
         W, C, S = np.shape(data)
-    except:
+    except Exception:
         C, S = np.shape(data)
         W = 1
 
@@ -114,12 +114,12 @@ def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
         f = f[ind_min:ind_max]
         Pxx = Pxx[:, ind_min:ind_max]
 
-        try:
-            median_Pxx[win, :] = np.median(Pxx, axis=0)
+        # try:
+        #     median_Pxx[win, :] = np.median(Pxx, axis=0)
 
-        except:
-            median_Pxx = np.zeros([W, len(f)])
-            median_Pxx[win, :] = np.median(Pxx, axis=0)
+        # except Exception:
+        #     median_Pxx = np.zeros([W, len(f)])
+        #     median_Pxx[win, :] = np.median(Pxx, axis=0)
 
         alpha_peak = f[np.argmax(np.median(Pxx, axis=0))]
         print("Alpha peak of window {} ".format(win), alpha_peak)
@@ -147,7 +147,7 @@ def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
 
             plt.show()
 
-    overall_alpha_peak = f[np.argmax(np.median(median_Pxx, axis=0))]
+    overall_alpha_peak = f[np.argmax(np.median(axis=0))]
     print("Overall alpha peak:", overall_alpha_peak)
 
     return overall_alpha_peak
@@ -222,7 +222,7 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
 
             # Get power for each channel
             abs_power = np.zeros([C])
-            norm_power = np.zeros([C])
+            # norm_power = np.zeros([C])
             for ch in range(C):
                 abs_power[ch] = np.trapz(
                     Pxx[ch, ind_local_min:ind_local_max], f[ind_local_min:ind_local_max]
