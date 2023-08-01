@@ -16,7 +16,7 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from pyriemann.estimation import XdawnCovariances
 from pyriemann.tangentspace import TangentSpace
 
-from classification.generic_classifier import Generic_classifier
+from bci_essentials.classification import Generic_classifier
 
 from bci_essentials.signal_processing import lico
 from bci_essentials.channel_selection import channel_selection_by_method
