@@ -6,4 +6,5 @@ dependencies:
   - liblsl
   - build
   - twine
-
+  - black
+  - pre-commit

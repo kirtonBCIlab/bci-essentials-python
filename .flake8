@@ -1,0 +1,7 @@
+[flake8]
+# Ignore errors that will be thrown by Black code formatter
+# E203, E266, E501 and W503 are pycodestyle error codes, F403 is a flake8 error code
+ignore = E203, E266, E501, W503, F403
+max-line-length = 79
+max-complexity = 18
+select = B,C,E,F,W,T4,B9
