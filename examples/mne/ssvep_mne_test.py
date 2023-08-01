@@ -4,18 +4,14 @@
 import os
 import sys
 
+# # from src.bci_data import *
+from bci_essentials.bci_data import EEG_data
+from bci_essentials.classification import ssvep_riemannian_mdm_classifier
 
 # Add parent directory to path to access bci_essentials
 sys.path.append(
     os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), os.pardir)
 )
-
-
-# # from src.bci_data import *
-from bci_essentials.bci_data import *
-
-# import
-import matplotlib.pyplot as plt
 
 # Initialize the SSVEP
 # should try to automate the reading of some of this stuff from the file header
