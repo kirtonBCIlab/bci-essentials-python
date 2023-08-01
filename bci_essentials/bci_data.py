@@ -23,9 +23,7 @@ the live streaming of LSL data. The loaded/streamed data is added to a buffer su
 pipelines are identical. Data is pre-processed (using the signal_processing module), windowed, and classified (using
 the classification module).
 
-Classes:
-EEG_data - for processing continuous data in windows of a defined length
-ERP_data - for processing P300 or other Event Related Potentials (ERP)
+Classes: EEG_data - for processing continuous data in windows of a defined length ERP_data - for processing P300 or other Event Related Potentials (ERP)
 """
 
 import sys
