@@ -37,8 +37,11 @@ def dc_reject(data):
 
     Parameters
     ----------
-    data : numpy array
-        Windows of EEG data, nwindows X nchannels X nsamples
+    data : numpy.ndarray
+        Windows of EEG data.
+        3D array containing data with `float` type.
+        
+        shape = (`N_windows`,`M_channels`,`P_samples`)
 
     Returns
     -------
@@ -74,8 +77,11 @@ def detrend(data):
 
     Parameters
     ----------
-    data : numpy array
-        Windows of EEG data, nwindows X nchannels X nsamples
+    data : numpy.ndarray
+        Windows of EEG data.
+        3D array containing data with `float` type.
+        
+        shape = (`N_windows`,`M_channels`,`P_samples`)
 
     Returns
     -------
@@ -108,8 +114,11 @@ def lowpass(data, f_high, order, fsample):
 
     Parameters
     ----------
-    data : numpy array
-        Windows of EEG data, nwindows X nchannels X nsamples
+    data : numpy.ndarray
+        Windows of EEG data.
+        3D array containing data with `float` type.
+        
+        shape = (`N_windows`,`M_channels`,`P_samples`)
     f_high : float
         Upper corner frequency.
     order : int
@@ -153,10 +162,13 @@ def bandpass(data, f_low, f_high, order, fsample):
 
     Parameters
     ----------
-    data : numpy array
-        Windows of EEG data, nwindows X nchannels X nsamples
+    data : numpy.ndarray
+        Windows of EEG data.
+        3D array containing data with `float` type.
+        
+        shape = (`N_windows`,`M_channels`,`P_samples`)
     f_low : float
-        Lower corner frequency
+        Lower corner frequency.
     f_high : float
         Upper corner frequency.
     order : int
@@ -206,20 +218,28 @@ def notchfilt(data, fsample, Q=30, fc=60):
 
     Parameters
     ----------
-    data : numpy array
-        Windows of EEG data, nwindows X nchannels X nsamples
+    data : numpy.ndarray 
+        Windows of EEG data.
+        3D array containing data with `float` type.
+        
+        shape = (`N_windows`,`M_channels`,`P_samples`)
     fsample : float
         Sampling rate of signal.
     Q : float
-        Quality factor. Dimensionless parameter that characterizes notch filter
-        -3 dB bandwidth bw relative to its center frequency, Q = w0/bw.
+        Quality factor. Dimensionless parameter that characterizes
+        notch filter -3 dB bandwidth bw relative to its 
+        center frequency, Q = w0/bw.
     fc : float
         Frequency of notch.
 
     Returns
     -------
-    new_data : numpy array
-        Windows of filtered EEG data, nwindows X nchannels X nsamples
+    new_data : numpy.ndarray
+        Windows of filtered EEG data.
+        3D array containing data with `float` type.
+        
+        shape = (`N_windows`,`M_channels`,`P_samples`)
+    
     """
 
     b, a = signal.iirnotch(fc, Q, fsample)
@@ -247,10 +267,10 @@ def lico(X, y, expansion_factor=3, sum_num=2, shuffle=False):
 
     Parameters
     ----------
-    X : numpy array
-        The file location of the spreadsheet
-    y : numpy array
-        A flag used to print the columns to the console
+    X : numpy.ndarray
+        The file location of the spreadsheet.
+    y : numpy.ndarray
+        A flag used to print the columns to the console.
     expansion_factor : int, optional
         Number of times larger to make the output set over_X
         (default is 3).
