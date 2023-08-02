@@ -42,13 +42,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: "Python black formatting"
+      - name: "Code check: format with black"
         uses: reviewdog/action-black@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           fail_on_error: true
 
-      - name: "flake8 lint"
+      - name: "Code check: lint with flake8"
         uses: reviewdog/action-flake8@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
