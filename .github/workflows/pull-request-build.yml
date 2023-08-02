@@ -47,10 +47,10 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: "Python black formatting"
-        uses: reviewdog/action-black@v3
-        with:
+        uses: rgasper/python-black-pull-request-action@master
+        env:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          fail_on_error: true
+          line_length: 88
 
       - name: "flake8 lint"
         uses: reviewdog/action-flake8@v3
