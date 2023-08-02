@@ -7,12 +7,10 @@ from sklearn.metrics import confusion_matrix, accuracy_score
 from sklearn import preprocessing
 import tensorflow as tf
 
+from classification.generic_classifier import Generic_classifier
+
 # Custom libraries
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
-from classification.generic_classifier import Generic_classifier
-from bci_essentials.visuals import *
-from bci_essentials.signal_processing import *
-from bci_essentials.channel_selection import *
 
 
 class Switch_deep_classifier(Generic_classifier):
@@ -65,6 +63,8 @@ class Switch_deep_classifier(Generic_classifier):
             self.clf: This is the classifier that will be trained and whose weights will differ. At the end of training the classifier is appended to a list
             self.clf_model: This will remain an unweighted version of the neural network and will be used to reset self.clf"""
 
+        # COMMENTED OUT DUE TO INCOMPLETE IMPLEMENTATION
+        """
         self.clf = Sequential(
             [
                 Flatten(),
@@ -82,6 +82,7 @@ class Switch_deep_classifier(Generic_classifier):
                 Dense(units=3, activation=self.activation_class),
             ]
         )
+        """
 
     def fit(self, print_fit=True, print_performance=True):
         """
@@ -130,14 +131,14 @@ class Switch_deep_classifier(Generic_classifier):
             # Changing the x array and y array so that their indicies match up and appropriate features are trained with appropraite labels
             # This is so training can be done on 0 vs 1 dataset and 0 vs 2 dataset
             X_class = X[np.logical_or(y == 0, y == (i + 1)), :, :]
-            y_class = y[np.logical_or(y == 0, y == (i + 1)),]
+            y_class = y[np.logical_or(y == 0, y == (i + 1))]
 
             X_class_train, X_class_test, y_class_train, y_class_test = train_test_split(
                 X_class, y_class, test_size=0.15, random_state=self.random_seed
             )
 
             # Try rebuilding the classifier each time
-            if self.rebuild == True:
+            if self.rebuild:
                 self.next_fit_window = 0
 
             subX = X_class_train[self.next_fit_window :, :, :]
@@ -145,7 +146,7 @@ class Switch_deep_classifier(Generic_classifier):
             self.next_fit_window = nwindows
 
             preds = np.zeros((nwindows, self.num_classes))
-            preds_multiclass = np.zeros(nwindows)
+            # preds_multiclass = np.zeros(nwindows)
 
             for train_idx, test_idx in self.cv.split(subX, suby):
                 X_train, X_test = subX[train_idx], subX[test_idx]
@@ -166,7 +167,7 @@ class Switch_deep_classifier(Generic_classifier):
 
                 # Compile the model
                 self.clf.compile(
-                    optimizer=Adam(learning_rate=0.001),
+                    # optimizer=Adam(learning_rate=0.001),
                     loss="sparse_categorical_crossentropy",
                     metrics=["accuracy"],
                 )
@@ -283,7 +284,7 @@ class Switch_deep_classifier(Generic_classifier):
             final_preds.append(temp_list)
             temp_list = []
 
-        """This will format predictions so that unity can understand them. 
+        """This will format predictions so that unity can understand them.
         However, it only works with two objects right now because of the x and y in zip"""
 
         try:
@@ -308,7 +309,7 @@ class Switch_deep_classifier(Generic_classifier):
             print(f"string_preds are: {final_string}")
 
             return final_string
-        except:
+        except Exception:
             print(
                 "Error - there are not an appropriate amount of labels (three) to complete predictions on"
             )

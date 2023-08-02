@@ -3,6 +3,7 @@ import os
 import sys
 import random
 import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.pipeline import make_pipeline
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import (
@@ -15,13 +16,14 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from pyriemann.estimation import XdawnCovariances
 from pyriemann.tangentspace import TangentSpace
 
+from bci_essentials.classification import Generic_classifier
+
+from bci_essentials.signal_processing import lico
+from bci_essentials.channel_selection import channel_selection_by_method
+
 # Custom libraries
 # - Append higher directory to import bci_essentials
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
-from classification.generic_classifier import Generic_classifier
-from bci_essentials.visuals import *
-from bci_essentials.signal_processing import *
-from bci_essentials.channel_selection import *
 
 
 class ERP_rg_classifier(Generic_classifier):
@@ -266,11 +268,11 @@ class ERP_rg_classifier(Generic_classifier):
             print("confusion matrix")
             print(cm)
 
-        if plot_cm == True:
+        if plot_cm:
             cm = confusion_matrix(self.y, preds)
             ConfusionMatrixDisplay(cm).plot()
             plt.show()
 
-        if plot_roc == True:
+        if plot_roc:
             print("plotting the ROC...")
             print("just kidding ROC has not been implemented")

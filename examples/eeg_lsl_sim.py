@@ -22,11 +22,11 @@ import datetime
 
 from pylsl import StreamInfo, StreamOutlet
 
-# Add parent directory to path to access bci_essentials
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
-
 # Import local bci_essentials
 from bci_essentials.bci_data import EEG_data
+
+# Add parent directory to path to access bci_essentials
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
 
 # Check whether to start now, or at the next even minute to sync with other programs
 start_now = False
@@ -35,7 +35,7 @@ try:
     if arg1 == "now" or arg1 == "-n":
         print("starting stream immediately")
         start_now = True
-except:
+except Exception:
     start_now = False
 
 # add the ability to loop n times, default is 1
@@ -44,7 +44,7 @@ try:
     nloops = int(sys.argv[2])
     print("repeating for ", nloops, " loops")
 
-except:
+except Exception:
     nloops = 1
 
 # Identify the file to simulate
@@ -86,7 +86,7 @@ for c in eeg_stream.channel_labels:
 # create the EEG stream
 outlet = StreamOutlet(info)
 
-if start_now == False:
+if start_now is False:
     # publish to stream at the next rounded minute
     now_time = datetime.datetime.now()
     print("Current time is ", now_time)

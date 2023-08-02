@@ -1,0 +1,11 @@
+[flake8]
+# Ignore errors that conflict with Black code formatter's opinions; E203, E266, E501, W503, F403
+# Ignore errors for ease-of-development C901, W605
+# Visit https://flake8.pycqa.org/en/latest/user/error-codes.html for more info on these error codes
+ignore = E203, E266, E501, W503, F403, C901, W605
+max-line-length = 79
+max-complexity = 18
+select = B,C,E,F,W,T4,B9
+exclude = 
+    __init__.py
+    build

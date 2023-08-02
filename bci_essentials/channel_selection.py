@@ -8,9 +8,9 @@ Inputs:
  kernel_func    - a function, the classification kernel, which does feature extraction and classification, different for MI, P300, SSVEP, etc.
  X              - training data for the classifier (np array, dimensions are nwindows X nchannels X nsamples)
  y              - training labels for the classifier (np array, dimensions are nwindow X 1)
- channel_labels - the set of channel labels corresponding to nchannels 
+ channel_labels - the set of channel labels corresponding to nchannels
  max_time       - the maximum amount of time, in seconds, that the function will search for the optimal solution
- min_nchannels  - the minimum number of channels 
+ min_nchannels  - the minimum number of channels
  metric         - the metric used to measure the "goodness" of the classifier, default is accuracy
  n_jobs         - number of threads to dedicate to this calculation
 
@@ -181,7 +181,7 @@ def sbs(
     precision = 0
     recall = 0
 
-    while stop_criterion == False:
+    while stop_criterion is False:
         sets_to_try = []
         X_to_try = []
         for c in sbs_subset:
@@ -314,7 +314,7 @@ def sbfs(
     precision = 0
     recall = 0
 
-    while stop_criterion == False:
+    while stop_criterion is False:
         # Exclusion Step
         sets_to_try = []
         X_to_try = []

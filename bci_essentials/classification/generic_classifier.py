@@ -50,13 +50,13 @@ class Generic_classifier:
             if self.subset == []:
                 return X
 
-            if type(self.subset[0]) == int:
+            if type(self.subset[0]) is int:
                 print("Using subset indices")
 
                 subset_indices = self.subset
 
             # Or channel labels
-            if type(self.subset[0]) == str:
+            if type(self.subset[0]) is str:
                 print("Using channel labels and subset labels")
 
                 # Replace indices with those described by labels
@@ -75,7 +75,7 @@ class Generic_classifier:
                     X = new_X
                     return X
 
-            except:
+            except Exception:
                 # nchannels, nsamples = self.X.shape
                 if X == []:
                     new_X = self.X[subset_indices, :]
@@ -87,7 +87,7 @@ class Generic_classifier:
                     return X
 
         # notify if failed
-        except:
+        except Exception:
             print("something went wrong, no subset taken")
             return X
 

@@ -1,15 +1,13 @@
 import sys
 import os
 
+# from src.bci_data import *
+# import bci_essntials
+from bci_essentials.bci_data import EEG_data
+from bci_essentials.classification import switch_classifier
+
 # # Add parent directory to path to access bci_essentials
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
-
-# from src.bci_data import *
-from bci_essentials.bci_data import *
-from bci_essentials.visuals import *
-
-# f = open("test.txt", 'w')
-# sys.stdout = f
 
 # Initialize data object
 test_switch = EEG_data()

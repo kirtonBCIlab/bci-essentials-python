@@ -1,14 +1,7 @@
-import sys
-import time
-import pyxdf
 import numpy as np
 import mne
-from mne.datasets import misc
-from mne.annotations import Annotations
-import matplotlib.pyplot as plt
 
-from bci_essentials.bci_data import *
-from bci_essentials.visuals import *
+from bci_essentials.bci_data import ERP_data
 
 
 # Select a file

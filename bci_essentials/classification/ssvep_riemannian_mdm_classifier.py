@@ -8,13 +8,15 @@ from sklearn.metrics import confusion_matrix, precision_score, recall_score
 from pyriemann.classification import MDM
 from pyriemann.estimation import Covariances
 
+from classification.generic_classifier import Generic_classifier
+
+# from bci_essentials.visuals import *
+from bci_essentials.signal_processing import bandpass
+from bci_essentials.channel_selection import channel_selection_by_method
+
 # Custom libraries
 # - Append higher directory to import bci_essentials
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
-from classification.generic_classifier import Generic_classifier
-from bci_essentials.visuals import *
-from bci_essentials.signal_processing import *
-from bci_essentials.channel_selection import *
 
 
 class SSVEP_riemannian_mdm_classifier(Generic_classifier):
@@ -129,14 +131,14 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
 
     def fit(self, print_fit=True, print_performance=True):
         # get dimensions
-        X = self.X
+        # X = self.X
 
         # Convert each window of X into a SPD of dimensions [nwindows, nchannels*nfreqs, nchannels*nfreqs]
         nwindows, nchannels, nsamples = self.X.shape
 
         #################
         # Try rebuilding the classifier each time
-        if self.rebuild == True:
+        if self.rebuild:
             self.next_fit_window = 0
             self.clf = self.clf_model
 
@@ -153,7 +155,8 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
                 self.clf = self.clf_model
 
                 X_train, X_test = subX[train_idx], subX[test_idx]
-                y_train, y_test = suby[train_idx], suby[test_idx]
+                y_train = suby[train_idx]
+                # y_train, y_test = suby[train_idx], suby[test_idx]
 
                 # get the covariance matrices for the training set
                 X_train_super = self.get_ssvep_supertrial(
