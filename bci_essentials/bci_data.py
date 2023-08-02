@@ -35,11 +35,11 @@ import matplotlib.pyplot as plt
 from pylsl import StreamInlet, resolve_byprop, StreamOutlet, StreamInfo
 from pylsl.pylsl import IRREGULAR_RATE
 
-from bci_essentials.bci_data_settings import *
-from bci_essentials.visuals import *
+# from bci_essentials.bci_data_settings import *
+# from bci_essentials.visuals import *
 from bci_essentials.signal_processing import notchfilt, bandpass
 
-from bci_essentials.classification import *
+# from bci_essentials.classification import *
 
 
 # EEG data
