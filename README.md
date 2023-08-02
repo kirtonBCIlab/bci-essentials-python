@@ -2,6 +2,8 @@
 This repository contains python modules and scripts for the processing of EEG-based BCI. 
 These modules are specifically designed to be equivalent whether run offline or online.
 
+This is the test
+
 
 ## Related packages
 The front end for this package can be found in [bci-essentials-unity](https://www.github.com/kirtonBCIlab/bci-essentials-unity)
