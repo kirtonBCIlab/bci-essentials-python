@@ -10,7 +10,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -37,4 +36,24 @@ jobs:
         run: |
           python -m unittest
 
+  code-checks:
+    runs-on: ${{ matrix.os }}
 
+    strategy:
+      matrix:
+        os: ["ubuntu-latest", "windows-latest", "macos-latest"]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Python black formatting
+        uses: reviewdog/action-black@v3
+        with:
+          github_token: ${{ secrets.github_token }}
+          fail_on_error: true
+
+      - name: flake8 lint
+        uses: reviewdog/action-flake8@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          fail_on_error: true
