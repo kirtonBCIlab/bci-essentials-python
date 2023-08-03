@@ -25,6 +25,7 @@ def decision_vis(decision_block, f_sample, label, channel_labels=[], ylims=(-100
     Parameters
     ----------
     decision_block : numpy.ndarray
+        A decision block of EEG data.
         3D array containing data with `float` type.
 
         shape = (`N_channels`,`M_samples`,`P_selections`)
@@ -104,6 +105,7 @@ def plot_big_decision_block(
     Parameters
     ----------
     decision_block : numpy.ndarray
+        A decision block of EEG data.
         3D array containing data with `float` type.
 
         shape = (`N_channels`,`M_samples`,`P_selections`)
@@ -225,11 +227,12 @@ def plot_big_decision_block(
 
 # Plot window
 def plot_window(window, f_sample, channel_labels=[]):
-    """Plots a window of data.
+    """Plots a window of EEG data.
 
     Parameters
     ----------
     window : numpy.ndarray
+        A window of EEG data.
         2D array containing data with `float` type.
 
         shape = (`N_channels`,`M_samples`)
