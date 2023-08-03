@@ -1,24 +1,50 @@
-# Visualization toolbox for BCI
-# Written by: Brian Irvine
-# 03/28/2022
+"""
+Visualization toolbox for BCI Essentials
 
+For windows:
+- Inputs are of the shape N x M x P, where:
+    - N = number of channels
+    - M = number of samples
+    - P = number of windows (for a single window P = 1)
+
+For decision blocks:
+- Inputs are of the shape N x M x P, where:
+    - N = number of channels
+    - M = number of samples
+    - P = number of possible selections
+
+"""
 import matplotlib.pyplot as plt
 import numpy as np
 
 
-# Visualization for P300 ERP
-def decision_vis(decision_block, f_sample, label, channel_labels=[], ylims=(-100, 100)):
-    """
-    decision_block shape in N,M,P
-        N is the number of channels
-        M is the number of samples
-        P is the number of possible selections
+def decision_vis(
+    decision_block,
+    f_sample, label,
+    channel_labels=[],
+    ylims=(-100, 100)
+):
+    """Visualization for P300 ERP.
 
-    f_sample is the sampling rate
+    Creates plots of the P300 ERP and non-ERP for each channel.
 
-    label identifies the ERP from training label
+        Parameters
+    ----------
+    decision_block : numpy.ndarray
+        3D array containing data with `float` type.
 
-    channel_labels identify the names of the channels according to 10-20 system
+        shape = (`N_channels`,`M_samples`,`P_selections`)
+    f_sample : float
+        Sampling rate of the signal.
+    label : int
+        Identifies the ERP from training label.
+    channel_labels : list of str, optional
+        Identity of the names of the channels according to 10-20 system
+        (default is [] and assigns labels based on the channel's index).
+    ylims : tuple of (int, int), optional
+        Y-axis limits for the plots
+        (default is (-100, 100)).
+
     """
     P, N, M = decision_block.shape
 
@@ -48,7 +74,8 @@ def decision_vis(decision_block, f_sample, label, channel_labels=[], ylims=(-100
     for p in range(P):
         if p == label:
             for n in range(N):
-                ax[ind].plot(t, decision_block[label, n, :], label=channel_labels[n])
+                ax[ind].plot(t, decision_block[label, n, :],
+                             label=channel_labels[n])
 
             ax[ind].legend()
             ax[ind].set_ylim(ylims)
@@ -58,7 +85,8 @@ def decision_vis(decision_block, f_sample, label, channel_labels=[], ylims=(-100
 
         else:
             for n in range(N):
-                ax[ind].plot(t, decision_block[ind, n, :], label=channel_labels[n])
+                ax[ind].plot(t, decision_block[ind, n, :],
+                             label=channel_labels[n])
 
             ax[ind].set_ylim(ylims)
             ax[ind].legend()
@@ -70,19 +98,37 @@ def decision_vis(decision_block, f_sample, label, channel_labels=[], ylims=(-100
 
 
 def plot_big_decision_block(
-    big_decision_block, f_sample, channel_labels=[], erp_targets=None, ylims=(-100, 100)
+    big_decision_block,
+    f_sample,
+    channel_labels=[],
+    erp_targets=None,
+    ylims=(-100, 100)
 ):
-    """
-    decision_block shape in N,M,P
-        N is the number of channels
-        M is the number of samples
-        P is the number of possible selections
+    """Plots the big decision block.
 
-    f_sample is the sampling rate
+    Creates plots of the P300 ERP and non-ERP big decision blocks for each
+    channel.
 
-    label identifies the ERP from training label
+    Parameters
+    ----------
+    decision_block : numpy.ndarray
+        3D array containing data with `float` type.
 
-    channel_labels identify the names of the channels according to 10-20 system
+        shape = (`N_channels`,`M_samples`,`P_selections`)
+    f_sample : float
+        Sampling rate of the signal.
+    label : int
+        Identifies the ERP from training label.
+    channel_labels : list of str, optional
+        Identity of the names of the channels according to 10-20 system.
+        (default is [] and assigns labels based on the channel's index).
+    erp_targets : list, optional
+        List of the ERP targets
+        (default is None).
+    ylims : tuple of (int, int), optional
+        Y-axis limits for the plots
+        (default is (-100, 100)).
+
     """
     D, O, W, N, M = big_decision_block.shape
 
@@ -125,7 +171,8 @@ def plot_big_decision_block(
             else:
                 break
 
-        win_mean_bdb = np.mean(big_decision_block[d, erp_label, :, :, :], axis=0)
+        win_mean_bdb = np.mean(
+            big_decision_block[d, erp_label, :, :, :], axis=0)
         for n in range(N):
             color_string = "C{}".format(int(n))
             ax[0].plot(
@@ -160,7 +207,8 @@ def plot_big_decision_block(
             else:
                 break
 
-        win_mean_bdb = np.mean(big_decision_block[d, non_erp_label, :, :, :], axis=0)
+        win_mean_bdb = np.mean(
+            big_decision_block[d, non_erp_label, :, :, :], axis=0)
         for n in range(N):
             color_string = "C{}".format(int(n))
             ax[1].plot(
@@ -183,6 +231,21 @@ def plot_big_decision_block(
 
 # Plot window
 def plot_window(window, f_sample, channel_labels=[]):
+    """Plots a window of data.
+
+    Parameters
+    ----------
+    window : numpy.ndarray
+        2D array containing data with `float` type.
+
+        shape = (`N_channels`,`M_samples`)
+    f_sample : float
+        Sampling rate of the signal.
+    channel_labels : list, optional
+        Identity of the names of the channels according to 10-20 system
+        (default is [] and assigns labels based on the channel's index).
+
+    """
     N, M = window.shape
 
     # If no channel label then assign one based on its position
