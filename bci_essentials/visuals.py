@@ -1,14 +1,13 @@
 """
 Visualization toolbox for BCI Essentials
 
-For windows:
-- Inputs are of the shape N x M x P, where:
+The EEG data inputs for each function are either windows or
+decision blocks.
+- For windows, inputs are of the shape `N x M x P`, where:
     - N = number of channels
     - M = number of samples
-    - P = number of windows (for a single window P = 1)
-
-For decision blocks:
-- Inputs are of the shape N x M x P, where:
+    - P = number of windows (for a single window `P = 1`)
+- For decision blocks, inputs are of the shape `N x M x P`, where:
     - N = number of channels
     - M = number of samples
     - P = number of possible selections
@@ -23,9 +22,10 @@ def decision_vis(decision_block, f_sample, label, channel_labels=[], ylims=(-100
 
     Creates plots of the P300 ERP and non-ERP for each channel.
 
-        Parameters
+    Parameters
     ----------
     decision_block : numpy.ndarray
+        A decision block of EEG data.
         3D array containing data with `float` type.
 
         shape = (`N_channels`,`M_samples`,`P_selections`)
@@ -33,12 +33,16 @@ def decision_vis(decision_block, f_sample, label, channel_labels=[], ylims=(-100
         Sampling rate of the signal.
     label : int
         Identifies the ERP from training label.
-    channel_labels : list of str, optional
+    channel_labels : list of `str`, *optional*
         Identity of the names of the channels according to 10-20 system
-        (default is [] and assigns labels based on the channel's index).
-    ylims : tuple of (int, int), optional
+        - Default is `[]` and assigns labels based on the channel's index.
+    ylims : tuple of `(int, int)`, *optional*
         Y-axis limits for the plots
-        (default is (-100, 100)).
+        - Default is `(-100, 100)`.
+
+    Returns
+    -------
+    `None`
 
     """
     P, N, M = decision_block.shape
@@ -101,6 +105,7 @@ def plot_big_decision_block(
     Parameters
     ----------
     decision_block : numpy.ndarray
+        A decision block of EEG data.
         3D array containing data with `float` type.
 
         shape = (`N_channels`,`M_samples`,`P_selections`)
@@ -108,15 +113,19 @@ def plot_big_decision_block(
         Sampling rate of the signal.
     label : int
         Identifies the ERP from training label.
-    channel_labels : list of str, optional
+    channel_labels : list of str, *optional*
         Identity of the names of the channels according to 10-20 system.
-        (default is [] and assigns labels based on the channel's index).
-    erp_targets : list, optional
+        - Default is `[]` and assigns labels based on the channel's index).
+    erp_targets : list, *optional*
         List of the ERP targets
-        (default is None).
-    ylims : tuple of (int, int), optional
+        - Default is `None`.
+    ylims : tuple of `(int, int)`, *optional*
         Y-axis limits for the plots
-        (default is (-100, 100)).
+        - Default is `(-100, 100)`.
+
+    Returns
+    -------
+    `None`
 
     """
     D, O, W, N, M = big_decision_block.shape
@@ -218,19 +227,24 @@ def plot_big_decision_block(
 
 # Plot window
 def plot_window(window, f_sample, channel_labels=[]):
-    """Plots a window of data.
+    """Plots a window of EEG data.
 
     Parameters
     ----------
     window : numpy.ndarray
+        A window of EEG data.
         2D array containing data with `float` type.
 
         shape = (`N_channels`,`M_samples`)
     f_sample : float
         Sampling rate of the signal.
-    channel_labels : list, optional
+    channel_labels : list, *optional*
         Identity of the names of the channels according to 10-20 system
-        (default is [] and assigns labels based on the channel's index).
+        - Default is `[]` and assigns labels based on the channel's index.
+
+    Returns
+    -------
+    `None`
 
     """
     N, M = window.shape
