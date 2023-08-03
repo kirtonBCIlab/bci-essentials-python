@@ -10,7 +10,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -37,4 +36,23 @@ jobs:
         run: |
           python -m unittest
 
+  code-checks:
+    runs-on: "ubuntu-latest"
 
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          environment-file: environment.yml
+          activate-environment: bci
+
+      - name: "Code check: Formatting with black"
+        shell: bash -el {0}
+        run: |
+          black --check .
+
+      - name: "Code check: Linting with flake8"
+        shell: bash -el {0}
+        run: |
+          flake8

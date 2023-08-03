@@ -18,12 +18,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def decision_vis(
-    decision_block,
-    f_sample, label,
-    channel_labels=[],
-    ylims=(-100, 100)
-):
+def decision_vis(decision_block, f_sample, label, channel_labels=[], ylims=(-100, 100)):
     """Visualization for P300 ERP.
 
     Creates plots of the P300 ERP and non-ERP for each channel.
@@ -74,8 +69,7 @@ def decision_vis(
     for p in range(P):
         if p == label:
             for n in range(N):
-                ax[ind].plot(t, decision_block[label, n, :],
-                             label=channel_labels[n])
+                ax[ind].plot(t, decision_block[label, n, :], label=channel_labels[n])
 
             ax[ind].legend()
             ax[ind].set_ylim(ylims)
@@ -85,8 +79,7 @@ def decision_vis(
 
         else:
             for n in range(N):
-                ax[ind].plot(t, decision_block[ind, n, :],
-                             label=channel_labels[n])
+                ax[ind].plot(t, decision_block[ind, n, :], label=channel_labels[n])
 
             ax[ind].set_ylim(ylims)
             ax[ind].legend()
@@ -98,11 +91,7 @@ def decision_vis(
 
 
 def plot_big_decision_block(
-    big_decision_block,
-    f_sample,
-    channel_labels=[],
-    erp_targets=None,
-    ylims=(-100, 100)
+    big_decision_block, f_sample, channel_labels=[], erp_targets=None, ylims=(-100, 100)
 ):
     """Plots the big decision block.
 
@@ -171,8 +160,7 @@ def plot_big_decision_block(
             else:
                 break
 
-        win_mean_bdb = np.mean(
-            big_decision_block[d, erp_label, :, :, :], axis=0)
+        win_mean_bdb = np.mean(big_decision_block[d, erp_label, :, :, :], axis=0)
         for n in range(N):
             color_string = "C{}".format(int(n))
             ax[0].plot(
@@ -207,8 +195,7 @@ def plot_big_decision_block(
             else:
                 break
 
-        win_mean_bdb = np.mean(
-            big_decision_block[d, non_erp_label, :, :, :], axis=0)
+        win_mean_bdb = np.mean(big_decision_block[d, non_erp_label, :, :, :], axis=0)
         for n in range(N):
             color_string = "C{}".format(int(n))
             ax[1].plot(
