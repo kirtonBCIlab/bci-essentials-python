@@ -1,19 +1,17 @@
 """
 Signal processing tools for processing windows OR decision blocks.
 
-For windows:
-- Inputs are N x M x P, where:
-    - N = number of windows (for a single window N = 1)
+The EEG data inputs for each function are either windows or
+decision blocks.
+- For windows, inputs are `N x M x P`, where:
+    - N = number of windows (for a single window `N = 1`)
     - M = number of channels
     - P = number of samples
-- Outputs are the same dimensions (N x M x P)
-
-For decision blocks:
-- Inputs are N x M x P, where:
+- For decision blocks, inputs are `N x M x P`, where:
     - N = number of possible selections
     - M = number of channels
     - P = number of samples
-- Outputs are the same dimensions (N x M x P)
+- Outputs are the same dimensions (`N x M x P`)
 
 """
 import numpy as np
@@ -225,12 +223,14 @@ def notchfilt(data, fsample, Q=30, fc=60):
         shape = (`N_windows`,`M_channels`,`P_samples`)
     fsample : float
         Sampling rate of signal.
-    Q : float
+    Q : float, *optional*
         Quality factor. Dimensionless parameter that characterizes
         notch filter -3 dB bandwidth bw relative to its
         center frequency, Q = w0/bw.
-    fc : float
+        - Default is `30`.
+    fc : float, *optional*
         Frequency of notch.
+        - Default is `60`.
 
     Returns
     -------
@@ -271,12 +271,12 @@ def lico(X, y, expansion_factor=3, sum_num=2, shuffle=False):
         The file location of the spreadsheet.
     y : numpy.ndarray
         A flag used to print the columns to the console.
-    expansion_factor : int, optional
+    expansion_factor : int, *optional*
         Number of times larger to make the output set over_X
-        (default is 3).
-    sum_num : int, optional
+        - Default is `3`.
+    sum_num : int, *optional*
         Number of signals to be summed together
-        (default is 2).
+        - Default is `2`.
 
     Returns
     -------
