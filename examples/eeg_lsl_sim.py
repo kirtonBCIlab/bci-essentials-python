@@ -31,10 +31,10 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pard
 # Check whether to start now, or at the next even minute to sync with other programs
 start_now = False
 try:
-    arg1 = sys.argv[1]
-    if arg1 == "now" or arg1 == "-n":
-        print("starting stream immediately")
-        start_now = True
+arg1 = sys.argv[1]
+if arg1 == "now" or arg1 == "-n":
+print("starting stream immediately")
+start_now = True
 except Exception:
     start_now = False
 
