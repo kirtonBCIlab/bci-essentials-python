@@ -47,12 +47,12 @@ jobs:
           environment-file: environment.yml
           activate-environment: bci
 
-      - name: "Install dependencies"
+      - name: "Code check: Formatting with black"
         shell: bash -el {0}
         run: |
           black --check .
 
-      - name: "Install dependencies"
+      - name: "Code check: Linting with flake8"
         shell: bash -el {0}
         run: |
           flake8
