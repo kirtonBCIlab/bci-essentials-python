@@ -42,14 +42,17 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: "Code check: format with black"
-        uses: reviewdog/action-black@v3
+      - uses: conda-incubator/setup-miniconda@v2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          fail_on_error: true
+          environment-file: environment.yml
+          activate-environment: bci
 
-      - name: "Code check: lint with flake8"
-        uses: reviewdog/action-flake8@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          fail_on_error: true
+      - name: "Install dependencies"
+        shell: bash -el {0}
+        run: |
+          black --check .
+
+      - name: "Install dependencies"
+        shell: bash -el {0}
+        run: |
+          flake8
