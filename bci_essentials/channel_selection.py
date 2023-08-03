@@ -1,27 +1,12 @@
 """
-Channel Selection
+This module includes functions for selecting channels in order to
+improve BCI performance.
 
-This module includes functions for selecting channels in order to improve BCI performance.
-
-
-Inputs:
- kernel_func    - a function, the classification kernel, which does feature extraction and classification, different for MI, P300, SSVEP, etc.
- X              - training data for the classifier (np array, dimensions are nwindows X nchannels X nsamples)
- y              - training labels for the classifier (np array, dimensions are nwindow X 1)
- channel_labels - the set of channel labels corresponding to nchannels
- max_time       - the maximum amount of time, in seconds, that the function will search for the optimal solution
- min_nchannels  - the minimum number of channels
- metric         - the metric used to measure the "goodness" of the classifier, default is accuracy
- n_jobs         - number of threads to dedicate to this calculation
-
- Outputs:
- new_channel_subset     - the new best channel set
- model                  - the trained model
- preds                  - the predictions from the model, same shape as y
- accuracy               - classifier accuracy
- precision              - classifier precision
- recall                 - classifier recall
-
+The EEG data input for each function is a set of windows. The data must
+be of the shape `W x C x S`, where:
+- W = number of windows
+- C = number of channels
+- S = number of samples
 
 """
 from joblib import Parallel, delayed
@@ -43,26 +28,79 @@ def channel_selection_by_method(
     performance_delta=0.001,
     n_jobs=1,
     print_output="silent",
-):  # njobs
-    """
-    Passes the BCI kernel function into a wrapper defined by method.
+):
+    """Passes the BCI kernel function into a wrapper defined by `method`.
 
-    kernel_func         - the kernel to be wrapped
-    X                   - training data (nwindows X nchannels X nsamples)
-    y                   - training labels (nwindows X 1)
-    channel_labels      - channel labels, in a list of strings (nchannels X 1)
+    Parameters
+    ----------
+    kernel_func : function
+        The classification kernel function which does feature extraction
+        and classification.
+        Different functions  are used for MI, P300, SSVEP, etc.
+    X : numpy.ndarray
+        Training data for the classifier as windows of EEG data.
+        3D array containing data with `float` type.
 
-    method              - the wrapper method (ex. SBS, SFS, SFFS, SBFS)
-    metric              - the method by which performance is measured, default is "accuracy"
-    initial_channels    - initial guess of channels defaults to empty/full set for forward/backwardselections, respectively
+        shape = (`W_windows`,`C_channels`,`S_samples`)
+    y : numpy.ndarray
+        Training labels for the classifier.
+        1D array.
 
-    max_time            - max time for the algorithm to search
-    min_channels        - min channels, default is 1
-    max_channels        - max channels, default is nchannels
-    performance_delta   - performance delta, under which the algorithm is considered to be close enough to optimal, default is 0.001
+        shape = (`nwindows`)
+    channel_labels : list of `str`
+        The set of channel labels corresponding to `C_channels`.
+        A list of strings with length = `C_channels`.
+    method = str, *optional*
+        The wrapper method. Options are `"SBS"` or `"SBFS"`.
+        - Default is `"SBS"`.
+    metric : str, *optional*
+        The metric used to measure the "goodness" of the trained classifier.
+        - Default is `"accuracy"`.
+    initial_channels : list of `str`, *optional*
+        Initial guess of channels.
+        - Defaults is `[]`. Assigns an empty set for forward selections,
+        and a full set for backward selections.
+    max_time : int, *optional*
+        The maxiumum amount of time, in seconds, that the function will
+        search for the optimal solution.
+        - Default is `999` seconds.
+    min_channels : int, *optional*
+        The minimum number of channels.
+        - Default is `1`.
+    max_channels : int, *optional*
+        The maximum number of channels.
+        - Default is `999`.
+    performance_delta : float, *optional*
+        The performance delta under which the algorithm is considered to
+        be close enough to optimal.
+        - Default is `0.001`.
+    n_jobs : int, *optional*
+        The number of threads to dedicate to this calculation.
+        - Default is `1`.
+    print_output : str, *optional*
+        Flag on whether or not to print output. Options are:
+        - `"verbose"`: Print output at each step.
+        - `"final"`: Print output at the end.
+        - `"silent"`: No output.
+        - Default is `"silent"`.
 
-    Returns:
-    updated_subset, self.clf, preds, accuracy, precision, recall
+    Returns
+    -------
+    new_channel_subset : list of `str`
+        The new best channel subset from the list of `channel_labels`.
+    self.clf : classifier
+        The trained classification model.
+    preds : numpy.ndarray
+        The predictions from the model.
+        1D array with the same shape as `y`.
+
+        shape = (`nwindows`)
+    accuracy : float
+        The accuracy of the trained classification model.
+    precision : float
+        The precision of the trained classification model.
+    recall : float
+        The recall of the trained classification model.
 
     """
 
@@ -125,6 +163,37 @@ def check_stopping_criterion(
     performance_delta,
     print_output=True,
 ):
+    """Function to check if a stopping criterion has been met.
+
+    Parameters
+    ----------
+    current_time : float
+        The time elapsed since the start of the channel selection method.
+    nchannels : int
+        The number of channels in the current iteration of the new best channel
+        subset (`len(new_channel_subset)`).
+    current_performance_delta : float
+        The performance delta between the current iteration and the previous.
+    max_time : int
+        The maxiumum amount of time, in seconds, that the function will
+        search for the optimal solution.
+    min_channels : int
+        The minimum number of channels.
+    max_channels : int
+        The maximum number of channels.
+    performance_delta : float
+        The performance delta under which the algorithm is considered to
+        be close enough to optimal.
+    print_output : str, *optional*
+        Flag on whether or not to print output.
+        - Default is `True`.
+
+    Returns
+    -------
+    *bool*
+        Has stopping criterion been met (`True`) or not (`False`).
+
+    """
     if current_time > max_time:
         if print_output == "verbose" or print_output == "final":
             print("Stopping based on time")
@@ -163,6 +232,69 @@ def sbs(
     n_jobs,
     print_output,
 ):
+    """The SBS method for channel selection.
+
+    Parameters
+    ----------
+    kernel_func : function
+        The classification kernel function which does feature extraction
+        and classification.
+        Different functions  are used for MI, P300, SSVEP, etc.
+    X : numpy.ndarray
+        Training data for the classifier as windows of EEG data.
+        3D array containing data with `float` type.
+
+        shape = (`W_windows`,`C_channels`,`S_samples`)
+    y : numpy.ndarray
+        Training labels for the classifier.
+        1D array.
+
+        shape = (`nwindows`)
+    channel_labels: list of `str`
+        The set of channel labels corresponding to `C_channels`.
+        A list of strings with length = `C_channels`.
+    metric : str
+        The metric used to measure the "goodness" of the trained classifier.
+    initial_channels : list of `str`
+        Initial guess of channels.
+    max_time : int
+        The maxiumum amount of time, in seconds, that the function will
+        search for the optimal solution.
+    min_channels : int
+        The minimum number of channels.
+    max_channels : int
+        The maximum number of channels.
+    performance_delta : float
+        The performance delta under which the algorithm is considered to
+        be close enough to optimal.
+    n_jobs : int
+        The number of threads to dedicate to this calculation.
+    print_output : str
+        Flag on whether or not to print output. Options are:
+        - `"verbose"`: Print output at each step.
+        - `"final"`: Print output at the end.
+        - `"silent"`: No output.
+
+    Returns
+    -------
+    new_channel_subset : list of `str`
+        The new best channel subset from the list of `channel_labels`.
+    self.clf : classifier
+        The trained classification model.
+    preds : numpy.ndarray
+        The predictions from the model.
+        1D array with the same shape as `y`.
+
+        shape = (`nwindows`)
+    accuracy : float
+        The accuracy of the trained classification model.
+    precision : float
+        The precision of the trained classification model.
+    recall : float
+        The recall of the trained classification model.
+
+
+    """
     start_time = time.time()
 
     nwindows, nchannels, nsamples = X.shape
@@ -289,6 +421,69 @@ def sbfs(
     n_jobs,
     print_output,
 ):
+    """The SBFS method for channel selection.
+
+    Parameters
+    ----------
+    kernel_func : function
+        The classification kernel function which does feature extraction
+        and classification.
+        Different functions  are used for MI, P300, SSVEP, etc.
+    X : numpy.ndarray
+        Training data for the classifier as windows of EEG data.
+        3D array containing data with `float` type.
+
+        shape = (`W_windows`,`C_channels`,`S_samples`)
+    y : numpy.ndarray
+        Training labels for the classifier.
+        1D array.
+
+        shape = (`nwindows`)
+    channel_labels: list of `str`
+        The set of channel labels corresponding to `C_channels`.
+        A list of strings with length = `C_channels`.
+    metric : str
+        The metric used to measure the "goodness" of the trained classifier.
+    initial_channels : list of `str`
+        Initial guess of channels.
+    max_time : int
+        The maxiumum amount of time, in seconds, that the function will
+        search for the optimal solution.
+    min_channels : int
+        The minimum number of channels.
+    max_channels : int
+        The maximum number of channels.
+    performance_delta : float
+        The performance delta under which the algorithm is considered to
+        be close enough to optimal.
+    n_jobs : int
+        The number of threads to dedicate to this calculation.
+    print_output : str
+        Flag on whether or not to print output. Options are:
+        - `"verbose"`: Print output at each step.
+        - `"final"`: Print output at the end.
+        - `"silent"`: No output.
+
+    Returns
+    -------
+    new_channel_subset : list of `str`
+        The new best channel subset from the list of `channel_labels`.
+    self.clf : classifier
+        The trained classification model.
+    preds : numpy.ndarray
+        The predictions from the model.
+        1D array with the same shape as `y`.
+
+        shape = (`nwindows`)
+    accuracy : float
+        The accuracy of the trained classification model.
+    precision : float
+        The precision of the trained classification model.
+    recall : float
+        The recall of the trained classification model.
+
+
+    """
     if len(initial_channels) <= min_channels:
         initial_channels = channel_labels
 
