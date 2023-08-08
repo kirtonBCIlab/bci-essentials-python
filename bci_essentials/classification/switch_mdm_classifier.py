@@ -1,3 +1,16 @@
+"""
+**Switch MDM Classifier **
+
+This is a switch_classifier.
+- This means that classification occurs between neutral and one other
+label (i.e. Binary classification).
+- The produced probabilities between labels are then compared for one
+final classification.
+
+**`ToDo`: Missing correct implementation of this classifier**'
+
+"""
+
 # Stock libraries
 import os
 import sys
@@ -18,6 +31,8 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pard
 
 # TODO: Missing correct implementation of this classifier
 class Switch_mdm_classifier(Generic_classifier):
+    """Switch MDM Classifier class (*inherits from Generic_classifier*)."""
+
     def set_switch_classifier_mdm_settings(
         self,
         n_splits=2,
@@ -27,6 +42,34 @@ class Switch_mdm_classifier(Generic_classifier):
         activation_main="relu",
         activation_class="sigmoid",
     ):
+        """Set the Switch Classifier MDM settings.
+
+        Parameters
+        ----------
+        n_splits : int, *optional*
+            Number of folds for cross-validation.
+            - Default is `2`.
+        rebuild : bool, *optional*
+            Rebuild the classifier each time. *More description needed*.
+            - Default is `True`.
+        random_seed : int, *optional*
+            Random seed.
+            - Default is `42`.
+        n_jobs : int, *optional*
+            The number of threads to dedicate to this calculation.
+        activation_main : str, *optional*
+            Activation function for hidden layers.
+            - Default is `relu`.
+        activation_class : str, *optional*
+            Activation function for the output layer.
+            - Default is `sigmoid`.
+
+        Returns
+        -------
+        `None`
+            Models created are used in `fit()`.
+
+        """
         self.n_splits = n_splits
         self.cv = StratifiedKFold(
             n_splits=n_splits, shuffle=True, random_state=random_seed
@@ -39,6 +82,23 @@ class Switch_mdm_classifier(Generic_classifier):
         # self.clf0and1 = MDM()
 
     def fit(self, print_fit=True, print_performance=True):
+        """Fit the model.
+
+        Parameters
+        ----------
+        print_fit : bool, *optional*
+            Description of parameter `print_fit`.
+            - Default is `True`.
+        print_performance : bool, *optional*
+            Description of parameter `print_performance`.
+            - Default is `True`.
+
+        Returns
+        -------
+        `None`
+            Models created used in `predict()`.
+
+        """
         # get dimensions
         nwindows, nchannels, nsamples = self.X.shape
 
@@ -153,6 +213,27 @@ class Switch_mdm_classifier(Generic_classifier):
             """
 
     def predict(self, X, print_predict):
+        """Predict the class labels for the provided data.
+
+        Parameters
+        ----------
+        X : numpy.ndarray
+            Description of parameter `X`.
+            If array, state size and type. E.g.
+            3D array containing data with `float` type.
+
+            shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
+        print_predict : bool
+            Description of parameter `print_predict`.
+
+        Returns
+        -------
+        final_predictions : numpy.ndarray
+            The predicted class labels.
+
+            shape = (`1st_dimension`,)
+
+        """
         # if X is 2D, make it 3D with one as first dimension
         if len(X.shape) < 3:
             X = X[np.newaxis, ...]

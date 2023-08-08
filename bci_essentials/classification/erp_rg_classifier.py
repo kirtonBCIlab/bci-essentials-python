@@ -1,3 +1,11 @@
+"""
+**ERP RG Classifier**
+
+This classifier is used to classify ERPs using the Riemannian Geometry
+approach.
+
+"""
+
 # Stock libraries
 import os
 import sys
@@ -27,6 +35,8 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pard
 
 
 class ERP_rg_classifier(Generic_classifier):
+    """ERP RG Classifier class (*inherits from `Generic_classifier`*)."""
+
     def set_p300_clf_settings(
         self,
         n_splits=3,  # number of folds for cross-validation
@@ -36,6 +46,38 @@ class ERP_rg_classifier(Generic_classifier):
         random_seed=42,  # random seed
         covariance_estimator="scm",  # Covarianc estimator, see pyriemann Covariances
     ):
+        """Set P300 Classifier Settings.
+
+        Parameters
+        ----------
+        n_splits : int, *optional*
+            Number of folds for cross-validation.
+            - Default is `3`.
+        lico_expansion_factor : int, *optional*
+            Linear Combination Oversampling expansion factor, which is the
+            factor by which the number of ERPs in the training set will be
+            expanded.
+            - Default is `1`.
+        oversample_ratio : float, *optional*
+            Traditional oversampling. Range is from from 0.1-1 resulting
+            from the ratio of erp to non-erp class. 0 for no oversampling.
+            - Default is `0`.
+        undersample_ratio : float, *optional*
+            Traditional undersampling. Range is from from 0.1-1 resulting
+            from the ratio of erp to non-erp class. 0 for no undersampling.
+            - Default is `0`.
+        random_seed : int, *optional*
+            Random seed.
+            - Default is `42`.
+        covariance_estimator : str, *optional*
+            Covariance estimator. See pyriemann Covariances.
+            - Default is `"scm"`.
+
+        Returns
+        -------
+        `None`
+
+        """
         self.n_splits = n_splits
         self.lico_expansion_factor = lico_expansion_factor
         self.oversample_ratio = oversample_ratio
@@ -44,6 +86,27 @@ class ERP_rg_classifier(Generic_classifier):
         self.covariance_estimator = covariance_estimator
 
     def add_to_train(self, decision_block, label_idx, print_training=True):
+        """Add to training set.
+
+        Parameters
+        ----------
+        decision_block : numpy.ndarray
+            Description of parameter `decision block`.
+            If array, state size and type. E.g.
+            3D array containing data with `float` type.
+
+            shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
+        label_idx : type
+            Description of parameter `label_idx`.
+        print_training : bool, *optional*
+            Description of parameter `print_training`.
+            - Default is `True`.
+
+        Returns
+        -------
+        `None`
+
+        """
         if print_training:
             print("adding to training set")
         # n = number of channels
@@ -79,6 +142,35 @@ class ERP_rg_classifier(Generic_classifier):
         print_fit=True,
         print_performance=True,
     ):
+        """Fit the model.
+
+        Parameters
+        ----------
+        n_splits : int, *optional*
+            Description of parameter `n_splits`.
+            - Default is `2`.
+        plot_cm : bool, *optional*
+            Description of parameter `plot_cm`.
+            - Default is `False`.
+        plot_roc : bool, *optional*
+            Description of parameter `plot_roc`.
+            - Default is `False`.
+        lico_expansion_factor : int, *optional*
+            Description of parameter `lico_expansion_factor`.
+            - Default is `1`.
+        print_fit : bool, *optional*
+            Description of parameter `print_fit`.
+            - Default is `True`.
+        print_performance : bool, *optional*
+            Description of parameter `print_performance`.
+            - Default is `True`.
+
+        Returns
+        -------
+        `None`
+            Models created used in `predict()`.
+
+        """
         if print_fit:
             print("Fitting the model using RG")
             print(self.X.shape, self.y.shape)
@@ -100,6 +192,38 @@ class ERP_rg_classifier(Generic_classifier):
 
         #
         def erp_rg_kernel(X, y):
+            """ERP RG kernel.
+
+            Parameters
+            ----------
+            X : numpy.ndarray
+                Description of parameter `X`.
+                If array, state size and type. E.g.
+                3D array containing data with `float` type.
+
+                shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
+            y : numpy.ndarray
+                Description of parameter `y`.
+                If array, state size and type. E.g.
+                1D array containing data with `int` type.
+
+                shape = (`1st_dimension`,)
+
+            Returns
+            -------
+            model : classifier
+                The trained classification model.
+            preds : numpy.ndarray
+                The predictions from the model.
+                1D array with the same shape as `y`.
+            accuracy : float
+                The accuracy of the trained classification model.
+            precision : float
+                The precision of the trained classification model.
+            recall : float
+                The recall of the trained classification model.
+
+            """
             for train_idx, test_idx in cv.split(X, y):
                 y_train, y_test = y[train_idx], y[test_idx]
 

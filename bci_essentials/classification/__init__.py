@@ -1,8 +1,9 @@
 """
-    Classifiers
-    -----------
-        Compendium of classifiers for BCI applications.
-        **Excluded from flake8 rules to avoid unused import errors
+Classifiers
+-----------
+Compendium of classifiers for BCI applications.
+
+**Excluded from `flake8` rules to avoid unused import errors**
 """
 
 from .generic_classifier import Generic_classifier
