@@ -1,5 +1,4 @@
-"""
-**MI Classifier**
+"""**MI Classifier**
 
 This classifier is used to classify MI data.
 

@@ -1,5 +1,4 @@
-"""
-**SSVEP Basic Training-Free Classifier**
+"""**SSVEP Basic Training-Free Classifier**
 
 Classifies SSVEP based on relative bandpower, taking only the maximum.
 

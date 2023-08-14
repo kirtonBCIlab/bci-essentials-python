@@ -1,5 +1,4 @@
-"""
-**Switch MDM Classifier **
+"""**Switch MDM Classifier **
 
 This is a switch_classifier.
 - This means that classification occurs between neutral and one other

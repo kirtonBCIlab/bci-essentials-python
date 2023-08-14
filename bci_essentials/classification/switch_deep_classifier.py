@@ -1,5 +1,4 @@
-"""
-**Switch Deep Classifier**
+"""**Switch Deep Classifier**
 
 This is a switch_classifier using a deep neural network implemented
 in TensorFlow.

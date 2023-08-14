@@ -1,5 +1,4 @@
-"""
-**Generic classifier class for BCI Essentials**
+"""**Generic classifier class for BCI Essentials**
 
 Used as Parent classifier class for other classifiers.
 
@@ -10,51 +9,9 @@ import numpy as np
 
 
 class Generic_classifier:
-    """The base generic classifier class.
-
-    Attributes
-    ----------
-    X : numpy.ndarray
-        Description of attribute `X`.
-        If array, state size and type. E.g.
-        3D array containing data with `float` type.
-
-        shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
-    y : numpy.ndarray
-        Description of attribute `y`.
-        If array, state size and type. E.g.
-        1D array containing data with `int` type.
-
-        shape = (`1st_dimension`,)
-    subset_defined : bool
-        Description of attribute `subset_defined`.
-    subset : list of `type`
-        Description of attribute `subset`.
-    channel_labels : list of `str`
-        Description of attribute `channel_labels`.
-    channel_selection_setup : bool
-        Description of attribute `channel_selection_setup`.
-    offline_accuracy : list of `float`
-        Description of attribute `offline_accuracy`.
-    offline_precision : list of `float`
-        Description of attribute `offline_precision`.
-    offline_recall : list of `float`
-        Description of attribute `offline_recall`.
-    offline_window_count : int
-        Description of attribute `offline_window_count`.
-    offline_window_counts : list of `int`
-        Description of attribute `offline_window_counts`.
-    next_fit_window : int
-        Description of attribute `next_fit_window`.
-    predictions : list of `type`
-        Description of attribute `predictions`.
-    pred_probas : list of `float`
-        Description of attribute `pred_probas`.
-
-    """
 
     def __init__(self, training_selection=0, subset=[]):
-        """Inits Generic_classifier.
+        """Initializes `Generic_classifier` class.
 
         Parameters
         ----------
@@ -65,30 +22,97 @@ class Generic_classifier:
             Description of parameter `subset`.
             - Default is `[]`.
 
+        Attributes
+        ----------
+        X : numpy.ndarray
+            Description of attribute `X`.
+            If array, state size and type. E.g.
+            3D array containing data with `float` type.
+
+            shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
+            - Initialized to `np.ndarray([0])`.
+        y : numpy.ndarray
+            Description of attribute `y`.
+            If array, state size and type. E.g.
+            1D array containing data with `int` type.
+
+            shape = (`1st_dimension`,)
+            - Initialized to `np.ndarray([0])`.
+        subset_defined : bool
+            Description of attribute `subset_defined`.
+            - Initialized to `False`.
+        subset : list of `type`
+            Description of attribute `subset`.
+            - Initialized to parameter `subset`.
+        channel_labels : list of `str`
+            Description of attribute `channel_labels`.
+            - Initialized to `[]`.
+        channel_selection_setup : bool
+            Description of attribute `channel_selection_setup`.
+            - Initialized to `False`.
+        offline_accuracy : list of `float`
+            Description of attribute `offline_accuracy`.
+            - Initialized to `[]`.
+        offline_precision : list of `float`
+            Description of attribute `offline_precision`.
+            - Initialized to `[]`.
+        offline_recall : list of `float`
+            Description of attribute `offline_recall`.
+            - Initialized to `[]`.
+        offline_window_count : int
+            Description of attribute `offline_window_count`.
+            - Initialized to `0`.
+        offline_window_counts : list of `int`
+            Description of attribute `offline_window_counts`.
+            - Initialized to `[]`.
+        next_fit_window : int
+            Description of attribute `next_fit_window`.
+            - Initialized to `0`.
+        predictions : list of `type`
+            Description of attribute `predictions`.
+            - Initialized to `[]`.
+        pred_probas : list of `float`
+            Description of attribute `pred_probas`.
+            - Initialized to `[]`.
+
         """
         print("initializing the classifier")
         self.X = np.ndarray([0])
+        """@private (This is just for the API docs, to avoid double listing."""
         self.y = np.ndarray([0])
+        """@private (This is just for the API docs, to avoid double listing."""
 
         #
         self.subset_defined = False
+        """@private (This is just for the API docs, to avoid double listing."""
         self.subset = subset
+        """@private (This is just for the API docs, to avoid double listing."""
         self.channel_labels = []
+        """@private (This is just for the API docs, to avoid double listing."""
         self.channel_selection_setup = False
+        """@private (This is just for the API docs, to avoid double listing."""
 
         # Lists for plotting classifier performance over time
         self.offline_accuracy = []
+        """@private (This is just for the API docs, to avoid double listing."""
         self.offline_precision = []
+        """@private (This is just for the API docs, to avoid double listing."""
         self.offline_recall = []
+        """@private (This is just for the API docs, to avoid double listing."""
         self.offline_window_count = 0
+        """@private (This is just for the API docs, to avoid double listing."""
         self.offline_window_counts = []
+        """@private (This is just for the API docs, to avoid double listing."""
 
         # For iterative fitting,
         self.next_fit_window = 0
+        """@private (This is just for the API docs, to avoid double listing."""
 
         # Keep track of predictions
         self.predictions = []
+        """@private (This is just for the API docs, to avoid double listing."""
         self.pred_probas = []
+        """@private (This is just for the API docs, to avoid double listing."""
 
     def get_subset(self, X=[]):
         """Get a subset of X according to labels or indices.

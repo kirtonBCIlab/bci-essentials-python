@@ -1,5 +1,4 @@
-"""
-**ERP RG Classifier**
+"""**ERP RG Classifier**
 
 This classifier is used to classify ERPs using the Riemannian Geometry
 approach.

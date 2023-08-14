@@ -1,5 +1,4 @@
-"""
-**Null classifier**
+"""**Null classifier**
 
 No model is used.
 No fitting is done.

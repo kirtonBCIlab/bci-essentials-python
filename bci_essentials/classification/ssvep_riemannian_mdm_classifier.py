@@ -1,7 +1,8 @@
 """
 **SSVEP Riemannian MDM Classifier**
 
-Classifies SSVEP based on relative band power at the expected frequencies.
+Classifies SSVEP based on relative band power at the expected
+frequencies.
 
 """
 
