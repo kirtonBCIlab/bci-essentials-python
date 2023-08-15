@@ -1084,9 +1084,8 @@ class EEG_data:
     ):
         """Main function of `EEG_data` class.
 
-        Runs a while loop that reads in EEG data from the
-        `EEG_data` object and processes it. Can be used in `online` or
-        `offline` mode.
+        Runs a while loop that reads in EEG data from the `EEG_data` object
+        and processes it. Can be used in `online` or `offline` mode.
         - If in `online` mode, then the loop will continuously try to read
         in data from the `EEG_data` object and process it. The loop will
         terminate when `max_loops` is reached, or when manually terminated.
@@ -1617,17 +1616,28 @@ class EEG_data:
 
 # ERP Data
 class ERP_data(EEG_data):
-    """
-    Howdy
+    """Class that holds, windows, processes and classifies ERP data.
+
+    Above description needs to be verified.
+
     """
 
     def mne_export_as_raw(self):
-        """
-        MNE Export
+        """MNE export EEG as RawArray
 
-        Exports the EEG data as an epoch object
+        Exports the EEG data as a MNE RawArray object (or an epoch object?).
 
-        * Requires MNE
+        **Requires MNE**
+
+        **HAS NOT BEEN IMPLEMENTED YET.**
+
+        Returns
+        -------
+        epochs_array : mne.io.RawArray
+            MNE RawArray object.
+
+            **NOTE: NOT ACTUALLY THE CASE AT THE MOMENT**.
+            This is what the code will return once it has been implemented.
 
         """
         print("mne_export_as_raw has not been implemented yet")
@@ -1651,12 +1661,16 @@ class ERP_data(EEG_data):
         # return epochs_array
 
     def mne_export_as_epochs(self):
-        """
-        MNE Export
+        """MNE export EEG as EpochsArray.
 
-        Exports the ERP data as an epoch object
+        Exports the EEG data as a MNE EpochsArray object.
 
-        * Requires MNE
+        **Requires MNE**
+
+        Returns
+        -------
+        epochs_array : mne.EpochsArray
+            MNE EpochsArray object.
 
         """
 
@@ -1688,12 +1702,21 @@ class ERP_data(EEG_data):
         return epochs_array
 
     def mne_export_as_evoked(self):
-        """
-        MNE Export
+        """MNE Export evoked EEG data as EpochsArray.
 
-        Exports the EEG data as an epoch object
+        Exports the evoked EEG data as a MNE EpochsArray object.
 
-        * Requires MNE
+        **Requires MNE**
+
+        **HAS NOT BEEN IMPLEMENTED YET.**
+
+        Returns
+        -------
+        evoked_array : mne.EpochsArray
+            MNE EpochsArray object.
+
+            **NOTE: NOT ACTUALLY THE CASE AT THE MOMENT**.
+            This is what the code will return once it has been implemented.
 
         """
         print("mne_export_as_evoked has not yet been implemented")
@@ -1748,8 +1771,96 @@ class ERP_data(EEG_data):
         pp_order=5,  # bandpass order
         plot_erp=False,
     ):
-        """
-        Howdy
+        """Main function of `ERP_data` class.
+
+        Formats the ERP data. Call this every time that a new chunk arrives.
+
+        Runs a while loop that reads in ERP windows from the `ERP_data`
+        object and processes decision blocks. Can be used in `online` or
+        offline mode.
+        - If in `online` mode, then the loop will continuously try to read
+        in data from the `EEG_data` object and process it. The loop will
+        terminate when `max_loops` is reached, or when manually terminated.
+        - If in `offline` mode, then the loop will read in all of the data
+        at once, process it, and then terminate.
+
+        Parameters
+        ----------
+        window_start : float, *optional*
+            Start time for ERP sampling window relative to marker (seconds).
+            - Default is `0.0`.
+        window_end : float, *optional*
+            End time for ERP sampling window relative to marker (seconds).
+            - Default is `0.8`.
+        eeg_start : int, *optional*
+            Start time for EEG sampling (seconds).
+            - Default is `0`.
+        buffer : float, optional
+            Buffer time for EEG sampling in `online` mode (seconds).
+            - Default is `0.01`.
+        max_num_options : int, *optional*
+            Maximum number of stimulus options (?).
+            - Default is `64`.
+        max_windows_per_option : int, *optional*
+            Maximum number of windows to read in per stimulus option (?).
+            - Default is `50`.
+        max_windows : int, *optional*
+            Maximum number of windows to read in per loop (?).
+            - Default is `1000`.
+        max_decisions : int, *optional*
+            Maximum number of ERP decision blocks to store per loop (?).
+            - Default is `500`.
+        max_loops : int, *optional*
+            Maximum number of loops to run.
+            - Default is `1000000`.
+        training : bool, *optional*
+            Flag to indicate if the data will be used to train a classifier.
+            - `True`: The data will be used to train the classifier.
+            - `False`: The data will be used to predict with the classifier.
+            - Default is `True`.
+        online : bool, *optional*
+            Flag to indicate if the data will be processed in `online` mode.
+            - `True`: The data will be processed in `online` mode.
+            - `False`: The data will be processed in `offline` mode.
+            - Default is `True`.
+        print_markers : bool, *optional*
+            Flag to indicate if the markers will be printed to the console.
+            - Default is `True`.
+        print_training : bool, *optional*
+            Flag to indicate if the training progress will be printed to the
+            console.
+            - Default is `True`.
+        print_fit : bool, *optional*
+            Flag to indicate if the classifier fit will be printed to the
+            console.
+            - Default is `True`.
+        print_performance : bool, *optional*
+            Flag to indicate if the classifier performance will be printed
+            to the console.
+            - Default is `True`.
+        print_predict : bool, *optional*
+            Flag to indicate if the classifier predictions will be printed
+            to the console.
+            - Default is `True`.
+        pp_type : str, *optional*
+            Preprocessing method to apply to the EEG data.
+            - Default is `"bandpass"`.
+        pp_low : int, *optional*
+            Low corner frequency for bandpass filter.
+            - Default is `1`.
+        pp_high : int, *optional*
+            Upper corner frequency for bandpass filter.
+            - Default is `40`.
+        pp_order : int, *optional*
+            Order of the bandpass filter.
+            - Default is `5`.
+        plot_erp : bool, *optional*
+            - Default is `False`.
+
+        Returns
+        -------
+        `None`
+
         """
 
         unity_train = True
