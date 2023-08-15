@@ -9,6 +9,7 @@ import numpy as np
 
 
 class Generic_classifier:
+    """The base generic classifier class for other classifiers."""
 
     def __init__(self, training_selection=0, subset=[]):
         """Initializes `Generic_classifier` class.
@@ -30,50 +31,50 @@ class Generic_classifier:
             3D array containing data with `float` type.
 
             shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
-            - Initialized to `np.ndarray([0])`.
+            - Initial value is `np.ndarray([0])`.
         y : numpy.ndarray
             Description of attribute `y`.
             If array, state size and type. E.g.
             1D array containing data with `int` type.
 
             shape = (`1st_dimension`,)
-            - Initialized to `np.ndarray([0])`.
+            - Initial value is `np.ndarray([0])`.
         subset_defined : bool
             Description of attribute `subset_defined`.
-            - Initialized to `False`.
+            - Initial value is `False`.
         subset : list of `type`
             Description of attribute `subset`.
-            - Initialized to parameter `subset`.
+            - Initial value is parameter `subset`.
         channel_labels : list of `str`
             Description of attribute `channel_labels`.
-            - Initialized to `[]`.
+            - Initial value is `[]`.
         channel_selection_setup : bool
             Description of attribute `channel_selection_setup`.
-            - Initialized to `False`.
+            - Initial value is `False`.
         offline_accuracy : list of `float`
             Description of attribute `offline_accuracy`.
-            - Initialized to `[]`.
+            - Initial value is `[]`.
         offline_precision : list of `float`
             Description of attribute `offline_precision`.
-            - Initialized to `[]`.
+            - Initial value is `[]`.
         offline_recall : list of `float`
             Description of attribute `offline_recall`.
-            - Initialized to `[]`.
+            - Initial value is `[]`.
         offline_window_count : int
             Description of attribute `offline_window_count`.
-            - Initialized to `0`.
+            - Initial value is `0`.
         offline_window_counts : list of `int`
             Description of attribute `offline_window_counts`.
-            - Initialized to `[]`.
+            - Initial value is `[]`.
         next_fit_window : int
             Description of attribute `next_fit_window`.
-            - Initialized to `0`.
+            - Initial value is `0`.
         predictions : list of `type`
             Description of attribute `predictions`.
-            - Initialized to `[]`.
+            - Initial value is `[]`.
         pred_probas : list of `float`
             Description of attribute `pred_probas`.
-            - Initialized to `[]`.
+            - Initial value is `[]`.
 
         """
         print("initializing the classifier")
