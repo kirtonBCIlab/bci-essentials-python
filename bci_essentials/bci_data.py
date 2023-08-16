@@ -1,29 +1,23 @@
-# Data classes for BCI
-# Written by Brian Irvine on 08/06/2021
-# Updated by Brian Irvine on 12/01/2021
+"""Module for managing BCI data.
 
-# This library contains mdoules for the processing of EEG data for BCI applications, supported applications
-# are currently P300 ERP and SSVEP, modules are including for running online and offline in an identical fashion
+This module provides data classes for different BCI paradigms.
 
-# APPLICATIONS
-# 1. Load  offline data
-# 2. Stream online data
-# 3. Provide options for visualizing BCI data
+It includes the loading of offline data in `xdf` format
+or the live streaming of LSL data.
 
+The loaded/streamed data is added to a buffer such that offline and
+online processing pipelines are identical.
 
-# LIMITATIONS
-# 1. currently will not handle ERP sessions longer that 10000 markers in duration to avoid latency cause my dynamic sizing of numpy ndarrays,
-#   this number can be increased by changing the max_windows variable in the ERP_data class
+Data is pre-processed (using the `signal_processing` module), windowed,
+and classified (using one of the `classification` sub-modules).
 
-"""
-Module for managing BCI data
+Classes
+-------
+- `EEG_data` : For processing continuous data in windows of a defined
+length.
+- `ERP_data` : For processing P300 or other Event Related Potentials
+(ERP).
 
-This module provides data classes for different BCI paradigms. It includes the loading of offline
-data in xdf format or the live streaming of LSL data.
-The loaded/streamed data is added to a buffer such that offline and online processing pipelines are identical.
-Data is pre-processed (using the signal_processing module), windowed, and classified (using the classification module).
-
-Classes: EEG_data - for processing continuous data in windows of a defined length ERP_data - for processing P300 or other Event Related Potentials (ERP)
 """
 
 import sys
@@ -44,13 +38,39 @@ from bci_essentials.signal_processing import notchfilt, bandpass
 
 # EEG data
 class EEG_data:
-    """
-    Class that holds, windows, processes, and classifies EEG data
+    """Class that holds, windows, processes, and classifies EEG data.
+
+    This class is used for the processing of continuous EEG data in
+    windows of a defined length.
+
+    It includes the loading of offline data in `xdf` format.
+
     """
 
     def __init__(self):
-        """
-        Howdy
+        """Initializes `EEG_data` class.
+
+        Attributes
+        ----------
+        explict_settings : bool
+            Description of attribute `explict_settings`.
+            - Initial value is `False`.
+        classifier_defined : bool
+            Description of attribute `classifier_defined`.
+            - Initial value is `False`.
+        stream_outlet : bool
+            Description of attribute `stream_outlet`.
+            - Initial value is `False`.
+        ping_count : bool
+            Description of attribute `ping_count`.
+            - Initial value is `0`.
+        ping_interval : bool
+            Description of attribute `ping_interval`.
+            - Initial value is `5`.
+        resting_state_exists : bool
+            Description of attribute `resting_state_exists`.
+            - Initial value is `False`.
+
         """
         self.explicit_settings = False
         self.classifier_defined = False
@@ -71,8 +91,35 @@ class EEG_data:
         fsample=256,
         max_size=10000,
     ):
-        """
-        Change the settings for
+        """Explicit definition of settings.
+
+        Change the settings for (...?)
+
+        "not recommended."
+
+        Parameters
+        ----------
+        user_id : str, *optional*
+            The user ID.
+            - Default is `"0000"`.
+        nchannels : int, *optional*
+            The number of channels.
+            - Default is `8`.
+        channel_labels : list of `str`, *optional*
+            The channel labels.
+            - Default is `["?", "?", "?", "?", "?", "?", "?", "?"]`.
+        fsample : int, *optional*
+            The sampling rate.
+            - Default is `256`.
+        max_size : int, *optional*
+            Description of parameter `max_size`.
+            - Default is `10000`.
+
+        Returns
+        -------
+        `None`
+            `self.explicit_settings` is set to `True`.
+
         """
         self.user_id = user_id  # user id
         self.nchannels = nchannels  # number of channels
@@ -92,10 +139,29 @@ class EEG_data:
     def load_offline_eeg_data(
         self, filename, format="xdf", subset=[], print_output=True
     ):
-        """
-        Loads offline data from a file
+        """Loads offline data from a file.
 
         Currently only supports .xdf
+
+        Parameters
+        ----------
+        filename : str
+            The filename.
+        format : str, *optional*
+            The file format.
+            - Default is `"xdf"`.
+        subset : list of `int`, *optional*
+            Description of parameter `subset`.
+            - Default is `[]`.
+        print_output : bool, *optional*
+            Output is printed if `True`.
+            - Default is `True`.
+
+        Returns
+        -------
+        `None`
+            `self` is updated.
+
         """
         self.subset = subset
 
@@ -152,15 +218,19 @@ class EEG_data:
 
     # Get metadata saved to the offline data file to fill in headset information
     def get_info_from_file(self, data, print_output=True):
-        """
-        Get EEG metadata from the stream
+        """Get EEG metadata from the stream.
 
-        Parameters:
-        self    -   bci_data instance
-        data    -   data object from the LSL stream
+        Parameters
+        ----------
+        data : pylsl.StreamInlet - need to verify
+            Data object from the LSL stream.
+        print_output : bool, *optional*
+            Output is printed if `True`.
+            - Default is `True`.
 
         Returns:
-        self    -   bci_data instance
+        `None`
+            `self` is updated.
 
         """
 
@@ -280,8 +350,31 @@ class EEG_data:
         eeg_only=False,
         subset=[],
     ):
-        """
-        Howdy
+        """Stream data from an online source.
+
+        Parameters
+        ----------
+        timeout : int, *optional*
+            Description of parameter `timeout`.
+            Default is `5`.
+        max_eeg_samples : int, *optional*
+            Description of parameter `max_eeg_samples`.
+            - Default is `1000000`.
+        max_marker_samples : int, *optional*
+            Description of parameter `max_marker_samples`.
+            - Default is `100000`.
+        eeg_only : bool, *optional*
+            Description of parameter `eeg_only`.
+            - Default is `False`.
+        subset : list of `int`, *optional*
+            Description of parameter `subset`.
+            - Default is `[]`.
+
+        Returns
+        -------
+        `None`
+            `self` is updated.
+
         """
         self.subset = subset
 
@@ -345,8 +438,12 @@ class EEG_data:
 
     # Get headset data from stream
     def get_info_from_stream(self):
-        """
-        Howdy
+        """Get headset data from stream.
+
+        Returns
+        -------
+        `None`
+            `self` is updated.
         """
         # get info obect from stream
         eeg_info = self.eeg_inlet.info()
@@ -436,8 +533,29 @@ class EEG_data:
     def pull_data_from_stream(
         self, include_markers=True, include_eeg=True, return_eeg=False
     ):
-        """
-        Howdy
+        """Get new data from stream.
+
+        Parameters
+        ----------
+        include_markers : bool, *optional*
+            Whether to include marker data in the pull.
+            - Default is `True`.
+        include_eeg : bool, *optional*
+            Whether to include EEG data in the pull.
+            - Default is `True`.
+        return_eeg : bool, *optional*
+            Whether to return EEG data.
+            - Default is `False`.
+
+        Returns
+        -------
+        new_eeg_timestamps : list of `float`
+            Timestamps of new EEG data.
+            Only returns if `return_eeg` is `True`.
+        new_eeg_data : pylsl.StreamInlet - need to verify
+            Data object from the LSL stream.
+            Only returns if `return_eeg` is `True`.
+
         """
         # Pull chunks of new data
         if include_markers:
@@ -525,22 +643,37 @@ class EEG_data:
             return new_eeg_timestamps, new_eeg_data
 
     def save_data(self, directory_name):
-        """
-        Save the data from different stages
+        """Save the data from different stages.
 
-        Creates a directory with x files
-        data_pickle - includes raw EEG, markers, processed EEG, features
+        Creates a directory with x files. Includes raw EEG, markers,
+        processed EEG, features.
 
+        **NOT IMPLEMENTED YET**
+
+        Parameters
+        ----------
+        directory_name : str
+            Name of the directory to save the data to.
+
+        Returns
+        -------
+        data_pickle : pickle
+            Saves the data as a pickle file. Includes raw EEG, markers,
+            processed EEG, features.
 
         """
 
     def mne_export_as_raw(self):
-        """
-        MNE Export
+        """MNE export EEG as RawArray.
 
-        Exports the EEG data as an epoch object
+        Exports the EEG data as a MNE RawArray object.
 
-        * Requires MNE
+        **Requires MNE**
+
+        Returns
+        -------
+        raw_array : mne.io.RawArray
+            MNE RawArray object.
 
         """
         print("mne_export_as_raw has not been implemented yet")
@@ -567,15 +700,18 @@ class EEG_data:
         return raw_array
 
     def mne_export_as_epochs(self):
+        """MNE export EEG as EpochsArray.
+
+        Exports the EEG data as a MNE EpochsArray object.
+
+        **Requires MNE**
+
+        Returns
+        -------
+        epochs_array : mne.EpochsArray
+            MNE EpochsArray object.
+
         """
-        MNE Export
-
-        Exports the EEG data as an epoch object
-
-        * Requires MNE
-
-        """
-
         # Check for mne
         try:
             import mne
@@ -604,12 +740,16 @@ class EEG_data:
         return epochs_array
 
     def mne_export_resting_state_as_raw(self):
-        """
-        MNE Export
+        """MNE export resting state EEG as RawArray.
 
-        Exports the EEG data as an epoch object
+        Exports the resting state EEG data as a MNE RawArray object.
 
-        * Requires MNE
+        **Requires MNE**
+
+        Returns
+        -------
+        raw_array : mne.io.RawArray
+            MNE RawArray object.
 
         """
         print("mne_export_as_raw has not been implemented yet")
@@ -647,8 +787,44 @@ class EEG_data:
     # SIGNAL PROCESSING
     # Preprocessing goes here (windows are nchannels by nsamples)
     def preprocessing(self, window, option=None, order=5, fc=60, fl=10, fh=50):
-        """
-        Howdy
+        """Signal preprocessing.
+
+        Preprocesses the signal using one of the methods from the
+        `signal_processing.py` module.
+
+        Parameters
+        ----------
+        window : numpy.ndarray
+            Window of EEG data.
+            2D array containing data with `float` type.
+
+            shape = (`N_channels`,`N_samples`)
+        option : str, *optional*
+            Preprocessing option. Options include:
+            - `"notch"` : Notch filter
+            - `"bandpass"` : Bandpass filter
+            - Default is `None`.
+        order : int, *optional*
+            Order of the Bandpass filter.
+            - Default is `5`.
+        fc : int, *optional*
+            Frequency of the notch filter.
+            - Default is `60`.
+        fl : int, *optional*
+            Lower corner frequency of the bandpass filter.
+            - Default is `10`.
+        fh : int, *optional*
+            Upper corner frequency of the bandpass filter.
+            - Default is `50`.
+
+        Returns
+        -------
+        new_window : numpy.ndarray
+            Preprocessed window of EEG data.
+            2D array containing data with `float` type.
+
+            shape = (`N_channels`,`N_samples`)
+
         """
         # do nothing
         if option is None:
@@ -667,8 +843,28 @@ class EEG_data:
 
     # Artefact rejection goes here (windows are nchannels by nsamples)
     def artefact_rejection(self, window, option=None):
-        """
-        Howdy
+        """Artefact rejection.
+
+        Parameters
+        ----------
+        window : numpy.ndarray
+            Window of EEG data.
+            2D array containing data with `float` type.
+
+            shape = (`N_channels`,`N_samples`)
+        option : str, *optional*
+            Artefact rejection option. Options include:
+            - Nothing has been implemented yet.
+            - Default is `None`.
+
+        Returns
+        -------
+        new_window : numpy.ndarray
+            Artefact rejected window of EEG data.
+            2D array containing data with `float` type.
+
+            shape = (`N_channels`,`N_samples`)
+
         """
         # do nothing
         if option is None:
@@ -678,6 +874,14 @@ class EEG_data:
         # other preprocessing options go here\
 
     def package_resting_state_data(self):
+        """Package resting state data.
+
+        Returns
+        -------
+        `None`
+            `self.rest_windows` is updated.
+
+        """
         try:
             print("Packaging resting state data")
 
@@ -878,8 +1082,94 @@ class EEG_data:
         pp_high=40,  # bandpass upper cutoff
         pp_order=5,  # bandpass order
     ):
-        """
-        Howdy
+        """Main function of `EEG_data` class.
+
+        Runs a while loop that reads in EEG data from the `EEG_data` object
+        and processes it. Can be used in `online` or `offline` mode.
+        - If in `online` mode, then the loop will continuously try to read
+        in data from the `EEG_data` object and process it. The loop will
+        terminate when `max_loops` is reached, or when manually terminated.
+        - If in `offline` mode, then the loop will read in all of the data
+        at once, process it, and then terminate.
+
+        Parameters
+        ----------
+        buffer : float, *optional*
+            Buffer time for EEG sampling in `online` mode (seconds).
+            - Default is `0.01`.
+        eeg_start : int, *optional*
+            Start time for EEG sampling (seconds).
+            - Default is `0`.
+        max_channels : int, *optional*
+            Maximum number of EEG channels to read in.
+            - Default is `64`.
+        max_samples : int, *optional*
+            Maximum number of EEG samples to read in per window.
+            - Default is `2560`.
+        max_windows : int, *optional*
+            Maximum number of windows to read in per loop (?).
+            - Default is `1000`.
+        max_loops : int, *optional*
+            Maximum number of loops to run.
+            - Default is `1000000`.
+        training : bool, *optional*
+            Flag to indicate if the data will be used to train a classifier.
+            - `True`: The data will be used to train the classifier.
+            - `False`: The data will be used to predict with the classifier.
+            - Default is `True`.
+        online : bool, *optional*
+            Flag to indicate if the data will be processed in `online` mode.
+            - `True`: The data will be processed in `online` mode.
+            - `False`: The data will be processed in `offline` mode.
+            - Default is `True`.
+        train_complete : bool, *optional*
+            Flag to indicate if the classifier has been trained.
+            - `True`: The classifier has been trained.
+            - `False`: The classifier has not been trained.
+            - Default is `False`.
+        iterative_training : bool, *optional*
+            Flag to indicate if the classifier will be updated iteratively.
+            - Default is `False`.
+        live_update : bool, *optional*
+            Flag to indicate if the classifier will be used to provide
+            live updates on window classification.
+            - Default is `False`.
+        print_markers : bool, *optional*
+            Flag to indicate if the markers will be printed to the console.
+            - Default is `True`.
+        print_training : bool, *optional*
+            Flag to indicate if the training progress will be printed to the
+            console.
+            - Default is `True`.
+        print_fit : bool, *optional*
+            Flag to indicate if the classifier fit will be printed to the
+            console.
+            - Default is `True`.
+        print_performance : bool, *optional*
+            Flag to indicate if the classifier performance will be printed
+            to the console.
+            - Default is `True`.
+        print_predict : bool, *optional*
+            Flag to indicate if the classifier predictions will be printed
+            to the console.
+            - Default is `True`.
+        pp_type : str, *optional*
+            Preprocessing method to apply to the EEG data.
+            - Default is `"bandpass"`.
+        pp_low : int, *optional*
+            Low corner frequency for bandpass filter.
+            - Default is `1`.
+        pp_high : int, *optional*
+            Upper corner frequency for bandpass filter.
+            - Default is `40`.
+        pp_order : int, *optional*
+            Order of the bandpass filter.
+            - Default is `5`.
+
+        Returns
+        -------
+        `None`
+
         """
         # Check if there is a classifier defined
         try:
@@ -1112,6 +1402,7 @@ class EEG_data:
                         current_labels = np.zeros((max_windows))
 
                     # If training completed then train the classifier
+                    # This is confusing.
                     elif (
                         self.marker_data[self.marker_count][0] == "Training Complete"
                         and train_complete is False
@@ -1325,17 +1616,28 @@ class EEG_data:
 
 # ERP Data
 class ERP_data(EEG_data):
-    """
-    Howdy
+    """Class that holds, windows, processes and classifies ERP data.
+
+    Above description needs to be verified.
+
     """
 
     def mne_export_as_raw(self):
-        """
-        MNE Export
+        """MNE export EEG as RawArray
 
-        Exports the EEG data as an epoch object
+        Exports the EEG data as a MNE RawArray object (or an epoch object?).
 
-        * Requires MNE
+        **Requires MNE**
+
+        **HAS NOT BEEN IMPLEMENTED YET.**
+
+        Returns
+        -------
+        epochs_array : mne.io.RawArray
+            MNE RawArray object.
+
+            **NOTE: NOT ACTUALLY THE CASE AT THE MOMENT**.
+            This is what the code will return once it has been implemented.
 
         """
         print("mne_export_as_raw has not been implemented yet")
@@ -1359,12 +1661,16 @@ class ERP_data(EEG_data):
         # return epochs_array
 
     def mne_export_as_epochs(self):
-        """
-        MNE Export
+        """MNE export EEG as EpochsArray.
 
-        Exports the ERP data as an epoch object
+        Exports the EEG data as a MNE EpochsArray object.
 
-        * Requires MNE
+        **Requires MNE**
+
+        Returns
+        -------
+        epochs_array : mne.EpochsArray
+            MNE EpochsArray object.
 
         """
 
@@ -1396,12 +1702,21 @@ class ERP_data(EEG_data):
         return epochs_array
 
     def mne_export_as_evoked(self):
-        """
-        MNE Export
+        """MNE Export evoked EEG data as EpochsArray.
 
-        Exports the EEG data as an epoch object
+        Exports the evoked EEG data as a MNE EpochsArray object.
 
-        * Requires MNE
+        **Requires MNE**
+
+        **HAS NOT BEEN IMPLEMENTED YET.**
+
+        Returns
+        -------
+        evoked_array : mne.EpochsArray
+            MNE EpochsArray object.
+
+            **NOTE: NOT ACTUALLY THE CASE AT THE MOMENT**.
+            This is what the code will return once it has been implemented.
 
         """
         print("mne_export_as_evoked has not yet been implemented")
@@ -1456,8 +1771,96 @@ class ERP_data(EEG_data):
         pp_order=5,  # bandpass order
         plot_erp=False,
     ):
-        """
-        Howdy
+        """Main function of `ERP_data` class.
+
+        Formats the ERP data. Call this every time that a new chunk arrives.
+
+        Runs a while loop that reads in ERP windows from the `ERP_data`
+        object and processes decision blocks. Can be used in `online` or
+        offline mode.
+        - If in `online` mode, then the loop will continuously try to read
+        in data from the `EEG_data` object and process it. The loop will
+        terminate when `max_loops` is reached, or when manually terminated.
+        - If in `offline` mode, then the loop will read in all of the data
+        at once, process it, and then terminate.
+
+        Parameters
+        ----------
+        window_start : float, *optional*
+            Start time for ERP sampling window relative to marker (seconds).
+            - Default is `0.0`.
+        window_end : float, *optional*
+            End time for ERP sampling window relative to marker (seconds).
+            - Default is `0.8`.
+        eeg_start : int, *optional*
+            Start time for EEG sampling (seconds).
+            - Default is `0`.
+        buffer : float, *optional*
+            Buffer time for EEG sampling in `online` mode (seconds).
+            - Default is `0.01`.
+        max_num_options : int, *optional*
+            Maximum number of stimulus options (?).
+            - Default is `64`.
+        max_windows_per_option : int, *optional*
+            Maximum number of windows to read in per stimulus option (?).
+            - Default is `50`.
+        max_windows : int, *optional*
+            Maximum number of windows to read in per loop (?).
+            - Default is `1000`.
+        max_decisions : int, *optional*
+            Maximum number of ERP decision blocks to store per loop (?).
+            - Default is `500`.
+        max_loops : int, *optional*
+            Maximum number of loops to run.
+            - Default is `1000000`.
+        training : bool, *optional*
+            Flag to indicate if the data will be used to train a classifier.
+            - `True`: The data will be used to train the classifier.
+            - `False`: The data will be used to predict with the classifier.
+            - Default is `True`.
+        online : bool, *optional*
+            Flag to indicate if the data will be processed in `online` mode.
+            - `True`: The data will be processed in `online` mode.
+            - `False`: The data will be processed in `offline` mode.
+            - Default is `True`.
+        print_markers : bool, *optional*
+            Flag to indicate if the markers will be printed to the console.
+            - Default is `True`.
+        print_training : bool, *optional*
+            Flag to indicate if the training progress will be printed to the
+            console.
+            - Default is `True`.
+        print_fit : bool, *optional*
+            Flag to indicate if the classifier fit will be printed to the
+            console.
+            - Default is `True`.
+        print_performance : bool, *optional*
+            Flag to indicate if the classifier performance will be printed
+            to the console.
+            - Default is `True`.
+        print_predict : bool, *optional*
+            Flag to indicate if the classifier predictions will be printed
+            to the console.
+            - Default is `True`.
+        pp_type : str, *optional*
+            Preprocessing method to apply to the EEG data.
+            - Default is `"bandpass"`.
+        pp_low : int, *optional*
+            Low corner frequency for bandpass filter.
+            - Default is `1`.
+        pp_high : int, *optional*
+            Upper corner frequency for bandpass filter.
+            - Default is `40`.
+        pp_order : int, *optional*
+            Order of the bandpass filter.
+            - Default is `5`.
+        plot_erp : bool, *optional*
+            - Default is `False`.
+
+        Returns
+        -------
+        `None`
+
         """
 
         unity_train = True
