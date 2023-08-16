@@ -19,7 +19,7 @@ Limitations
 -----------
 1. Currently will not handle ERP sessions longer that 10,000 markers in
 duration to avoid latency cause by dynamic sizing of numpy ndarrays.
-This number can be increased by changing the `max_windows variable` in
+This number can be increased by changing the `max_windows` variable in
 the `ERP_data` class.
 
 """
