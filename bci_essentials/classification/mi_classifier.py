@@ -1,3 +1,10 @@
+"""**MI Classifier**
+
+This classifier is used to classify MI data.
+
+"""
+
+
 # Stock libraries
 import os
 import sys
@@ -22,6 +29,8 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pard
 
 
 class MI_classifier(Generic_classifier):
+    """MI Classifier class (*inherits from `Generic_classifier`*)."""
+
     def set_mi_classifier_settings(
         self,
         n_splits=5,
@@ -35,6 +44,47 @@ class MI_classifier(Generic_classifier):
         random_seed=42,
         n_jobs=1,
     ):
+        """Set MI classifier settings.
+
+        Parameters
+        ----------
+        n_splits : int, *optional*
+            Number of folds for cross-validation.
+            - Default is `5`.
+        type : str, *optional*
+            Description of parameter `type`.
+            - Default is `"TS"`.
+        remove_flats : bool, *optional*
+            Description of parameter `remove_flats`.
+            - Default is `False`.
+        whitening : bool, *optional*
+            Description of parameter `whitening`.
+            - Default is `False`.
+        covariance_estimator : str, *optional*
+            Covariance estimator. See pyriemann Covariances.
+            - Default is `"scm"`.
+        artifact_rejection : str, *optional*
+            Description of parameter `artifact_rejection`.
+            - Default is `"none"`.
+        channel_selection : str, *optional*
+            Description of parameter `channel_selection`.
+            - Default is `"none"`.
+        pred_threshold : float, *optional*
+            Description of parameter `pred_threshold`.
+            - Default is `0.5`.
+        random_seed : int, *optional*
+            Random seed.
+            - Default is `42`.
+        n_jobs : int, *optional*
+            The number of threads to dedicate to this calculation.
+            - Default is `1`.
+
+        Returns
+        -------
+        `None`
+            Models created are used in `fit()`.
+
+        """
         # Build the cross-validation split
         self.n_splits = n_splits
         self.cv = StratifiedKFold(
@@ -100,6 +150,23 @@ class MI_classifier(Generic_classifier):
         self.rebuild = True
 
     def fit(self, print_fit=True, print_performance=True):
+        """Fit the model.
+
+        Parameters
+        ----------
+        print_fit : bool, *optional*
+            Description of parameter `print_fit`.
+            - Default is `True`.
+        print_performance : bool, *optional*
+            Description of parameter `print_performance`.
+            - Default is `True`.
+
+        Returns
+        -------
+        `None`
+            Models created used in `predict()`.
+
+        """
         # get dimensions
         nwindows, nchannels, nsamples = self.X.shape
 
@@ -120,6 +187,37 @@ class MI_classifier(Generic_classifier):
         preds = np.zeros(nwindows)
 
         def mi_kernel(subX, suby):
+            """MI kernel.
+
+            Parameters
+            ----------
+            subX : numpy.ndarray
+                Description of parameter `subX`.
+                If array, state size and type. E.g.
+                3D array containing data with `float` type.
+
+                shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
+            suby : numpy.ndarray
+                Description of parameter `suby`.
+                If array, state size and type. E.g.
+                1D array containing data with `int` type.
+
+                shape = (`1st_dimension`,)
+            Returns
+            -------
+            model : classifier
+                The trained classification model.
+            preds : numpy.ndarray
+                The predictions from the model.
+                1D array with the same shape as `suby`.
+            accuracy : float
+                The accuracy of the trained classification model.
+            precision : float
+                The precision of the trained classification model.
+            recall : float
+                The recall of the trained classification model.
+
+            """
             for train_idx, test_idx in self.cv.split(subX, suby):
                 self.clf = self.clf_model
 
@@ -212,6 +310,28 @@ class MI_classifier(Generic_classifier):
             print(cm)
 
     def predict(self, X, print_predict=True):
+        """Predict the class labels for the provided data.
+
+        Parameters
+        ----------
+        X : numpy.ndarray
+            Description of parameter `X`.
+            If array, state size and type. E.g.
+            3D array containing data with `float` type.
+
+            shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
+        print_predict : bool, *optional*
+            Description of parameter `print_predict`.
+            - Default is `True`.
+
+        Returns
+        -------
+        pred : numpy.ndarray
+            The predicted class labels.
+
+            shape = (`1st_dimension`,)
+
+        """
         # if X is 2D, make it 3D with one as first dimension
         if len(X.shape) < 3:
             X = X[np.newaxis, ...]

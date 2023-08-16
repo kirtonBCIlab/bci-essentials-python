@@ -1,3 +1,11 @@
+"""
+**SSVEP Riemannian MDM Classifier**
+
+Classifies SSVEP based on relative band power at the expected
+frequencies.
+
+"""
+
 # Stock libraries
 import os
 import sys
@@ -20,8 +28,9 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pard
 
 
 class SSVEP_riemannian_mdm_classifier(Generic_classifier):
-    """
-    Classifier SSVEP based on relative band power at the expected frequencies
+    """SSVEP Riemannian MDM Classifier class
+    (*inherits from Generic_classifier*)
+
     """
 
     def set_ssvep_settings(
@@ -32,6 +41,33 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
         f_width=0.2,
         covariance_estimator="scm",
     ):
+        """Set the SSVEP settings.
+
+        Parameters
+        ----------
+        n_splits : int, *optional*
+            Number of folds for cross-validation.
+            - Default is `3`.
+        random_seed : int, *optional*
+            Random seed.
+            - Default is `42`.
+        n_harmonics : int, *optional*
+            Number of harmonics to be used for each frequency.
+            - Default is `2`.
+        f_width : float, *optional*
+            Width of frequency bins to be used around the target
+            frequencies.
+            - Default is `0.2`.
+        covariance_estimator : str, *optional*
+            Covariance Estimator (see Covariances - pyriemann)
+            - Default is `"scm"`.
+
+        Returns
+        -------
+        `None`
+            Models created used in `fit()`.
+
+        """
         # Build the cross-validation split
         self.n_splits = n_splits
         self.cv = StratifiedKFold(
@@ -58,32 +94,41 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
         n_harmonics=2,
         covariance_estimator="scm",
     ):
-        """Get SSVEP Supertrial
+        """Get SSVEP Supertrial.
 
-        Creates the Riemannian Geometry supertrial for SSVEP
+        Creates the Riemannian Geometry supertrial for SSVEP.
 
         Parameters
         ----------
-        X : numpy array
-            Windows of EEG data, nwindows X nchannels X nsamples
-        target_freqs : numpy array
-            Target frequencies for the SSVEP
+        X : numpy.ndarray
+            Windows of EEG data.
+            3D array containing data with `float` type.
+
+            shape = (`nwindows`,`nchannels`,`nsamples`)
+        target_freqs : numpy.ndarray
+            Target frequencies for the SSVEP.
         fsample : float
-            Sampling rate
-        f_width : float, optional
-            Width of frequency bins to be used around the target frequencies
-            (default 0.4)
-        n_harmonics : int, optional
-            Number of harmonics to be used for each frequency (default is 2)
-        covarianc_estimator : str, optional
-            Covariance Estimator (see Covariances - pyriemann) (default "scm")
+            Sampling rate.
+        f_width : float, *optional*
+            Width of frequency bins to be used around the target
+            frequencies.
+            - Default is `0.4`.
+        n_harmonics : int, *optional*
+            Number of harmonics to be used for each frequency.
+            - Default is `2`.
+        covarianc_estimator : str, *optional*
+            Covariance Estimator (see Covariances - pyriemann)
+            - Default is `"scm"`.
 
         Returns
         -------
-        super_X : numpy array
-            Supertrials of X with the dimensions nwindows
-            by (nchannels*number of target_freqs)
-            by (nchannels*number of target_freqs)
+        super_X : numpy.ndarray
+            Supertrials of X.
+            3D array containing data with `float` type.
+
+            shape = (`nwindows`,`nchannels*number of target_freqs`,
+            `nchannels*number of target_freqs`)
+
         """
         nwindows, nchannels, nsamples = X.shape
         n_target_freqs = len(target_freqs)
@@ -130,6 +175,23 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
         return super_X
 
     def fit(self, print_fit=True, print_performance=True):
+        """Fit the model.
+
+        Parameters
+        ----------
+        print_fit : bool, *optional*
+            Description of parameter `print_fit`.
+            - Default is `True`.
+        print_performance : bool, *optional*
+            Description of parameter `print_performance`.
+            - Default is `True`.
+
+        Returns
+        -------
+        `None`
+            Models created used in `predict()`.
+
+        """
         # get dimensions
         # X = self.X
 
@@ -151,6 +213,37 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
         preds = np.zeros(nwindows)
 
         def ssvep_kernel(subX, suby):
+            """SSVEP kernel.
+
+            Parameters
+            ----------
+            subX : numpy.ndarray
+                Description of parameter `subX`.
+                If array, state size and type. E.g.
+                3D array containing data with `float` type.
+
+                shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
+            suby : numpy.ndarray
+                Description of parameter `suby`.
+                If array, state size and type. E.g.
+                1D array containing data with `int` type.
+
+                shape = (`1st_dimension`,)
+            Returns
+            -------
+            model : classifier
+                The trained classification model.
+            preds : numpy.ndarray
+                The predictions from the model.
+                1D array with the same shape as `suby`.
+            accuracy : float
+                The accuracy of the trained classification model.
+            precision : float
+                The precision of the trained classification model.
+            recall : float
+                The recall of the trained classification model.
+
+            """
             for train_idx, test_idx in self.cv.split(subX, suby):
                 self.clf = self.clf_model
 
@@ -254,6 +347,28 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
             print(cm)
 
     def predict(self, X, print_predict=True):
+        """Predict the class labels for the provided data.
+
+        Parameters
+        ----------
+        X : numpy.ndarray
+            Description of parameter `X`.
+            If array, state size and type. E.g.
+            3D array containing data with `float` type.
+
+            shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
+        print_predict : bool, *optional*
+            Description of parameter `print_predict`.
+            - Default is `True`.
+
+        Returns
+        -------
+        pred : numpy.ndarray
+            The predicted class labels.
+
+            shape = (`1st_dimension`,)
+
+        """
         # if X is 2D, make it 3D with one as first dimension
         if len(X.shape) < 3:
             X = X[np.newaxis, ...]

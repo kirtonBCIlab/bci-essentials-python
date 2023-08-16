@@ -1,3 +1,17 @@
+"""**Switch Deep Classifier**
+
+This is a switch_classifier using a deep neural network implemented
+in TensorFlow.
+- This means that classification occurs between neutral and one other
+label (i.e. Binary classification).
+- The produced probabilities between labels are then compared for one
+final classification.
+
+**`ToDo`: Missing correct implementation of this classifier**.
+The neural networks are not defined (the code blocks are commented out).
+
+"""
+
 # Stock libraries
 import os
 import sys
@@ -14,8 +28,9 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pard
 
 
 class Switch_deep_classifier(Generic_classifier):
-    """This is a switch_classifier. This means that classification occurs between neutral and one other label (i.e. Binary classification).
-    The produced probabilities between labels are then compared for one final classification.
+    """Switch Deep Classifier class
+    (*inherits from Generic_classifier*).
+
     """
 
     def set_switch_classifier_settings(
@@ -26,21 +41,34 @@ class Switch_deep_classifier(Generic_classifier):
         activation_main="relu",
         activation_class="sigmoid",
     ):
-        """
-        Function defines all basic settings for classification.
+        """Function defines all basic settings for classification.
 
-        Function has 6 parameters and defines two neural networks. One that will have weights and another that will not.
+        Function has 6 parameters and defines two neural networks.
+        One that will have weights and another that will not.
 
-        Parameters:
-        self: Takes all variables from the class
-        n_splits (int): Number of splits for StratifiedKFold
-        rebuild (boolean): Resetting index for each call of fit
-        random_seed (int): Ensures the same output for neural net each run if no parameters are changed
-        activation_main (string): Activation function between hidden layers
-        activation_class (string): Activation function for final layer in neural network
+        Parameters
+        ----------
+        n_splits : int, *optional*
+            Number of splits for StratifiedKFold.
+            - Default is `2`.
+        rebuild : bool, *optional*
+            Resetting index for each call of `fit()`.
+            - Default is `True`.
+        random_seed : int, *optional*
+            Random seed. Ensures the same output for neural net each run if
+            no parameters are changed
+            - Default is `42`.
+        activation_main : str, *optional*
+            Activation function for hidden layers of the neural network.
+            - Default is `relu`.
+        activation_class : str, *optional*
+            Activation function for the final layer of the neural network.
+            - Default is `sigmoid`.
 
-        Returns:
-        Nothing - Networks created are used in fit()
+        Returns
+        -------
+        `None`
+            Models created are used in `fit()`.
 
         """
         # Definining activation functions
@@ -85,19 +113,26 @@ class Switch_deep_classifier(Generic_classifier):
         """
 
     def fit(self, print_fit=True, print_performance=True):
-        """
-        Fitting function for switch_classifier.
+        """Fitting function for Switch_deep_classifier.
 
-        Function uses the StratifiedKFold() function to split the data and then preprocess it using StandardScalar().
+        Function uses the StratifiedKFold() function to split the data and
+        then preprocess it using StandardScalar().
         The neural network is then fit and appended to a list before being reset.
 
-        Parameters:
-        self: Takes all variables from the class
-        print_fit (boolean): Determines if we should print fitting info
-        print_performance (boolean): Determines if we should print performance info
+        Parameters
+        ----------
+        print_fit : bool, *optional*
+            Description of parameter `print_fit`.
+            - Default is `True`.
+        print_performance : bool, *optional*
+            Description of parameter `print_performance`.
+            - Default is `True`.
 
-        Returns:
-        Nothing - Models created used in predict()
+        Returns
+        -------
+        `None`
+            Models created used in `predict()`.
+
         """
         # Check for list and correct if needed
         if isinstance(self.X, list):
@@ -236,17 +271,30 @@ class Switch_deep_classifier(Generic_classifier):
                 print(cm)
 
     def predict(self, X, print_predict):
-        """
-        Predict function which preprocessing data and makes prediction.
+        """Predict function which preprocesses data and makes prediction(s).
 
-        Function is passed an array of size (X, 8, 512) from bci_data.py where it will predict upon the likelihood of state 1 vs state 2. Only works for three states currently.
+        Function is passed an array of size `(X, 8, 512)` from `bci_data.py`
+        where it will predict upon the likelihood of state 1 vs state 2.
+        Only works for three states currently.
 
-        Parameters:
-        self: Takes all class variables
-        X (array): An array that will be predicted upon by previously trained models
+        Parameters
+        ----------
+        X : np.ndarray
+            An array that will be predicted upon by previously trained
+            models.
+        print_predict : bool
+            Description of parameter `print_predict`.
 
-        Returns:
-        string_preds (string): Formatted predictions in the form of a string for Unity to process it
+        Returns
+        -------
+        final_string
+            Predictions formatted as strings for Unity to process it.
+
+        Raises
+        ------
+        `None`
+            Error if there are not an appropriate amount of labels (three) to complete predictions on.
+
         """
 
         # if X is 2D, make it 3D with one as first dimension
