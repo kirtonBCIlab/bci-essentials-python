@@ -99,19 +99,19 @@ class EEG_data:
 
         Parameters
         ----------
-        user_id : str
+        user_id : str, *optional*
             The user ID.
             - Default is `"0000"`.
-        nchannels : int
+        nchannels : int, *optional*
             The number of channels.
             - Default is `8`.
-        channel_labels : list of `str`
+        channel_labels : list of `str`, *optional*
             The channel labels.
             - Default is `["?", "?", "?", "?", "?", "?", "?", "?"]`.
-        fsample : int
+        fsample : int, *optional*
             The sampling rate.
             - Default is `256`.
-        max_size : int
+        max_size : int, *optional*
             Description of parameter `max_size`.
             - Default is `10000`.
 
@@ -147,13 +147,13 @@ class EEG_data:
         ----------
         filename : str
             The filename.
-        format : str
+        format : str, *optional*
             The file format.
             - Default is `"xdf"`.
-        subset : list of `int`
+        subset : list of `int`, *optional*
             Description of parameter `subset`.
             - Default is `[]`.
-        print_output : bool
+        print_output : bool, *optional*
             Output is printed if `True`.
             - Default is `True`.
 
@@ -224,7 +224,7 @@ class EEG_data:
         ----------
         data : pylsl.StreamInlet - need to verify
             Data object from the LSL stream.
-        print_output : bool
+        print_output : bool, *optional*
             Output is printed if `True`.
             - Default is `True`.
 
@@ -354,19 +354,19 @@ class EEG_data:
 
         Parameters
         ----------
-        timeout : int
+        timeout : int, *optional*
             Description of parameter `timeout`.
             Default is `5`.
-        max_eeg_samples : int
+        max_eeg_samples : int, *optional*
             Description of parameter `max_eeg_samples`.
             - Default is `1000000`.
-        max_marker_samples : int
+        max_marker_samples : int, *optional*
             Description of parameter `max_marker_samples`.
             - Default is `100000`.
-        eeg_only : bool
+        eeg_only : bool, *optional*
             Description of parameter `eeg_only`.
             - Default is `False`.
-        subset : list of `int`
+        subset : list of `int`, *optional*
             Description of parameter `subset`.
             - Default is `[]`.
 
@@ -799,21 +799,21 @@ class EEG_data:
             2D array containing data with `float` type.
 
             shape = (`N_channels`,`N_samples`)
-        option : str
+        option : str, *optional*
             Preprocessing option. Options include:
             - `"notch"` : Notch filter
             - `"bandpass"` : Bandpass filter
             - Default is `None`.
-        order : int
+        order : int, *optional*
             Order of the Bandpass filter.
             - Default is `5`.
-        fc : int
+        fc : int, *optional*
             Frequency of the notch filter.
             - Default is `60`.
-        fl : int
+        fl : int, *optional*
             Lower corner frequency of the bandpass filter.
             - Default is `10`.
-        fh : int
+        fh : int, *optional*
             Upper corner frequency of the bandpass filter.
             - Default is `50`.
 
@@ -852,7 +852,7 @@ class EEG_data:
             2D array containing data with `float` type.
 
             shape = (`N_channels`,`N_samples`)
-        option : str
+        option : str, *optional*
             Artefact rejection option. Options include:
             - Nothing has been implemented yet.
             - Default is `None`.
@@ -1094,7 +1094,7 @@ class EEG_data:
 
         Parameters
         ----------
-        buffer : float, optional
+        buffer : float, *optional*
             Buffer time for EEG sampling in `online` mode (seconds).
             - Default is `0.01`.
         eeg_start : int, *optional*
@@ -1795,7 +1795,7 @@ class ERP_data(EEG_data):
         eeg_start : int, *optional*
             Start time for EEG sampling (seconds).
             - Default is `0`.
-        buffer : float, optional
+        buffer : float, *optional*
             Buffer time for EEG sampling in `online` mode (seconds).
             - Default is `0.01`.
         max_num_options : int, *optional*
