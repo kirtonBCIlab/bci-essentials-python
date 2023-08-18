@@ -7,7 +7,10 @@ These modules are specifically designed to be equivalent whether run offline or 
 The front end for this package can be found in [bci-essentials-unity](https://www.github.com/kirtonBCIlab/bci-essentials-unity)
 
 ## Getting Started
+- **[Wiki](https://github.com/kirtonBCIlab/bci-essentials-python/wiki)** – More detailed installation instructions and tutorials.
+- **[API documentation](https://kirtonbcilab.github.io/APIdocs-for-bci-essentials-python)**
 
+### Installation
 BCI Essentials requires Python 3.9 or later.  To install for Windows, MacOS or Linux:
 
 ```
