@@ -50,4 +50,9 @@ exclude = '''
 	| blib2to3
 	| tests/data
 )/
+
+[tool.mypy]
+python_version = "3.9"
+disallow_untyped_defs = true
+ignore_missing_imports = true
 '''
