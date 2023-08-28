@@ -26,7 +26,7 @@ class SSVEP_basic_tf_classifier(Generic_classifier):
 
     """
 
-    def set_ssvep_settings(self, sampling_freq, target_freqs):
+    def set_ssvep_settings(self, sampling_freq: int, target_freqs: tuple[int]):
         """Set the SSVEP settings.
 
         Parameters
@@ -70,7 +70,7 @@ class SSVEP_basic_tf_classifier(Generic_classifier):
         print("I DO NOT NEED TRAINING.")
         print("THIS IS MY FINAL FORM")
 
-    def predict(self, X, print_predict):
+    def predict(self, X, print_predict: np.typing.NDArray):
         """Predict the class labels for the provided data.
 
         Parameters

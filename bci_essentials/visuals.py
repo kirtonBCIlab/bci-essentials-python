@@ -17,7 +17,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def decision_vis(decision_block, f_sample, label, channel_labels=[], ylims=(-100, 100)):
+def decision_vis(
+    decision_block: np.typing.ndarray,
+    f_sample: float,
+    label: int,
+    channel_labels: list[str] = [],
+    ylims: tuple[int] = (-100, 100),
+):
     """Visualization for P300 ERP.
 
     Creates plots of the P300 ERP and non-ERP for each channel.
@@ -95,7 +101,11 @@ def decision_vis(decision_block, f_sample, label, channel_labels=[], ylims=(-100
 
 
 def plot_big_decision_block(
-    big_decision_block, f_sample, channel_labels=[], erp_targets=None, ylims=(-100, 100)
+    big_decision_block: np.typing.ndarray,
+    f_sample: float,
+    channel_labels: list[str] = [],
+    erp_targets: list = None,
+    ylims: tuple[int] = (-100, 100),
 ):
     """Plots the big decision block.
 
@@ -226,7 +236,7 @@ def plot_big_decision_block(
 
 
 # Plot window
-def plot_window(window, f_sample, channel_labels=[]):
+def plot_window(window: np.typing.ndarray, f_sample: float, channel_labels: list = []):
     """Plots a window of EEG data.
 
     Parameters

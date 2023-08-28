@@ -12,22 +12,23 @@ be of the shape `W x C x S`, where:
 from joblib import Parallel, delayed
 import time
 import numpy as np
+from typing import Callable
 
 
 def channel_selection_by_method(
-    kernel_func,
-    X,
-    y,
-    channel_labels,
-    method="SBS",
-    metric="accuracy",
-    initial_channels=[],
-    max_time=999,
-    min_channels=1,
-    max_channels=999,
-    performance_delta=0.001,
-    n_jobs=1,
-    print_output="silent",
+    kernel_func: Callable[...],
+    X: np.typing.ndarray,
+    y: np.typing.ndarray,
+    channel_labels: list[str],
+    method: str = "SBS",
+    metric: str = "accuracy",
+    initial_channels: list[str] = [],
+    max_time: int = 999,
+    min_channels: int = 1,
+    max_channels: int = 999,
+    performance_delta: float = 0.001,
+    n_jobs: int = 1,
+    print_output: str = "silent",
 ):
     """Passes the BCI kernel function into a wrapper defined by `method`.
 
@@ -154,14 +155,14 @@ def channel_selection_by_method(
 
 
 def check_stopping_criterion(
-    current_time,
-    nchannels,
-    current_performance_delta,
-    max_time,
-    min_channels,
-    max_channels,
-    performance_delta,
-    print_output=True,
+    current_time: float,
+    nchannels: int,
+    current_performance_delta: float,
+    max_time: int,
+    min_channels: int,
+    max_channels: int,
+    performance_delta: int,
+    print_output: bool = True,
 ):
     """Function to check if a stopping criterion has been met.
 
@@ -219,18 +220,18 @@ def check_stopping_criterion(
 
 
 def sbs(
-    kernel_func,
-    X,
-    y,
-    channel_labels,
-    metric,
-    initial_channels,
-    max_time,
-    min_channels,
-    max_channels,
-    performance_delta,
-    n_jobs,
-    print_output,
+    kernel_func: Callable[...],
+    X: np.typing.ndarray,
+    y: np.typing.ndarray,
+    channel_labels: list[str],
+    metric: str,
+    initial_channels: list[str],
+    max_time: int,
+    min_channels: int,
+    max_channels: int,
+    performance_delta: float,
+    n_jobs: int,
+    print_output: str,
 ):
     """The SBS method for channel selection.
 
@@ -408,18 +409,18 @@ def sbs(
 
 
 def sbfs(
-    kernel_func,
-    X,
-    y,
-    channel_labels,
-    metric,
-    initial_channels,
-    max_time,
-    min_channels,
-    max_channels,
-    performance_delta,
-    n_jobs,
-    print_output,
+    kernel_func: Callable[...],
+    X: np.typing.ndarray,
+    y: np.typing.ndarray,
+    channel_labels: list[str],
+    metric: str,
+    initial_channels: list[str],
+    max_time: int,
+    min_channels: int,
+    max_channels: int,
+    performance_delta: float,
+    n_jobs: int,
+    print_output: str,
 ):
     """The SBFS method for channel selection.
 

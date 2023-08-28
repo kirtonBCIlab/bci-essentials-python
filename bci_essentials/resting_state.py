@@ -19,7 +19,7 @@ import scipy.signal
 from matplotlib import pyplot as plt
 
 
-def get_shape(data):
+def get_shape(data: np.typing.NDArray) -> tuple[int, int, int]:
     """Get the shape of the input data.
 
     Parameters
@@ -50,7 +50,13 @@ def get_shape(data):
     return W, C, S
 
 
-def bandpower(data, fs, fmin, fmax, normalization=None):
+def bandpower(
+    data: np.typing.NDArray,
+    fs: float,
+    fmin: float,
+    fmax: float,
+    normalization: str = None,
+) -> np.typing.NDArray:
     """Get the bandpower of a window of EEG.
 
     Parameters
@@ -103,7 +109,12 @@ def bandpower(data, fs, fmin, fmax, normalization=None):
 
 
 # Alpha Peak
-def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
+def get_alpha_peak(
+    data: np.typing.NDArray,
+    alpha_min: float = 8,
+    alpha_max: float = 12,
+    plot_psd: bool = False,
+) -> float:
     """Get the alpha peak based on the all channel median PSD.
 
     Parameters
@@ -184,7 +195,9 @@ def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
 
 
 # Bandpower features
-def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
+def get_bandpower_features(
+    data: np.typing.NDArray, fs: float, transition_freqs: tuple = [0, 4, 8, 12, 30]
+) -> np.typing.NDArray:
     """Get bandpower features.
 
     Parameters

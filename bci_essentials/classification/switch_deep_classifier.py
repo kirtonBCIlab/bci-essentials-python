@@ -35,11 +35,11 @@ class Switch_deep_classifier(Generic_classifier):
 
     def set_switch_classifier_settings(
         self,
-        n_splits=2,
-        rebuild=True,
-        random_seed=42,
-        activation_main="relu",
-        activation_class="sigmoid",
+        n_splits: int = 2,
+        rebuild: bool = True,
+        random_seed: int = 42,
+        activation_main: str = "relu",
+        activation_class: str = "sigmoid",
     ):
         """Function defines all basic settings for classification.
 
@@ -112,7 +112,7 @@ class Switch_deep_classifier(Generic_classifier):
         )
         """
 
-    def fit(self, print_fit=True, print_performance=True):
+    def fit(self, print_fit: bool = True, print_performance: bool = True):
         """Fitting function for Switch_deep_classifier.
 
         Function uses the StratifiedKFold() function to split the data and
@@ -270,7 +270,7 @@ class Switch_deep_classifier(Generic_classifier):
                 print("confusion matrix")
                 print(cm)
 
-    def predict(self, X, print_predict):
+    def predict(self, X: np.typing.NDArray, print_predict: bool):
         """Predict function which preprocesses data and makes prediction(s).
 
         Function is passed an array of size `(X, 8, 512)` from `bci_data.py`

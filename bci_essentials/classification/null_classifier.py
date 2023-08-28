@@ -19,7 +19,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pard
 class Null_classifier(Generic_classifier):
     """Null Classifier class (*inherits from Generic_classifier*)."""
 
-    def fit(self, print_fit=True, print_performance=True):
+    def fit(self, print_fit: bool = True, print_performance: bool = True) -> None:
         """Fit the classifier to the data.
 
         No fitting is done.
@@ -40,7 +40,7 @@ class Null_classifier(Generic_classifier):
         """
         print("This is a null classifier, there is no fitting")
 
-    def predict(self, X, print_predict):
+    def predict(self, X: tuple, print_predict: bool) -> int:
         """Predict the class of the data.
 
         Parameters

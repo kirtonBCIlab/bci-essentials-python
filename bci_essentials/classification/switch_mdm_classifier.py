@@ -34,12 +34,12 @@ class Switch_mdm_classifier(Generic_classifier):
 
     def set_switch_classifier_mdm_settings(
         self,
-        n_splits=2,
-        rebuild=True,
-        random_seed=42,
-        n_jobs=1,
-        activation_main="relu",
-        activation_class="sigmoid",
+        n_splits: int = 2,
+        rebuild: bool = True,
+        random_seed: int = 42,
+        n_jobs: int = 1,
+        activation_main: str = "relu",
+        activation_class: str = "sigmoid",
     ):
         """Set the Switch Classifier MDM settings.
 
@@ -80,7 +80,7 @@ class Switch_mdm_classifier(Generic_classifier):
         self.clf = Pipeline([("MDM", mdm)])
         # self.clf0and1 = MDM()
 
-    def fit(self, print_fit=True, print_performance=True):
+    def fit(self, print_fit: bool = True, print_performance: bool = True):
         """Fit the model.
 
         Parameters
@@ -211,7 +211,7 @@ class Switch_mdm_classifier(Generic_classifier):
             print(cm)
             """
 
-    def predict(self, X, print_predict):
+    def predict(self, X: np.typing.NDArray, print_predict: bool):
         """Predict the class labels for the provided data.
 
         Parameters

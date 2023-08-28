@@ -85,11 +85,11 @@ class EEG_data:
     # Explicit definition of settings, not recommended
     def edit_settings(
         self,
-        user_id="0000",
-        nchannels=8,
-        channel_labels=["?", "?", "?", "?", "?", "?", "?", "?"],
-        fsample=256,
-        max_size=10000,
+        user_id: str = "0000",
+        nchannels: int = 8,
+        channel_labels: list = ["?", "?", "?", "?", "?", "?", "?", "?"],
+        fsample: int = 256,
+        max_size: int = 10000,
     ):
         """Explicit definition of settings.
 
@@ -137,7 +137,11 @@ class EEG_data:
     # Load data from a variety of sources
     # Currently only suports .xdf format
     def load_offline_eeg_data(
-        self, filename, format="xdf", subset=[], print_output=True
+        self,
+        filename: str,
+        format: str = "xdf",
+        subset: list = [],
+        print_output: bool = True,
     ):
         """Loads offline data from a file.
 
@@ -217,7 +221,7 @@ class EEG_data:
             print("Error: file format not supported")
 
     # Get metadata saved to the offline data file to fill in headset information
-    def get_info_from_file(self, data, print_output=True):
+    def get_info_from_file(self, data: StreamInlet, print_output: bool = True):
         """Get EEG metadata from the stream.
 
         Parameters
@@ -344,11 +348,11 @@ class EEG_data:
     # stream data from an online source
     def stream_online_eeg_data(
         self,
-        timeout=5,
-        max_eeg_samples=1000000,
-        max_marker_samples=100000,
-        eeg_only=False,
-        subset=[],
+        timeout: int = 5,
+        max_eeg_samples: int = 1000000,
+        max_marker_samples: int = 100000,
+        eeg_only: bool = False,
+        subset: list = [],
     ):
         """Stream data from an online source.
 
@@ -531,7 +535,10 @@ class EEG_data:
 
     # Get new data from stream
     def pull_data_from_stream(
-        self, include_markers=True, include_eeg=True, return_eeg=False
+        self,
+        include_markers: bool = True,
+        include_eeg: bool = True,
+        return_eeg: bool = False,
     ):
         """Get new data from stream.
 
@@ -642,7 +649,7 @@ class EEG_data:
         if return_eeg:
             return new_eeg_timestamps, new_eeg_data
 
-    def save_data(self, directory_name):
+    def save_data(self, directory_name: str):
         """Save the data from different stages.
 
         Creates a directory with x files. Includes raw EEG, markers,
@@ -786,7 +793,15 @@ class EEG_data:
 
     # SIGNAL PROCESSING
     # Preprocessing goes here (windows are nchannels by nsamples)
-    def preprocessing(self, window, option=None, order=5, fc=60, fl=10, fh=50):
+    def preprocessing(
+        self,
+        window: np.typing.NDArray,
+        option: str = None,
+        order: int = 5,
+        fc: int = 60,
+        fl: int = 10,
+        fh: int = 50,
+    ):
         """Signal preprocessing.
 
         Preprocesses the signal using one of the methods from the
@@ -842,7 +857,7 @@ class EEG_data:
         # other preprocessing options go here
 
     # Artefact rejection goes here (windows are nchannels by nsamples)
-    def artefact_rejection(self, window, option=None):
+    def artefact_rejection(self, window: np.typing.NDArray, option: str = None):
         """Artefact rejection.
 
         Parameters
@@ -1061,26 +1076,26 @@ class EEG_data:
 
     def main(
         self,
-        buffer=0.01,
-        eeg_start=0,
-        max_channels=64,
-        max_samples=2560,
-        max_windows=1000,
-        max_loops=1000000,
-        training=True,
-        online=True,
-        train_complete=False,
-        iterative_training=False,
-        live_update=False,
-        print_markers=True,
-        print_training=True,
-        print_fit=True,
-        print_performance=True,
-        print_predict=True,
-        pp_type="bandpass",  # preprocessing method
-        pp_low=1,  # bandpass lower cutoff
-        pp_high=40,  # bandpass upper cutoff
-        pp_order=5,  # bandpass order
+        buffer: float = 0.01,
+        eeg_start: int = 0,
+        max_channels: int = 64,
+        max_samples: int = 2560,
+        max_windows: int = 1000,
+        max_loops: int = 1000000,
+        training: bool = True,
+        online: bool = True,
+        train_complete: bool = False,
+        iterative_training: bool = False,
+        live_update: bool = False,
+        print_markers: bool = True,
+        print_training: bool = True,
+        print_fit: bool = True,
+        print_performance: bool = True,
+        print_predict: bool = True,
+        pp_type: str = "bandpass",  # preprocessing method
+        pp_low: int = 1,  # bandpass lower cutoff
+        pp_high: int = 40,  # bandpass upper cutoff
+        pp_order: int = 5,  # bandpass order
     ):
         """Main function of `EEG_data` class.
 
@@ -1748,28 +1763,28 @@ class ERP_data(EEG_data):
     # Formats the ERP data, call this every time that a new chunk arrives
     def main(
         self,
-        window_start=0.0,
-        window_end=0.8,
-        eeg_start=0,
-        buffer=0.01,
-        max_num_options=64,
-        max_windows_per_option=50,
-        max_windows=10000,
-        max_decisions=500,
-        max_loops=1000000000,
-        training=False,
-        online=False,
-        print_markers=True,
-        print_training=True,
-        print_fit=True,
-        print_performance=True,
-        print_predict=True,
+        window_start: float = 0.0,
+        window_end: float = 0.8,
+        eeg_start: int = 0,
+        buffer: float = 0.01,
+        max_num_options: int = 64,
+        max_windows_per_option: int = 50,
+        max_windows: int = 10000,
+        max_decisions: int = 500,
+        max_loops: int = 1000000000,
+        training: bool = False,
+        online: bool = False,
+        print_markers: bool = True,
+        print_training: bool = True,
+        print_fit: bool = True,
+        print_performance: bool = True,
+        print_predict: bool = True,
         # Preprocessing
-        pp_type="bandpass",  # preprocessing method
-        pp_low=1,  # bandpass lower cutoff
-        pp_high=40,  # bandpass upper cutoff
-        pp_order=5,  # bandpass order
-        plot_erp=False,
+        pp_type: str = "bandpass",  # preprocessing method
+        pp_low: int = 1,  # bandpass lower cutoff
+        pp_high: int = 40,  # bandpass upper cutoff
+        pp_order: int = 5,  # bandpass order
+        plot_erp: bool = False,
     ):
         """Main function of `ERP_data` class.
 

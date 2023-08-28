@@ -87,12 +87,12 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
 
     def get_ssvep_supertrial(
         self,
-        X,
-        target_freqs,
-        fsample,
-        f_width=0.4,
-        n_harmonics=2,
-        covariance_estimator="scm",
+        X: np.typing.NDArray,
+        target_freqs: np.typing.NDArray,
+        fsample: float,
+        f_width: float = 0.4,
+        n_harmonics: int = 2,
+        covariance_estimator: str = "scm",
     ):
         """Get SSVEP Supertrial.
 
@@ -174,7 +174,7 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
 
         return super_X
 
-    def fit(self, print_fit=True, print_performance=True):
+    def fit(self, print_fit: bool = True, print_performance: bool = True):
         """Fit the model.
 
         Parameters
@@ -212,7 +212,7 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
         # Init predictions to all false
         preds = np.zeros(nwindows)
 
-        def ssvep_kernel(subX, suby):
+        def ssvep_kernel(subX: np.typing.NDArray, suby: np.typing.NDArray):
             """SSVEP kernel.
 
             Parameters
@@ -346,7 +346,7 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
             print("confusion matrix")
             print(cm)
 
-    def predict(self, X, print_predict=True):
+    def predict(self, X: np.typing.NDArray, print_predict: bool = True):
         """Predict the class labels for the provided data.
 
         Parameters

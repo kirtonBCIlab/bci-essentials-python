@@ -28,7 +28,7 @@ import random
 #     return new_data
 
 
-def dc_reject(data):
+def dc_reject(data: np.typing.ndarray):
     """DC Reject.
 
     Filters out DC shifts in the data.
@@ -68,7 +68,7 @@ def dc_reject(data):
     return new_data
 
 
-def detrend(data):
+def detrend(data: np.typing.ndarray):
     """Detrend.
 
     Wrapper for the scipy.signal.detrend method.
@@ -105,7 +105,7 @@ def detrend(data):
     return new_data
 
 
-def lowpass(data, f_high, order, fsample):
+def lowpass(data: np.typing.ndarray, f_high: float, order: int, fsample: float):
     """Lowpass Filter.
 
     Filters out frequencies above f_high with a Butterworth filter.
@@ -152,7 +152,9 @@ def lowpass(data, f_high, order, fsample):
     return new_data
 
 
-def bandpass(data, f_low, f_high, order, fsample):
+def bandpass(
+    data: np.typing.ndarray, f_low: float, f_high: float, order: int, fsample: float
+):
     """Bandpass Filter.
 
     Filters out frequencies outside of the range f_low to f_high with a
@@ -209,7 +211,7 @@ def bandpass(data, f_low, f_high, order, fsample):
         return new_data
 
 
-def notchfilt(data, fsample, Q=30, fc=60):
+def notchfilt(data: np.typing.ndarray, fsample: float, Q: float = 30, fc: float = 60):
     """Notch Filter.
 
     Notch filter for removing specific frequency components.
@@ -260,7 +262,13 @@ def notchfilt(data, fsample, Q=30, fc=60):
         return new_data
 
 
-def lico(X, y, expansion_factor=3, sum_num=2, shuffle=False):
+def lico(
+    X: np.typing.ndarray,
+    y: np.typing.ndarray,
+    expansion_factor: int = 3,
+    sum_num: int = 2,
+    shuffle: bool = False,
+):
     """Oversampling (linear combination oversampling (LiCO))
 
     Samples random linear combinations of existing epochs of X.
