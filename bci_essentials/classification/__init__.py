@@ -4,6 +4,7 @@ Classifiers
 Compendium of classifiers for BCI applications.
 
 **Excluded from `flake8` rules to avoid unused import errors**
+**Excluded from `mypy` rules to avoid duplicate import errors**
 """
 
 from .generic_classifier import Generic_classifier
