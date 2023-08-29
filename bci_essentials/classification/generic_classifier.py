@@ -78,9 +78,9 @@ class Generic_classifier:
 
         """
         print("initializing the classifier")
-        self.X = np.ndarray([0])
+        self.X: np.ndarray = np.ndarray([0])
         """@private (This is just for the API docs, to avoid double listing."""
-        self.y = np.ndarray([0])
+        self.y: np.ndarray = np.ndarray([0])
         """@private (This is just for the API docs, to avoid double listing."""
 
         #
