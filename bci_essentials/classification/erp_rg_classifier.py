@@ -38,13 +38,13 @@ class ERP_rg_classifier(Generic_classifier):
 
     def set_p300_clf_settings(
         self,
-        n_splits=3,  # number of folds for cross-validation
-        lico_expansion_factor=1,  # Linear Combination Oversampling expansion factor is the factor by which the number of ERPs in the training set will be expanded
-        oversample_ratio=0,  # traditional oversampling, float from 0.1-1 resulting ratio of erp class to non-erp class, 0 for no oversampling
-        undersample_ratio=0,  # traditional undersampling, float from 0.1-1 resulting ratio of erp class to non-erp classs, 0 for no undersampling
-        random_seed=42,  # random seed
-        covariance_estimator="scm",  # Covarianc estimator, see pyriemann Covariances
-    ):
+        n_splits: int = 3,  # number of folds for cross-validation
+        lico_expansion_factor: int = 1,  # Linear Combination Oversampling expansion factor is the factor by which the number of ERPs in the training set will be expanded
+        oversample_ratio: float = 0,  # traditional oversampling, float from 0.1-1 resulting ratio of erp class to non-erp class, 0 for no oversampling
+        undersample_ratio: float = 0,  # traditional undersampling, float from 0.1-1 resulting ratio of erp class to non-erp classs, 0 for no undersampling
+        random_seed: int = 42,  # random seed
+        covariance_estimator: str = "scm",  # Covarianc estimator, see pyriemann Covariances
+    ) -> None:
         """Set P300 Classifier Settings.
 
         Parameters
@@ -84,7 +84,9 @@ class ERP_rg_classifier(Generic_classifier):
         self.random_seed = random_seed
         self.covariance_estimator = covariance_estimator
 
-    def add_to_train(self, decision_block: np.ndarray, label_idx, print_training=True):
+    def add_to_train(
+        self, decision_block: np.ndarray, label_idx: type, print_training: bool = True
+    ) -> None:
         """Add to training set.
 
         Parameters
