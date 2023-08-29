@@ -84,7 +84,7 @@ class ERP_rg_classifier(Generic_classifier):
         self.random_seed = random_seed
         self.covariance_estimator = covariance_estimator
 
-    def add_to_train(self, decision_block, label_idx, print_training=True):
+    def add_to_train(self, decision_block: np.ndarray, label_idx, print_training=True):
         """Add to training set.
 
         Parameters
@@ -134,13 +134,13 @@ class ERP_rg_classifier(Generic_classifier):
 
     def fit(
         self,
-        n_splits=2,
-        plot_cm=False,
-        plot_roc=False,
-        lico_expansion_factor=1,
-        print_fit=True,
-        print_performance=True,
-    ):
+        n_splits: int = 2,
+        plot_cm: bool = False,
+        plot_roc: bool = False,
+        lico_expansion_factor: int = 1,
+        print_fit: bool = True,
+        print_performance: bool = True,
+    ) -> None:
         """Fit the model.
 
         Parameters
@@ -190,7 +190,9 @@ class ERP_rg_classifier(Generic_classifier):
         preds = np.zeros(len(self.y))
 
         #
-        def erp_rg_kernel(X, y):
+        def erp_rg_kernel(
+            X: np.ndarray, y: np.ndarray
+        ) -> tuple[Generic_classifier, np.ndarray, float, float, float]:
             """ERP RG kernel.
 
             Parameters

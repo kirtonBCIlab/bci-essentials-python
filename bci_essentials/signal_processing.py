@@ -28,7 +28,7 @@ import random
 #     return new_data
 
 
-def dc_reject(data: np.typing.ndarray):
+def dc_reject(data: np.ndarray):
     """DC Reject.
 
     Filters out DC shifts in the data.
@@ -68,7 +68,7 @@ def dc_reject(data: np.typing.ndarray):
     return new_data
 
 
-def detrend(data: np.typing.ndarray):
+def detrend(data: np.ndarray):
     """Detrend.
 
     Wrapper for the scipy.signal.detrend method.
@@ -105,7 +105,7 @@ def detrend(data: np.typing.ndarray):
     return new_data
 
 
-def lowpass(data: np.typing.ndarray, f_high: float, order: int, fsample: float):
+def lowpass(data: np.ndarray, f_high: float, order: int, fsample: float):
     """Lowpass Filter.
 
     Filters out frequencies above f_high with a Butterworth filter.
@@ -152,9 +152,7 @@ def lowpass(data: np.typing.ndarray, f_high: float, order: int, fsample: float):
     return new_data
 
 
-def bandpass(
-    data: np.typing.ndarray, f_low: float, f_high: float, order: int, fsample: float
-):
+def bandpass(data: np.ndarray, f_low: float, f_high: float, order: int, fsample: float):
     """Bandpass Filter.
 
     Filters out frequencies outside of the range f_low to f_high with a
@@ -211,7 +209,7 @@ def bandpass(
         return new_data
 
 
-def notchfilt(data: np.typing.ndarray, fsample: float, Q: float = 30, fc: float = 60):
+def notchfilt(data: np.ndarray, fsample: float, Q: float = 30, fc: float = 60):
     """Notch Filter.
 
     Notch filter for removing specific frequency components.
@@ -263,8 +261,8 @@ def notchfilt(data: np.typing.ndarray, fsample: float, Q: float = 30, fc: float 
 
 
 def lico(
-    X: np.typing.ndarray,
-    y: np.typing.ndarray,
+    X: np.ndarray,
+    y: np.ndarray,
     expansion_factor: int = 3,
     sum_num: int = 2,
     shuffle: bool = False,

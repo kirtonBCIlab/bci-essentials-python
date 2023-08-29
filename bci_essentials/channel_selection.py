@@ -17,8 +17,8 @@ from typing import Callable
 
 def channel_selection_by_method(
     kernel_func: Callable[...],
-    X: np.typing.ndarray,
-    y: np.typing.ndarray,
+    X: np.ndarray,
+    y: np.ndarray,
     channel_labels: list[str],
     method: str = "SBS",
     metric: str = "accuracy",
@@ -221,8 +221,8 @@ def check_stopping_criterion(
 
 def sbs(
     kernel_func: Callable[...],
-    X: np.typing.ndarray,
-    y: np.typing.ndarray,
+    X: np.ndarray,
+    y: np.ndarray,
     channel_labels: list[str],
     metric: str,
     initial_channels: list[str],
@@ -410,8 +410,8 @@ def sbs(
 
 def sbfs(
     kernel_func: Callable[...],
-    X: np.typing.ndarray,
-    y: np.typing.ndarray,
+    X: np.ndarray,
+    y: np.ndarray,
     channel_labels: list[str],
     metric: str,
     initial_channels: list[str],

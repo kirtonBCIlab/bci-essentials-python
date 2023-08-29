@@ -795,7 +795,7 @@ class EEG_data:
     # Preprocessing goes here (windows are nchannels by nsamples)
     def preprocessing(
         self,
-        window: np.typing.NDArray,
+        window: np.ndarray,
         option: str = None,
         order: int = 5,
         fc: int = 60,
@@ -857,7 +857,7 @@ class EEG_data:
         # other preprocessing options go here
 
     # Artefact rejection goes here (windows are nchannels by nsamples)
-    def artefact_rejection(self, window: np.typing.NDArray, option: str = None):
+    def artefact_rejection(self, window: np.ndarray, option: str = None):
         """Artefact rejection.
 
         Parameters

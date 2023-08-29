@@ -270,7 +270,7 @@ class Switch_deep_classifier(Generic_classifier):
                 print("confusion matrix")
                 print(cm)
 
-    def predict(self, X: np.typing.NDArray, print_predict: bool):
+    def predict(self, X: np.ndarray, print_predict: bool):
         """Predict function which preprocesses data and makes prediction(s).
 
         Function is passed an array of size `(X, 8, 512)` from `bci_data.py`

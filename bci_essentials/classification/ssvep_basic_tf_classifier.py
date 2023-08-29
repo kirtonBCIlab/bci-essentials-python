@@ -70,7 +70,7 @@ class SSVEP_basic_tf_classifier(Generic_classifier):
         print("I DO NOT NEED TRAINING.")
         print("THIS IS MY FINAL FORM")
 
-    def predict(self, X, print_predict: np.typing.NDArray):
+    def predict(self, X, print_predict: np.ndarray):
         """Predict the class labels for the provided data.
 
         Parameters

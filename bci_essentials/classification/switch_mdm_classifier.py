@@ -211,7 +211,7 @@ class Switch_mdm_classifier(Generic_classifier):
             print(cm)
             """
 
-    def predict(self, X: np.typing.NDArray, print_predict: bool):
+    def predict(self, X: np.ndarray, print_predict: bool):
         """Predict the class labels for the provided data.
 
         Parameters

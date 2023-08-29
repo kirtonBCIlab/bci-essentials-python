@@ -18,7 +18,7 @@ import numpy as np
 
 
 def decision_vis(
-    decision_block: np.typing.ndarray,
+    decision_block: np.ndarray,
     f_sample: float,
     label: int,
     channel_labels: list[str] = [],
@@ -101,7 +101,7 @@ def decision_vis(
 
 
 def plot_big_decision_block(
-    big_decision_block: np.typing.ndarray,
+    big_decision_block: np.ndarray,
     f_sample: float,
     channel_labels: list[str] = [],
     erp_targets: list = None,
@@ -236,7 +236,7 @@ def plot_big_decision_block(
 
 
 # Plot window
-def plot_window(window: np.typing.ndarray, f_sample: float, channel_labels: list = []):
+def plot_window(window: np.ndarray, f_sample: float, channel_labels: list = []):
     """Plots a window of EEG data.
 
     Parameters
