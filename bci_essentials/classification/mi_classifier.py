@@ -171,7 +171,7 @@ class MI_classifier(Generic_classifier):
         nwindows, nchannels, nsamples = self.X.shape
 
         # do the rest of the training if train_free is false
-        self.X = np.array(self.X)
+        self.X: np.ndarray = np.array(self.X)
 
         # Try rebuilding the classifier each time
         if self.rebuild:
