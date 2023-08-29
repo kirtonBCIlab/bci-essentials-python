@@ -33,17 +33,17 @@ class MI_classifier(Generic_classifier):
 
     def set_mi_classifier_settings(
         self,
-        n_splits=5,
-        type="TS",
-        remove_flats=False,
-        whitening=False,
-        covariance_estimator="scm",
-        artifact_rejection="none",
-        channel_selection="none",
-        pred_threshold=0.5,
-        random_seed=42,
-        n_jobs=1,
-    ):
+        n_splits: int = 5,
+        type: str = "TS",
+        remove_flats: bool = False,
+        whitening: bool = False,
+        covariance_estimator: str = "scm",
+        artifact_rejection: str = "none",
+        channel_selection: str = "none",
+        pred_threshold: float = 0.5,
+        random_seed: int = 42,
+        n_jobs: int = 1,
+    ) -> None:
         """Set MI classifier settings.
 
         Parameters
@@ -149,7 +149,7 @@ class MI_classifier(Generic_classifier):
         # Rebuild from scratch with each training
         self.rebuild = True
 
-    def fit(self, print_fit=True, print_performance=True):
+    def fit(self, print_fit: bool = True, print_performance: bool = True) -> None:
         """Fit the model.
 
         Parameters
@@ -186,7 +186,9 @@ class MI_classifier(Generic_classifier):
         # Init predictions to all false
         preds = np.zeros(nwindows)
 
-        def mi_kernel(subX, suby):
+        def mi_kernel(
+            subX: np.ndarray, suby: np.ndarray
+        ) -> tuple[Generic_classifier, np.ndarray, float, float, float]:
             """MI kernel.
 
             Parameters
@@ -309,7 +311,7 @@ class MI_classifier(Generic_classifier):
             print("confusion matrix")
             print(cm)
 
-    def predict(self, X, print_predict=True):
+    def predict(self, X: np.ndarray, print_predict: bool = True) -> np.ndarray:
         """Predict the class labels for the provided data.
 
         Parameters
