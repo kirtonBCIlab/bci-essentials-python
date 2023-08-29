@@ -40,7 +40,7 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
         n_harmonics=2,
         f_width=0.2,
         covariance_estimator="scm",
-    ):
+    ) -> None:
         """Set the SSVEP settings.
 
         Parameters
@@ -93,7 +93,7 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
         f_width: float = 0.4,
         n_harmonics: int = 2,
         covariance_estimator: str = "scm",
-    ):
+    ) -> np.ndarray:
         """Get SSVEP Supertrial.
 
         Creates the Riemannian Geometry supertrial for SSVEP.
@@ -174,7 +174,7 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
 
         return super_X
 
-    def fit(self, print_fit: bool = True, print_performance: bool = True):
+    def fit(self, print_fit: bool = True, print_performance: bool = True) -> None:
         """Fit the model.
 
         Parameters
@@ -212,7 +212,9 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
         # Init predictions to all false
         preds = np.zeros(nwindows)
 
-        def ssvep_kernel(subX: np.ndarray, suby: np.ndarray):
+        def ssvep_kernel(
+            subX: np.ndarray, suby: np.ndarray
+        ) -> tuple[Generic_classifier, np.ndarray, float, float, float]:
             """SSVEP kernel.
 
             Parameters
@@ -346,7 +348,7 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
             print("confusion matrix")
             print(cm)
 
-    def predict(self, X: np.ndarray, print_predict: bool = True):
+    def predict(self, X: np.ndarray, print_predict: bool = True) -> np.ndarray:
         """Predict the class labels for the provided data.
 
         Parameters
