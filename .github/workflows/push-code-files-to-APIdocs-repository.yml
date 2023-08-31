@@ -1,4 +1,6 @@
-name: Push code located in`bci_essentials` to ` APIdocs-for-bci-essentials-python` repo on push to `main`
+name: Push code to APIdocs repo
+# Push the code folder `bci_essentials` to the
+# ` APIdocs-for-bci-essentials-python` repo on push to `main`
 
 on:
   push:
@@ -18,9 +20,10 @@ jobs:
         env:
           API_TOKEN_GITHUB: ${{ secrets.APIDOCS_SYNC }}
         with:
-          source-files: 'bci_essentials/'
+          source-files: 'bci_essentials/ environment.yml'
           destination-username: 'kirtonBCIlab'
           destination-repository: 'APIdocs-for-bci-essentials-python'
           destination-branch: 'main'
           destination-directory: './'
+          commit-message: "Copy bci_essentials code directory on push to UPSTREAM/main"
           commit-email: 'n44412824+anup2ladder@users.noreply.github.com'
