@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Checkout SOURCE repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Push code to the `APIdocs` repository
         uses: nkoppel/push-files-to-another-repository@v1.1.1
