@@ -47,7 +47,7 @@ class EEG_data:
 
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initializes `EEG_data` class.
 
         Attributes
@@ -88,9 +88,9 @@ class EEG_data:
         user_id: str = "0000",
         nchannels: int = 8,
         channel_labels: list = ["?", "?", "?", "?", "?", "?", "?", "?"],
-        fsample: int = 256,
+        fsample: float = 256,
         max_size: int = 10000,
-    ):
+    ) -> None:
         """Explicit definition of settings.
 
         Change the settings for (...?)
@@ -108,7 +108,7 @@ class EEG_data:
         channel_labels : list of `str`, *optional*
             The channel labels.
             - Default is `["?", "?", "?", "?", "?", "?", "?", "?"]`.
-        fsample : int, *optional*
+        fsample : float, *optional*
             The sampling rate.
             - Default is `256`.
         max_size : int, *optional*
@@ -142,7 +142,7 @@ class EEG_data:
         format: str = "xdf",
         subset: list = [],
         print_output: bool = True,
-    ):
+    ) -> None:
         """Loads offline data from a file.
 
         Currently only supports .xdf
@@ -221,7 +221,7 @@ class EEG_data:
             print("Error: file format not supported")
 
     # Get metadata saved to the offline data file to fill in headset information
-    def get_info_from_file(self, data: StreamInlet, print_output: bool = True):
+    def get_info_from_file(self, data: StreamInlet, print_output: bool = True) -> None:
         """Get EEG metadata from the stream.
 
         Parameters
@@ -353,7 +353,7 @@ class EEG_data:
         max_marker_samples: int = 100000,
         eeg_only: bool = False,
         subset: list = [],
-    ):
+    ) -> None:
         """Stream data from an online source.
 
         Parameters
@@ -441,7 +441,7 @@ class EEG_data:
         self.eeg_timestamps = np.array(self.eeg_timestamps)
 
     # Get headset data from stream
-    def get_info_from_stream(self):
+    def get_info_from_stream(self) -> None:
         """Get headset data from stream.
 
         Returns
@@ -539,7 +539,7 @@ class EEG_data:
         include_markers: bool = True,
         include_eeg: bool = True,
         return_eeg: bool = False,
-    ):
+    ) -> tuple[list[float], StreamInlet]:
         """Get new data from stream.
 
         Parameters
@@ -649,7 +649,7 @@ class EEG_data:
         if return_eeg:
             return new_eeg_timestamps, new_eeg_data
 
-    def save_data(self, directory_name: str):
+    def save_data(self, directory_name: str) -> None:
         """Save the data from different stages.
 
         Creates a directory with x files. Includes raw EEG, markers,
@@ -670,7 +670,7 @@ class EEG_data:
 
         """
 
-    def mne_export_as_raw(self):
+    def mne_export_as_raw(self) -> None:
         """MNE export EEG as RawArray.
 
         Exports the EEG data as a MNE RawArray object.
@@ -681,6 +681,8 @@ class EEG_data:
         -------
         raw_array : mne.io.RawArray
             MNE RawArray object.
+
+            **NOT IMPLEMENTED YET**
 
         """
         print("mne_export_as_raw has not been implemented yet")
@@ -706,7 +708,7 @@ class EEG_data:
 
         return raw_array
 
-    def mne_export_as_epochs(self):
+    def mne_export_as_epochs(self) -> None:
         """MNE export EEG as EpochsArray.
 
         Exports the EEG data as a MNE EpochsArray object.
@@ -717,6 +719,8 @@ class EEG_data:
         -------
         epochs_array : mne.EpochsArray
             MNE EpochsArray object.
+
+            **NOT IMPLEMENTED YET**
 
         """
         # Check for mne
@@ -746,7 +750,7 @@ class EEG_data:
 
         return epochs_array
 
-    def mne_export_resting_state_as_raw(self):
+    def mne_export_resting_state_as_raw(self) -> None:
         """MNE export resting state EEG as RawArray.
 
         Exports the resting state EEG data as a MNE RawArray object.
@@ -757,6 +761,8 @@ class EEG_data:
         -------
         raw_array : mne.io.RawArray
             MNE RawArray object.
+
+            **NOT IMPLEMENTED YET**
 
         """
         print("mne_export_as_raw has not been implemented yet")
@@ -796,12 +802,12 @@ class EEG_data:
     def preprocessing(
         self,
         window: np.ndarray,
-        option: str = None,
+        option: str = "",
         order: int = 5,
         fc: int = 60,
         fl: int = 10,
         fh: int = 50,
-    ):
+    ) -> np.ndarray:
         """Signal preprocessing.
 
         Preprocesses the signal using one of the methods from the
@@ -857,7 +863,7 @@ class EEG_data:
         # other preprocessing options go here
 
     # Artefact rejection goes here (windows are nchannels by nsamples)
-    def artefact_rejection(self, window: np.ndarray, option: str = None):
+    def artefact_rejection(self, window: np.ndarray, option: str = "") -> np.ndarray:
         """Artefact rejection.
 
         Parameters
@@ -888,7 +894,7 @@ class EEG_data:
 
         # other preprocessing options go here\
 
-    def package_resting_state_data(self):
+    def package_resting_state_data(self) -> None:
         """Package resting state data.
 
         Returns
@@ -967,7 +973,7 @@ class EEG_data:
                 nsamples = int(duration * self.fsample)
 
                 self.eyes_open_timestamps = np.array(range(nsamples)) / self.fsample
-                self.eyes_open_windows = np.ndarray(
+                self.eyes_open_windows: np.ndarray = np.ndarray(
                     (len(eyes_open_start_time), self.nchannels, nsamples)
                 )
                 # Now copy EEG for these windows
@@ -1005,7 +1011,7 @@ class EEG_data:
                 nsamples = int(duration * self.fsample)
 
                 self.eyes_closed_timestamps = np.array(range(nsamples)) / self.fsample
-                self.eyes_closed_windows = np.ndarray(
+                self.eyes_closed_windows: np.ndarray = np.ndarray(
                     (len(eyes_closed_start_time), self.nchannels, nsamples)
                 )
                 # Now copy EEG for these windows
@@ -1045,7 +1051,7 @@ class EEG_data:
                 nsamples = int(duration * self.fsample)
 
                 self.rest_timestamps = np.array(range(nsamples)) / self.fsample
-                self.rest_windows = np.ndarray(
+                self.rest_windows: np.ndarray = np.ndarray(
                     (len(rest_start_time), self.nchannels, nsamples)
                 )
                 # Now copy EEG for these windows
@@ -1096,7 +1102,7 @@ class EEG_data:
         pp_low: int = 1,  # bandpass lower cutoff
         pp_high: int = 40,  # bandpass upper cutoff
         pp_order: int = 5,  # bandpass order
-    ):
+    ) -> None:
         """Main function of `EEG_data` class.
 
         Runs a while loop that reads in EEG data from the `EEG_data` object
@@ -1468,7 +1474,7 @@ class EEG_data:
                 if (
                     len(marker_info) > 4
                 ):  # if longer, collect this info and maybe it can be used by the classifier
-                    self.meta = []
+                    self.meta: list = []
                     for i in range(4, len(marker_info)):
                         self.meta.__add__([marker_info[i]])
 
@@ -1567,8 +1573,7 @@ class EEG_data:
                 ] = self.artefact_rejection(
                     window=current_processed_eeg_windows[
                         current_nwindows, : self.nchannels, : self.nsamples
-                    ],
-                    option=None,
+                    ]
                 )
 
                 # Add the label if it exists, otherwise set a flag of -1 to denote that there is no label
@@ -1637,7 +1642,7 @@ class ERP_data(EEG_data):
 
     """
 
-    def mne_export_as_raw(self):
+    def mne_export_as_raw(self) -> None:
         """MNE export EEG as RawArray
 
         Exports the EEG data as a MNE RawArray object (or an epoch object?).
@@ -1675,7 +1680,7 @@ class ERP_data(EEG_data):
 
         # return epochs_array
 
-    def mne_export_as_epochs(self):
+    def mne_export_as_epochs(self) -> None:
         """MNE export EEG as EpochsArray.
 
         Exports the EEG data as a MNE EpochsArray object.
@@ -1716,7 +1721,7 @@ class ERP_data(EEG_data):
 
         return epochs_array
 
-    def mne_export_as_evoked(self):
+    def mne_export_as_evoked(self) -> None:
         """MNE Export evoked EEG data as EpochsArray.
 
         Exports the evoked EEG data as a MNE EpochsArray object.
@@ -1785,7 +1790,7 @@ class ERP_data(EEG_data):
         pp_high: int = 40,  # bandpass upper cutoff
         pp_order: int = 5,  # bandpass order
         plot_erp: bool = False,
-    ):
+    ) -> None:
         """Main function of `ERP_data` class.
 
         Formats the ERP data. Call this every time that a new chunk arrives.
@@ -1879,7 +1884,7 @@ class ERP_data(EEG_data):
         """
 
         unity_train = True
-        unity_label = "null"
+        unity_label = None
         self.num_options = max_num_options
 
         # plot settings
@@ -1912,7 +1917,7 @@ class ERP_data(EEG_data):
             self.stim_labels = np.zeros(
                 (self.max_windows, self.num_options), dtype=bool
             )
-            self.target_index = np.ndarray((self.max_windows), bool)
+            self.target_index: np.ndarray = np.ndarray((self.max_windows), bool)
 
             # initialize the data structures in numpy arrays
             # ERP windows
@@ -1927,15 +1932,15 @@ class ERP_data(EEG_data):
             self.windows_per_decision = np.zeros((self.num_options))
 
             # Decision blocks are the ensemble averages of all windows collected for each stimulus object
-            self.decision_blocks_raw = np.ndarray(
+            self.decision_blocks_raw: np.ndarray = np.ndarray(
                 (self.max_decisions, self.num_options, self.nchannels, self.nsamples)
             )
-            self.decision_blocks_processed = np.ndarray(
+            self.decision_blocks_processed: np.ndarray = np.ndarray(
                 (self.max_decisions, self.num_options, self.nchannels, self.nsamples)
             )
 
             # Big decision blocks contain all decisions, all stimulus objects, all windows, all channels, and all samples (they are BIG)
-            self.big_decision_blocks_raw = np.ndarray(
+            self.big_decision_blocks_raw: np.ndarray = np.ndarray(
                 (
                     self.max_decisions,
                     self.num_options,
@@ -1944,7 +1949,7 @@ class ERP_data(EEG_data):
                     self.nsamples,
                 )
             )
-            self.big_decision_blocks_processed = np.ndarray(
+            self.big_decision_blocks_processed: np.ndarray = np.ndarray(
                 (
                     self.max_decisions,
                     self.num_options,
@@ -2349,8 +2354,7 @@ class ERP_data(EEG_data):
                     ] = self.artefact_rejection(
                         window=self.erp_windows_processed[
                             self.nwindows, : self.nchannels, : self.nsamples
-                        ],
-                        option=None,
+                        ]
                     )
 
                     # Add the raw window to the raw decision blocks
