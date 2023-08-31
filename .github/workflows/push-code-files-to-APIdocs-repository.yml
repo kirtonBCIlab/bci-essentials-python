@@ -1,0 +1,26 @@
+name: Push code located in`bci_essentials` to ` APIdocs-for-bci-essentials-python` repo on push to `main`
+
+on:
+  push:
+    branches:
+      # - main
+      - api-doc-sync
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout SOURCE repository
+        uses: actions/checkout@v2
+
+      - name: Push code to the `APIdocs` repository
+        uses: nkoppel/push-files-to-another-repository@1.1.0
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.APIdocs_sync }}
+        with:
+          source-files: 'bci_essentials/'
+          destination-username: 'kirtonBCIlab'
+          destination-repository: 'APIdocs-for-bci-essentials-python'
+          destination-directory: './'
+          commit-email: 'n44412824+anup2ladder@users.noreply.github.com'
