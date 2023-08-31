@@ -2,12 +2,11 @@ name: Push code located in`bci_essentials` to ` APIdocs-for-bci-essentials-pytho
 
 on:
   push:
-    branches:
-      # - main
-      - api-doc-sync
+    # branches: ["main"]
+    branches: ["api-doc-sync"]
 
 jobs:
-  sync:
+  push_code:
     runs-on: ubuntu-latest
 
     steps:
