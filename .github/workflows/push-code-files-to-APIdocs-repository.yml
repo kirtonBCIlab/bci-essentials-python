@@ -21,5 +21,6 @@ jobs:
           source-files: 'bci_essentials/'
           destination-username: 'kirtonBCIlab'
           destination-repository: 'APIdocs-for-bci-essentials-python'
+          destination-branch: 'main'
           destination-directory: './'
           commit-email: 'n44412824+anup2ladder@users.noreply.github.com'
