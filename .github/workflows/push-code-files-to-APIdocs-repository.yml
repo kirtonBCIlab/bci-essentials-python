@@ -20,7 +20,7 @@ jobs:
         env:
           API_TOKEN_GITHUB: ${{ secrets.APIDOCS_SYNC }}
         with:
-          source-files: 'bci_essentials/ environment.yml'
+          source-files: 'bci_essentials/ environment.yml pyproject.toml'
           destination-username: 'kirtonBCIlab'
           destination-repository: 'APIdocs-for-bci-essentials-python'
           destination-branch: 'main'
