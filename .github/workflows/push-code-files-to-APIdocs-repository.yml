@@ -1,6 +1,7 @@
 name: Push code to APIdocs repo
-# Push the code folder `bci_essentials` to the
-# ` APIdocs-for-bci-essentials-python` repo on push to `main`
+# This Github action executes on push to `main`
+# and Pushes the code folder `bci_essentials` to the
+# ` APIdocs-for-bci-essentials-python` repo.
 
 on:
   push:
