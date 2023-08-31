@@ -17,7 +17,7 @@ jobs:
       - name: Push code to the `APIdocs` repository
         uses: nkoppel/push-files-to-another-repository@1.1.1
         env:
-          API_TOKEN_GITHUB: ${{ secrets.APIdocs_sync }}
+          API_TOKEN_GITHUB: ${{ secrets.APIDOCS_SYNC }}
         with:
           source-files: 'bci_essentials/'
           destination-username: 'kirtonBCIlab'
