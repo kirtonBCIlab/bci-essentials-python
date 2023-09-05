@@ -22,8 +22,8 @@ def decision_vis(
     f_sample: float,
     label: int,
     channel_labels: list[str] = [],
-    ylims: tuple[int] = (-100, 100),
-):
+    ylims: tuple[int, int] = (-100, 100),
+) -> None:
     """Visualization for P300 ERP.
 
     Creates plots of the P300 ERP and non-ERP for each channel.
@@ -56,10 +56,10 @@ def decision_vis(
     # If no channel label then assign one based on its position
     if channel_labels == []:
         for n in range(N):
-            channel_labels.append(n)
+            channel_labels.append(str(n))
 
     # Make time vector
-    t = np.ndarray((M))
+    t: np.ndarray = np.ndarray((M))
     for m in range(M):
         t[m] = m / f_sample
 
@@ -106,7 +106,7 @@ def plot_big_decision_block(
     channel_labels: list[str] = [],
     erp_targets: list = None,
     ylims: tuple[int] = (-100, 100),
-):
+) -> None:
     """Plots the big decision block.
 
     Creates plots of the P300 ERP and non-ERP big decision blocks for each
