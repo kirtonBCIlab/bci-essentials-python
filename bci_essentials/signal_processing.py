@@ -28,7 +28,7 @@ import random
 #     return new_data
 
 
-def dc_reject(data: np.ndarray):
+def dc_reject(data: np.ndarray) -> np.ndarray:
     """DC Reject.
 
     Filters out DC shifts in the data.
@@ -56,7 +56,7 @@ def dc_reject(data: np.ndarray):
         N, M = np.shape(data)
         P = 1
 
-    new_data = np.ndarray(shape=(N, M, P), dtype=float)
+    new_data: np.ndarray = np.ndarray(shape=(N, M, P), dtype=float)
 
     b = [1, -1]
     a = [1, -0.99]
@@ -68,7 +68,7 @@ def dc_reject(data: np.ndarray):
     return new_data
 
 
-def detrend(data: np.ndarray):
+def detrend(data: np.ndarray) -> np.ndarray:
     """Detrend.
 
     Wrapper for the scipy.signal.detrend method.
@@ -97,7 +97,7 @@ def detrend(data: np.ndarray):
         N, M = np.shape(data)
         P = 1
 
-    new_data = np.ndarray(shape=(N, M, P), dtype=float)
+    new_data: np.ndarray = np.ndarray(shape=(N, M, P), dtype=float)
 
     for p in range(0, P):
         new_data[0:N, 0:M, p] = signal.detrend(data[0:N, 0:M, p], axis=1)
@@ -105,7 +105,7 @@ def detrend(data: np.ndarray):
     return new_data
 
 
-def lowpass(data: np.ndarray, f_high: float, order: int, fsample: float):
+def lowpass(data: np.ndarray, f_high: float, order: int, fsample: float) -> np.ndarray:
     """Lowpass Filter.
 
     Filters out frequencies above f_high with a Butterworth filter.
@@ -140,7 +140,7 @@ def lowpass(data: np.ndarray, f_high: float, order: int, fsample: float):
         P = 1
 
     Wn = f_high / (fsample / 2)
-    new_data = np.ndarray(shape=(N, M, P), dtype=float)
+    new_data: np.ndarray = np.ndarray(shape=(N, M, P), dtype=float)
 
     b, a = signal.butter(order, Wn, btype="lowpass")
 
@@ -152,7 +152,9 @@ def lowpass(data: np.ndarray, f_high: float, order: int, fsample: float):
     return new_data
 
 
-def bandpass(data: np.ndarray, f_low: float, f_high: float, order: int, fsample: float):
+def bandpass(
+    data: np.ndarray, f_low: float, f_high: float, order: int, fsample: float
+) -> np.ndarray:
     """Bandpass Filter.
 
     Filters out frequencies outside of the range f_low to f_high with a
@@ -191,7 +193,7 @@ def bandpass(data: np.ndarray, f_low: float, f_high: float, order: int, fsample:
         # reshape to N,M,P
         data_reshape = np.swapaxes(np.swapaxes(data, 1, 2), 0, 2)
 
-        new_data = np.ndarray(shape=(N, M, P), dtype=float)
+        new_data: np.ndarray = np.ndarray(shape=(N, M, P), dtype=float)
         for p in range(0, P):
             new_data[0:N, 0:M, p] = signal.filtfilt(
                 b, a, data_reshape[0:N, 0:M, p], axis=1, padlen=30
@@ -209,7 +211,9 @@ def bandpass(data: np.ndarray, f_low: float, f_high: float, order: int, fsample:
         return new_data
 
 
-def notchfilt(data: np.ndarray, fsample: float, Q: float = 30, fc: float = 60):
+def notchfilt(
+    data: np.ndarray, fsample: float, Q: float = 30, fc: float = 60
+) -> np.ndarray:
     """Notch Filter.
 
     Notch filter for removing specific frequency components.
@@ -246,7 +250,7 @@ def notchfilt(data: np.ndarray, fsample: float, Q: float = 30, fc: float = 60):
 
     try:
         N, M, P = np.shape(data)
-        new_data = np.ndarray(shape=(N, M, P), dtype=float)
+        new_data: np.ndarray = np.ndarray(shape=(N, M, P), dtype=float)
         for p in range(0, P):
             new_data[0:N, 0:M, p] = signal.filtfilt(
                 b, a, data[0:N, 0:M, p], axis=1, padlen=30
@@ -266,7 +270,7 @@ def lico(
     expansion_factor: int = 3,
     sum_num: int = 2,
     shuffle: bool = False,
-):
+) -> tuple[np.ndarray, np.ndarray]:
     """Oversampling (linear combination oversampling (LiCO))
 
     Samples random linear combinations of existing epochs of X.
@@ -302,7 +306,7 @@ def lico(
         for j in range(sum_num):
             new_X[i, :, :] += true_X[random.choice(range(n)), :, :] / sum_num
 
-    over_X = np.append(X, new_X, axis=0)
-    over_y = np.append(y, np.ones([new_n]))
+    over_X: np.ndarray = np.append(X, new_X, axis=0)
+    over_y: np.ndarray = np.append(y, np.ones([new_n]))
 
     return over_X, over_y

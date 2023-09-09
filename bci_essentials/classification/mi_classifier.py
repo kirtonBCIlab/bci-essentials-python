@@ -258,7 +258,7 @@ class MI_classifier(Generic_classifier):
                 accuracy,
                 precision,
                 recall,
-            ) = channel_selection_by_method(
+            ) = channel_selection_by_method(  # type: ignore
                 mi_kernel,
                 self.X,
                 self.y,

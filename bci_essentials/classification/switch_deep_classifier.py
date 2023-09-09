@@ -40,7 +40,7 @@ class Switch_deep_classifier(Generic_classifier):
         random_seed: int = 42,
         activation_main: str = "relu",
         activation_class: str = "sigmoid",
-    ):
+    ) -> None:
         """Function defines all basic settings for classification.
 
         Function has 6 parameters and defines two neural networks.
@@ -112,7 +112,7 @@ class Switch_deep_classifier(Generic_classifier):
         )
         """
 
-    def fit(self, print_fit: bool = True, print_performance: bool = True):
+    def fit(self, print_fit: bool = True, print_performance: bool = True) -> None:
         """Fitting function for Switch_deep_classifier.
 
         Function uses the StratifiedKFold() function to split the data and
@@ -138,7 +138,7 @@ class Switch_deep_classifier(Generic_classifier):
         if isinstance(self.X, list):
             print("Error. Self.X should not be a list")
             print("Correcting now...")
-            self.X = np.array(self.X)
+            self.X: np.ndarray = np.array(self.X)
 
         # get dimensions
         nwindows, nchannels, nsamples = self.X.shape
@@ -201,13 +201,13 @@ class Switch_deep_classifier(Generic_classifier):
                 X_test_scaled = scaler_test.transform(X_test)
 
                 # Compile the model
-                self.clf.compile(
+                self.clf.compile(  # type: ignore
                     # optimizer=Adam(learning_rate=0.001),
                     loss="sparse_categorical_crossentropy",
                     metrics=["accuracy"],
                 )
                 # Fit the model
-                self.clf.fit(
+                self.clf.fit(  # type: ignore
                     x=X_train_scaled,
                     y=y_train,
                     batch_size=5,
@@ -219,9 +219,9 @@ class Switch_deep_classifier(Generic_classifier):
                 # preds[test_idx,:] = self.clf.predict(X_test_scaled)
 
             # Append classifier to list
-            self.clfs.append(self.clf)
+            self.clfs.append(self.clf)  # type: ignore
             # Remove weights on classifer for next run through for loop
-            self.clf = self.clf_model
+            self.clf = self.clf_model  # type: ignore
 
             print("\nFinished model.")
 
@@ -270,7 +270,7 @@ class Switch_deep_classifier(Generic_classifier):
                 print("confusion matrix")
                 print(cm)
 
-    def predict(self, X: np.ndarray, print_predict: bool):
+    def predict(self, X: np.ndarray, print_predict: bool) -> str:
         """Predict function which preprocesses data and makes prediction(s).
 
         Function is passed an array of size `(X, 8, 512)` from `bci_data.py`
@@ -310,7 +310,7 @@ class Switch_deep_classifier(Generic_classifier):
         X_predict_scaled = scaler_train.transform(X_predict)
 
         # Final predictions is good once everything is appended - but data needs to be reformatted in a way that Unity understands
-        final_predictions = []
+        final_predictions: list[list] = []
 
         # Make predictions
         print(f"The number of classsifiers in the list are: {len(self.clfs)}")
@@ -324,8 +324,8 @@ class Switch_deep_classifier(Generic_classifier):
         final_preds = []
 
         # Copying the important values from final_predictions into new list
-        for i in final_predictions:
-            for sub_list in i:
+        for j in final_predictions:
+            for sub_list in j:
                 temp_list.append(sub_list[iterations + 1])
 
             iterations += 1
@@ -361,4 +361,4 @@ class Switch_deep_classifier(Generic_classifier):
             print(
                 "Error - there are not an appropriate amount of labels (three) to complete predictions on"
             )
-            return None
+            return ""

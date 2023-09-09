@@ -79,21 +79,21 @@ def decision_vis(
     for p in range(P):
         if p == label:
             for n in range(N):
-                ax[ind].plot(t, decision_block[label, n, :], label=channel_labels[n])
+                ax[ind].plot(t, decision_block[label, n, :], label=channel_labels[n])  # type: ignore
 
-            ax[ind].legend()
-            ax[ind].set_ylim(ylims)
-            ax[ind].set_ylabel("ERP")
+            ax[ind].legend()  # type: ignore
+            ax[ind].set_ylim(ylims)  # type: ignore
+            ax[ind].set_ylabel("ERP")  # type: ignore
 
             ind += 1
 
         else:
             for n in range(N):
-                ax[ind].plot(t, decision_block[ind, n, :], label=channel_labels[n])
+                ax[ind].plot(t, decision_block[ind, n, :], label=channel_labels[n])  # type: ignore
 
-            ax[ind].set_ylim(ylims)
-            ax[ind].legend()
-            ax[ind].set_ylabel("Not ERP")
+            ax[ind].set_ylim(ylims)  # type: ignore
+            ax[ind].legend()  # type: ignore
+            ax[ind].set_ylabel("Not ERP")  # type: ignore
 
             ind += 1
 
@@ -103,9 +103,9 @@ def decision_vis(
 def plot_big_decision_block(
     big_decision_block: np.ndarray,
     f_sample: float,
-    channel_labels: list[str] = [],
-    erp_targets: list = None,
-    ylims: tuple[int] = (-100, 100),
+    channel_labels: list = [],
+    erp_targets: list = [],
+    ylims: tuple[int, int] = (-100, 100),
 ) -> None:
     """Plots the big decision block.
 
@@ -148,7 +148,7 @@ def plot_big_decision_block(
             channel_labels.append(n)
 
     # Make time vector
-    t = np.ndarray((M))
+    t: np.ndarray = np.ndarray((M))
     for m in range(M):
         t[m] = m / f_sample
 
@@ -232,11 +232,11 @@ def plot_big_decision_block(
 
         # plot the average of all W in bold
 
-        fig[d].show()
+        fig[d].show()  # type: ignore
 
 
 # Plot window
-def plot_window(window: np.ndarray, f_sample: float, channel_labels: list = []):
+def plot_window(window: np.ndarray, f_sample: float, channel_labels: list = []) -> None:
     """Plots a window of EEG data.
 
     Parameters
@@ -265,7 +265,7 @@ def plot_window(window: np.ndarray, f_sample: float, channel_labels: list = []):
             channel_labels.append(n)
 
     # Make time vector
-    t = np.ndarray((M))
+    t: np.ndarray = np.ndarray((M))
     for m in range(M):
         t[m] = m / f_sample
 

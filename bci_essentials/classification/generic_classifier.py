@@ -11,7 +11,7 @@ import numpy as np
 class Generic_classifier:
     """The base generic classifier class for other classifiers."""
 
-    def __init__(self, training_selection=0, subset=[]):
+    def __init__(self, training_selection: int = 0, subset: list = []):
         """Initializes `Generic_classifier` class.
 
         Parameters
@@ -78,9 +78,9 @@ class Generic_classifier:
 
         """
         print("initializing the classifier")
-        self.X = np.ndarray([0])
+        self.X: np.ndarray = np.ndarray([0])
         """@private (This is just for the API docs, to avoid double listing."""
-        self.y = np.ndarray([0])
+        self.y: np.ndarray = np.ndarray([0])
         """@private (This is just for the API docs, to avoid double listing."""
 
         #
@@ -88,21 +88,21 @@ class Generic_classifier:
         """@private (This is just for the API docs, to avoid double listing."""
         self.subset = subset
         """@private (This is just for the API docs, to avoid double listing."""
-        self.channel_labels = []
+        self.channel_labels: list[str] = []
         """@private (This is just for the API docs, to avoid double listing."""
         self.channel_selection_setup = False
         """@private (This is just for the API docs, to avoid double listing."""
 
         # Lists for plotting classifier performance over time
-        self.offline_accuracy = []
+        self.offline_accuracy: list = []
         """@private (This is just for the API docs, to avoid double listing."""
-        self.offline_precision = []
+        self.offline_precision: list = []
         """@private (This is just for the API docs, to avoid double listing."""
-        self.offline_recall = []
+        self.offline_recall: list = []
         """@private (This is just for the API docs, to avoid double listing."""
         self.offline_window_count = 0
         """@private (This is just for the API docs, to avoid double listing."""
-        self.offline_window_counts = []
+        self.offline_window_counts: list = []
         """@private (This is just for the API docs, to avoid double listing."""
 
         # For iterative fitting,
@@ -110,12 +110,12 @@ class Generic_classifier:
         """@private (This is just for the API docs, to avoid double listing."""
 
         # Keep track of predictions
-        self.predictions = []
+        self.predictions: list = []
         """@private (This is just for the API docs, to avoid double listing."""
-        self.pred_probas = []
+        self.pred_probas: list = []
         """@private (This is just for the API docs, to avoid double listing."""
 
-    def get_subset(self, X=[]):
+    def get_subset(self, X: np.ndarray = np.empty([0, 0, 0])) -> np.ndarray:
         """Get a subset of X according to labels or indices.
 
         Parameters
@@ -173,6 +173,7 @@ class Generic_classifier:
                 if X == []:
                     new_X = self.X[:, subset_indices, :]
                     self.X = new_X
+                    return self.X
                 else:
                     new_X = X[:, subset_indices, :]
                     X = new_X
@@ -183,6 +184,7 @@ class Generic_classifier:
                 if X == []:
                     new_X = self.X[subset_indices, :]
                     self.X = new_X
+                    return self.X
 
                 else:
                     new_X = X[subset_indices, :]
@@ -196,16 +198,16 @@ class Generic_classifier:
 
     def setup_channel_selection(
         self,
-        method="SBS",
-        metric="accuracy",
-        initial_channels=[],  # wrapper setup
-        max_time=999,
-        min_channels=1,
-        max_channels=999,
-        performance_delta=0.001,  # stopping criterion
-        n_jobs=1,
-        print_output="silent",
-    ):
+        method: str = "SBS",
+        metric: str = "accuracy",
+        initial_channels: list = [],  # wrapper setup
+        max_time: int = 999,
+        min_channels: int = 1,
+        max_channels: int = 999,
+        performance_delta: float = 0.001,  # stopping criterion
+        n_jobs: int = 1,
+        print_output: str = "silent",
+    ) -> None:
         """Setup channel selection parameters.
 
         Parameters
@@ -261,8 +263,13 @@ class Generic_classifier:
 
     # add training data, to the training set using a decision block and a label
     def add_to_train(
-        self, decision_block, labels, num_options=0, meta=[], print_training=True
-    ):
+        self,
+        decision_block: np.ndarray,
+        labels: np.ndarray,
+        num_options: int = 0,
+        meta: list = [],
+        print_training: bool = True,
+    ) -> None:
         """Add training data to the training set using a decision block
         and a label.
 
@@ -310,7 +317,9 @@ class Generic_classifier:
             self.y = np.append(self.y, labels, axis=0)
 
     # predict a label based on a decision block
-    def predict_decision_block(self, decision_block, print_predict=True):
+    def predict_decision_block(
+        self, decision_block: np.ndarray, print_predict: bool = True
+    ) -> int:
         """Predict a label based on a decision block.
 
         Parameters
@@ -337,7 +346,7 @@ class Generic_classifier:
             print("making a prediction")
 
         # get prediction probabilities for all
-        proba_mat = self.clf.predict_proba(decision_block)
+        proba_mat = self.clf.predict_proba(decision_block)  # type: ignore
 
         proba = proba_mat[:, 1]
 
@@ -358,7 +367,7 @@ class Generic_classifier:
 
         return prediction
 
-    def fit(self, **kwargs):
+    def fit(self, **kwargs: dict) -> None:
         """Abstract method to fit classifier
 
         Parameters
@@ -373,7 +382,7 @@ class Generic_classifier:
         """
         return None
 
-    def predict(self, **kwargs):
+    def predict(self, **kwargs: dict) -> None:
         """Abstract method to predict with classifier
 
         Parameters

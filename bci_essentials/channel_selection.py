@@ -12,11 +12,12 @@ be of the shape `W x C x S`, where:
 from joblib import Parallel, delayed
 import time
 import numpy as np
-from typing import Callable
+from typing import Callable, Union
+from classification.generic_classifier import Generic_classifier
 
 
 def channel_selection_by_method(
-    kernel_func: Callable[...],
+    kernel_func: Callable,
     X: np.ndarray,
     y: np.ndarray,
     channel_labels: list[str],
@@ -29,7 +30,7 @@ def channel_selection_by_method(
     performance_delta: float = 0.001,
     n_jobs: int = 1,
     print_output: str = "silent",
-):
+) -> Union[tuple[list[str], Generic_classifier, np.ndarray, float, float, float], None]:
     """Passes the BCI kernel function into a wrapper defined by `method`.
 
     Parameters
@@ -153,6 +154,9 @@ def channel_selection_by_method(
             print_output=print_output,
         )
 
+    else:
+        return None
+
 
 def check_stopping_criterion(
     current_time: float,
@@ -161,9 +165,9 @@ def check_stopping_criterion(
     max_time: int,
     min_channels: int,
     max_channels: int,
-    performance_delta: int,
+    performance_delta: float,
     print_output: bool = True,
-):
+) -> bool:
     """Function to check if a stopping criterion has been met.
 
     Parameters
@@ -220,7 +224,7 @@ def check_stopping_criterion(
 
 
 def sbs(
-    kernel_func: Callable[...],
+    kernel_func: Callable,
     X: np.ndarray,
     y: np.ndarray,
     channel_labels: list[str],
@@ -232,7 +236,7 @@ def sbs(
     performance_delta: float,
     n_jobs: int,
     print_output: str,
-):
+) -> tuple[list[str], Generic_classifier, np.ndarray, float, float, float]:
     """The SBS method for channel selection.
 
     Parameters
@@ -309,7 +313,7 @@ def sbs(
 
     stop_criterion = False
 
-    preds = []
+    preds: np.ndarray = np.empty([])
     accuracy = 0
     precision = 0
     recall = 0
@@ -317,9 +321,9 @@ def sbs(
     while stop_criterion is False:
         sets_to_try = []
         X_to_try = []
-        for c in sbs_subset:
+        for j in sbs_subset:
             set_to_try = sbs_subset.copy()
-            set_to_try.remove(c)
+            set_to_try.remove(j)
             sets_to_try.append(set_to_try)
 
             # get the new X
@@ -409,7 +413,7 @@ def sbs(
 
 
 def sbfs(
-    kernel_func: Callable[...],
+    kernel_func: Callable,
     X: np.ndarray,
     y: np.ndarray,
     channel_labels: list[str],
@@ -421,7 +425,7 @@ def sbfs(
     performance_delta: float,
     n_jobs: int,
     print_output: str,
-):
+) -> tuple[list[str], Generic_classifier, np.ndarray, float, float, float]:
     """The SBFS method for channel selection.
 
     Parameters
@@ -491,8 +495,8 @@ def sbfs(
     start_time = time.time()
 
     nwindows, nchannels, nsamples = X.shape
-    sbfs_subset = []
-    all_sets_tried = []  # set of all channels that have been tried
+    sbfs_subset: list = []
+    all_sets_tried: list = []  # set of all channels that have been tried
 
     for i, c in enumerate(channel_labels):
         if c in initial_channels:
@@ -505,7 +509,7 @@ def sbfs(
 
     stop_criterion = False
 
-    preds = []
+    preds: np.ndarray = np.empty([])
     accuracy = 0
     precision = 0
     recall = 0
@@ -514,9 +518,9 @@ def sbfs(
         # Exclusion Step
         sets_to_try = []
         X_to_try = []
-        for c in sbfs_subset:
+        for j in sbfs_subset:
             set_to_try = sbfs_subset.copy()
-            set_to_try.remove(c)
+            set_to_try.remove(j)
             set_to_try.sort()
 
             # Only try sets that have not been tried before
@@ -537,7 +541,7 @@ def sbfs(
             delayed(kernel_func)(Xtest, y) for Xtest in X_to_try
         )
 
-        [all_sets_tried.append(set.sort()) for set in sets_to_try]
+        [all_sets_tried.append(set.sort()) for set in sets_to_try]  # type: ignore
 
         models = []
         predictions = []
@@ -587,7 +591,7 @@ def sbfs(
         # If this is the best perfomance at nchannels
         if performance_at_nchannels[len(sbfs_subset)] < best_performance:
             performance_at_nchannels[len(sbfs_subset)] = best_performance
-            best_subset_at_nchannels[len(sbfs_subset)] = sbfs_subset
+            best_subset_at_nchannels[len(sbfs_subset)] = sbfs_subset  # type: ignore
 
         p_delta = performance - previous_performance
         previous_performance = performance
@@ -604,14 +608,14 @@ def sbfs(
 
             # Check all of the possible inclusions that do not lead to a previously tested subset
             potential_channels_to_add = list(range(len(channel_labels)))
-            [potential_channels_to_add.remove(c) for c in sbfs_subset]
+            [potential_channels_to_add.remove(c) for c in sbfs_subset]  # type: ignore
 
             sets_to_try = []
             X_to_try = []
 
-            for c in potential_channels_to_add:
+            for j in potential_channels_to_add:
                 set_to_try = sbfs_subset.copy()
-                set_to_try.append(c)
+                set_to_try.append(j)
                 set_to_try.sort()
 
                 if set_to_try not in all_sets_tried:
@@ -632,7 +636,7 @@ def sbfs(
                 delayed(kernel_func)(Xtest, y) for Xtest in X_to_try
             )
 
-            [all_sets_tried.append(set.sort()) for set in sets_to_try]
+            [all_sets_tried.append(set.sort()) for set in sets_to_try]  # type: ignore
 
             models = []
             predictions = []
@@ -684,7 +688,7 @@ def sbfs(
                 previous_performance = performance
 
                 performance_at_nchannels[length_of_resultant_set - 1] = performance
-                best_subset_at_nchannels[length_of_resultant_set - 1] = sbfs_subset
+                best_subset_at_nchannels[length_of_resultant_set - 1] = sbfs_subset  # type: ignore
 
             # if no performance gains, then stop conditional inclusion
             else:

@@ -85,7 +85,12 @@ class ERP_rg_classifier(Generic_classifier):
         self.covariance_estimator = covariance_estimator
 
     def add_to_train(
-        self, decision_block: np.ndarray, label_idx: type, print_training: bool = True
+        self,
+        decision_block: np.ndarray,
+        label_idx: np.ndarray,
+        num_options: int = 0,
+        meta: list = [],
+        print_training: bool = True,
     ) -> None:
         """Add to training set.
 
@@ -142,6 +147,7 @@ class ERP_rg_classifier(Generic_classifier):
         lico_expansion_factor: int = 1,
         print_fit: bool = True,
         print_performance: bool = True,
+        **kwargs: dict,
     ) -> None:
         """Fit the model.
 
@@ -345,7 +351,7 @@ class ERP_rg_classifier(Generic_classifier):
                 accuracy,
                 precision,
                 recall,
-            ) = channel_selection_by_method(
+            ) = channel_selection_by_method(  # type: ignore
                 erp_rg_kernel,
                 self.X,
                 self.y,
@@ -372,19 +378,19 @@ class ERP_rg_classifier(Generic_classifier):
         # Print performance stats
         # accuracy
         accuracy = sum(preds == self.y) / len(preds)
-        self.offline_accuracy = accuracy
+        self.offline_accuracy = [accuracy]
         if print_performance:
             print("accuracy = {}".format(accuracy))
 
         # precision
         precision = precision_score(self.y, preds)
-        self.offline_precision = precision
+        self.offline_precision = [precision]
         if print_performance:
             print("precision = {}".format(precision))
 
         # recall
         recall = recall_score(self.y, preds)
-        self.offline_recall = recall
+        self.offline_recall = [recall]
         if print_performance:
             print("recall = {}".format(recall))
 

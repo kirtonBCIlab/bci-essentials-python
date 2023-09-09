@@ -35,11 +35,11 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
 
     def set_ssvep_settings(
         self,
-        n_splits=3,
-        random_seed=42,
-        n_harmonics=2,
-        f_width=0.2,
-        covariance_estimator="scm",
+        n_splits: int = 3,
+        random_seed: int = 42,
+        n_harmonics: int = 2,
+        f_width: float = 0.2,
+        covariance_estimator: str = "scm",
     ) -> None:
         """Set the SSVEP settings.
 
@@ -294,7 +294,7 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
                 accuracy,
                 precision,
                 recall,
-            ) = channel_selection_by_method(
+            ) = channel_selection_by_method(  # type: ignore
                 ssvep_kernel,
                 self.X,
                 self.y,

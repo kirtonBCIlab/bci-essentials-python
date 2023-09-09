@@ -40,7 +40,7 @@ class Switch_mdm_classifier(Generic_classifier):
         n_jobs: int = 1,
         activation_main: str = "relu",
         activation_class: str = "sigmoid",
-    ):
+    ) -> None:
         """Set the Switch Classifier MDM settings.
 
         Parameters
@@ -80,7 +80,7 @@ class Switch_mdm_classifier(Generic_classifier):
         self.clf = Pipeline([("MDM", mdm)])
         # self.clf0and1 = MDM()
 
-    def fit(self, print_fit: bool = True, print_performance: bool = True):
+    def fit(self, print_fit: bool = True, print_performance: bool = True) -> None:
         """Fit the model.
 
         Parameters
@@ -110,7 +110,7 @@ class Switch_mdm_classifier(Generic_classifier):
         print(f"Number of classes: {self.num_classifiers}")
 
         # make a list to hold all of the classifiers
-        self.clfs = []
+        self.clfs: list = []
 
         # loop through and build the classifiers
         for i in range(self.num_classifiers):
@@ -211,7 +211,7 @@ class Switch_mdm_classifier(Generic_classifier):
             print(cm)
             """
 
-    def predict(self, X: np.ndarray, print_predict: bool):
+    def predict(self, X: np.ndarray, print_predict: bool) -> np.ndarray:
         """Predict the class labels for the provided data.
 
         Parameters

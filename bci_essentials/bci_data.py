@@ -29,11 +29,12 @@ import matplotlib.pyplot as plt
 from pylsl import StreamInlet, resolve_byprop, StreamOutlet, StreamInfo
 from pylsl.pylsl import IRREGULAR_RATE
 
-# from bci_essentials.bci_data_settings import *
-# from bci_essentials.visuals import *
 from bci_essentials.signal_processing import notchfilt, bandpass
 
-# from bci_essentials.classification import *
+from typing import Union
+
+# mypy: disable-error-code="attr-defined"
+# The above comment is for all references to "self.classifier", which are not yet implemented here
 
 
 # EEG data
@@ -539,7 +540,7 @@ class EEG_data:
         include_markers: bool = True,
         include_eeg: bool = True,
         return_eeg: bool = False,
-    ) -> tuple[list[float], StreamInlet]:
+    ) -> Union[tuple[list[float], StreamInlet], None]:
         """Get new data from stream.
 
         Parameters
@@ -596,7 +597,7 @@ class EEG_data:
 
             # if time is in milliseconds, divide by 1000, works for sampling rates above 10Hz
             try:
-                if self.time_units == "milliseconds":
+                if self.time_units == "milliseconds":  # type: ignore
                     new_eeg_timestamps = [
                         (new_eeg_timestamps[i] / 1000)
                         for i in range(len(new_eeg_timestamps))
@@ -648,6 +649,9 @@ class EEG_data:
         # Return eeg
         if return_eeg:
             return new_eeg_timestamps, new_eeg_data
+
+        else:
+            return None
 
     def save_data(self, directory_name: str) -> None:
         """Save the data from different stages.
@@ -847,11 +851,6 @@ class EEG_data:
             shape = (`N_channels`,`N_samples`)
 
         """
-        # do nothing
-        if option is None:
-            new_window = window
-            return new_window
-
         if option == "notch":
             new_window = notchfilt(window, self.fsample, Q=30, fc=60)
             return new_window
@@ -859,6 +858,10 @@ class EEG_data:
         if option == "bandpass":
             new_window = bandpass(window, fl, fh, order, self.fsample)
             return new_window
+
+        else:
+            # option == "", so do nothing
+            return window
 
         # other preprocessing options go here
 
@@ -888,9 +891,7 @@ class EEG_data:
 
         """
         # do nothing
-        if option is None:
-            new_window = window
-            return new_window
+        return window
 
         # other preprocessing options go here\
 
@@ -1520,7 +1521,7 @@ class EEG_data:
                 start_time = self.marker_timestamps[self.marker_count]
 
                 # Find the number of samples per window
-                self.nsamples = int(self.window_length * self.fsample)
+                self.nsamples: int = int(self.window_length * self.fsample)
 
                 # set the window timestamps at exactly the sampling frequency
                 self.window_timestamps = np.arange(self.nsamples) / self.fsample
@@ -1921,15 +1922,15 @@ class ERP_data(EEG_data):
 
             # initialize the data structures in numpy arrays
             # ERP windows
-            self.erp_windows_raw = np.zeros(
+            self.erp_windows_raw: np.ndarray = np.zeros(
                 (self.max_windows, self.nchannels, self.nsamples)
             )
-            self.erp_windows_processed = np.zeros(
+            self.erp_windows_processed: np.ndarray = np.zeros(
                 (self.max_windows, self.nchannels, self.nsamples)
             )
 
             # Windows per decision, ie. the number of times each stimulus has flashed
-            self.windows_per_decision = np.zeros((self.num_options))
+            self.windows_per_decision: np.ndarray = np.zeros((self.num_options))
 
             # Decision blocks are the ensemble averages of all windows collected for each stimulus object
             self.decision_blocks_raw: np.ndarray = np.ndarray(
