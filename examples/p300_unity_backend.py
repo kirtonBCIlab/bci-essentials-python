@@ -32,7 +32,7 @@ test_erp.stream_online_eeg_data()  # you can also add a subset here
 test_erp.main(
     online=True,
     training=True,
-    pp_low=0.1,
+    pp_low=1,
     pp_high=10,
     pp_order=5,
     plot_erp=False,

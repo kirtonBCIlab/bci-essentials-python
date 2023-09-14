@@ -52,7 +52,7 @@ test_erp.load_offline_eeg_data(
 # Run main loop, this will do all of the classification for online or offline
 test_erp.main(
     training=True,
-    pp_low=0.1,
+    pp_low=1,
     pp_high=10,
     pp_order=5,
     plot_erp=False,

@@ -49,15 +49,15 @@ test_ssvep.main(
 
 
 print("debug")
-mne_raw = test_ssvep.mne_export_resting_state_as_raw()
+mne_raw = test_ssvep.mne_export_resting_state_as_raw()  # type: ignore
 mne_raw.plot()
 
 print("debug")
-mne_raw = test_ssvep.mne_export_as_raw()
+mne_raw = test_ssvep.mne_export_as_raw()  # type: ignore
 mne_raw.plot()
 
 print("debug")
-mne_epochs = test_ssvep.mne_export_as_epochs()
+mne_epochs = test_ssvep.mne_export_as_epochs()  # type: ignore
 mne_epochs.plot(picks="eeg")
 
 

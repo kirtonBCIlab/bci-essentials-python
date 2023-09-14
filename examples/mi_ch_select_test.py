@@ -28,7 +28,7 @@ test_mi.classifier.set_mi_classifier_settings(n_splits=5, type="TS", random_seed
 
 # Define channel selection settings
 # test_mi.classifier.setup_channel_selection(initial_channels=[], method="SBS", metric="accuracy", max_time=60, n_jobs=-1)
-initial_subset = []
+initial_subset: list = []
 test_mi.classifier.setup_channel_selection(
     method="SBFS",
     metric="accuracy",

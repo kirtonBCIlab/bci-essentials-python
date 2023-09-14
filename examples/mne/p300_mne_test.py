@@ -47,7 +47,7 @@ test_erp.main(
     training=True,
     max_num_options=10,
     max_decisions=50,
-    pp_low=0.1,
+    pp_low=1,
     pp_high=10,
     pp_order=5,
     plot_erp=False,
@@ -62,10 +62,10 @@ test_erp.main(
 
 
 print("debug")
-rs_mne = test_erp.mne_export_resting_state_as_raw()
+rs_mne = test_erp.mne_export_resting_state_as_raw()  # type: ignore
 
 print("debug")
-mne_epochs = test_erp.mne_export_as_epochs()
+mne_epochs = test_erp.mne_export_as_epochs()  # type: ignore
 
 mne_epochs.plot(picks="eeg")
 
