@@ -19,7 +19,7 @@ from pyriemann.estimation import Covariances
 from pyriemann.classification import MDM, TSclassifier
 from pyriemann.channelselection import FlatChannelRemover, ElectrodeSelection
 
-from classification.generic_classifier import Generic_classifier
+from bci_essentials.classification.generic_classifier import Generic_classifier
 
 from bci_essentials.channel_selection import channel_selection_by_method
 

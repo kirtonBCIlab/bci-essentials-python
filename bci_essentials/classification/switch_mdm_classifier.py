@@ -21,7 +21,7 @@ from sklearn.pipeline import Pipeline
 from sklearn import preprocessing
 from pyriemann.classification import MDM
 
-from classification.generic_classifier import Generic_classifier
+from bci_essentials.classification.generic_classifier import Generic_classifier
 
 # Custom libraries
 # - Append higher directory to import bci_essentials

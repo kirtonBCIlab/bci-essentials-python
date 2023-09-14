@@ -21,7 +21,7 @@ from sklearn.metrics import confusion_matrix, accuracy_score
 from sklearn import preprocessing
 import tensorflow as tf
 
-from classification.generic_classifier import Generic_classifier
+from bci_essentials.classification.generic_classifier import Generic_classifier
 
 # Custom libraries
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))

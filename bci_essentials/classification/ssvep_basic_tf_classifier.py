@@ -10,7 +10,7 @@ import sys
 import numpy as np
 from scipy import signal
 
-from classification.generic_classifier import Generic_classifier
+from bci_essentials.classification.generic_classifier import Generic_classifier
 
 # from bci_essentials.visuals import *
 # from bci_essentials.signal_processing import *

@@ -13,7 +13,7 @@ from joblib import Parallel, delayed
 import time
 import numpy as np
 from typing import Callable, Union
-from classification.generic_classifier import Generic_classifier
+from bci_essentials.classification import Generic_classifier
 
 
 def channel_selection_by_method(
