@@ -5,8 +5,7 @@ from bci_essentials.bci_data import ERP_data, EEG_data
 from bci_essentials.resting_state import get_alpha_peak, get_bandpower_features
 from bci_essentials.classification import mi_classifier, ERP_rg_classifier
 
-# mypy: disable-error-code="attr-defined"
-# mypy: disable-error-code="operator"
+# mypy: disable-error-code="attr-defined, operator"
 # The above comments are for all references to ".classifier", which are not yet implemented here
 # Or, for attempts to define the classifier using a non-callable module (i.e. line 23)
 
