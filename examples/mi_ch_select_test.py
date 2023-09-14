@@ -9,6 +9,11 @@ import sys
 from bci_essentials.bci_data import EEG_data
 from bci_essentials.classification import mi_classifier
 
+# mypy: disable-error-code="attr-defined"
+# mypy: disable-error-code="operator"
+# The above comments are for all references to ".classifier", which are not yet implemented here
+# Or, for attempts to define the classifier using a non-callable module (i.e. line 25)
+
 # Add parent directory to path to access bci_essentials
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
 

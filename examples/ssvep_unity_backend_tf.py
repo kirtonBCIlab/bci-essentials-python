@@ -4,6 +4,10 @@
 from bci_essentials.bci_data import EEG_data
 from bci_essentials.classification import SSVEP_basic_tf_classifier
 
+# mypy: disable-error-code="attr-defined"
+# The above comment is for all references to ".classifier", which are not yet implemented here
+
+
 # Initialize the EEG Data
 test_ssvep = EEG_data()
 

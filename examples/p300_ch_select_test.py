@@ -9,6 +9,9 @@ import sys
 from bci_essentials.bci_data import ERP_data
 from bci_essentials.classification import ERP_rg_classifier
 
+# mypy: disable-error-code="attr-defined"
+# The above comments are for all references to ".classifier", which are not yet implemented here
+
 # Add parent directory to path to access bci_essentials
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
 
