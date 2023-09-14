@@ -10,7 +10,7 @@ from bci_essentials.classification import ssvep_basic_tf_classifier
 
 # mypy: disable-error-code="attr-defined, operator"
 # The above comments are for all references to ".classifier", which are not yet implemented here
-# Or, for attempts to define the classifier using a non-callable module (i.e. line 20)
+# Or, for attempts to define the classifier using a non-callable module (i.e. line 23)
 
 # Add parent directory to path to access bci_essentials
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
