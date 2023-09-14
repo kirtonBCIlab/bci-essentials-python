@@ -69,7 +69,7 @@ except Exception:
             online=False,
             max_num_options=9,
             max_windows_per_option=16,
-            pp_low=0.1,
+            pp_low=1,
             pp_high=15,
             pp_order=5,
             plot_erp=False,
