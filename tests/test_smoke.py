@@ -9,11 +9,14 @@ from bci_essentials.classification import (
     SSVEP_riemannian_mdm_classifier,
 )
 
+# mypy: disable-error-code="attr-defined"
+# The above comment is for all references to "mi_data.classifier", which are not yet implemented here
+
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
 
 
 class TestLoadData(unittest.TestCase):
-    def test_mi_offline(self):
+    def test_mi_offline(self) -> None:
         # Get the MI example data from /examples/data
         mi_xdf_path = "examples//data//mi_example.xdf"
 
@@ -55,7 +58,7 @@ class TestLoadData(unittest.TestCase):
         # Check that the list of class predictions exists
         self.assertIsNotNone(mi_data.classifier.predictions)
 
-    def test_p300_offline(self):
+    def test_p300_offline(self) -> None:
         # Get the P300 example data from /examples/data
         p300_xdf_path = "examples//data//p300_example.xdf"
 
@@ -79,7 +82,7 @@ class TestLoadData(unittest.TestCase):
         p300_data.main(
             online=False,
             training=True,
-            pp_low=0.1,
+            pp_low=1,
             pp_high=10,
             pp_order=5,
             plot_erp=False,
@@ -107,7 +110,7 @@ class TestLoadData(unittest.TestCase):
         # Check that the list of class predictions exists
         self.assertIsNotNone(p300_data.classifier.predictions)
 
-    def test_ssvep_offline(self):
+    def test_ssvep_offline(self) -> None:
         # Get the SSVEP example data from /examples/data
         ssvep_xdf_path = "examples//data//ssvep_example.xdf"
 

@@ -3,6 +3,8 @@ import mne
 
 from bci_essentials.bci_data import ERP_data
 
+# mypy: disable-error-code="attr-defined"
+# The above comment is for all references to mne attributes which are not recognized
 
 # Select a file
 # filename = "C:/Users/brian/Documents/OptimizationStudy/TestData/P300/March29/BI/sub-P001/ses-S001/eeg/sub-P001_ses-S001_task-StandardSingle_run-001_eeg.xdf"
@@ -41,11 +43,11 @@ print(info)
 # marker array
 # onset, duration, value, stim_file
 stim_index = 0
-stim_table = list()
+stim_table: list = list()
 
 stim_table = [[[] for i in range(4)] for i in range(1000)]
-stim_array = np.ndarray([1000, 3], dtype=int)
-erp_stim_array = np.ndarray([1000, 3], dtype=int)
+stim_array: np.ndarray = np.ndarray([1000, 3], dtype=int)
+erp_stim_array: np.ndarray = np.ndarray([1000, 3], dtype=int)
 
 t0 = test_erp.eeg_timestamps[0]
 

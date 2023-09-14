@@ -55,7 +55,7 @@ def bandpower(
     fs: float,
     fmin: float,
     fmax: float,
-    normalization: str = None,
+    normalization: str = "",
 ) -> np.ndarray:
     """Get the bandpower of a window of EEG.
 
@@ -188,7 +188,7 @@ def get_alpha_peak(
 
             plt.show()
 
-    overall_alpha_peak = f[np.argmax(np.median(axis=0))]
+    overall_alpha_peak = f[np.argmax(np.median(axis=0))]  # type: ignore
     print("Overall alpha peak:", overall_alpha_peak)
 
     return overall_alpha_peak
@@ -196,8 +196,8 @@ def get_alpha_peak(
 
 # Bandpower features
 def get_bandpower_features(
-    data: np.ndarray, fs: float, transition_freqs: tuple = [0, 4, 8, 12, 30]
-) -> np.ndarray:
+    data: np.ndarray, fs: float, transition_freqs: list[int] = [0, 4, 8, 12, 30]
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Get bandpower features.
 
     Parameters

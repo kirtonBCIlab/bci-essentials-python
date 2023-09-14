@@ -2,7 +2,7 @@
 # sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),os.pardir))
 
 from bci_essentials.bci_data import EEG_data
-from bci_essentials.classification import ssvep_basic_tf_classifier
+from bci_essentials.classification import SSVEP_basic_tf_classifier
 
 # Initialize the EEG Data
 test_ssvep = EEG_data()
@@ -11,7 +11,7 @@ test_ssvep = EEG_data()
 test_ssvep.train_complete = True
 
 # Define the classifier
-test_ssvep.classifier = ssvep_basic_tf_classifier()
+test_ssvep.classifier = SSVEP_basic_tf_classifier()
 target_freqs = [9, 9.6, 10.28, 11.07, 12, 13.09, 14.4]
 
 # Connect the streams

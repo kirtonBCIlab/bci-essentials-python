@@ -3,7 +3,7 @@ from bci_essentials.bci_data import EEG_data
 
 
 class TestLoadData(unittest.TestCase):
-    def test_load_rs_xdf(self):
+    def test_load_rs_xdf(self) -> None:
         # Get the rs example data from /examples/data
         rs_xdf_path = "examples//data//rs_example.xdf"
 
