@@ -808,9 +808,9 @@ class EEG_data:
         window: np.ndarray,
         option: str = "",
         order: int = 5,
-        fc: int = 60,
-        fl: int = 10,
-        fh: int = 50,
+        fc: float = 60,
+        fl: float = 10,
+        fh: float = 50,
     ) -> np.ndarray:
         """Signal preprocessing.
 
@@ -832,13 +832,13 @@ class EEG_data:
         order : int, *optional*
             Order of the Bandpass filter.
             - Default is `5`.
-        fc : int, *optional*
+        fc : float, *optional*
             Frequency of the notch filter.
             - Default is `60`.
-        fl : int, *optional*
+        fl : float, *optional*
             Lower corner frequency of the bandpass filter.
             - Default is `10`.
-        fh : int, *optional*
+        fh : float, *optional*
             Upper corner frequency of the bandpass filter.
             - Default is `50`.
 
@@ -1100,8 +1100,8 @@ class EEG_data:
         print_performance: bool = True,
         print_predict: bool = True,
         pp_type: str = "bandpass",  # preprocessing method
-        pp_low: int = 1,  # bandpass lower cutoff
-        pp_high: int = 40,  # bandpass upper cutoff
+        pp_low: float = 0.1,  # bandpass lower cutoff
+        pp_high: float = 40,  # bandpass upper cutoff
         pp_order: int = 5,  # bandpass order
     ) -> None:
         """Main function of `EEG_data` class.
@@ -1178,10 +1178,10 @@ class EEG_data:
         pp_type : str, *optional*
             Preprocessing method to apply to the EEG data.
             - Default is `"bandpass"`.
-        pp_low : int, *optional*
+        pp_low : float, *optional*
             Low corner frequency for bandpass filter.
             - Default is `1`.
-        pp_high : int, *optional*
+        pp_high : float, *optional*
             Upper corner frequency for bandpass filter.
             - Default is `40`.
         pp_order : int, *optional*
@@ -1787,8 +1787,8 @@ class ERP_data(EEG_data):
         print_predict: bool = True,
         # Preprocessing
         pp_type: str = "bandpass",  # preprocessing method
-        pp_low: int = 1,  # bandpass lower cutoff
-        pp_high: int = 40,  # bandpass upper cutoff
+        pp_low: float = 0.1,  # bandpass lower cutoff
+        pp_high: float = 40,  # bandpass upper cutoff
         pp_order: int = 5,  # bandpass order
         plot_erp: bool = False,
     ) -> None:
@@ -1866,10 +1866,10 @@ class ERP_data(EEG_data):
         pp_type : str, *optional*
             Preprocessing method to apply to the EEG data.
             - Default is `"bandpass"`.
-        pp_low : int, *optional*
+        pp_low : float, *optional*
             Low corner frequency for bandpass filter.
             - Default is `1`.
-        pp_high : int, *optional*
+        pp_high : float, *optional*
             Upper corner frequency for bandpass filter.
             - Default is `40`.
         pp_order : int, *optional*
