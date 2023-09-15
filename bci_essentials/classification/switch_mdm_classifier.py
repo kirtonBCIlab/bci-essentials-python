@@ -23,6 +23,9 @@ from pyriemann.classification import MDM
 
 from bci_essentials.classification.generic_classifier import Generic_classifier
 
+# mypy: disable-error-code="attr-defined"
+# The above comment is for all references to ".clf0and2" and ".predict0and2", which are not yet implemented here
+
 # Custom libraries
 # - Append higher directory to import bci_essentials
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))

@@ -18,6 +18,9 @@ from pyriemann.estimation import Covariances
 
 from bci_essentials.classification.generic_classifier import Generic_classifier
 
+# mypy: disable-error-code="attr-defined"
+# The above comment is for all references to ".self.target_freqs", which are not yet implemented here
+
 # from bci_essentials.visuals import *
 from bci_essentials.signal_processing import bandpass
 from bci_essentials.channel_selection import channel_selection_by_method
