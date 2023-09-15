@@ -26,7 +26,7 @@ class SSVEP_basic_tf_classifier(Generic_classifier):
 
     """
 
-    def set_ssvep_settings(self, sampling_freq: int, target_freqs: tuple[int]) -> None:
+    def set_ssvep_settings(self, sampling_freq: int, target_freqs: list[int]) -> None:
         """Set the SSVEP settings.
 
         Parameters
