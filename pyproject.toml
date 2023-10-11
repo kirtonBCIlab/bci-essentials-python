@@ -1,6 +1,6 @@
 [project]
 name = "bci-essentials"
-version = "0.0.7"
+version = "0.0.8"
 description = "Python backend for bci-essentials"
 readme = "README.md"
 requires-python = ">=3.9"
