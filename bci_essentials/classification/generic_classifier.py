@@ -115,7 +115,7 @@ class Generic_classifier:
         self.pred_probas = []
         """@private (This is just for the API docs, to avoid double listing."""
 
-    def get_subset(self, X=[]):
+    def get_subset(self, X=[], subset=[], channel_labels=[]):
         """Get a subset of X according to labels or indices.
 
         Parameters
@@ -170,7 +170,7 @@ class Generic_classifier:
             try:
                 # nwindows, nchannels, nsamples = self.X.shape
 
-                if X == []:
+                if sum(X.shape) == 0:
                     new_X = self.X[:, subset_indices, :]
                     self.X = new_X
                 else:
@@ -180,7 +180,7 @@ class Generic_classifier:
 
             except Exception:
                 # nchannels, nsamples = self.X.shape
-                if X == []:
+                if sum(X.shape) == 0:
                     new_X = self.X[subset_indices, :]
                     self.X = new_X
 
@@ -205,6 +205,7 @@ class Generic_classifier:
         performance_delta=0.001,  # stopping criterion
         n_jobs=1,
         print_output="silent",
+        record_performance=False,
     ):
         """Setup channel selection parameters.
 
@@ -231,12 +232,15 @@ class Generic_classifier:
         performance_delta : type, *optional*
             Description of parameter `performance_delta`.
             - Default is `0.001`.
-        n_jobs : type, *optional*
+        n_jobs : int, *optional*
             The number of threads to dedicate to this calculation.
             - Default is `1`.
-        print_output : type, *optional*
-            Description of parameter `print_output`.
+        print_output : string, *optional*
+            Decides what to print to command line. The output setting, silent (no messages), final(final selected channels and performance), or verbose (everything).
             - Default is `"silent"`.
+        record_performance : bool, *optional*
+            Decides whether or not to record performance of channel selection.
+            - Default is `False`.
 
         Returns
         -------
@@ -256,6 +260,7 @@ class Generic_classifier:
         self.chs_max_channels = max_channels  # maximum number of channels
         self.chs_performance_delta = performance_delta  # smallest performance increment to justify continuing search
         self.chs_output = print_output  # output setting, silent, final, or verbose
+        self.chs_record_performance = record_performance # record performance
 
         self.channel_selection_setup = True
 
@@ -331,7 +336,7 @@ class Generic_classifier:
             Description of returned object.
 
         """
-        decision_block = self.get_subset(decision_block)
+        decision_block = self.get_subset(decision_block, self.subset, self.channel_labels)
 
         if print_predict:
             print("making a prediction")

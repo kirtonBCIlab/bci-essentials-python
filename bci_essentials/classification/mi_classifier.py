@@ -248,7 +248,6 @@ class MI_classifier(Generic_classifier):
         # Check if channel selection is true
         if self.channel_selection_setup:
             print("Doing channel selection")
-
             (
                 updated_subset,
                 updated_model,
@@ -256,6 +255,7 @@ class MI_classifier(Generic_classifier):
                 accuracy,
                 precision,
                 recall,
+                results_df,
             ) = channel_selection_by_method(
                 mi_kernel,
                 self.X,
@@ -273,6 +273,7 @@ class MI_classifier(Generic_classifier):
             )
             print("The optimal subset is ", updated_subset)
 
+            self.results_df = results_df
             self.subset = updated_subset
             self.clf = updated_model
         else:
@@ -336,7 +337,7 @@ class MI_classifier(Generic_classifier):
         if len(X.shape) < 3:
             X = X[np.newaxis, ...]
 
-        X = self.get_subset(X)
+        X = self.get_subset(X, self.subset, self.channel_labels)
 
         if print_predict:
             print("the shape of X is", X.shape)
