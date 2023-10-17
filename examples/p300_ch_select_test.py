@@ -31,15 +31,16 @@ test_erp.classifier.set_p300_clf_settings(
 # Define channel selection
 initial_subset = ["Cz", "Pz"]
 test_erp.classifier.setup_channel_selection(
-    method="SFS",
+    method="SFFS",
     metric="accuracy",
     initial_channels=initial_subset,  # wrapper setup
     max_time=999,
     min_channels=2,
     max_channels=8,
-    performance_delta=0,  # stopping criterion
+    performance_delta=-1,  # stopping criterion
     n_jobs=-1,
     print_output="verbose",
+    record_performance=True
 )
 
 # Load the xdf
