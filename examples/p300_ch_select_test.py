@@ -28,7 +28,7 @@ test_erp.classifier.set_p300_clf_settings(
     covariance_estimator='oas'
 )
 
-# Define channel selection
+# Define channel selection, for SFS and SFFS you must supply atleast one initial electrode
 initial_subset = []
 test_erp.classifier.setup_channel_selection(
     method="SBS",
