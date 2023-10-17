@@ -1,0 +1,58 @@
+# When a pull request is created, this action tests that the changes are ready to be merged
+
+name: Check development environment on pull request
+
+on:
+  #push:
+  #  branches: ["my-test-branch"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: ["ubuntu-latest", "windows-latest", "macos-latest"]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          environment-file: environment.yml
+          activate-environment: bci
+
+      - name: "Install dependencies"
+        shell: bash -el {0}
+        run: |
+          conda activate bci
+          conda info
+          pip install .
+
+      - name: "Run smoke tests"
+        shell: bash -el {0}
+        run: |
+          python -m unittest
+
+  code-checks:
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          environment-file: environment.yml
+          activate-environment: bci
+
+      - name: "Code check: Formatting with black"
+        shell: bash -el {0}
+        run: |
+          black --check .
+
+      - name: "Code check: Linting with flake8"
+        shell: bash -el {0}
+        run: |
+          flake8

@@ -1,27 +1,12 @@
 """
-Channel Selection
+This module includes functions for selecting channels in order to
+improve BCI performance.
 
-This module includes functions for selecting channels in order to improve BCI performance.
-
-
-Inputs:
- kernel_func    - a function, the classification kernel, which does feature extraction and classification, different for MI, P300, SSVEP, etc.
- X              - training data for the classifier (np array, dimensions are nwindows X nchannels X nsamples)
- y              - training labels for the classifier (np array, dimensions are nwindow X 1)
- channel_labels - the set of channel labels corresponding to nchannels 
- max_time       - the maximum amount of time, in seconds, that the function will search for the optimal solution
- min_nchannels  - the minimum number of channels 
- metric         - the metric used to measure the "goodness" of the classifier, default is accuracy
- n_jobs         - number of threads to dedicate to this calculation
-
- Outputs:
- new_channel_subset     - the new best channel set
- model                  - the trained model
- preds                  - the predictions from the model, same shape as y
- accuracy               - classifier accuracy
- precision              - classifier precision
- recall                 - classifier recall
-
+The EEG data input for each function is a set of windows. The data must
+be of the shape `W x C x S`, where:
+- W = number of windows
+- C = number of channels
+- S = number of samples
 
 """
 from joblib import Parallel, delayed
@@ -37,19 +22,20 @@ def channel_selection_by_method(kernel_func, X, y, channel_labels,              
     """
     Passes the BCI kernel function into a wrapper defined by method.
 
-    kernel_func         - the kernel to be wrapped
-    X                   - training data (nwindows X nchannels X nsamples)
-    y                   - training labels (nwindows X 1)
-    channel_labels      - channel labels, in a list of strings (nchannels X 1)
+    Parameters
+    ----------
+    kernel_func : function
+        The classification kernel function which does feature extraction
+        and classification.
+        Different functions  are used for MI, P300, SSVEP, etc.
+    X : numpy.ndarray
+        Training data for the classifier as windows of EEG data.
+        3D array containing data with `float` type.
 
-    method              - the wrapper method (ex. SBS, SFS, SFFS, SBFS)
-    metric              - the method by which performance is measured, default is "accuracy"
-    initial_channels    - initial guess of channels defaults to empty/full set for forward/backwardselections, respectively
-    
-    max_time            - max time for the algorithm to search
-    min_channels        - min channels, default is 1
-    max_channels        - max channels, default is nchannels
-    performance_delta   - performance delta, under which the algorithm is considered to be close enough to optimal, default is 0.001
+        shape = (`W_windows`,`C_channels`,`S_samples`)
+    y : numpy.ndarray
+        Training labels for the classifier.
+        1D array.
 
     Returns:
     updated_subset, self.clf, preds, accuracy, precision, recall, record_performance, record_time
@@ -102,7 +88,48 @@ def channel_selection_by_method(kernel_func, X, y, channel_labels,              
                 max_time=max_time, min_channels=min_channels, max_channels=max_channels, performance_delta=performance_delta,
                 n_jobs=n_jobs, print_output=print_output, record_performance=record_performance)
 
-def check_stopping_criterion(current_time, nchannels, current_performance_delta, max_time, min_channels, max_channels, performance_delta, print_output=True):
+
+def check_stopping_criterion(
+    current_time,
+    nchannels,
+    current_performance_delta,
+    max_time,
+    min_channels,
+    max_channels,
+    performance_delta,
+    print_output=True,
+):
+    """Function to check if a stopping criterion has been met.
+
+    Parameters
+    ----------
+    current_time : float
+        The time elapsed since the start of the channel selection method.
+    nchannels : int
+        The number of channels in the current iteration of the new best channel
+        subset (`len(new_channel_subset)`).
+    current_performance_delta : float
+        The performance delta between the current iteration and the previous.
+    max_time : int
+        The maxiumum amount of time, in seconds, that the function will
+        search for the optimal solution.
+    min_channels : int
+        The minimum number of channels.
+    max_channels : int
+        The maximum number of channels.
+    performance_delta : float
+        The performance delta under which the algorithm is considered to
+        be close enough to optimal.
+    print_output : str, *optional*
+        Flag on whether or not to print output.
+        - Default is `True`.
+
+    Returns
+    -------
+    *bool*
+        Has stopping criterion been met (`True`) or not (`False`).
+
+    """
     if current_time > max_time:
         if print_output == "verbose" or print_output == "final":
             print("Stopping based on time")
@@ -135,12 +162,89 @@ def sbs(kernel_func, X, y, channel_labels,
     step = 1
 
 
+def sbs(
+    kernel_func,
+    X,
+    y,
+    channel_labels,
+    metric,
+    initial_channels,
+    max_time,
+    min_channels,
+    max_channels,
+    performance_delta,
+    n_jobs,
+    print_output,
+):
+    """The SBS method for channel selection.
+
+    Parameters
+    ----------
+    kernel_func : function
+        The classification kernel function which does feature extraction
+        and classification.
+        Different functions  are used for MI, P300, SSVEP, etc.
+    X : numpy.ndarray
+        Training data for the classifier as windows of EEG data.
+        3D array containing data with `float` type.
+
+        shape = (`W_windows`,`C_channels`,`S_samples`)
+    y : numpy.ndarray
+        Training labels for the classifier.
+        1D array.
+
+        shape = (`nwindows`)
+    channel_labels: list of `str`
+        The set of channel labels corresponding to `C_channels`.
+        A list of strings with length = `C_channels`.
+    metric : str
+        The metric used to measure the "goodness" of the trained classifier.
+    initial_channels : list of `str`
+        Initial guess of channels.
+    max_time : int
+        The maxiumum amount of time, in seconds, that the function will
+        search for the optimal solution.
+    min_channels : int
+        The minimum number of channels.
+    max_channels : int
+        The maximum number of channels.
+    performance_delta : float
+        The performance delta under which the algorithm is considered to
+        be close enough to optimal.
+    n_jobs : int
+        The number of threads to dedicate to this calculation.
+    print_output : str
+        Flag on whether or not to print output. Options are:
+        - `"verbose"`: Print output at each step.
+        - `"final"`: Print output at the end.
+        - `"silent"`: No output.
+
+    Returns
+    -------
+    new_channel_subset : list of `str`
+        The new best channel subset from the list of `channel_labels`.
+    self.clf : classifier
+        The trained classification model.
+    preds : numpy.ndarray
+        The predictions from the model.
+        1D array with the same shape as `y`.
+
+        shape = (`nwindows`)
+    accuracy : float
+        The accuracy of the trained classification model.
+    precision : float
+        The precision of the trained classification model.
+    recall : float
+        The recall of the trained classification model.
+
+
+    """
     start_time = time.time()
 
     nwindows, nchannels, nsamples = X.shape
     sbs_subset = []
 
-    for i,c in enumerate(channel_labels):
+    for i, c in enumerate(channel_labels):
         if c in initial_channels:
             sbs_subset.append(i)
 
@@ -153,7 +257,7 @@ def sbs(kernel_func, X, y, channel_labels,
     precision = 0
     recall = 0
 
-    while(stop_criterion == False):
+    while stop_criterion is False:
         sets_to_try = []
         X_to_try = []
         for c in sbs_subset:
@@ -163,15 +267,17 @@ def sbs(kernel_func, X, y, channel_labels,
 
             # get the new X
             new_X = np.zeros((nwindows, len(set_to_try), nsamples))
-            for i,j in enumerate(set_to_try):
-                new_X[:,i,:] = X[:,j,:]
+            for i, j in enumerate(set_to_try):
+                new_X[:, i, :] = X[:, j, :]
 
             # make a list f all subsets of X to try
             X_to_try.append(new_X)
 
         # This handles the multiprocessing to check multiple channel combinations at once if n_jobs > 1
-        outputs = Parallel(n_jobs=n_jobs)(delayed(kernel_func)(Xtest,y) for Xtest in X_to_try) 
-            
+        outputs = Parallel(n_jobs=n_jobs)(
+            delayed(kernel_func)(Xtest, y) for Xtest in X_to_try
+        )
+
         models = []
         predictions = []
         accuracies = []
@@ -213,7 +319,7 @@ def sbs(kernel_func, X, y, channel_labels,
         # best_overall_accuracy = accuracy
         precision = precisions[best_set_index]
         recall = recalls[best_set_index]
-        if print_output =="verbose":
+        if print_output == "verbose":
             print("new subset ", new_channel_subset)
             print("accuracy ", accuracy)
             print("accuracies ", accuracies)
@@ -237,7 +343,7 @@ def sbs(kernel_func, X, y, channel_labels,
     if print_output == "verbose" or print_output == "final":
         print(new_channel_subset)
         print(metric, " : ", current_performance)
-        print("Time to optimal subset: ", time.time()-start_time, "s")
+        print("Time to optimal subset: ", time.time() - start_time, "s")
 
     return new_channel_subset, model, preds, accuracy, precision, recall, results_df
 
@@ -366,6 +472,83 @@ def sbfs(kernel_func, X, y, channel_labels,
     results_df = pd.DataFrame(columns=["Step", "Time", "N Channels", "Channel Subset", "Unique Combinations Tested in Step", "Accuracy", "Precision", "Recall"])
     step = 1
 
+def sbfs(
+    kernel_func,
+    X,
+    y,
+    channel_labels,
+    metric,
+    initial_channels,
+    max_time,
+    min_channels,
+    max_channels,
+    performance_delta,
+    n_jobs,
+    print_output,
+):
+    """The SBFS method for channel selection.
+
+    Parameters
+    ----------
+    kernel_func : function
+        The classification kernel function which does feature extraction
+        and classification.
+        Different functions  are used for MI, P300, SSVEP, etc.
+    X : numpy.ndarray
+        Training data for the classifier as windows of EEG data.
+        3D array containing data with `float` type.
+
+        shape = (`W_windows`,`C_channels`,`S_samples`)
+    y : numpy.ndarray
+        Training labels for the classifier.
+        1D array.
+
+        shape = (`nwindows`)
+    channel_labels: list of `str`
+        The set of channel labels corresponding to `C_channels`.
+        A list of strings with length = `C_channels`.
+    metric : str
+        The metric used to measure the "goodness" of the trained classifier.
+    initial_channels : list of `str`
+        Initial guess of channels.
+    max_time : int
+        The maxiumum amount of time, in seconds, that the function will
+        search for the optimal solution.
+    min_channels : int
+        The minimum number of channels.
+    max_channels : int
+        The maximum number of channels.
+    performance_delta : float
+        The performance delta under which the algorithm is considered to
+        be close enough to optimal.
+    n_jobs : int
+        The number of threads to dedicate to this calculation.
+    print_output : str
+        Flag on whether or not to print output. Options are:
+        - `"verbose"`: Print output at each step.
+        - `"final"`: Print output at the end.
+        - `"silent"`: No output.
+
+    Returns
+    -------
+    new_channel_subset : list of `str`
+        The new best channel subset from the list of `channel_labels`.
+    self.clf : classifier
+        The trained classification model.
+    preds : numpy.ndarray
+        The predictions from the model.
+        1D array with the same shape as `y`.
+
+        shape = (`nwindows`)
+    accuracy : float
+        The accuracy of the trained classification model.
+    precision : float
+        The precision of the trained classification model.
+    recall : float
+        The recall of the trained classification model.
+
+
+    """
     if len(initial_channels) <= min_channels:
         initial_channels = channel_labels
 
@@ -373,9 +556,9 @@ def sbfs(kernel_func, X, y, channel_labels,
 
     nwindows, nchannels, nsamples = X.shape
     sbfs_subset = []
-    all_sets_tried = []             # set of all channels that have been tried
+    all_sets_tried = []  # set of all channels that have been tried
 
-    for i,c in enumerate(channel_labels):
+    for i, c in enumerate(channel_labels):
         if c in initial_channels:
             sbfs_subset.append(i)
 
@@ -391,7 +574,7 @@ def sbfs(kernel_func, X, y, channel_labels,
     precision = 0
     recall = 0
 
-    while(stop_criterion == False):
+    while stop_criterion is False:
         # Exclusion Step
         sets_to_try = []
         X_to_try = []
@@ -409,13 +592,15 @@ def sbfs(kernel_func, X, y, channel_labels,
 
             # get the new X
             new_X = np.zeros((nwindows, len(set_to_try), nsamples))
-            for i,j in enumerate(set_to_try):
-                new_X[:,i,:] = X[:,j,:]
+            for i, j in enumerate(set_to_try):
+                new_X[:, i, :] = X[:, j, :]
 
             X_to_try.append(new_X)
 
         # run the kernel function on all cores
-        outputs = Parallel(n_jobs=n_jobs)(delayed(kernel_func)(Xtest,y) for Xtest in X_to_try) 
+        outputs = Parallel(n_jobs=n_jobs)(
+            delayed(kernel_func)(Xtest, y) for Xtest in X_to_try
+        )
 
         # [all_sets_tried.append(set.sort()) for set in sets_to_try]
             
@@ -443,7 +628,6 @@ def sbfs(kernel_func, X, y, channel_labels,
         else:
             print("performance metric invalid, defaulting to accuracy")
             performances = accuracies
-
 
         best_performance = np.max(performances)
         best_set_index = accuracies.index(best_performance)
@@ -484,7 +668,10 @@ def sbfs(kernel_func, X, y, channel_labels,
         while(stop_criterion == False):
             # Get the length of the set if we were to include an additional channel
             length_of_resultant_set = len(sbfs_subset) + 1
-            if length_of_resultant_set > max_channels or length_of_resultant_set == len(channel_labels):
+            if (
+                length_of_resultant_set > max_channels
+                or length_of_resultant_set == len(channel_labels)
+            ):
                 break
 
             # Check all of the possible inclusions that do not lead to a previously tested subset
@@ -508,8 +695,8 @@ def sbfs(kernel_func, X, y, channel_labels,
 
                 # get the new X
                 new_X = np.zeros((nwindows, len(set_to_try), nsamples))
-                for i,j in enumerate(set_to_try):
-                    new_X[:,i,:] = X[:,j,:]
+                for i, j in enumerate(set_to_try):
+                    new_X[:, i, :] = X[:, j, :]
 
                 X_to_try.append(new_X)
 
@@ -517,7 +704,9 @@ def sbfs(kernel_func, X, y, channel_labels,
                 break
 
             # run the kernel on the new sets
-            outputs = Parallel(n_jobs=n_jobs)(delayed(kernel_func)(Xtest,y) for Xtest in X_to_try) 
+            outputs = Parallel(n_jobs=n_jobs)(
+                delayed(kernel_func)(Xtest, y) for Xtest in X_to_try
+            )
 
             # [all_sets_tried.append(set.sort()) for set in sets_to_try]
 
@@ -551,7 +740,7 @@ def sbfs(kernel_func, X, y, channel_labels,
             best_set_index = accuracies.index(best_performance)
 
             # if performance is better at that point
-            if performance_at_nchannels[length_of_resultant_set-1] < best_performance:
+            if performance_at_nchannels[length_of_resultant_set - 1] < best_performance:
                 sbfs_subset = sets_to_try[best_set_index]
                 new_channel_subset = [channel_labels[c] for c in sbfs_subset]
                 model = models[best_set_index]
@@ -585,15 +774,12 @@ def sbfs(kernel_func, X, y, channel_labels,
             # Check stopping criterion
             stop_criterion = check_stopping_criterion(time.time() - start_time, len(new_channel_subset), p_delta, max_time, min_channels, max_channels, performance_delta, print_output=True)
 
-        stop_criterion = check_stopping_criterion(time.time() - start_time, len(new_channel_subset), p_delta, max_time, min_channels, max_channels, performance_delta, print_output=True)
-    
     new_channel_subset = [channel_labels[c] for c in sbfs_subset]
 
     if print_output == "verbose" or print_output == "final":
         print(new_channel_subset)
         print(metric, " : ", performance)
-        print("Time to optimal subset: ", time.time()-start_time, "s")
-
+        print("Time to optimal subset: ", time.time() - start_time, "s")
 
     return new_channel_subset, model, preds, accuracy, precision, recall, results_df
 

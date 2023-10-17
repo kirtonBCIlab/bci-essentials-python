@@ -1,56 +1,28 @@
 # bci-essentials-python
-This reposity contains python modules and scripts for the processing of EEG-based BCI. 
+This repository contains python modules and scripts for the processing of EEG-based BCI. 
 These modules are specifically designed to be equivalent whether run offline or online.
 
 
 ## Related packages
-### bci-essentials-unity
 The front end for this package can be found in [bci-essentials-unity](https://www.github.com/kirtonBCIlab/bci-essentials-unity)
 
 ## Getting Started
+- **[Wiki](https://github.com/kirtonBCIlab/bci-essentials-python/wiki)** – More detailed installation instructions and tutorials.
+- **[API documentation](https://kirtonbcilab.github.io/APIdocs-for-bci-essentials-python)**
 
-Using the terminal
-1. clone from git
-```
-git clone https://github.com/kirtonBCIlab/bci-essentials-python.git
-```
-
-2. Create and activate a conda environment (RECOMENDED)
-```
-conda create -n bci-essentials
-conda activate bci_essentials
-```
-
-3. navigate to the bci-essentials-python directory and activate virtual env if desired
-```
-cd <your-local-bci-essentials-python-directory>
-```
-
-4. install with pip
-```
-pip install .
-```
-
-
-### The following is only for Apple silicon tensorflow install
-
-5. The bci-essentials-python package depends on tensorflow, which does not officially support Apple silicon (as of December 2022).  However, there is an Apple supported build called [tensorflow-macos ](https://developer.apple.com/metal/tensorflow-plugin/) that will work.  To install:
+### Installation
+BCI Essentials requires Python 3.9 or later.  To install for Windows, MacOS or Linux:
 
 ```
-conda install -c apple tensorflow-deps
-pip install numpy --upgrade
-pip install tensorflow-macos
-pip install tensorflow-metal
+pip install bci-essentials
 ```
 
-6. In setup.py, change the tensorflow dependency to tensorflow-macos
-
-7. install with pip
+On some systems, it may be necessary to install [liblsl](https://github.com/sccn/liblsl).  Alternatively, use the Conda [environment](https://github.com/kirtonBCIlab/bci-essentials-python/blob/main/environment.yml) to set up dependencies that are not provided by pip:
 
 ```
-pip install .
+conda env create -f ./environment.yml
+conda activate bci
 ```
-
 
 ## Offline processing
 Offline processing can be done by running the corresponding offline test script (ie. mi_offline_test.py, p300_offline_test.py, etc.)

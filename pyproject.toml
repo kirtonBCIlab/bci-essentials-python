@@ -1,0 +1,53 @@
+[project]
+name = "bci-essentials"
+version = "0.0.8"
+description = "Python backend for bci-essentials"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+	"numpy",
+	"scipy",
+	"scikit-learn",
+	"joblib",
+	"pandas",
+	"pylsl",
+	"pyxdf",
+	"matplotlib",
+	"seaborn",
+	"wheel",
+	"pyriemann",
+	"tensorflow; platform_machine != 'arm64' ",
+	"tensorflow-macos; platform_machine == 'arm64' ",
+	"tensorflow-metal; platform_machine == 'arm64' ",
+]
+
+[tool.setuptools.packages.find]
+exclude = [
+	"examples*",
+	"docs*"
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+py39 = true
+include = '\.pyi?$'
+exclude = '''
+/(
+	\.git
+	| \.hg
+	| \.mypy_cache
+	| \.tox
+	| \.venv
+	| _build
+	| buck-out
+	| build
+	| dist
+
+	# The following are specific to Black, you probably don't want those.
+	| blib2to3
+	| tests/data
+)/
+'''

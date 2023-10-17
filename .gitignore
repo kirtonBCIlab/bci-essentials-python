@@ -1,4 +1,4 @@
-bci_essentials/__pycache__
+__pycache__
 archive/
 .idea/
 *.egg-info/
@@ -6,4 +6,5 @@ archive/
 build/
 dist/
 *.DS_Store/
+*.swp
 plugins/FeatureExtractorSSVEP

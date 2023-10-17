@@ -1,14 +1,12 @@
 import os
 import sys
 
+from bci_essentials.bci_data import ERP_data, EEG_data
+from bci_essentials.resting_state import get_alpha_peak, get_bandpower_features
+from bci_essentials.classification import mi_classifier, ERP_rg_classifier
 
 # Add parent directory to path to access bci_essentials
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
-
-# from src.bci_data import *
-from bci_essentials.bci_data import *
-from bci_essentials.visuals import *
-from bci_essentials.resting_state import *
 
 filename = "examples/data/rs_example.xdf"
 
@@ -43,12 +41,12 @@ try:
         print_predict=False,
     )
 
-except:
+except Exception:
     try:
         test_rs = ERP_data()
 
         # Choose a classifier
-        test_rs.classifier = erp_rg_classifier()  # you can add a subset here
+        test_rs.classifier = ERP_rg_classifier()  # you can add a subset here
 
         # Set classifier settings
         test_rs.classifier.set_p300_clf_settings(
@@ -80,22 +78,22 @@ except:
             print_predict=False,
         )
 
-    except:
+    except Exception:
         print("Couldn't find resting state data")
 
 try:
     eyes_open_windows = test_rs.eyes_open_windows
-except:
+except Exception:
     print("Couldn't find eyes open data")
 
 try:
     eyes_closed_windows = test_rs.eyes_closed_windows
-except:
+except Exception:
     print("Couldn't find eyes closed data")
 
 try:
     rest_windows = test_rs.rest_windows
-except:
+except Exception:
     print("Couldn't find rest data")
 
 fsample = test_rs.fsample
@@ -103,15 +101,15 @@ channel_labels = test_rs.channel_labels
 
 # Get alpha peak from eyes closed?
 
-get_alpha_peak(eyes_closed_windows, alpha_min = 8, alpha_max = 12, plot_psd = False)
+get_alpha_peak(eyes_closed_windows, alpha_min=8, alpha_max=12, plot_psd=False)
 
 # Get bandpower features from eyes open
 abs_bandpower, rel_bandpower, rel_bandpower_mat = get_bandpower_features(
     eyes_open_windows, fs=fsample, transition_freqs=[1, 4, 8, 12, 30]
 )
 
-print(abs_bandpower[:,0])
-print(rel_bandpower[:,0])
-print(rel_bandpower_mat[:,:,0])
+print(abs_bandpower[:, 0])
+print(rel_bandpower[:, 0])
+print(rel_bandpower_mat[:, :, 0])
 
 print("debug")

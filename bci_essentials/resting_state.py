@@ -1,11 +1,16 @@
 """
-Resting State
-
 A module for processing resting state data.
 
-The inputs for each function are either a single window (dimensions are
-nchannels X nsamples) or a set of windows (dimensions are 
-nchannels X nsamples X nwindows)
+The EEG data inputs for each function are either a single windows or
+a set of windows.
+- For single windows, inputs are of the shape `C x S`, where:
+    - C = number of channels
+    - S = number of samples
+- For multiple windows, inputs are of the shape `W x C x S`, where:
+    - W = number of windows
+    - C = number of channels
+    - S = number of samples
+
 """
 
 import numpy as np
@@ -15,12 +20,30 @@ from matplotlib import pyplot as plt
 
 
 def get_shape(data):
-    """
-    Get the shape of the input data.
+    """Get the shape of the input data.
+
+    Parameters
+    ----------
+    data : numpy.ndarray
+        Window(s) of resting state EEG data.
+        2D or 3D array containing data with `float` type.
+
+        shape = (`C_channels`,`S_samples`) OR
+        (`W_windows`,`C_channels`,`S_samples`)
+
+    Returns
+    -------
+    W : int
+        Number of windows.
+    C : int
+        Number of channels.
+    S : int
+        Number of samples.
+
     """
     try:
         W, C, S = np.shape(data)
-    except:
+    except Exception:
         C, S = np.shape(data)
         W = 1
 
@@ -28,27 +51,33 @@ def get_shape(data):
 
 
 def bandpower(data, fs, fmin, fmax, normalization=None):
-    """
-    Get the bandpower of a window of EEG
+    """Get the bandpower of a window of EEG.
 
     Parameters
     ----------
-    data : array_like
-        resting state EEG windows (nchannels X nsamples)
+    data : numpy.ndarray
+        A single resting state EEG window
+        2D array containing data with `float` type.
+
+        shape = (`C_channels`,`S_samples`)
     fs : float
-        EEG sampling frequency
+        EEG sampling frequency.
     fmin : float
-        lower frequency bound
+        Lower frequency bound.
     fmax : float
-        upper frequency bound
-    normalization : string
-        method for normalization, "norm" for divide by norm, or "sum"
-        for divide by sum
+        Upper frequency bound.
+    normalization : string, *optional*
+        Method for normalization.
+        - `"norm"` for divide by norm.
+        - `"sum"` for divide by sum.
+        - Default is `None` and no normalization is done.
 
     Returns
     -------
-    power : array_like
-        bandpower of frequency band (nchannels)
+    power : numpy.ndarray
+        Bandpower of frequency band.
+
+        shape = (`C_channels`)
 
     """
     nchannels, nsamples = data.shape
@@ -66,43 +95,44 @@ def bandpower(data, fs, fmin, fmax, normalization=None):
 
     power = np.zeros([nchannels])
     for i in range(nchannels):
-        power[i] = np.trapz(Pxx[i, ind_local_min:ind_local_max], f[ind_local_min:ind_local_max])
+        power[i] = np.trapz(
+            Pxx[i, ind_local_min:ind_local_max], f[ind_local_min:ind_local_max]
+        )
 
     return power
 
 
 # Alpha Peak
 def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
-    """
-    Get the alpha peak based on the all channel median PSD.
+    """Get the alpha peak based on the all channel median PSD.
 
     Parameters
     ----------
-    data : array_like
-        resting state EEG window with eyes closed
+    data : numpy.ndarray
+        Resting state EEG window with eyes closed.
+        3D array containing data with `float` type.
 
-    alpha_min : float (default = 8)
-        lowest possible value of alpha peak (Hz)
-
-    alpha_max : float (default = 12)
-        highest possible value of alpha peak (Hz)
-
-    plot_psd : bool (default = False)
-        plot the PSD for inspection
-
+        shape = (`W_windows`,`C_channels`,`S_samples`)
+    alpha_min : float, *optional*
+        Lowest possible value of alpha peak (Hz)
+        - Default is `8`.
+    alpha_max : float, *optional*
+        Highest possible value of alpha peak (Hz)
+        - Default is `12`.
+    plot_psd : bool, *optional*
+        Plot the PSD for inspection.
+        - Default is `False`.
 
     Returns
     -------
     peak : float
-        the peak alpha frequency
+        The peak alpha frequency.
     """
 
-    fs=256
+    fs = 256
 
     W, C, S = get_shape(data)
 
-    
-    
     for win in range(W):
         # Calculate PSD using Welch's method, nfft = nsamples
         f, Pxx = scipy.signal.welch(data[win, :, :], fs=fs, nperseg=S)
@@ -114,12 +144,12 @@ def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
         f = f[ind_min:ind_max]
         Pxx = Pxx[:, ind_min:ind_max]
 
-        try:
-            median_Pxx[win,:] = np.median(Pxx, axis=0)
+        # try:
+        #     median_Pxx[win, :] = np.median(Pxx, axis=0)
 
-        except:
-            median_Pxx = np.zeros([W, len(f)])
-            median_Pxx[win,:] = np.median(Pxx, axis=0)
+        # except Exception:
+        #     median_Pxx = np.zeros([W, len(f)])
+        #     median_Pxx[win, :] = np.median(Pxx, axis=0)
 
         alpha_peak = f[np.argmax(np.median(Pxx, axis=0))]
         print("Alpha peak of window {} ".format(win), alpha_peak)
@@ -128,13 +158,13 @@ def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
             nrows = int(np.ceil(np.sqrt(C)))
             ncols = int(np.ceil(np.sqrt(C)))
 
-            fig, axs = plt.subplots(nrows, ncols, figsize=(10,8))
+            fig, axs = plt.subplots(nrows, ncols, figsize=(10, 8))
             # fig.suptitle("Some PSDs")
             for r in range(nrows):
                 for c in range(ncols):
-                    ch = (ncols*r) + c
+                    ch = (ncols * r) + c
                     axs[r, c].set_title(ch)
-                    axs[r, c].plot(f, Pxx[ch,:])
+                    axs[r, c].plot(f, Pxx[ch, :])
 
                     # # axs[r, c].set_ylim([-20, 20])
                     # if r == 0 and c == 0:
@@ -147,47 +177,49 @@ def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
 
             plt.show()
 
-    overall_alpha_peak = f[np.argmax(np.median(median_Pxx, axis=0))]
+    overall_alpha_peak = f[np.argmax(np.median(axis=0))]
     print("Overall alpha peak:", overall_alpha_peak)
-
-
 
     return overall_alpha_peak
 
 
 # Bandpower features
 def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
-    """
-    Get bandpower features.
+    """Get bandpower features.
 
     Parameters
     ----------
-    data : array_like
-        resting state EEG windows
+    data : numpy.ndarray
+        Windows of resting state EEG data.
+        3D array containing data with `float` type.
+
+        shape = (`W_windows`,`C_channels`,`S_samples`)
     fs : float
-        sampling frequency (Hz)
-    transition_freqs : array_like
-        the transition frequencies of the desired power bands,
-        the first value is the lower cutoff, the last value is the
-        upper cutoff, the middle values are band transition frequencies
+        Sampling frequency (Hz).
+    transition_freqs : array-like, *optional*
+        The transition frequencies of the desired power bands.
+        The first value is the lower cutoff, the last value is the
+        upper cutoff, the middle values are band transition frequencies.
+        - Default is `[0, 4, 8, 12, 30]`.
 
     Returns
     -------
-    abs_bandpower : array_like
-        a np array of the absolute bandpower of provided bands, last 
-        item is the total bandpower, length is equal to length of 
-        transition_freqs
-    rel_bandpower : array_like
-        a np array of the relative bandpower of provided bands with
-        respect to the entire region of interest from transition_freqs[0]
-        to transition_freqs[-1], last item is the total relative 
-        bandpower and should always equal 1, length is equal to length 
-        of transition_freqs
+    abs_bandpower : numpy.ndarray
+        A numpy array of the absolute bandpower of provided bands.
+        The last item is the total bandpower. The array length is equal
+        to the length of `transition_freqs`.
+    rel_bandpower : numpy.ndarray
+        A numpy array of the relative bandpower of provided bands with
+        respect to the entire region of interest from `transition_freqs[0]`
+        to `transition_freqs[-1]`. The last item is the total relative
+        bandpower and should always equal `1`. The array length is equal to
+        the length of `transition_freqs`.
     rel_bandpower_mat : array_like
-        a np array of the relative bandpower of provided bands such
-        location (R,C) is corresponds to the power of R relative to C,
-        the final row and column correspond to the cumulative power of
-        all bands such that (R,-1) is R relative to all bands
+        A numpy array of the relative bandpower of provided bands such that
+        location `(R,C)` corresponds to the power of `R` relative to `C`.
+        The final row and column correspond to the cumulative power of
+        all bands such that `(R,-1)` is `R` relative to all bands
+
     """
     # Get Shape
     W, C, S = get_shape(data)
@@ -199,8 +231,8 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
 
     # for each window
     for win in range(W):
-        # Calculate PSD using Welch's method, nfft = nsamples
-        f, Pxx = scipy.signal.welch(data[win, :, :], fs=fs, nperseg=S)
+        # Calculate PSD using Welch's method
+        f, Pxx = scipy.signal.welch(data[win, :, :], fs=fs)
 
         # Limit f, Pxx to the band of interest
         ind_global_min = scipy.argmax(f > min(transition_freqs)) - 1
@@ -224,7 +256,7 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
 
             # Get power for each channel
             abs_power = np.zeros([C])
-            norm_power = np.zeros([C])
+            # norm_power = np.zeros([C])
             for ch in range(C):
                 abs_power[ch] = np.trapz(
                     Pxx[ch, ind_local_min:ind_local_max], f[ind_local_min:ind_local_max]
@@ -232,7 +264,6 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
 
             # Median across all channels
             abs_bandpower[tf, win] = np.median(abs_power)
-
 
         rel_bandpower[:, win] = abs_bandpower[:, win] / abs_bandpower[-1, win]
 
