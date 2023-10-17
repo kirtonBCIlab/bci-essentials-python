@@ -29,9 +29,9 @@ test_erp.classifier.set_p300_clf_settings(
 )
 
 # Define channel selection
-initial_subset = ["Cz", "Pz"]
+initial_subset = []
 test_erp.classifier.setup_channel_selection(
-    method="SFFS",
+    method="SBS",
     metric="accuracy",
     initial_channels=initial_subset,  # wrapper setup
     max_time=999,
