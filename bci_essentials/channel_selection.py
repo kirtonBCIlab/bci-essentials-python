@@ -44,7 +44,13 @@ def channel_selection_by_method(kernel_func, X, y, channel_labels,              
 
     # max length can't be greater than the length of channel labels
     if max_channels > len(channel_labels):
+        print("Maximum number of channels must be less than or equal to the number of channels. Setting to number of channels.")
         max_channels = len(channel_labels)
+
+    # min length can't be less than 1
+    if min_channels < 1:
+        print("Minimum number of channels must be greater than 0. Setting to 1.")
+        min_channels = 1
 
     if method == "SBS":
         if initial_channels == []:
@@ -457,8 +463,12 @@ def sbs(kernel_func, X, y, channel_labels,
 
         step += 1
 
+        # Break if SBFS subset is 1 channel
+        if len(sbs_subset) == 1:
+            break
+
         stop_criterion = check_stopping_criterion(time.time() - start_time, len(new_channel_subset), p_delta, max_time, min_channels, max_channels, performance_delta, print_output=True)
-    
+
     new_channel_subset = [channel_labels[c] for c in sbs_subset]
 
     if print_output == "verbose" or print_output == "final":
@@ -762,7 +772,11 @@ def sbfs(kernel_func, X, y, channel_labels,
             stop_criterion = check_stopping_criterion(time.time() - start_time, len(new_channel_subset), p_delta, max_time, min_channels, max_channels, performance_delta, print_output=True)
 
         stop_criterion = check_stopping_criterion(time.time() - start_time, len(new_channel_subset), p_delta, max_time, min_channels, max_channels, performance_delta, print_output=True)
-    
+        
+        # Break if SBFS subset is 1 channel
+        if len(sbfs_subset) == 1:
+            break
+
     new_channel_subset = [channel_labels[c] for c in sbfs_subset]
 
     if print_output == "verbose" or print_output == "final":
