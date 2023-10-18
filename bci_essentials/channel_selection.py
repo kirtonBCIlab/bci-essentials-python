@@ -1104,7 +1104,7 @@ def sbfs(
             best_precision = precision
             best_recall = recall
 
-        if record_performance :
+        if record_performance:
             new_channel_subset.sort()
             results_df.loc[step] = [
                 step,
@@ -1236,7 +1236,7 @@ def sbfs(
                     best_precision = precision
                     best_recall = recall
 
-                if record_performance :
+                if record_performance:
                     new_channel_subset.sort()
                     results_df.loc[step] = [
                         step,
@@ -1558,7 +1558,7 @@ def sffs(
             best_precision = precision
             best_recall = recall
 
-        if record_performance :
+        if record_performance:
             new_channel_subset.sort()
             results_df.loc[step] = [
                 step,
@@ -1691,7 +1691,7 @@ def sffs(
                     best_precision = precision
                     best_recall = recall
 
-                if record_performance :
+                if record_performance:
                     new_channel_subset.sort()
                     results_df.loc[step] = [
                         step,
@@ -1727,7 +1727,7 @@ def sffs(
                     print_output=True,
                 )
 
-        if pass_stopping_criterion :
+        if pass_stopping_criterion:
             pass_stopping_criterion = False
             continue
         else:
