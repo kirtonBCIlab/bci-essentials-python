@@ -22,7 +22,7 @@ def channel_selection_by_method(
     channel_labels,
     method="SBS",
     metric="accuracy",
-    initial_channels=[], 
+    initial_channels=[],
     max_time=999,
     min_channels=1,
     max_channels=999,
@@ -1319,7 +1319,6 @@ def sffs(
     print_output,
     record_performance,
 ):
-    
     """The Sequential Forward Floating Selection (SFFS) method for channel selection.
 
     Parameters
