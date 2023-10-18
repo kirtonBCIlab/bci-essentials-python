@@ -588,7 +588,6 @@ def sbfs(kernel_func, X, y, channel_labels,
             print("performance metric invalid, defaulting to accuracy")
             performances = accuracies
 
-
         best_round_performance = np.max(performances)
         best_set_index = accuracies.index(best_round_performance)
 
@@ -616,7 +615,7 @@ def sbfs(kernel_func, X, y, channel_labels,
         p_delta = current_performance - previous_performance
         previous_performance = current_performance
 
-        # ADD Memory here 
+        # If the performance is the best so far, then save it as the best
         if current_performance > best_performance:
             best_channel_subset = new_channel_subset
             best_model = model
@@ -679,8 +678,6 @@ def sbfs(kernel_func, X, y, channel_labels,
             # run the kernel on the new sets
             outputs = Parallel(n_jobs=n_jobs)(delayed(kernel_func)(Xtest,y) for Xtest in X_to_try) 
 
-            # [all_sets_tried.append(set.sort()) for set in sets_to_try]
-
             models = []
             predictions = []
             accuracies = []
@@ -710,8 +707,8 @@ def sbfs(kernel_func, X, y, channel_labels,
             best_round_performance = np.max(performances)
             best_set_index = accuracies.index(best_round_performance)
 
-            # if performance is better at that point
-            if performance_at_nchannels[length_of_resultant_set-1] < best_performance:
+            # if performance is better the best performance at nchannels
+            if performance_at_nchannels[length_of_resultant_set-1] < best_round_performance:
                 sbfs_subset = sets_to_try[best_set_index]
                 new_channel_subset = [channel_labels[c] for c in sbfs_subset]
                 model = models[best_set_index]
@@ -719,6 +716,7 @@ def sbfs(kernel_func, X, y, channel_labels,
                 accuracy = accuracies[best_set_index]
                 precision = precisions[best_set_index]
                 recall = recalls[best_set_index]
+
                 if print_output == "verbose":
                     print("Added back a channel")
                     print("new subset ", new_channel_subset)

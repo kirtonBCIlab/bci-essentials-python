@@ -22,10 +22,9 @@ test_mi.classifier = MI_classifier()  # you can add a subset here
 test_mi.classifier.set_mi_classifier_settings(n_splits=5, type="TS", random_seed=35)
 
 # Define channel selection settings
-# test_mi.classifier.setup_channel_selection(initial_channels=[], method="SBS", metric="accuracy", max_time=60, n_jobs=-1)
 initial_subset = []
 test_mi.classifier.setup_channel_selection(
-    method="SFFS",
+    method="SBFS",
     metric="accuracy",
     initial_channels=initial_subset,  # wrapper setup
     max_time=999,
