@@ -198,6 +198,7 @@ class Generic_classifier:
         self,
         method="SBS",
         metric="accuracy",
+        iterative_selection=False,
         initial_channels=[],  # wrapper setup
         max_time=999,
         min_channels=1,
@@ -217,6 +218,9 @@ class Generic_classifier:
         metric : str, *optional*
             The metric used to measure performance.
             - Default is `"accuracy"`.
+        iterative_selection : bool, *optional*
+            Whether or not to use the previously selected subset for the initial subset.
+            Default is `False`.
         initial_channels : type, *optional*
             Description of parameter `initial_channels`.
             - Default is `[]`.
@@ -254,6 +258,7 @@ class Generic_classifier:
             self.chs_initial_subset = initial_channels
         self.chs_method = method  # method to add/remove channels
         self.chs_metric = metric  # metric by which to measure performance
+        self.chs_iterative_selection = iterative_selection  # whether or not to use the previously selected subset for the initial subset
         self.chs_n_jobs = n_jobs  # number of threads
         self.chs_max_time = max_time  # max time in seconds
         self.chs_min_channels = min_channels  # minimum number of channels

@@ -24,10 +24,11 @@ test_mi.classifier.set_mi_classifier_settings(n_splits=5, type="TS", random_seed
 # Define channel selection settings
 initial_subset = []
 test_mi.classifier.setup_channel_selection(
-    method="SBS",
+    method="SFFS",
     metric="accuracy",
+    iterative_selection=True,
     initial_channels=initial_subset,  # wrapper setup
-    max_time=999,
+    max_time=4,
     min_channels=0,
     max_channels=20,
     performance_delta=-0.05,  # stopping criterion

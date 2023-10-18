@@ -501,8 +501,8 @@ def sbfs(kernel_func, X, y, channel_labels,
         if c in initial_channels:
             sbfs_subset.append(i)
 
-    performance_at_nchannels = np.zeros(len(sbfs_subset))
-    best_subset_at_nchannels = [0] * len(sbfs_subset)
+    performance_at_nchannels = np.zeros(len(channel_labels))
+    best_subset_at_nchannels = [0] * len(channel_labels)
 
     previous_performance = 0
 

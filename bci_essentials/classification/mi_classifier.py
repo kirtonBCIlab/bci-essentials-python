@@ -247,6 +247,12 @@ class MI_classifier(Generic_classifier):
 
         # Check if channel selection is true
         if self.channel_selection_setup:
+            if self.chs_iterative_selection == True and self.subset is not None:
+                initial_subset = self.subset
+                print("Using subset from previous channel selection")
+            else:
+                initial_subset = self.chs_initial_subset
+
             print("Doing channel selection")
             (
                 updated_subset,
@@ -263,7 +269,7 @@ class MI_classifier(Generic_classifier):
                 self.channel_labels,  # kernel setup
                 self.chs_method,
                 self.chs_metric,
-                self.chs_initial_subset,  # wrapper setup
+                initial_subset,  # wrapper setup
                 self.chs_max_time,
                 self.chs_min_channels,
                 self.chs_max_channels,
