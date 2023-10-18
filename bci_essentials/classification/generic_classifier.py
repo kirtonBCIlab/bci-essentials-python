@@ -265,7 +265,7 @@ class Generic_classifier:
         self.chs_max_channels = max_channels  # maximum number of channels
         self.chs_performance_delta = performance_delta  # smallest performance increment to justify continuing search
         self.chs_output = print_output  # output setting, silent, final, or verbose
-        self.chs_record_performance = record_performance # record performance
+        self.chs_record_performance = record_performance  # record performance
 
         self.channel_selection_setup = True
 
@@ -341,7 +341,9 @@ class Generic_classifier:
             Description of returned object.
 
         """
-        decision_block = self.get_subset(decision_block, self.subset, self.channel_labels)
+        decision_block = self.get_subset(
+            decision_block, self.subset, self.channel_labels
+        )
 
         if print_predict:
             print("making a prediction")

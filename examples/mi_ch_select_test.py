@@ -34,7 +34,7 @@ test_mi.classifier.setup_channel_selection(
     performance_delta=-0.05,  # stopping criterion
     n_jobs=-1,
     print_output="verbose",
-    record_performance=True
+    record_performance=True,
 )
 
 # Load the xdf

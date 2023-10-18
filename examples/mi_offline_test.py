@@ -20,7 +20,11 @@ test_mi.classifier = MI_classifier()  # you can add a subset here
 
 # Define the classifier settings
 test_mi.classifier.set_mi_classifier_settings(
-    n_splits=5, type="TS", random_seed=35, channel_selection="riemann", covariance_estimator='oas'
+    n_splits=5,
+    type="TS",
+    random_seed=35,
+    channel_selection="riemann",
+    covariance_estimator="oas",
 )
 
 # Load the xdf

@@ -25,7 +25,7 @@ test_erp.classifier.set_p300_clf_settings(
     oversample_ratio=0,
     undersample_ratio=0,
     random_seed=35,
-    covariance_estimator='oas'
+    covariance_estimator="oas",
 )
 
 # Define channel selection, for SFS and SFFS you must supply atleast one initial electrode
@@ -40,7 +40,7 @@ test_erp.classifier.setup_channel_selection(
     performance_delta=-1,  # stopping criterion
     n_jobs=-1,
     print_output="verbose",
-    record_performance=True
+    record_performance=True,
 )
 
 # Load the xdf
