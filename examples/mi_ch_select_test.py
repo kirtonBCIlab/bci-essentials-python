@@ -25,13 +25,13 @@ test_mi.classifier.set_mi_classifier_settings(n_splits=5, type="TS", random_seed
 # test_mi.classifier.setup_channel_selection(initial_channels=[], method="SBS", metric="accuracy", max_time=60, n_jobs=-1)
 initial_subset = []
 test_mi.classifier.setup_channel_selection(
-    method="SFS",
+    method="SFFS",
     metric="accuracy",
     initial_channels=initial_subset,  # wrapper setup
     max_time=999,
     min_channels=0,
-    max_channels=24,
-    performance_delta=-1,  # stopping criterion
+    max_channels=20,
+    performance_delta=-0.05,  # stopping criterion
     n_jobs=-1,
     print_output="verbose",
     record_performance=True
@@ -56,5 +56,7 @@ test_mi.main(
     print_performance=True,
     print_predict=False,
 )
+
+print(test_mi.classifier.results_df)
 
 print("debug")
