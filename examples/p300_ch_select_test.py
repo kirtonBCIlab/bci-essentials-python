@@ -10,7 +10,7 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
 
 from bci_essentials.bci_data import ERP_data
-from bci_essentials.classification import ERP_rg_classifier
+from bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
 
 # Initialize the ERP data object
 test_erp = ERP_data()

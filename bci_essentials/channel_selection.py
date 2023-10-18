@@ -1104,7 +1104,7 @@ def sbfs(
             best_precision = precision
             best_recall = recall
 
-        if record_performance == True:
+        if record_performance :
             new_channel_subset.sort()
             results_df.loc[step] = [
                 step,
@@ -1236,7 +1236,7 @@ def sbfs(
                     best_precision = precision
                     best_recall = recall
 
-                if record_performance == True:
+                if record_performance :
                     new_channel_subset.sort()
                     results_df.loc[step] = [
                         step,
@@ -1465,7 +1465,7 @@ def sffs(
 
     # TODO Test the initial subset
 
-    while stop_criterion == False:
+    while stop_criterion is False:
         sets_to_try = []
         X_to_try = []
         for c in range(nchannels):
@@ -1558,7 +1558,7 @@ def sffs(
             best_precision = precision
             best_recall = recall
 
-        if record_performance == True:
+        if record_performance :
             new_channel_subset.sort()
             results_df.loc[step] = [
                 step,
@@ -1574,7 +1574,7 @@ def sffs(
         step += 1
 
         # Conditional Exclusion
-        while stop_criterion == False:
+        while stop_criterion is False:
             # Get the length of the set if we were to include an additional channel
             length_of_resultant_set = len(sffs_subset) - 1
             if length_of_resultant_set < min_channels or length_of_resultant_set == 0:
@@ -1691,7 +1691,7 @@ def sffs(
                     best_precision = precision
                     best_recall = recall
 
-                if record_performance == True:
+                if record_performance :
                     new_channel_subset.sort()
                     results_df.loc[step] = [
                         step,
@@ -1715,7 +1715,7 @@ def sffs(
                 break
 
             # Check stopping criterion
-            if pass_stopping_criterion == False:
+            if pass_stopping_criterion is False:
                 stop_criterion = check_stopping_criterion(
                     time.time() - start_time,
                     len(new_channel_subset),
@@ -1727,7 +1727,7 @@ def sffs(
                     print_output=True,
                 )
 
-        if pass_stopping_criterion == True:
+        if pass_stopping_criterion :
             pass_stopping_criterion = False
             continue
         else:
