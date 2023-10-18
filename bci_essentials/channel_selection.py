@@ -409,7 +409,7 @@ def sfs(
         best_recall = initial_recall
 
     # If not possible then set the initial performance to 0
-    except:
+    except ValueError:
         best_channel_subset = []
         best_model = None
         best_performance = 0
@@ -988,7 +988,7 @@ def sbfs(
         best_subset_at_nchannels[len(initial_channels) - 1] = initial_channels
 
     # If not possible then set the initial performance to 0
-    except:
+    except ValueError:
         best_channel_subset = []
         best_model = None
         best_performance = 0
@@ -1447,7 +1447,7 @@ def sffs(
         best_subset_at_nchannels[len(initial_channels) - 1] = initial_channels
 
     # If not possible then set the initial performance to 0
-    except:
+    except ValueError:
         best_channel_subset = []
         best_model = None
         best_performance = 0
