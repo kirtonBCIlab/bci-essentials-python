@@ -423,7 +423,7 @@ def sfs(
     precision = 0
     recall = 0
 
-    while stop_criterion == False:
+    while stop_criterion is False:
         sets_to_try = []
         X_to_try = []
         for c in range(nchannels):
@@ -511,7 +511,7 @@ def sfs(
             best_precision = precision
             best_recall = recall
 
-        if record_performance == True:
+        if record_performance is True:
             new_channel_subset.sort()
             results_df.loc[step] = [
                 step,
@@ -700,7 +700,7 @@ def sbs(
     precision = 0
     recall = 0
 
-    while stop_criterion == False:
+    while stop_criterion is False:
         # Exclusion Step
         sets_to_try = []
         X_to_try = []
@@ -795,7 +795,7 @@ def sbs(
             best_precision = precision
             best_recall = recall
 
-        if record_performance == True:
+        if record_performance is True:
             new_channel_subset.sort()
             results_df.loc[step] = [
                 step,
@@ -1002,7 +1002,7 @@ def sbfs(
     precision = 0
     recall = 0
 
-    while stop_criterion == False:
+    while stop_criterion is False:
         # Exclusion Step
         sets_to_try = []
         X_to_try = []
@@ -1120,7 +1120,7 @@ def sbfs(
         step += 1
 
         # Conditional Inclusion
-        while stop_criterion == False:
+        while stop_criterion is False:
             # Get the length of the set if we were to include an additional channel
             length_of_resultant_set = len(sbfs_subset) + 1
             if (
