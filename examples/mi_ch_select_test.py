@@ -39,8 +39,12 @@ test_mi.classifier.setup_channel_selection(
 
 # Load the xdf
 
+# test_mi.load_offline_eeg_data(
+#     filename="examples/data/mi_example_2.xdf", print_output=False
+# )  # you can also add a subset here
+
 test_mi.load_offline_eeg_data(
-    filename="examples/data/mi_example_2.xdf", print_output=False
+    filename="./data/mi_example_2.xdf", print_output=False
 )  # you can also add a subset here
 
 # Run main loop, this will do all of the classification for online or offline

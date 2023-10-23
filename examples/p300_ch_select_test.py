@@ -43,9 +43,14 @@ test_erp.classifier.setup_channel_selection(
     record_performance=True,
 )
 
+# # Load the xdf
+# test_erp.load_offline_eeg_data(
+#     filename="examples/data/p300_example.xdf", format="xdf", print_output=False
+# )  # you can also add a subset here
+
 # Load the xdf
 test_erp.load_offline_eeg_data(
-    filename="examples/data/p300_example.xdf", format="xdf", print_output=False
+    filename="./data/p300_example.xdf", format="xdf", print_output=False
 )  # you can also add a subset here
 
 # Run main loop, this will do all of the classification for online or offline
