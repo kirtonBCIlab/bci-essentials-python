@@ -6,11 +6,11 @@ Test Motor Imagery (MI) classification offline using data from an existing strea
 import os
 import sys
 
-from bci_essentials.bci_data import EEG_data
-from bci_essentials.classification import MI_classifier
-
 # Add parent directory to path to access bci_essentials
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
+
+from bci_essentials.bci_data import EEG_data
+from bci_essentials.classification import MI_classifier
 
 # Initialize data object
 test_mi = EEG_data()
@@ -20,7 +20,11 @@ test_mi.classifier = MI_classifier()  # you can add a subset here
 
 # Define the classifier settings
 test_mi.classifier.set_mi_classifier_settings(
-    n_splits=5, type="TS", random_seed=35, channel_selection="riemann"
+    n_splits=5,
+    type="TS",
+    random_seed=35,
+    channel_selection="riemann",
+    covariance_estimator="oas",
 )
 
 # Load the xdf

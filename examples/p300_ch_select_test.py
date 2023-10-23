@@ -6,11 +6,11 @@ Test P300 offline using data from an existing stream
 import os
 import sys
 
-from bci_essentials.bci_data import ERP_data
-from bci_essentials.classification import ERP_rg_classifier
-
 # Add parent directory to path to access bci_essentials
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
+
+from bci_essentials.bci_data import ERP_data
+from bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
 
 # Initialize the ERP data object
 test_erp = ERP_data()
@@ -25,25 +25,32 @@ test_erp.classifier.set_p300_clf_settings(
     oversample_ratio=0,
     undersample_ratio=0,
     random_seed=35,
+    covariance_estimator="oas",
 )
 
-# Define channel selection
-initial_subset = ["Fz", "Cz", "P3", "Pz", "P4", "PO7", "Oz", "PO8"]
+# Define channel selection, for SFS and SFFS you must supply atleast one initial electrode
+initial_subset = []
 test_erp.classifier.setup_channel_selection(
-    method="SBFS",
+    method="SBS",
     metric="accuracy",
     initial_channels=initial_subset,  # wrapper setup
     max_time=999,
     min_channels=2,
     max_channels=8,
-    performance_delta=0,  # stopping criterion
+    performance_delta=-1,  # stopping criterion
     n_jobs=-1,
     print_output="verbose",
+    record_performance=True,
 )
+
+# # Load the xdf
+# test_erp.load_offline_eeg_data(
+#     filename="examples/data/p300_example.xdf", format="xdf", print_output=False
+# )  # you can also add a subset here
 
 # Load the xdf
 test_erp.load_offline_eeg_data(
-    filename="examples/data/p300_example.xdf", format="xdf", print_output=False
+    filename="./data/p300_example.xdf", format="xdf", print_output=False
 )  # you can also add a subset here
 
 # Run main loop, this will do all of the classification for online or offline
@@ -61,5 +68,7 @@ test_erp.main(
     print_performance=True,
     print_predict=True,
 )
+
+print(test_erp.classifier.results_df)
 
 print("debug")
