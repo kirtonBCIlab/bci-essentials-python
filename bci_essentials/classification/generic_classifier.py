@@ -240,7 +240,11 @@ class Generic_classifier:
             The number of threads to dedicate to this calculation.
             - Default is `1`.
         print_output : string, *optional*
-            Decides what to print to command line. The output setting, silent (no messages), final(final selected channels and performance), or verbose (everything).
+            Decides what to print to command line. The output settings are:
+            - `silent`: no messages
+            - `final`: final selected channels and performance
+            - `verbose`: verbose (everything).
+
             - Default is `"silent"`.
         record_performance : bool, *optional*
             Decides whether or not to record performance of channel selection.
