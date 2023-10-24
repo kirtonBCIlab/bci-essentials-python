@@ -17,7 +17,7 @@ def bandpass(data, f_low, f_high, order, fsample):
     """Bandpass Filter.
 
     Filters out frequencies outside of the range f_low to f_high with a
-    Butterworth filter.
+    Butterworth filter of specific order.
 
     Parameters
     ----------
@@ -46,28 +46,24 @@ def bandpass(data, f_low, f_high, order, fsample):
     Wn = [f_low / (fsample / 2), f_high / (fsample / 2)]
     b, a = signal.butter(order, Wn, btype="bandpass")
 
-    try:
-        P, N, M = np.shape(data)
+    # try:
+    P, N, M = np.shape(data)
 
-        # reshape to N,M,P
-        data_reshape = np.swapaxes(np.swapaxes(data, 1, 2), 0, 2)
+    new_data = np.ndarray(shape=(N, M, P), dtype=float)
+    for p in range(0, P):
+        new_data[p, 0:N, 0:M] = signal.filtfilt(
+            b, a, data[p, 0:N, 0:M], axis=1, padlen=30
+        )
 
-        new_data = np.ndarray(shape=(N, M, P), dtype=float)
-        for p in range(0, P):
-            new_data[0:N, 0:M, p] = signal.filtfilt(
-                b, a, data_reshape[0:N, 0:M, p], axis=1, padlen=30
-            )
+    return new_data
 
-        new_data = np.swapaxes(np.swapaxes(new_data, 0, 2), 1, 2)
-        return new_data
+    # except Exception:
+    #     N, M = np.shape(data)
 
-    except Exception:
-        N, M = np.shape(data)
+    #     new_data = np.ndarray(shape=(N, M), dtype=float)
+    #     new_data = signal.filtfilt(b, a, data, axis=1, padlen=0)
 
-        new_data = np.ndarray(shape=(N, M), dtype=float)
-        new_data = signal.filtfilt(b, a, data, axis=1, padlen=0)
-
-        return new_data
+    #     return new_data
 
 
 def dc_reject(data):
