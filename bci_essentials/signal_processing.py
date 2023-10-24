@@ -54,7 +54,7 @@ def bandpass(data, f_low, f_high, order, fsample):
         new_data = np.ndarray(shape=(P, N, M), dtype=float)
         for p in range(0, P):
             new_data[p, :, :] = signal.filtfilt(
-                b, a, data[p, :, :], axis=1, padlen=0
+                b, a, data[p, :, :], padlen=0
             )
 
         return new_data
@@ -63,7 +63,7 @@ def bandpass(data, f_low, f_high, order, fsample):
         N, M = np.shape(data)
 
         new_data = np.ndarray(shape=(N, M), dtype=float)
-        new_data = signal.filtfilt(b, a, data, axis=1, padlen=0)
+        new_data = signal.filtfilt(b, a, data, padlen=0)
 
         return new_data
     
@@ -157,7 +157,7 @@ def highpass(data, f_critical, order, fsample):
         new_data = np.ndarray(shape=(P, N, M), dtype=float)
         for p in range(0, P):
             new_data[p, :, :] = signal.filtfilt(
-                b, a, data[p, :, :], axis=1, padlen=0
+                b, a, data[p, :, :], padlen=0
             )
 
         return new_data
@@ -166,7 +166,7 @@ def highpass(data, f_critical, order, fsample):
         N, M = np.shape(data)
 
         new_data = np.ndarray(shape=(N, M), dtype=float)
-        new_data = signal.filtfilt(b, a, data, axis=1, padlen=0)
+        new_data = signal.filtfilt(b, a, data, padlen=0)
 
         return new_data
 
@@ -187,10 +187,10 @@ def detrend(data):
     Returns
     -------
     new_data : numpy.ndarray
-        Windows of detrended EEG data.
-        3D array containing data with `float` type.
+        Windows of filtered EEG data.
+        3D (or 2D) array containing data with `float` type.
 
-        shape = (`N_windows`,`M_channels`,`P_samples`)
+        shape = (P, N, M) or (N, M)
 
     """
     # detrends the windows using the numpy detrend function
@@ -207,7 +207,7 @@ def detrend(data):
 
     return new_data
 
-def notchfilt(data, fsample, Q=30, fc=60):
+def notch(data, f_notch, Q, fsample):
     """Notch Filter.
 
     Notch filter for removing specific frequency components.
@@ -216,19 +216,17 @@ def notchfilt(data, fsample, Q=30, fc=60):
     ----------
     data : numpy.ndarray
         Windows of EEG data.
-        3D array containing data with `float` type.
+        3D (or 2D) array containing data with `float` type.
 
-        shape = (`N_windows`,`M_channels`,`P_samples`)
-    fsample : float
-        Sampling rate of signal.
-    Q : float, *optional*
+        shape = (P, N, M) or (N, M)
+    f_notch : float
+        Frequency of notch.
+    Q : float
         Quality factor. Dimensionless parameter that characterizes
         notch filter -3 dB bandwidth bw relative to its
         center frequency, Q = w0/bw.
-        - Default is `30`.
-    fc : float, *optional*
-        Frequency of notch.
-        - Default is `60`.
+    fsample : float
+        Sampling rate of signal.
 
     Returns
     -------
@@ -240,21 +238,21 @@ def notchfilt(data, fsample, Q=30, fc=60):
 
     """
 
-    b, a = signal.iirnotch(fc, Q, fsample)
+    b, a = signal.iirnotch(f_notch, Q, fsample)
 
     try:
-        N, M, P = np.shape(data)
-        new_data = np.ndarray(shape=(N, M, P), dtype=float)
+        P, N, M = np.shape(data)
+        new_data = np.ndarray(shape=(P, N, M), dtype=float)
         for p in range(0, P):
-            new_data[0:N, 0:M, p] = signal.filtfilt(
-                b, a, data[0:N, 0:M, p], axis=1, padlen=30
+            new_data[p, :, :] = signal.filtfilt(
+                b, a, data[p, :, :], padlen=0
             )
         return new_data
 
     except Exception:
         N, M = np.shape(data)
         new_data = np.ndarray(shape=(N, M), dtype=float)
-        new_data = signal.filtfilt(b, a, data, axis=1, padlen=30)
+        new_data = signal.filtfilt(b, a, data, padlen=0)
         return new_data
 
 
