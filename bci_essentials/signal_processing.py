@@ -51,10 +51,10 @@ def bandpass(data, f_low, f_high, order, fsample):
     try:
         P, N, M = np.shape(data)
 
-        new_data = np.ndarray(shape=(N, M, P), dtype=float)
+        new_data = np.ndarray(shape=(P, N, M), dtype=float)
         for p in range(0, P):
-            new_data[p, 0:N, 0:M] = signal.filtfilt(
-                b, a, data[p, 0:N, 0:M], axis=1, padlen=0
+            new_data[p, :, :] = signal.filtfilt(
+                b, a, data[p, :, :], axis=1, padlen=0
             )
 
         return new_data
@@ -154,10 +154,10 @@ def highpass(data, f_critical, order, fsample):
     try:
         P, N, M = np.shape(data)
 
-        new_data = np.ndarray(shape=(N, M, P), dtype=float)
+        new_data = np.ndarray(shape=(P, N, M), dtype=float)
         for p in range(0, P):
-            new_data[p, 0:N, 0:M] = signal.filtfilt(
-                b, a, data[p, 0:N, 0:M], axis=1, padlen=0
+            new_data[p, :, :] = signal.filtfilt(
+                b, a, data[p, :, :], axis=1, padlen=0
             )
 
         return new_data
