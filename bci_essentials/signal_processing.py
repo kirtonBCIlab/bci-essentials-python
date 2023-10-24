@@ -1,31 +1,73 @@
 """
-Signal processing tools for processing windows OR decision blocks.
+Signal processing tools for processing windows of EEG data.
 
-The EEG data inputs for each function are either windows or
-decision blocks.
-- For windows, inputs are `N x M x P`, where:
-    - N = number of windows (for a single window `N = 1`)
-    - M = number of channels
-    - P = number of samples
-- For decision blocks, inputs are `N x M x P`, where:
-    - N = number of possible selections
-    - M = number of channels
-    - P = number of samples
-- Outputs are the same dimensions (`N x M x P`)
+The EEG data inputs can be 2D or 3D arrays. Either 'N x M' or 'P x N x M', where:
+    - P = number of windows (for a single window `N = 1`)
+    - N = number of channels
+    - M = number of samples
+
+- Outputs are the same dimensions (`P x N x M`)
 
 """
 import numpy as np
 from scipy import signal
 import random
 
-#
+def bandpass(data, f_low, f_high, order, fsample):
+    """Bandpass Filter.
 
-# def common_average_reference(data):
-#     N,M,P = np.shape(data)
+    Filters out frequencies outside of the range f_low to f_high with a
+    Butterworth filter.
 
-#     average = np.average(data,axis)
+    Parameters
+    ----------
+    data : numpy.ndarray
+        Windows of EEG data.
+        3D array containing data with `float` type.
 
-#     return new_data
+        shape = (P, N, M)
+    f_low : float
+        Lower corner frequency.
+    f_high : float
+        Upper corner frequency.
+    order : int
+        Order of the filter.
+    fsample : float
+        Sampling rate of signal.
+
+    Returns
+    -------
+    new_data : numpy.ndarray
+        Windows of filtered EEG data.
+        3D array containing data with `float` type.
+
+        shape = (P, N, M)
+    """
+    Wn = [f_low / (fsample / 2), f_high / (fsample / 2)]
+    b, a = signal.butter(order, Wn, btype="bandpass")
+
+    try:
+        P, N, M = np.shape(data)
+
+        # reshape to N,M,P
+        data_reshape = np.swapaxes(np.swapaxes(data, 1, 2), 0, 2)
+
+        new_data = np.ndarray(shape=(N, M, P), dtype=float)
+        for p in range(0, P):
+            new_data[0:N, 0:M, p] = signal.filtfilt(
+                b, a, data_reshape[0:N, 0:M, p], axis=1, padlen=30
+            )
+
+        new_data = np.swapaxes(np.swapaxes(new_data, 0, 2), 1, 2)
+        return new_data
+
+    except Exception:
+        N, M = np.shape(data)
+
+        new_data = np.ndarray(shape=(N, M), dtype=float)
+        new_data = signal.filtfilt(b, a, data, axis=1, padlen=0)
+
+        return new_data
 
 
 def dc_reject(data):
@@ -152,61 +194,7 @@ def lowpass(data, f_high, order, fsample):
     return new_data
 
 
-def bandpass(data, f_low, f_high, order, fsample):
-    """Bandpass Filter.
 
-    Filters out frequencies outside of the range f_low to f_high with a
-    Butterworth filter.
-
-    Parameters
-    ----------
-    data : numpy.ndarray
-        Windows of EEG data.
-        3D array containing data with `float` type.
-
-        shape = (`N_windows`,`M_channels`,`P_samples`)
-    f_low : float
-        Lower corner frequency.
-    f_high : float
-        Upper corner frequency.
-    order : int
-        Order of the filter.
-    fsample : float
-        Sampling rate of signal.
-
-    Returns
-    -------
-    new_data : numpy.ndarray
-        Windows of filtered EEG data.
-        3D array containing data with `float` type.
-
-        shape = (`N_windows`,`M_channels`,`P_samples`)
-    """
-    Wn = [f_low / (fsample / 2), f_high / (fsample / 2)]
-    b, a = signal.butter(order, Wn, btype="bandpass")
-
-    try:
-        P, N, M = np.shape(data)
-
-        # reshape to N,M,P
-        data_reshape = np.swapaxes(np.swapaxes(data, 1, 2), 0, 2)
-
-        new_data = np.ndarray(shape=(N, M, P), dtype=float)
-        for p in range(0, P):
-            new_data[0:N, 0:M, p] = signal.filtfilt(
-                b, a, data_reshape[0:N, 0:M, p], axis=1, padlen=30
-            )
-
-        new_data = np.swapaxes(np.swapaxes(new_data, 0, 2), 1, 2)
-        return new_data
-
-    except Exception:
-        N, M = np.shape(data)
-
-        new_data = np.ndarray(shape=(N, M), dtype=float)
-        new_data = signal.filtfilt(b, a, data, axis=1, padlen=0)
-
-        return new_data
 
 
 def notchfilt(data, fsample, Q=30, fc=60):
