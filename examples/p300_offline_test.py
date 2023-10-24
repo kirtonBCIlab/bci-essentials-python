@@ -6,11 +6,12 @@ Test P300 offline using data from an existing stream
 import os
 import sys
 
+# Add parent directory to path to access bci_essentials
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
+
 from bci_essentials.bci_data import ERP_data
 from bci_essentials.classification import ERP_rg_classifier
 
-# Add parent directory to path to access bci_essentials
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
 
 # Initialize the ERP data object
 test_erp = ERP_data()
@@ -25,6 +26,7 @@ test_erp.classifier.set_p300_clf_settings(
     oversample_ratio=0,
     undersample_ratio=0,
     random_seed=35,
+    covariance_estimator="oas",
 )
 
 # Load the xdf

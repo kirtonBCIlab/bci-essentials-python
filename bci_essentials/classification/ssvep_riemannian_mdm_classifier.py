@@ -16,7 +16,7 @@ from sklearn.metrics import confusion_matrix, precision_score, recall_score
 from pyriemann.classification import MDM
 from pyriemann.estimation import Covariances
 
-from classification.generic_classifier import Generic_classifier
+from bci_essentials.classification import Generic_classifier
 
 # from bci_essentials.visuals import *
 from bci_essentials.signal_processing import bandpass

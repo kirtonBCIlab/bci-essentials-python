@@ -23,14 +23,14 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from pyriemann.estimation import XdawnCovariances
 from pyriemann.tangentspace import TangentSpace
 
+# Custom libraries
+# - Append higher directory to import bci_essentials
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
+
 from bci_essentials.classification import Generic_classifier
 
 from bci_essentials.signal_processing import lico
 from bci_essentials.channel_selection import channel_selection_by_method
-
-# Custom libraries
-# - Append higher directory to import bci_essentials
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
 
 
 class ERP_rg_classifier(Generic_classifier):
@@ -341,6 +341,7 @@ class ERP_rg_classifier(Generic_classifier):
                 accuracy,
                 precision,
                 recall,
+                results_df,
             ) = channel_selection_by_method(
                 erp_rg_kernel,
                 self.X,
@@ -359,6 +360,7 @@ class ERP_rg_classifier(Generic_classifier):
 
             print("The optimal subset is ", updated_subset)
 
+            self.results_df = results_df
             self.subset = updated_subset
             self.clf = updated_model
         else:
