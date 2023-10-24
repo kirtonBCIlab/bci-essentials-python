@@ -8,4 +8,5 @@ dependencies:
   - twine
   - black
   - flake8
+  - mypy
   - pre-commit
