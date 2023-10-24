@@ -9,6 +9,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pard
 
 from bci_essentials.signal_processing import lowpass, highpass, bandpass, notch
 
+
 class TestLoadData(unittest.TestCase):
     def test_bandpass(self):
         # Generate test data
@@ -74,7 +75,6 @@ class TestLoadData(unittest.TestCase):
         assert mse_2d_band < mse_2d_all
         assert mse_3d_band < mse_3d_all
 
-
     def test_lowpass(self):
         # Generate test data
         fsample = 1000
@@ -137,7 +137,6 @@ class TestLoadData(unittest.TestCase):
         # Check that output is correct
         assert mse_2d_low < mse_2d_all
         assert mse_3d_low < mse_3d_all
-
 
     def test_highpass(self):
         # Generate test data
@@ -202,7 +201,6 @@ class TestLoadData(unittest.TestCase):
         assert mse_2d_high < mse_2d_all
         assert mse_3d_high < mse_3d_all
 
-
     def test_notch(self):
         # Generate test data
         fsample = 1000
@@ -265,6 +263,7 @@ class TestLoadData(unittest.TestCase):
         # Check that output is correct
         assert mse_2d_notch < mse_2d_all
         assert mse_3d_notch < mse_3d_all
+
 
 if __name__ == "__main__":
     unittest.main()
