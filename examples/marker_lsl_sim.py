@@ -18,10 +18,16 @@ Created on Wed Apr 21 10:26:44 2021
 import sys
 import time
 import datetime
+import os
 
 from pylsl import StreamInfo, StreamOutlet
 
-from bci_essentials.bci_data import EEG_data
+from ..bci_essentials.bci_data import EEG_data
+
+# Identify the file to simulate
+# Filename assumes the data is within a subfolder called "data" located
+# within the same folder as this script
+filename = os.path.join("data", "p300_example.xdf")
 
 # check whether to start now, or at the next even minute to sync with other programs
 start_now = False
@@ -41,9 +47,6 @@ try:
 
 except Exception:
     nloops = 1
-
-# Identify the file to simulate
-filename = "examples/data/p300_example.xdf"
 
 # Load the example EEG stream
 eeg_stream = EEG_data()

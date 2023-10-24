@@ -6,16 +6,13 @@ Test P300 offline using data from an existing stream
 import os
 import sys
 
-from bci_essentials.bci_data import ERP_data
-from bci_essentials.classification import ERP_rg_classifier
+from ...bci_essentials.bci_data import ERP_data
+from ...bci_essentials.classification.erp_rg_classifier \
+    import ERP_rg_classifier
 
-
-# Add parent directory to path to access bci_essentials
-sys.path.append(
-    os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), os.pardir)
-)
-
-# from src.bci_data import *
+# Identify the file to simulate
+# This won't work on anyone else's computer
+filename = "C:\\Users\\brian\\OneDrive\\Documents\\BCI\\BCIEssentials\\fatigueDataAnalysis\\fatigueData\\participants\\sub-P06_p300\\ses-postRS_p300\\eeg\\sub-P06_p300_ses-postRS_p300_task-T1_run-001_eeg.xdf"
 
 # Initialize the ERP data object
 test_erp = ERP_data()
@@ -34,7 +31,7 @@ test_erp.classifier.set_p300_clf_settings(
 
 # Load the xdf
 test_erp.load_offline_eeg_data(
-    filename="C:\\Users\\brian\\OneDrive\\Documents\\BCI\\BCIEssentials\\fatigueDataAnalysis\\fatigueData\\participants\\sub-P06_p300\\ses-postRS_p300\\eeg\\sub-P06_p300_ses-postRS_p300_task-T1_run-001_eeg.xdf",
+    filename=filename,
     format="xdf",
     print_output=False,
 )  # you can also add a subset here

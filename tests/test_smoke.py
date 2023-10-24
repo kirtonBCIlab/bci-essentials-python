@@ -2,14 +2,11 @@ import unittest
 import os
 import sys
 
-from bci_essentials.bci_data import EEG_data, ERP_data
-from bci_essentials.classification import (
-    MI_classifier,
-    ERP_rg_classifier,
-    SSVEP_riemannian_mdm_classifier,
-)
-
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
+from ..bci_essentials.bci_data import EEG_data, ERP_data
+from ..bci_essentials.classification.mi_classifier import MI_classifier
+from ..bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
+from ..bci_essentials.classification.ssvep_riemannian_mdm_classifier \
+    import SSVEP_riemannian_mdm_classifier
 
 
 class TestLoadData(unittest.TestCase):

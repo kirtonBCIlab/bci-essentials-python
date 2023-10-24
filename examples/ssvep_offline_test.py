@@ -4,12 +4,14 @@
 import os
 import sys
 
-# # from src.bci_data import *
-from bci_essentials.bci_data import EEG_data
-from bci_essentials.classification import SSVEP_riemannian_mdm_classifier
+from ..bci_essentials.bci_data import EEG_data
+from ..bci_essentials.classification.ssvep_riemannian_mdm_classifier \
+    import SSVEP_riemannian_mdm_classifier
 
-# Add parent directory to path to access bci_essentials
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
+# Identify the file to simulate
+# Filename assumes the data is within a subfolder called "data" located
+# within the same folder as this script
+filename = os.path.join("data", "ssvep_example.xdf")
 
 # Initialize the SSVEP
 # should try to automate the reading of some of this stuff from the file header
@@ -20,7 +22,7 @@ test_ssvep.classifier = SSVEP_riemannian_mdm_classifier(subset=[])
 
 # Load from xdf into erp_data format
 test_ssvep.load_offline_eeg_data(
-    filename="examples\data\ssvep_example.xdf", format="xdf"
+    filename=filename, format="xdf"
 )
 
 test_ssvep.classifier.set_ssvep_settings(

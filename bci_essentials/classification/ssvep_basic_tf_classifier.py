@@ -10,14 +10,13 @@ import sys
 import numpy as np
 from scipy import signal
 
-from bci_essentials.classification import Generic_classifier
+# Import bci_essentials modules and methods
+from ..classification.generic_classifier import Generic_classifier
 
-# from bci_essentials.visuals import *
-# from bci_essentials.signal_processing import *
-# from bci_essentials.channel_selection import *
-
-# Custom libraries
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
+# Don't do "import *", but this is how to do it if desired with relative import
+# from ..visuals import *
+# from ..signal_processing import *
+# from ..channel_selection import *
 
 
 class SSVEP_basic_tf_classifier(Generic_classifier):

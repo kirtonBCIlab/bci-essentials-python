@@ -10,10 +10,8 @@ The classifier always predicts 0.
 import os
 import sys
 
-from bci_essentials.classification import Generic_classifier
-
-# Custom libraries
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
+# Import bci_essentials modules and methods
+from ..classification.generic_classifier import Generic_classifier
 
 
 class Null_classifier(Generic_classifier):

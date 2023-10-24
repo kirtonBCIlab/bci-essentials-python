@@ -6,11 +6,13 @@ Test P300 offline using data from an existing stream
 import os
 import sys
 
-# Add parent directory to path to access bci_essentials
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
+from ..bci_essentials.bci_data import ERP_data
+from ..bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
 
-from bci_essentials.bci_data import ERP_data
-from bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
+# Identify the file to simulate
+# Filename assumes the data is within a subfolder called "data" located
+# within the same folder as this script
+filename = os.path.join("data", "p300_example.xdf")
 
 # Initialize the ERP data object
 test_erp = ERP_data()
@@ -45,12 +47,12 @@ test_erp.classifier.setup_channel_selection(
 
 # # Load the xdf
 # test_erp.load_offline_eeg_data(
-#     filename="examples/data/p300_example.xdf", format="xdf", print_output=False
+#     filename=filename, format="xdf", print_output=False
 # )  # you can also add a subset here
 
 # Load the xdf
 test_erp.load_offline_eeg_data(
-    filename="./data/p300_example.xdf", format="xdf", print_output=False
+    filename=filename, format="xdf", print_output=False
 )  # you can also add a subset here
 
 # Run main loop, this will do all of the classification for online or offline

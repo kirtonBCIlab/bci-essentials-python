@@ -23,14 +23,10 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from pyriemann.estimation import XdawnCovariances
 from pyriemann.tangentspace import TangentSpace
 
-# Custom libraries
-# - Append higher directory to import bci_essentials
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
-
-from bci_essentials.classification import Generic_classifier
-
-from bci_essentials.signal_processing import lico
-from bci_essentials.channel_selection import channel_selection_by_method
+# Import bci_essentials modules and methods
+from ..classification.generic_classifier import Generic_classifier
+from ..signal_processing import lico
+from ..channel_selection import channel_selection_by_method
 
 
 class ERP_rg_classifier(Generic_classifier):
@@ -38,11 +34,11 @@ class ERP_rg_classifier(Generic_classifier):
 
     def set_p300_clf_settings(
         self,
-        n_splits=3,  # number of folds for cross-validation
-        lico_expansion_factor=1,  # Linear Combination Oversampling expansion factor is the factor by which the number of ERPs in the training set will be expanded
-        oversample_ratio=0,  # traditional oversampling, float from 0.1-1 resulting ratio of erp class to non-erp class, 0 for no oversampling
-        undersample_ratio=0,  # traditional undersampling, float from 0.1-1 resulting ratio of erp class to non-erp classs, 0 for no undersampling
-        random_seed=42,  # random seed
+        n_splits=3,
+        lico_expansion_factor=1,
+        oversample_ratio=0,
+        undersample_ratio=0,
+        random_seed=42,
         covariance_estimator="scm",  # Covarianc estimator, see pyriemann Covariances
     ):
         """Set P300 Classifier Settings.
