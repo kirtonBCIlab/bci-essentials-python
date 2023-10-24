@@ -62,11 +62,11 @@ def test_bandpass():
     mse_3d_band = np.mean(np.square(example_3D_band[0,0,:] - random_band))
     mse_3d_all = np.mean(np.square(example_3D_band[0,0,:] - random_all))
 
-    # Print the MSEs
-    print("MSE 2D band: " + str(mse_2d_band))
-    print("MSE 2D all: " + str(mse_2d_all))
-    print("MSE 3D band: " + str(mse_3d_band))
-    print("MSE 3D all: " + str(mse_3d_all))
+    # # Print the MSEs
+    # print("MSE 2D band: " + str(mse_2d_band))
+    # print("MSE 2D all: " + str(mse_2d_all))
+    # print("MSE 3D band: " + str(mse_3d_band))
+    # print("MSE 3D all: " + str(mse_3d_all))
 
     # Check that output is correct
     assert mse_2d_band < mse_2d_all
@@ -125,11 +125,11 @@ def test_lowpass():
     mse_3d_low = np.mean(np.square(example_3D_low[0,0,:] - random_low))
     mse_3d_all = np.mean(np.square(example_3D_low[0,0,:] - random_all))
 
-    # Print the MSEs
-    print("MSE 2D low: " + str(mse_2d_low))
-    print("MSE 2D all: " + str(mse_2d_all))
-    print("MSE 3D low: " + str(mse_3d_low))
-    print("MSE 3D all: " + str(mse_3d_all))
+    # # Print the MSEs
+    # print("MSE 2D low: " + str(mse_2d_low))
+    # print("MSE 2D all: " + str(mse_2d_all))
+    # print("MSE 3D low: " + str(mse_3d_low))
+    # print("MSE 3D all: " + str(mse_3d_all))
 
     # Check that output is correct
     assert mse_2d_low < mse_2d_all
@@ -188,11 +188,11 @@ def test_highpass():
     mse_3d_high = np.mean(np.square(example_3D_high[0,0,:] - random_high))
     mse_3d_all = np.mean(np.square(example_3D_high[0,0,:] - random_all))
 
-    # Print the MSEs
-    print("MSE 2D high: " + str(mse_2d_high))
-    print("MSE 2D all: " + str(mse_2d_all))
-    print("MSE 3D high: " + str(mse_3d_high))
-    print("MSE 3D all: " + str(mse_3d_all))
+    # # Print the MSEs
+    # print("MSE 2D high: " + str(mse_2d_high))
+    # print("MSE 2D all: " + str(mse_2d_all))
+    # print("MSE 3D high: " + str(mse_3d_high))
+    # print("MSE 3D all: " + str(mse_3d_all))
 
     # Check that output is correct
     assert mse_2d_high < mse_2d_all
@@ -251,11 +251,11 @@ def test_notch():
     mse_3d_notch = np.mean(np.square(example_3D_notch[0,0,:] - random_notch))
     mse_3d_all = np.mean(np.square(example_3D_notch[0,0,:] - random_all))
 
-    # Print the MSEs
-    print("MSE 2D notch: " + str(mse_2d_notch))
-    print("MSE 2D all: " + str(mse_2d_all))
-    print("MSE 3D notch: " + str(mse_3d_notch))
-    print("MSE 3D all: " + str(mse_3d_all))
+    # # Print the MSEs
+    # print("MSE 2D notch: " + str(mse_2d_notch))
+    # print("MSE 2D all: " + str(mse_2d_all))
+    # print("MSE 3D notch: " + str(mse_3d_notch))
+    # print("MSE 3D all: " + str(mse_3d_all))
 
     # Check that output is correct
     assert mse_2d_notch < mse_2d_all

@@ -170,43 +170,6 @@ def highpass(data, f_critical, order, fsample):
 
         return new_data
 
-
-def detrend(data):
-    """Detrend.
-
-    Wrapper for the scipy.signal.detrend method.
-
-    Parameters
-    ----------
-    data : numpy.ndarray
-        Windows of EEG data.
-        3D array containing data with `float` type.
-
-        shape = (`N_windows`,`M_channels`,`P_samples`)
-
-    Returns
-    -------
-    new_data : numpy.ndarray
-        Windows of filtered EEG data.
-        3D (or 2D) array containing data with `float` type.
-
-        shape = (P, N, M) or (N, M)
-
-    """
-    # detrends the windows using the numpy detrend function
-    try:
-        N, M, P = np.shape(data)
-    except Exception:
-        N, M = np.shape(data)
-        P = 1
-
-    new_data = np.ndarray(shape=(N, M, P), dtype=float)
-
-    for p in range(0, P):
-        new_data[0:N, 0:M, p] = signal.detrend(data[0:N, 0:M, p], axis=1)
-
-    return new_data
-
 def notch(data, f_notch, Q, fsample):
     """Notch Filter.
 
