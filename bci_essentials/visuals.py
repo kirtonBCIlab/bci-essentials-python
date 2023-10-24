@@ -64,7 +64,7 @@ def decision_vis(
         t[m] = m / f_sample
 
     # Initialize subplot
-    ax = [0] * P
+    ax: list[plt.Axes] = [] * P
     for p in range(P):
         ax[p] = plt.subplot(P + 1, 1, p + 1)
 
@@ -152,9 +152,10 @@ def plot_big_decision_block(
     for m in range(M):
         t[m] = m / f_sample
 
-    fig = [None] * D
+    fig: list[plt.Figure] = [] * D
     # for d in D create a figure
     for d in range(D):
+        ax: list[plt.Axes]
         fig[d], ax = plt.subplots(nrows=2, ncols=1)
 
         # for ERP in O and one non ERP in O, each in own subplot
