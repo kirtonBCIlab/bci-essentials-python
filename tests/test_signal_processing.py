@@ -1,4 +1,3 @@
-
 import os
 import sys
 import numpy as np
@@ -8,6 +7,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pard
 
 from bci_essentials.signal_processing import lowpass, highpass, bandpass, notch
 
+
 def test_bandpass():
     # Generate test data
     fsample = 1000
@@ -16,7 +16,7 @@ def test_bandpass():
     order = 5
 
     # Create a time vector of length 2 and interval 1/fsample
-    t = np.arange(0, 1, 1/fsample)
+    t = np.arange(0, 1, 1 / fsample)
 
     # Create a 2D and 3D array of zeros
     example_2D = np.zeros((2, len(t)))
@@ -32,7 +32,7 @@ def test_bandpass():
     random_phases = np.random.randn(len(frequency_components))
     for i, f in enumerate(frequency_components):
         random_all += np.sin(2 * np.pi * f * t + random_phases[i])
-        
+
         # Add random sine waves to random_low if they are below f_critical
         if f > f_low and f < f_high:
             random_band += np.sin(2 * np.pi * f * t + random_phases[i])
@@ -55,12 +55,12 @@ def test_bandpass():
     assert example_3D_band.shape == example_3D.shape
 
     # Calculate the MSE between example_2D_low[0,:] and both random_low and random_all
-    mse_2d_band = np.mean(np.square(example_2D_band[0,:] - random_band))
-    mse_2d_all = np.mean(np.square(example_2D_band[0,:] - random_all))
+    mse_2d_band = np.mean(np.square(example_2D_band[0, :] - random_band))
+    mse_2d_all = np.mean(np.square(example_2D_band[0, :] - random_all))
 
     # Calculate the MSE between example_3D_low[0,0,:] and both random_low and random_all
-    mse_3d_band = np.mean(np.square(example_3D_band[0,0,:] - random_band))
-    mse_3d_all = np.mean(np.square(example_3D_band[0,0,:] - random_all))
+    mse_3d_band = np.mean(np.square(example_3D_band[0, 0, :] - random_band))
+    mse_3d_all = np.mean(np.square(example_3D_band[0, 0, :] - random_all))
 
     # # Print the MSEs
     # print("MSE 2D band: " + str(mse_2d_band))
@@ -72,6 +72,7 @@ def test_bandpass():
     assert mse_2d_band < mse_2d_all
     assert mse_3d_band < mse_3d_all
 
+
 def test_lowpass():
     # Generate test data
     fsample = 1000
@@ -79,7 +80,7 @@ def test_lowpass():
     order = 5
 
     # Create a time vector of length 2 and interval 1/fsample
-    t = np.arange(0, 1, 1/fsample)
+    t = np.arange(0, 1, 1 / fsample)
 
     # Create a 2D and 3D array of zeros
     example_2D = np.zeros((2, len(t)))
@@ -95,7 +96,7 @@ def test_lowpass():
     random_phases = np.random.randn(len(frequency_components))
     for i, f in enumerate(frequency_components):
         random_all += np.sin(2 * np.pi * f * t + random_phases[i])
-        
+
         # Add random sine waves to random_low if they are below f_critical
         if f < f_critical:
             random_low += np.sin(2 * np.pi * f * t + random_phases[i])
@@ -118,12 +119,12 @@ def test_lowpass():
     assert example_3D_low.shape == example_3D.shape
 
     # Calculate the MSE between example_2D_low[0,:] and both random_low and random_all
-    mse_2d_low = np.mean(np.square(example_2D_low[0,:] - random_low))
-    mse_2d_all = np.mean(np.square(example_2D_low[0,:] - random_all))
+    mse_2d_low = np.mean(np.square(example_2D_low[0, :] - random_low))
+    mse_2d_all = np.mean(np.square(example_2D_low[0, :] - random_all))
 
     # Calculate the MSE between example_3D_low[0,0,:] and both random_low and random_all
-    mse_3d_low = np.mean(np.square(example_3D_low[0,0,:] - random_low))
-    mse_3d_all = np.mean(np.square(example_3D_low[0,0,:] - random_all))
+    mse_3d_low = np.mean(np.square(example_3D_low[0, 0, :] - random_low))
+    mse_3d_all = np.mean(np.square(example_3D_low[0, 0, :] - random_all))
 
     # # Print the MSEs
     # print("MSE 2D low: " + str(mse_2d_low))
@@ -135,6 +136,7 @@ def test_lowpass():
     assert mse_2d_low < mse_2d_all
     assert mse_3d_low < mse_3d_all
 
+
 def test_highpass():
     # Generate test data
     fsample = 1000
@@ -142,7 +144,7 @@ def test_highpass():
     order = 5
 
     # Create a time vector of length 2 and interval 1/fsample
-    t = np.arange(0, 1, 1/fsample)
+    t = np.arange(0, 1, 1 / fsample)
 
     # Create a 2D and 3D array of zeros
     example_2D = np.zeros((2, len(t)))
@@ -158,7 +160,7 @@ def test_highpass():
     random_phases = np.random.randn(len(frequency_components))
     for i, f in enumerate(frequency_components):
         random_all += np.sin(2 * np.pi * f * t + random_phases[i])
-        
+
         # Add random sine waves to random_high if they are above f_critical
         if f > f_critical:
             random_high += np.sin(2 * np.pi * f * t + random_phases[i])
@@ -181,12 +183,12 @@ def test_highpass():
     assert example_3D_high.shape == example_3D.shape
 
     # Calculate the MSE between example_2D_high[0,:] and both random_high and random_all
-    mse_2d_high = np.mean(np.square(example_2D_high[0,:] - random_high))
-    mse_2d_all = np.mean(np.square(example_2D_high[0,:] - random_all))
+    mse_2d_high = np.mean(np.square(example_2D_high[0, :] - random_high))
+    mse_2d_all = np.mean(np.square(example_2D_high[0, :] - random_all))
 
     # Calculate the MSE between example_3D_high[0,0,:] and both random_high and random_all
-    mse_3d_high = np.mean(np.square(example_3D_high[0,0,:] - random_high))
-    mse_3d_all = np.mean(np.square(example_3D_high[0,0,:] - random_all))
+    mse_3d_high = np.mean(np.square(example_3D_high[0, 0, :] - random_high))
+    mse_3d_all = np.mean(np.square(example_3D_high[0, 0, :] - random_all))
 
     # # Print the MSEs
     # print("MSE 2D high: " + str(mse_2d_high))
@@ -198,6 +200,7 @@ def test_highpass():
     assert mse_2d_high < mse_2d_all
     assert mse_3d_high < mse_3d_all
 
+
 def test_notch():
     # Generate test data
     fsample = 1000
@@ -205,7 +208,7 @@ def test_notch():
     Q = 30
 
     # Create a time vector of length 2 and interval 1/fsample
-    t = np.arange(0, 1, 1/fsample)
+    t = np.arange(0, 1, 1 / fsample)
 
     # Create a 2D and 3D array of zeros
     example_2D = np.zeros((2, len(t)))
@@ -221,7 +224,7 @@ def test_notch():
     random_phases = np.random.randn(len(frequency_components))
     for i, f in enumerate(frequency_components):
         random_all += np.sin(2 * np.pi * f * t + random_phases[i])
-        
+
         # Add random sine waves to random_notch if they are above f_notch
         if f != f_notch:
             random_notch += np.sin(2 * np.pi * f * t + random_phases[i])
@@ -244,12 +247,12 @@ def test_notch():
     assert example_3D_notch.shape == example_3D.shape
 
     # Calculate the MSE between example_2D_notch[0,:] and both random_notch and random_all
-    mse_2d_notch = np.mean(np.square(example_2D_notch[0,:] - random_notch))
-    mse_2d_all = np.mean(np.square(example_2D_notch[0,:] - random_all))
+    mse_2d_notch = np.mean(np.square(example_2D_notch[0, :] - random_notch))
+    mse_2d_all = np.mean(np.square(example_2D_notch[0, :] - random_all))
 
     # Calculate the MSE between example_3D_notch[0,0,:] and both random_notch and random_all
-    mse_3d_notch = np.mean(np.square(example_3D_notch[0,0,:] - random_notch))
-    mse_3d_all = np.mean(np.square(example_3D_notch[0,0,:] - random_all))
+    mse_3d_notch = np.mean(np.square(example_3D_notch[0, 0, :] - random_notch))
+    mse_3d_all = np.mean(np.square(example_3D_notch[0, 0, :] - random_all))
 
     # # Print the MSEs
     # print("MSE 2D notch: " + str(mse_2d_notch))
@@ -260,7 +263,6 @@ def test_notch():
     # Check that output is correct
     assert mse_2d_notch < mse_2d_all
     assert mse_3d_notch < mse_3d_all
-
 
 
 test_bandpass()

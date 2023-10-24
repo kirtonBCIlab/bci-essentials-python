@@ -13,6 +13,7 @@ import numpy as np
 from scipy import signal
 import random
 
+
 def bandpass(data, f_low, f_high, order, fsample):
     """Bandpass Filter.
 
@@ -53,9 +54,7 @@ def bandpass(data, f_low, f_high, order, fsample):
 
         new_data = np.ndarray(shape=(P, N, M), dtype=float)
         for p in range(0, P):
-            new_data[p, :, :] = signal.filtfilt(
-                b, a, data[p, :, :], padlen=0
-            )
+            new_data[p, :, :] = signal.filtfilt(b, a, data[p, :, :], padlen=0)
 
         return new_data
 
@@ -66,7 +65,8 @@ def bandpass(data, f_low, f_high, order, fsample):
         new_data = signal.filtfilt(b, a, data, padlen=0)
 
         return new_data
-    
+
+
 def lowpass(data, f_critical, order, fsample):
     """Lowpass Filter.
 
@@ -105,9 +105,7 @@ def lowpass(data, f_critical, order, fsample):
         new_data = np.ndarray(shape=(P, N, M), dtype=float)
         for p in range(0, P):
             for n in range(0, N):
-                new_data[p, n, :] = signal.filtfilt(
-                    b, a, data[p, n, :], padlen=0
-                )
+                new_data[p, n, :] = signal.filtfilt(b, a, data[p, n, :], padlen=0)
 
         return new_data
 
@@ -118,7 +116,8 @@ def lowpass(data, f_critical, order, fsample):
         new_data = signal.filtfilt(b, a, data, padlen=0)
 
         return new_data
-    
+
+
 def highpass(data, f_critical, order, fsample):
     """Highpass Filter.
 
@@ -156,9 +155,7 @@ def highpass(data, f_critical, order, fsample):
 
         new_data = np.ndarray(shape=(P, N, M), dtype=float)
         for p in range(0, P):
-            new_data[p, :, :] = signal.filtfilt(
-                b, a, data[p, :, :], padlen=0
-            )
+            new_data[p, :, :] = signal.filtfilt(b, a, data[p, :, :], padlen=0)
 
         return new_data
 
@@ -169,6 +166,7 @@ def highpass(data, f_critical, order, fsample):
         new_data = signal.filtfilt(b, a, data, padlen=0)
 
         return new_data
+
 
 def notch(data, f_notch, Q, fsample):
     """Notch Filter.
@@ -207,9 +205,7 @@ def notch(data, f_notch, Q, fsample):
         P, N, M = np.shape(data)
         new_data = np.ndarray(shape=(P, N, M), dtype=float)
         for p in range(0, P):
-            new_data[p, :, :] = signal.filtfilt(
-                b, a, data[p, :, :], padlen=0
-            )
+            new_data[p, :, :] = signal.filtfilt(b, a, data[p, :, :], padlen=0)
         return new_data
 
     except Exception:
@@ -224,12 +220,17 @@ def lico(X, y, expansion_factor=3, sum_num=2, shuffle=False):
 
     Samples random linear combinations of existing epochs of X.
 
+    This is broken, but I am also unsure if it deserves to be fixed. At the very least it probably belongs in a different file. -Brian
+
     Parameters
     ----------
     X : numpy.ndarray
-        The file location of the spreadsheet.
+        Windows of EEG data.
+        3D array containing data with `float` type.
+
+        shape = (P, N, M)
     y : numpy.ndarray
-        A flag used to print the columns to the console.
+        Labels corresponding to X.
     expansion_factor : int, *optional*
         Number of times larger to make the output set over_X
         - Default is `3`.
