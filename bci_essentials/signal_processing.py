@@ -19,6 +19,8 @@ def bandpass(data, f_low, f_high, order, fsample):
     Filters out frequencies outside of the range f_low to f_high with a
     Butterworth filter of specific order.
 
+    Wraps the scipy.signal.butter and scipy.signal.filtfilt methods.
+
     Parameters
     ----------
     data : numpy.ndarray
@@ -45,6 +47,108 @@ def bandpass(data, f_low, f_high, order, fsample):
     """
     Wn = [f_low / (fsample / 2), f_high / (fsample / 2)]
     b, a = signal.butter(order, Wn, btype="bandpass")
+
+    try:
+        P, N, M = np.shape(data)
+
+        new_data = np.ndarray(shape=(N, M, P), dtype=float)
+        for p in range(0, P):
+            new_data[p, 0:N, 0:M] = signal.filtfilt(
+                b, a, data[p, 0:N, 0:M], axis=1, padlen=30
+            )
+
+        return new_data
+
+    except ValueError:
+        N, M = np.shape(data)
+
+        new_data = np.ndarray(shape=(N, M), dtype=float)
+        new_data = signal.filtfilt(b, a, data, axis=1, padlen=0)
+
+        return new_data
+    
+def lowpass(data, f_critical, order, fsample):
+    """Lowpass Filter.
+
+    Filters out frequencies above f_critical with a Butterworth filter of specific order.
+
+    Wraps the scipy.signal.butter and scipy.signal.filtfilt methods.
+
+    Parameters
+    ----------
+    data : numpy.ndarray
+        Windows of EEG data.
+        3D (or 2D) array containing data with `float` type.
+
+        shape = (P, N, M) or (N, M)
+    f_critical : float
+        Critical (cutoff) frequency.
+    order : int
+        Order of the filter.
+    fsample : float
+        Sampling rate of signal.
+
+    Returns
+    -------
+    new_data : numpy.ndarray
+        Windows of filtered EEG data.
+        3D (or 2D) array containing data with `float` type.
+
+        shape = (P, N, M) or (N, M)
+    """
+    Wn = [f_critical / (fsample / 2)]
+    b, a = signal.butter(order, Wn, btype="lowpass")
+
+    try:
+        P, N, M = np.shape(data)
+
+        new_data = np.ndarray(shape=(N, M, P), dtype=float)
+        for p in range(0, P):
+            new_data[p, 0:N, 0:M] = signal.filtfilt(
+                b, a, data[p, 0:N, 0:M], axis=1, padlen=30
+            )
+
+        return new_data
+
+    except ValueError:
+        N, M = np.shape(data)
+
+        new_data = np.ndarray(shape=(N, M), dtype=float)
+        new_data = signal.filtfilt(b, a, data, axis=1, padlen=0)
+
+        return new_data
+    
+def highpass(data, f_critical, order, fsample):
+    """Highpass Filter.
+
+    Filters out frequencies below f_critical with a Butterworth filter of specific order.
+
+    Wraps the scipy.signal.butter and scipy.signal.filtfilt methods.
+
+    Parameters
+    ----------
+    data : numpy.ndarray
+        Windows of EEG data.
+        3D (or 2D) array containing data with `float` type.
+
+        shape = (P, N, M) or (N, M)
+    f_critical : float
+        Critical (cutoff) frequency.
+    order : int
+        Order of the filter.
+    fsample : float
+        Sampling rate of signal.
+
+    Returns
+    -------
+    new_data : numpy.ndarray
+        Windows of filtered EEG data.
+        3D (or 2D) array containing data with `float` type.
+
+        shape = (P, N, M) or (N, M)
+    """
+    Wn = [f_critical / (fsample / 2)]
+    b, a = signal.butter(order, Wn, btype="highpass")
 
     try:
         P, N, M = np.shape(data)
@@ -101,57 +205,6 @@ def detrend(data):
         new_data[0:N, 0:M, p] = signal.detrend(data[0:N, 0:M, p], axis=1)
 
     return new_data
-
-
-def lowpass(data, f_high, order, fsample):
-    """Lowpass Filter.
-
-    Filters out frequencies above f_high with a Butterworth filter.
-
-    Parameters
-    ----------
-    data : numpy.ndarray
-        Windows of EEG data.
-        3D array containing data with `float` type.
-
-        shape = (`N_windows`,`M_channels`,`P_samples`)
-    f_high : float
-        Upper corner frequency.
-    order : int
-        Order of the filter.
-    fsample : float
-        Sampling rate of signal.
-
-    Returns
-    -------
-    new_data : numpy.ndarray
-        Windows of filtered EEG data.
-        3D array containing data with `float` type.
-
-        shape = (`N_windows`,`M_channels`,`P_samples`)
-
-    """
-    try:
-        N, M, P = np.shape(data)
-    except Exception:
-        N, M = np.shape(data)
-        P = 1
-
-    Wn = f_high / (fsample / 2)
-    new_data = np.ndarray(shape=(N, M, P), dtype=float)
-
-    b, a = signal.butter(order, Wn, btype="lowpass")
-
-    for p in range(0, P):
-        new_data[0:N, 0:M, p] = signal.filtfilt(
-            b, a, data[0:N, 0:M, p], axis=1, padlen=30
-        )
-
-    return new_data
-
-
-
-
 
 def notchfilt(data, fsample, Q=30, fc=60):
     """Notch Filter.
