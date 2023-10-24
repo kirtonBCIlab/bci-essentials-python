@@ -23,9 +23,9 @@ def bandpass(data, f_low, f_high, order, fsample):
     ----------
     data : numpy.ndarray
         Windows of EEG data.
-        3D array containing data with `float` type.
+        3D (or 2D) array containing data with `float` type.
 
-        shape = (P, N, M)
+        shape = (P, N, M) or (N, M)
     f_low : float
         Lower corner frequency.
     f_high : float
@@ -39,71 +39,31 @@ def bandpass(data, f_low, f_high, order, fsample):
     -------
     new_data : numpy.ndarray
         Windows of filtered EEG data.
-        3D array containing data with `float` type.
+        3D (or 2D) array containing data with `float` type.
 
-        shape = (P, N, M)
+        shape = (P, N, M) or (N, M)
     """
     Wn = [f_low / (fsample / 2), f_high / (fsample / 2)]
     b, a = signal.butter(order, Wn, btype="bandpass")
 
-    # try:
-    P, N, M = np.shape(data)
-
-    new_data = np.ndarray(shape=(N, M, P), dtype=float)
-    for p in range(0, P):
-        new_data[p, 0:N, 0:M] = signal.filtfilt(
-            b, a, data[p, 0:N, 0:M], axis=1, padlen=30
-        )
-
-    return new_data
-
-    # except Exception:
-    #     N, M = np.shape(data)
-
-    #     new_data = np.ndarray(shape=(N, M), dtype=float)
-    #     new_data = signal.filtfilt(b, a, data, axis=1, padlen=0)
-
-    #     return new_data
-
-
-def dc_reject(data):
-    """DC Reject.
-
-    Filters out DC shifts in the data.
-
-    Parameters
-    ----------
-    data : numpy.ndarray
-        Windows of EEG data.
-        3D array containing data with `float` type.
-
-        shape = (`N_windows`,`M_channels`,`P_samples`)
-
-    Returns
-    -------
-    new_data : numpy.ndarray
-        Windows of DC-rejected EEG data.
-        3D array containing data with `float` type.
-
-        shape = (`N_windows`,`M_channels`,`P_samples`)
-
-    """
     try:
-        N, M, P = np.shape(data)
-    except Exception:
+        P, N, M = np.shape(data)
+
+        new_data = np.ndarray(shape=(N, M, P), dtype=float)
+        for p in range(0, P):
+            new_data[p, 0:N, 0:M] = signal.filtfilt(
+                b, a, data[p, 0:N, 0:M], axis=1, padlen=30
+            )
+
+        return new_data
+
+    except ValueError:
         N, M = np.shape(data)
-        P = 1
 
-    new_data = np.ndarray(shape=(N, M, P), dtype=float)
+        new_data = np.ndarray(shape=(N, M), dtype=float)
+        new_data = signal.filtfilt(b, a, data, axis=1, padlen=0)
 
-    b = [1, -1]
-    a = [1, -0.99]
-
-    for p in range(0, P):
-        for n in range(0, N):
-            new_data[n, ..., p] = signal.filtfilt(b, a, data[n, ..., p])
-
-    return new_data
+        return new_data
 
 
 def detrend(data):
