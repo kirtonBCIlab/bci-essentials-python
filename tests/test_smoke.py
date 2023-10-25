@@ -8,11 +8,11 @@ from bci_essentials.classification.ssvep_riemannian_mdm_classifier import (
     SSVEP_riemannian_mdm_classifier,
 )
 
-data_folder_path = os.path.join("..", "examples", "data")
+data_folder_path = os.path.join("examples", "data")
 
 class TestLoadData(unittest.TestCase):
     def test_mi_offline(self):
-        # Get the MI example data from ../examples/data
+        # Get the MI example data from ./examples/data
         mi_xdf_path = os.path.join(data_folder_path, "mi_example.xdf")
 
         # Load the data
@@ -54,7 +54,7 @@ class TestLoadData(unittest.TestCase):
         self.assertIsNotNone(mi_data.classifier.predictions)
 
     def test_p300_offline(self):
-        # Get the P300 example data from ../examples/data
+        # Get the P300 example data from ./examples/data
         p300_xdf_path = os.path.join(data_folder_path, "p300_example.xdf")
 
         # Load the data
@@ -106,7 +106,7 @@ class TestLoadData(unittest.TestCase):
         self.assertIsNotNone(p300_data.classifier.predictions)
 
     def test_ssvep_offline(self):
-        # Get the SSVEP example data from ../examples/data
+        # Get the SSVEP example data from ./examples/data
         ssvep_xdf_path = os.path.join(data_folder_path, "ssvep_example.xdf")
 
         # Load the data

@@ -6,7 +6,7 @@ from bci_essentials.bci_data import EEG_data
 class TestLoadData(unittest.TestCase):
     def test_load_rs_xdf(self):
         # Get the rs example data from /examples/data
-        rs_xdf_path = os.path.join("..", "examples", "data", "rs_example.xdf")
+        rs_xdf_path = os.path.join("examples", "data", "rs_example.xdf")
 
         # Load the data
         rs_data = EEG_data()
