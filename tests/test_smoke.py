@@ -1,6 +1,5 @@
 import unittest
 import os
-import sys
 
 from ..bci_essentials.bci_data import EEG_data, ERP_data
 from ..bci_essentials.classification.mi_classifier import MI_classifier
@@ -9,11 +8,12 @@ from ..bci_essentials.classification.ssvep_riemannian_mdm_classifier import (
     SSVEP_riemannian_mdm_classifier,
 )
 
+data_folder_path = os.path.join("..", "examples", "data")
 
 class TestLoadData(unittest.TestCase):
     def test_mi_offline(self):
-        # Get the MI example data from /examples/data
-        mi_xdf_path = "examples//data//mi_example.xdf"
+        # Get the MI example data from ../examples/data
+        mi_xdf_path = os.path.join(data_folder_path, "mi_example.xdf")
 
         # Load the data
         mi_data = EEG_data()
@@ -54,8 +54,8 @@ class TestLoadData(unittest.TestCase):
         self.assertIsNotNone(mi_data.classifier.predictions)
 
     def test_p300_offline(self):
-        # Get the P300 example data from /examples/data
-        p300_xdf_path = "examples//data//p300_example.xdf"
+        # Get the P300 example data from ../examples/data
+        p300_xdf_path = os.path.join(data_folder_path, "p300_example.xdf")
 
         # Load the data
         p300_data = ERP_data()
@@ -106,8 +106,8 @@ class TestLoadData(unittest.TestCase):
         self.assertIsNotNone(p300_data.classifier.predictions)
 
     def test_ssvep_offline(self):
-        # Get the SSVEP example data from /examples/data
-        ssvep_xdf_path = "examples//data//ssvep_example.xdf"
+        # Get the SSVEP example data from ../examples/data
+        ssvep_xdf_path = os.path.join(data_folder_path, "ssvep_example.xdf")
 
         # Load the data
         ssvep_data = EEG_data()
