@@ -5,8 +5,8 @@ Test P300 offline using data from an existing stream
 
 import os
 
-from ..bci_essentials.bci_data import ERP_data
-from ..bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
+from bci_essentials.bci_data import ERP_data
+from bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
 
 # Identify the file to simulate
 # Filename assumes the data is within a subfolder called "data" located

@@ -1,5 +1,5 @@
-from ..bci_essentials.bci_data import EEG_data
-from ..bci_essentials.classification.switch_mdm_classifier import Switch_mdm_classifier
+from bci_essentials.bci_data import EEG_data
+from bci_essentials.classification.switch_mdm_classifier import Switch_mdm_classifier
 
 # Define the SWITCH data object
 switch_data = EEG_data()
