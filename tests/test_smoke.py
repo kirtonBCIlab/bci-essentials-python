@@ -10,6 +10,7 @@ from bci_essentials.classification.ssvep_riemannian_mdm_classifier import (
 
 data_folder_path = os.path.join("examples", "data")
 
+
 class TestLoadData(unittest.TestCase):
     def test_mi_offline(self):
         # Get the MI example data from ./examples/data
