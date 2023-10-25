@@ -2,7 +2,6 @@
 # Written by Brian Irvine on 08/05/2021
 
 import os
-import sys
 
 from ...bci_essentials.bci_data import EEG_data
 from ...bci_essentials.classification.ssvep_riemannian_mdm_classifier import (
