@@ -7,7 +7,7 @@ import os
 import sys
 
 from bci_essentials.bci_data import EEG_data
-from bci_essentials.classification import mi_classifier
+from bci_essentials.classification.mi_classifier import MI_classifier
 
 # mypy: disable-error-code="attr-defined, operator"
 # The above comments are for all references to ".classifier", which are not yet implemented here
@@ -16,12 +16,11 @@ from bci_essentials.classification import mi_classifier
 # Add parent directory to path to access bci_essentials
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
 
-
 # Initialize data object
 test_mi = EEG_data()
 
 # Select a classifier
-test_mi.classifier = mi_classifier()  # you can add a subset here
+test_mi.classifier = MI_classifier()  # you can add a subset here
 
 # Define the classifier settings
 test_mi.classifier.set_mi_classifier_settings(n_splits=5, type="TS", random_seed=35)
@@ -30,35 +29,28 @@ test_mi.classifier.set_mi_classifier_settings(n_splits=5, type="TS", random_seed
 # test_mi.classifier.setup_channel_selection(initial_channels=[], method="SBS", metric="accuracy", max_time=60, n_jobs=-1)
 initial_subset: list = []
 test_mi.classifier.setup_channel_selection(
-    method="SBFS",
+    method="SFS",
     metric="accuracy",
+    iterative_selection=True,
     initial_channels=initial_subset,  # wrapper setup
-    max_time=999,
-    min_channels=2,
-    max_channels=16,
-    performance_delta=0,  # stopping criterion
+    max_time=4,
+    min_channels=0,
+    max_channels=20,
+    performance_delta=-0.05,  # stopping criterion
     n_jobs=-1,
     print_output="verbose",
+    record_performance=True,
 )
 
 # Load the xdf
 
+# test_mi.load_offline_eeg_data(
+#     filename="examples/data/mi_example_2.xdf", print_output=False
+# )  # you can also add a subset here
+
 test_mi.load_offline_eeg_data(
-    filename="examples/data/mi_example_2.xdf", print_output=False
+    filename="./data/mi_example_2.xdf", print_output=False
 )  # you can also add a subset here
-
-# P08
-# test_mi.load_offline_eeg_data(filename  = "C:/Users/brian/OneDrive/Documents/BCI/BCIEssentials/fatigueDataAnalysis/fatigueData/participants/sub-P08_mi/ses-MI/eeg/sub-P08_mi_ses-preBB_mi_task-T1_run-001_eeg.xdf", print_output=False) # you can also add a subset here
-
-# P03
-# test_mi.load_offline_eeg_data(filename  = "C:/Users/brian/Documents/BCIEssentials/fatigueDataAnalysis/fatigueData/participants/sub-P03_mi/ses-MI/eeg/sub-P03_mi_ses-MI_task-T1_run-001_eeg.xdf", print_output=False, subset=['P3', 'C3', 'F3', 'Fz', 'F4', 'C4', 'P4', 'Cz', 'Pz', 'Fp1', 'Fp2', 'T5', 'O1', 'O2', 'F7', 'F8', 'T6', 'T3', 'T4']) # you can also add a subset here
-
-# P09
-# test_mi.load_offline_eeg_data(filename  = "C:/Users/brian/OneDrive/Documents/BCI/BCIEssentials/fatigueDataAnalysis/fatigueData/participants/sub-P09_mi/ses-MI/eeg/sub-P09_mi_ses-MI_task-T1_run-001_eeg.xdf", print_output=False, subset=['P3', 'C3', 'F3', 'Fz', 'F4', 'C4', 'P4', 'Cz', 'Pz', 'Fp1', 'Fp2', 'T5', 'O1', 'O2', 'F7', 'F8', 'T6', 'T3', 'T4'])  # you can also add a subset here
-
-# JK
-# test_mi.load_offline_eeg_data(filename  = "C:/Users/brian/Documents/BCIEssentials/fatigueDataAnalysis/fatigueData/pilots/sub-JK/ses-MI/eeg/sub-JK_ses-MI_task-T1_run-001_eeg.xdf", print_output=False, subset=['P3', 'C3', 'F3', 'Fz', 'F4', 'C4', 'P4', 'Cz', 'Pz', 'Fp1', 'Fp2', 'T5', 'O1', 'O2', 'F7', 'F8', 'T6', 'T3', 'T4'])  # you can also add a subset here
-
 
 # Run main loop, this will do all of the classification for online or offline
 test_mi.main(
@@ -74,5 +66,6 @@ test_mi.main(
     print_predict=False,
 )
 
+print(test_mi.classifier.results_df)
 
 print("debug")

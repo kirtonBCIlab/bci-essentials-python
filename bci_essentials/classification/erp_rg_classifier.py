@@ -24,7 +24,6 @@ from pyriemann.estimation import XdawnCovariances
 from pyriemann.tangentspace import TangentSpace
 
 from bci_essentials.classification import Generic_classifier
-
 from bci_essentials.signal_processing import lico
 from bci_essentials.channel_selection import channel_selection_by_method
 
@@ -351,6 +350,7 @@ class ERP_rg_classifier(Generic_classifier):
                 accuracy,
                 precision,
                 recall,
+                results_df,
             ) = channel_selection_by_method(  # type: ignore
                 erp_rg_kernel,
                 self.X,
@@ -369,6 +369,7 @@ class ERP_rg_classifier(Generic_classifier):
 
             print("The optimal subset is ", updated_subset)
 
+            self.results_df = results_df
             self.subset = updated_subset
             self.clf = updated_model
         else:

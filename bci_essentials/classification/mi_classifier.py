@@ -249,8 +249,13 @@ class MI_classifier(Generic_classifier):
 
         # Check if channel selection is true
         if self.channel_selection_setup:
-            print("Doing channel selection")
+            if self.chs_iterative_selection is True and self.subset is not None:
+                initial_subset = self.subset
+                print("Using subset from previous channel selection")
+            else:
+                initial_subset = self.chs_initial_subset
 
+            print("Doing channel selection")
             (
                 updated_subset,
                 updated_model,
@@ -258,6 +263,7 @@ class MI_classifier(Generic_classifier):
                 accuracy,
                 precision,
                 recall,
+                results_df,
             ) = channel_selection_by_method(  # type: ignore
                 mi_kernel,
                 self.X,
@@ -265,7 +271,7 @@ class MI_classifier(Generic_classifier):
                 self.channel_labels,  # kernel setup
                 self.chs_method,
                 self.chs_metric,
-                self.chs_initial_subset,  # wrapper setup
+                initial_subset,  # wrapper setup
                 self.chs_max_time,
                 self.chs_min_channels,
                 self.chs_max_channels,
@@ -275,6 +281,7 @@ class MI_classifier(Generic_classifier):
             )
             print("The optimal subset is ", updated_subset)
 
+            self.results_df = results_df
             self.subset = updated_subset
             self.clf = updated_model
         else:
@@ -338,7 +345,7 @@ class MI_classifier(Generic_classifier):
         if len(X.shape) < 3:
             X = X[np.newaxis, ...]
 
-        X = self.get_subset(X)
+        X = self.get_subset(X, self.subset, self.channel_labels)
 
         if print_predict:
             print("the shape of X is", X.shape)
