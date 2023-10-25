@@ -1,4 +1,3 @@
-import sys
 import os
 
 from ..bci_essentials.bci_data import EEG_data

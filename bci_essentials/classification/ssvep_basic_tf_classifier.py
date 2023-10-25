@@ -5,8 +5,6 @@ Classifies SSVEP based on relative bandpower, taking only the maximum.
 """
 
 # Stock libraries
-import os
-import sys
 import numpy as np
 from scipy import signal
 

@@ -2,10 +2,10 @@
 Test Motor Imagery (MI) classification offline using data from an existing stream
 
 """
-
+# Stock libraries
 import os
-import sys
 
+# bci_essentials
 from ..bci_essentials.bci_data import EEG_data
 from ..bci_essentials.classification.mi_classifier import MI_classifier
 

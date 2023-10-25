@@ -11,8 +11,6 @@ final classification.
 """
 
 # Stock libraries
-import os
-import sys
 import numpy as np
 from sklearn.model_selection import StratifiedKFold
 from sklearn.pipeline import Pipeline

@@ -1,6 +1,3 @@
-import os
-import sys
-
 from ..bci_essentials.bci_data import EEG_data
 from ..bci_essentials.classification.switch_mdm_classifier import Switch_mdm_classifier
 

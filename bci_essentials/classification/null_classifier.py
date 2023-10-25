@@ -7,8 +7,6 @@ The classifier always predicts 0.
 """
 
 # Stock libraries
-import os
-import sys
 
 # Import bci_essentials modules and methods
 from ..classification.generic_classifier import Generic_classifier

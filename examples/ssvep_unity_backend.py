@@ -1,6 +1,3 @@
-import os
-import sys
-
 # import bci_essntials
 from ..bci_essentials.bci_data import EEG_data
 from ..bci_essentials.classification.ssvep_riemannian_mdm_classifier import (

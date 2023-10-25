@@ -13,8 +13,6 @@ The neural networks are not defined (the code blocks are commented out).
 """
 
 # Stock libraries
-import os
-import sys
 import numpy as np
 from sklearn.model_selection import train_test_split, StratifiedKFold
 from sklearn.metrics import confusion_matrix, accuracy_score
