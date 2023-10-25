@@ -18,9 +18,10 @@ from pyriemann.estimation import Covariances
 
 # Import bci_essentials modules and methods
 from ..classification.generic_classifier import Generic_classifier
-# from ..visuals import *   # Don't do this but this is how you would do it
 from ..signal_processing import bandpass
 from ..channel_selection import channel_selection_by_method
+
+# from ..visuals import *   # Don't do this but this is how you would do it
 
 
 class SSVEP_riemannian_mdm_classifier(Generic_classifier):

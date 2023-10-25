@@ -5,9 +5,10 @@ import os
 import sys
 
 from ...bci_essentials.bci_data import EEG_data
-from ...bci_essentials.classification.ssvep_riemannian_mdm_classifier \
-    import SSVEP_riemannian_mdm_classifier
-    
+from ...bci_essentials.classification.ssvep_riemannian_mdm_classifier import (
+    SSVEP_riemannian_mdm_classifier,
+)
+
 # Identify the file to simulate
 # Filename assumes the data is within a subfolder called "data" located
 # within the same folder as this script
@@ -21,9 +22,7 @@ test_ssvep = EEG_data()
 test_ssvep.classifier = SSVEP_riemannian_mdm_classifier(subset=[])
 
 # Load from xdf into erp_data format
-test_ssvep.load_offline_eeg_data(
-    filename=filename, format="xdf"
-)
+test_ssvep.load_offline_eeg_data(filename=filename, format="xdf")
 
 test_ssvep.classifier.set_ssvep_settings(
     n_splits=3, random_seed=42, n_harmonics=3, f_width=0.5

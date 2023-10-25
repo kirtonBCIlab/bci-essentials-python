@@ -2,11 +2,10 @@ import sys
 import os
 
 from ..bci_essentials.bci_data import EEG_data
-from ..bci_essentials.classification.switch_mdm_classifier \
-    import Switch_mdm_classifier
+from ..bci_essentials.classification.switch_mdm_classifier import Switch_mdm_classifier
 
 # Identify the file to simulate
-# Filename assumes the data is within a subfolder called "data" located 
+# Filename assumes the data is within a subfolder called "data" located
 # within the same folder as this script
 filename = os.path.join("data", "switch_example.xdf")
 
