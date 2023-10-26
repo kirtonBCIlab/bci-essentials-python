@@ -2,15 +2,17 @@
 Test Motor Imagery (MI) classification offline using data from an existing stream
 
 """
-
+# Stock libraries
 import os
-import sys
 
-# Add parent directory to path to access bci_essentials
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
-
+# bci_essentials
 from bci_essentials.bci_data import EEG_data
 from bci_essentials.classification.mi_classifier import MI_classifier
+
+# Identify the file to simulate
+# Filename assumes the data is within a subfolder called "data" located
+# within the same folder as this script
+filename = os.path.join("data", "mi_example_2.xdf")
 
 # Initialize data object
 test_mi = EEG_data()
@@ -40,11 +42,11 @@ test_mi.classifier.setup_channel_selection(
 # Load the xdf
 
 # test_mi.load_offline_eeg_data(
-#     filename="examples/data/mi_example_2.xdf", print_output=False
+#     filename=filename, print_output=False
 # )  # you can also add a subset here
 
 test_mi.load_offline_eeg_data(
-    filename="./data/mi_example_2.xdf", print_output=False
+    filename=filename, print_output=False
 )  # you can also add a subset here
 
 # Run main loop, this will do all of the classification for online or offline

@@ -7,8 +7,6 @@ frequencies.
 """
 
 # Stock libraries
-import os
-import sys
 import numpy as np
 from sklearn.model_selection import StratifiedKFold
 from sklearn.pipeline import Pipeline
@@ -16,15 +14,12 @@ from sklearn.metrics import confusion_matrix, precision_score, recall_score
 from pyriemann.classification import MDM
 from pyriemann.estimation import Covariances
 
-from bci_essentials.classification import Generic_classifier
+# Import bci_essentials modules and methods
+from ..classification.generic_classifier import Generic_classifier
+from ..signal_processing import bandpass
+from ..channel_selection import channel_selection_by_method
 
-# from bci_essentials.visuals import *
-from bci_essentials.signal_processing import bandpass
-from bci_essentials.channel_selection import channel_selection_by_method
-
-# Custom libraries
-# - Append higher directory to import bci_essentials
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
+# from ..visuals import *   # Don't do this but this is how you would do it
 
 
 class SSVEP_riemannian_mdm_classifier(Generic_classifier):

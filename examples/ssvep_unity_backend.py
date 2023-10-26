@@ -1,18 +1,14 @@
-import os
-import sys
-
 # import bci_essntials
 from bci_essentials.bci_data import EEG_data
-from bci_essentials.classification import ssvep_riemannian_mdm_classifier
-
-# Add parent directory to path to access bci_essentials
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
+from bci_essentials.classification.ssvep_riemannian_mdm_classifier import (
+    SSVEP_riemannian_mdm_classifier,
+)
 
 # Initialize the data class
 test_ssvep = EEG_data()
 
 # Define the classifier
-test_ssvep.classifier = ssvep_riemannian_mdm_classifier()
+test_ssvep.classifier = SSVEP_riemannian_mdm_classifier()
 
 # # Connect the streams
 test_ssvep.stream_online_eeg_data()
