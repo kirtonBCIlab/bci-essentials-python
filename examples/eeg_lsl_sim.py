@@ -25,8 +25,10 @@ from pylsl import StreamInfo, StreamOutlet
 # Import local bci_essentials
 from bci_essentials.bci_data import EEG_data
 
-# Add parent directory to path to access bci_essentials
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
+# Identify the file to simulate
+# Filename assumes the data is within a subfolder called "data" located
+# within the same folder as this script
+filename = os.path.join("data", "p300_example.xdf")
 
 # Check whether to start now, or at the next even minute to sync with other programs
 start_now = False
@@ -46,9 +48,6 @@ try:
 
 except Exception:
     nloops = 1
-
-# Identify the file to simulate
-filename = "examples/data/p300_example.xdf"
 
 # Load the example EEG stream
 eeg_stream = EEG_data()

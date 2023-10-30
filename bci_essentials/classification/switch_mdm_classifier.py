@@ -11,8 +11,6 @@ final classification.
 """
 
 # Stock libraries
-import os
-import sys
 import numpy as np
 from sklearn.model_selection import StratifiedKFold
 from sklearn.pipeline import Pipeline
@@ -21,11 +19,8 @@ from sklearn.pipeline import Pipeline
 from sklearn import preprocessing
 from pyriemann.classification import MDM
 
-from bci_essentials.classification import Generic_classifier
-
-# Custom libraries
-# - Append higher directory to import bci_essentials
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
+# Import bci_essentials modules and methods
+from ..classification.generic_classifier import Generic_classifier
 
 
 # TODO: Missing correct implementation of this classifier

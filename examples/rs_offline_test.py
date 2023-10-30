@@ -1,21 +1,21 @@
 import os
-import sys
 
 from bci_essentials.bci_data import ERP_data, EEG_data
 from bci_essentials.resting_state import get_alpha_peak, get_bandpower_features
-from bci_essentials.classification import mi_classifier, ERP_rg_classifier
+from bci_essentials.classification.mi_classifier import MI_classifier
+from bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
 
-# Add parent directory to path to access bci_essentials
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
-
-filename = "examples/data/rs_example.xdf"
+# Identify the file to simulate
+# Filename assumes the data is within a subfolder called "data" located
+# within the same folder as this script
+filename = os.path.join("data", "rs_example.xdf")
 
 try:
     # Initialize data object
     test_rs = EEG_data()
 
     # Select a classifier
-    test_rs.classifier = mi_classifier()  # you can add a subset here
+    test_rs.classifier = MI_classifier()  # you can add a subset here
 
     # Define the classifier settings
     test_rs.classifier.set_mi_classifier_settings(

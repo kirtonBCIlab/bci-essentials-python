@@ -13,18 +13,14 @@ The neural networks are not defined (the code blocks are commented out).
 """
 
 # Stock libraries
-import os
-import sys
 import numpy as np
 from sklearn.model_selection import train_test_split, StratifiedKFold
 from sklearn.metrics import confusion_matrix, accuracy_score
 from sklearn import preprocessing
 import tensorflow as tf
 
-from bci_essentials.classification import Generic_classifier
-
-# Custom libraries
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
+# Import bci_essentials modules and methods
+from ..classification.generic_classifier import Generic_classifier
 
 
 class Switch_deep_classifier(Generic_classifier):
