@@ -1,11 +1,5 @@
-import os
-import sys
 import numpy as np
-from scipy import signal
-
 import unittest
-
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
 
 from bci_essentials.signal_processing import lowpass, highpass, bandpass, notch
 
