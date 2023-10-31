@@ -8,4 +8,4 @@ dist/
 *.DS_Store/
 *.swp
 plugins/FeatureExtractorSSVEP
-session_saves/*
+session_saves/*.pkl
