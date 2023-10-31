@@ -9,6 +9,7 @@ from bci_essentials.session_saving import save_classifier, load_classifier
 
 data_folder_path = os.path.join("examples", "data")
 
+
 class TestClassifierSave(unittest.TestCase):
     def test_mi_manual_classifier_save(self):
         # Create an EEG_data object
@@ -26,7 +27,11 @@ class TestClassifierSave(unittest.TestCase):
 
         # Define the classifier settings
         mi_data1.classifier.set_mi_classifier_settings(
-            n_splits=5, type="TS", random_seed=35, channel_selection="riemann", covariance_estimator="oas"
+            n_splits=5,
+            type="TS",
+            random_seed=35,
+            channel_selection="riemann",
+            covariance_estimator="oas",
         )
 
         # Run main loop, this will do all of the classification for online or offline
@@ -44,7 +49,7 @@ class TestClassifierSave(unittest.TestCase):
         )
 
         # Save the classifier model
-        save_classifier(mi_data1.classifier, 'test_mi_classifier.pkl')
+        save_classifier(mi_data1.classifier, "test_mi_classifier.pkl")
 
         # Create a new EEG_data object
         mi_data2 = EEG_data()
@@ -53,7 +58,7 @@ class TestClassifierSave(unittest.TestCase):
         mi_data2.load_offline_eeg_data(filename=mi_xdf_path, print_output=False)
 
         # Select a classifier
-        mi_data2.classifier = load_classifier('test_mi_classifier.pkl')
+        mi_data2.classifier = load_classifier("test_mi_classifier.pkl")
 
         # Check that all values of the classifier's numpy arrays are the same
         self.assertTrue(np.array_equal(mi_data1.classifier.X, mi_data2.classifier.X))
@@ -83,7 +88,12 @@ class TestClassifierSave(unittest.TestCase):
         self.assertTrue(np.array_equal(mi_data1.classifier.y, mi_data2.classifier.y))
 
         # Check that the last predictions are the same for the mi_example given, the last 78 predictions should be the same
-        self.assertTrue(np.array_equal(mi_data1.classifier.predictions[-78:], mi_data2.classifier.predictions[-78:]))
+        self.assertTrue(
+            np.array_equal(
+                mi_data1.classifier.predictions[-78:],
+                mi_data2.classifier.predictions[-78:],
+            )
+        )
 
         print("MI classifier save/load test passed")
 
@@ -128,7 +138,7 @@ class TestClassifierSave(unittest.TestCase):
         )
 
         # Save the classifier model
-        save_classifier(p300_data1.classifier, 'test_p300_classifier.pkl')
+        save_classifier(p300_data1.classifier, "test_p300_classifier.pkl")
 
         # Create a new ERP_data object
         p300_data2 = ERP_data()
@@ -137,10 +147,12 @@ class TestClassifierSave(unittest.TestCase):
         p300_data2.load_offline_eeg_data(filename=p300_xdf_path, print_output=False)
 
         # Load the classifier
-        p300_data2.classifier = load_classifier('test_p300_classifier.pkl')
+        p300_data2.classifier = load_classifier("test_p300_classifier.pkl")
 
         # Check that all values of the classifier's numpy arrays are the same
-        self.assertTrue(np.array_equal(p300_data1.classifier.X, p300_data2.classifier.X))
+        self.assertTrue(
+            np.array_equal(p300_data1.classifier.X, p300_data2.classifier.X)
+        )
 
         print("Classifier reloaded")
 
@@ -169,12 +181,21 @@ class TestClassifierSave(unittest.TestCase):
         )
 
         # Check that X and y are the same
-        self.assertTrue(np.array_equal(p300_data1.classifier.X, p300_data2.classifier.X))
-        self.assertTrue(np.array_equal(p300_data1.classifier.y, p300_data2.classifier.y))
+        self.assertTrue(
+            np.array_equal(p300_data1.classifier.X, p300_data2.classifier.X)
+        )
+        self.assertTrue(
+            np.array_equal(p300_data1.classifier.y, p300_data2.classifier.y)
+        )
 
         # Check that the last predictions are the same for the p300_example given, the last predictions should be the same
         num_preds = len(p300_data1.classifier.predictions)
-        self.assertTrue(np.array_equal(p300_data1.classifier.predictions[-num_preds:], p300_data2.classifier.predictions[-num_preds:]))
+        self.assertTrue(
+            np.array_equal(
+                p300_data1.classifier.predictions[-num_preds:],
+                p300_data2.classifier.predictions[-num_preds:],
+            )
+        )
 
 
 if __name__ == "__main__":

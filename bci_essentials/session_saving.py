@@ -4,6 +4,7 @@ This module contains functions for saving and loading sessions.
 import os
 import pickle
 
+
 def save_classifier(classifier, filename):
     """
     Saves a classifier to a file.
@@ -17,11 +18,13 @@ def save_classifier(classifier, filename):
     """
 
     # Join filename to session_saves directory in package root
-    filename = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'session_saves', filename)
+    filename = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), "session_saves", filename
+    )
 
-
-    with open(filename, 'wb') as f:
+    with open(filename, "wb") as f:
         pickle.dump(classifier, f)
+
 
 def load_classifier(filename):
     """
@@ -39,8 +42,10 @@ def load_classifier(filename):
     """
 
     # Join filename to session_saves directory in package root
-    filename = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'session_saves', filename)
+    filename = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), "session_saves", filename
+    )
 
-    with open(filename, 'rb') as f:
+    with open(filename, "rb") as f:
         classifier = pickle.load(f)
     return classifier
