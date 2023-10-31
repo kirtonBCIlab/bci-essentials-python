@@ -11,7 +11,7 @@ from bci_essentials.classification.ssvep_riemannian_mdm_classifier import (
 data_folder_path = os.path.join("examples", "data")
 
 
-class TestLoadData(unittest.TestCase):
+class TestSmoke(unittest.TestCase):
     def test_mi_offline(self):
         # Get the MI example data from ./examples/data
         mi_xdf_path = os.path.join(data_folder_path, "mi_example.xdf")
@@ -53,6 +53,8 @@ class TestLoadData(unittest.TestCase):
 
         # Check that the list of class predictions exists
         self.assertIsNotNone(mi_data.classifier.predictions)
+
+        print("MI test complete")
 
     def test_p300_offline(self):
         # Get the P300 example data from ./examples/data
@@ -106,6 +108,8 @@ class TestLoadData(unittest.TestCase):
         # Check that the list of class predictions exists
         self.assertIsNotNone(p300_data.classifier.predictions)
 
+        print("P300 test complete")
+
     def test_ssvep_offline(self):
         # Get the SSVEP example data from ./examples/data
         ssvep_xdf_path = os.path.join(data_folder_path, "ssvep_example.xdf")
@@ -152,6 +156,8 @@ class TestLoadData(unittest.TestCase):
 
         # Check that the list of class predictions exists
         self.assertIsNotNone(ssvep_data.classifier.predictions)
+
+        print("SSVEP test complete")
 
 
 if __name__ == "__main__":

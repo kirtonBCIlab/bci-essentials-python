@@ -9,4 +9,3 @@ dist/
 *.swp
 plugins/FeatureExtractorSSVEP
 session_saves/*
-
