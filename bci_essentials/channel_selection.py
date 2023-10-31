@@ -112,7 +112,7 @@ def channel_selection_by_method(
     """
 
     # max length can't be greater than the length of channel labels
-    if max_channels < len(channel_labels):
+    if max_channels > len(channel_labels):
         if print_output == "verbose" or print_output == "final":
             print(
                 "Maximum number of channels must be less than or equal to the number of channels. Setting to number of channels."
