@@ -215,48 +215,50 @@ def notch(data, f_notch, Q, fsample):
         return new_data
 
 
-def lico(X, y, expansion_factor=3, sum_num=2, shuffle=False):
-    """Oversampling (linear combination oversampling (LiCO))
-
-    Samples random linear combinations of existing epochs of X.
-
-    This is broken, but I am also unsure if it deserves to be fixed. At the very least it probably belongs in a different file. -Brian
-
-    Parameters
-    ----------
-    X : numpy.ndarray
-        Windows of EEG data.
-        3D array containing data with `float` type.
-
-        shape = (P, N, M)
-    y : numpy.ndarray
-        Labels corresponding to X.
-    expansion_factor : int, *optional*
-        Number of times larger to make the output set over_X
-        - Default is `3`.
-    sum_num : int, *optional*
-        Number of signals to be summed together
-        - Default is `2`.
-
-    Returns
-    -------
     over_X : numpy.ndarray
-        Oversampled X.
-    over_y : numpy.ndarray
-        Oversampled y.
+# Removing this for now, as it is broken and not currently used - Brian/Anup
+# def lico(X, y, expansion_factor=3, sum_num=2, shuffle=False):
+#     """Oversampling (linear combination oversampling (LiCO))
 
-    """
-    true_X = X[y == 1]
+#     Samples random linear combinations of existing epochs of X.
 
-    n, m, p = true_X.shape
-    print("Shape of ERPs only ", true_X.shape)
-    new_n = n * np.round(expansion_factor - 1)
-    new_X = np.zeros([new_n, m, p])
-    for i in range(n):
-        for j in range(sum_num):
-            new_X[i, :, :] += true_X[random.choice(range(n)), :, :] / sum_num
+#     This is broken, but I am also unsure if it deserves to be fixed. At the very least it probably belongs in a different file. -Brian
 
-    over_X = np.append(X, new_X, axis=0)
-    over_y = np.append(y, np.ones([new_n]))
+#     Parameters
+#     ----------
+#     X : numpy.ndarray
+#         Windows of EEG data.
+#         3D array containing data with `float` type.
 
-    return over_X, over_y
+#         shape = (P, N, M)
+#     y : numpy.ndarray
+#         Labels corresponding to X.
+#     expansion_factor : int, *optional*
+#         Number of times larger to make the output set over_X
+#         - Default is `3`.
+#     sum_num : int, *optional*
+#         Number of signals to be summed together
+#         - Default is `2`.
+
+#     Returns
+#     -------
+#     over_X : numpy.ndarray
+#         Oversampled X.
+#     over_y : numpy.ndarray
+#         Oversampled y.
+
+#     """
+#     true_X = X[y == 1]
+
+#     n, m, p = true_X.shape
+#     print("Shape of ERPs only ", true_X.shape)
+#     new_n = n * np.round(expansion_factor - 1)
+#     new_X = np.zeros([new_n, m, p])
+#     for i in range(n):
+#         for j in range(sum_num):
+#             new_X[i, :, :] += true_X[random.choice(range(n)), :, :] / sum_num
+
+#     over_X = np.append(X, new_X, axis=0)
+#     over_y = np.append(y, np.ones([new_n]))
+
+#     return over_X, over_y
