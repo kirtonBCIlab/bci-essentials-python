@@ -215,7 +215,6 @@ def notch(data, f_notch, Q, fsample):
         return new_data
 
 
-    over_X : numpy.ndarray
 # Removing this for now, as it is broken and not currently used - Brian/Anup
 # def lico(X, y, expansion_factor=3, sum_num=2, shuffle=False):
 #     """Oversampling (linear combination oversampling (LiCO))
