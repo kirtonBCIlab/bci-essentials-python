@@ -31,7 +31,7 @@ from pylsl.pylsl import IRREGULAR_RATE
 
 # from bci_essentials.bci_data_settings import *
 # from bci_essentials.visuals import *
-from bci_essentials.signal_processing import notchfilt, bandpass
+from bci_essentials.signal_processing import notch, bandpass
 
 # from bci_essentials.classification import *
 
@@ -832,7 +832,7 @@ class EEG_data:
             return new_window
 
         if option == "notch":
-            new_window = notchfilt(window, self.fsample, Q=30, fc=60)
+            new_window = notch(window, fc=60, Q=30, fsample=self.fsample)
             return new_window
 
         if option == "bandpass":
