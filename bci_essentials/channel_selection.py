@@ -113,21 +113,24 @@ def channel_selection_by_method(
 
     # max length can't be greater than the length of channel labels
     if max_channels > len(channel_labels):
-        print(
-            "Maximum number of channels must be less than or equal to the number of channels. Setting to number of channels."
-        )
+        if print_output == "verbose" or print_output == "final":
+            print(
+                "Maximum number of channels must be less than or equal to the number of channels. Setting to number of channels."
+            )
         max_channels = len(channel_labels)
 
     # min length can't be less than 1
     if min_channels < 1:
-        print("Minimum number of channels must be greater than 0. Setting to 1.")
+        if print_output == "verbose" or print_output == "final":
+            print("Minimum number of channels must be greater than 0. Setting to 1.")
         min_channels = 1
 
     if method == "SBS":
         if initial_channels == []:
             initial_channels = channel_labels
 
-        print("Initial subset: ", initial_channels)
+        if print_output == "verbose" or print_output == "final":
+            print("Initial subset: ", initial_channels)
 
         # pass arguments to SBS
         return sbs(
@@ -147,7 +150,8 @@ def channel_selection_by_method(
         )
 
     elif method == "SFS":
-        print("Initial subset: ", initial_channels)
+        if print_output == "verbose" or print_output == "final":
+            print("Initial subset: ", initial_channels)
 
         # pass arguments to SBS
         return sfs(
@@ -170,7 +174,8 @@ def channel_selection_by_method(
         if initial_channels == []:
             initial_channels = channel_labels
 
-        print("Initial subset: ", initial_channels)
+        if print_output == "verbose" or print_output == "final":
+            print("Initial subset: ", initial_channels)
 
         # pass arguments to SBS
         return sbfs(
@@ -190,7 +195,8 @@ def channel_selection_by_method(
         )
 
     elif method == "SFFS":
-        print("Initial subset: ", initial_channels)
+        if print_output == "verbose" or print_output == "final":
+            print("Initial subset: ", initial_channels)
 
         # pass arguments to SBS
         return sffs(
@@ -241,9 +247,11 @@ def check_stopping_criterion(
     performance_delta : float
         The performance delta under which the algorithm is considered to
         be close enough to optimal.
-    print_output : str, *optional*
-        Flag on whether or not to print output.
-        - Default is `True`.
+    print_output : str
+        Flag on whether or not to print output. Options are:
+        - `"verbose"`: Print output at each step.
+        - `"final"`: Print output at the end.
+        - `"silent"`: No output.
 
     Returns
     -------
@@ -534,7 +542,7 @@ def sfs(
             min_channels,
             max_channels,
             performance_delta,
-            print_output=True,
+            print_output,
         )
 
     new_channel_subset = [channel_labels[c] for c in sfs_subset]
@@ -822,7 +830,7 @@ def sbs(
             min_channels,
             max_channels,
             performance_delta,
-            print_output=True,
+            print_output,
         )
 
     new_channel_subset = [channel_labels[c] for c in sbs_subset]
@@ -1268,7 +1276,7 @@ def sbfs(
                 min_channels,
                 max_channels,
                 performance_delta,
-                print_output=True,
+                print_output,
             )
 
         stop_criterion = check_stopping_criterion(
@@ -1279,7 +1287,7 @@ def sbfs(
             min_channels,
             max_channels,
             performance_delta,
-            print_output=True,
+            print_output,
         )
 
         # Break if SBFS subset is 1 channel
@@ -1724,7 +1732,7 @@ def sffs(
                     min_channels,
                     max_channels,
                     performance_delta,
-                    print_output=True,
+                    print_output,
                 )
 
         if pass_stopping_criterion:
@@ -1739,7 +1747,7 @@ def sffs(
                 min_channels,
                 max_channels,
                 performance_delta,
-                print_output=True,
+                print_output,
             )
 
     new_channel_subset = [channel_labels[c] for c in sffs_subset]

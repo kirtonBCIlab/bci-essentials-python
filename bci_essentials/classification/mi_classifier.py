@@ -243,7 +243,9 @@ class MI_classifier(Generic_classifier):
         if self.channel_selection_setup:
             if self.chs_iterative_selection is True and self.subset is not None:
                 initial_subset = self.subset
-                print("Using subset from previous channel selection")
+                print(
+                    "Using subset from previous channel selection, because iterative selection is TRUE"
+                )
             else:
                 initial_subset = self.chs_initial_subset
 
@@ -271,7 +273,6 @@ class MI_classifier(Generic_classifier):
                 self.chs_n_jobs,
                 self.chs_output,
             )
-            print("The optimal subset is ", updated_subset)
 
             self.results_df = results_df
             self.subset = updated_subset

@@ -26,7 +26,7 @@ test_mi.classifier.set_mi_classifier_settings(n_splits=5, type="TS", random_seed
 # Define channel selection settings
 initial_subset = []
 test_mi.classifier.setup_channel_selection(
-    method="SFS",
+    method="SFFS",
     metric="accuracy",
     iterative_selection=True,
     initial_channels=initial_subset,  # wrapper setup
@@ -35,7 +35,7 @@ test_mi.classifier.setup_channel_selection(
     max_channels=20,
     performance_delta=-0.05,  # stopping criterion
     n_jobs=-1,
-    print_output="verbose",
+    print_output="silent",
     record_performance=True,
 )
 
