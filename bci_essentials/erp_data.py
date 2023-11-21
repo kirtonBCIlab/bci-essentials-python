@@ -20,6 +20,7 @@ Classes
 
 import time
 import numpy as np
+import matplotlib.pyplot as plt
 
 from pylsl import StreamOutlet, StreamInfo
 from pylsl.pylsl import IRREGULAR_RATE

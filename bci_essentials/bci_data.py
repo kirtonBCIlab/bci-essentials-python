@@ -22,7 +22,6 @@ import sys
 import pyxdf
 import time
 import numpy as np
-import matplotlib.pyplot as plt
 
 from pylsl import StreamInlet, resolve_byprop, StreamOutlet, StreamInfo
 from pylsl.pylsl import IRREGULAR_RATE
