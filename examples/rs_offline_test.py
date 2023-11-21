@@ -1,6 +1,7 @@
 import os
 
-from bci_essentials.bci_data import ERP_data, EEG_data
+from bci_essentials.bci_data import EEG_data
+from bci_essentials.erp_data import ERP_data
 from bci_essentials.resting_state import get_alpha_peak, get_bandpower_features
 from bci_essentials.classification.mi_classifier import MI_classifier
 from bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
