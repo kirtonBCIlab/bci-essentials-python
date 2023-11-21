@@ -1,4 +1,4 @@
-from bci_essentials.bci_data import ERP_data
+from bci_essentials.erp_data import ERP_data
 from bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
 
 # Initialize the ERP

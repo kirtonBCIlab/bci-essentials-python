@@ -1,4 +1,4 @@
-from bci_essentials.bci_data import EEG_data
+from bci_essentials.eeg_data import EEG_data
 from bci_essentials.classification.mi_classifier import MI_classifier
 
 # Define the MI data object

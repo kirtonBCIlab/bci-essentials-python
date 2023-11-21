@@ -1,5 +1,5 @@
 # import bci_essntials
-from bci_essentials.bci_data import EEG_data
+from bci_essentials.eeg_data import EEG_data
 from bci_essentials.classification.ssvep_riemannian_mdm_classifier import (
     SSVEP_riemannian_mdm_classifier,
 )
