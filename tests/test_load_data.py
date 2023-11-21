@@ -1,6 +1,6 @@
 import unittest
 import os
-from bci_essentials.bci_data import EEG_data
+from bci_essentials.eeg_data import EEG_data
 
 
 class TestLoadData(unittest.TestCase):

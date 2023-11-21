@@ -1,7 +1,7 @@
 import numpy as np
 import mne
 
-from bci_essentials.bci_data import ERP_data
+from bci_essentials.erp_data import ERP_data
 
 
 # Select a file

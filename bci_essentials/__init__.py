@@ -24,13 +24,14 @@ the `ERP_data` class.
 
 """
 
-from . import bci_data
+from . import eeg_data
 from . import visuals
 from . import signal_processing
 from . import classification
 
 __all__ = [
-    "bci_data",
+    "eeg_data",
+    "erp_data",
     "visuals",
     "classification",
     "signal_processing",

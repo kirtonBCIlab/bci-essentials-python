@@ -23,7 +23,7 @@ import datetime
 from pylsl import StreamInfo, StreamOutlet
 
 # Import local bci_essentials
-from bci_essentials.bci_data import EEG_data
+from bci_essentials.eeg_data import EEG_data
 
 # Identify the file to simulate
 # Filename assumes the data is within a subfolder called "data" located
