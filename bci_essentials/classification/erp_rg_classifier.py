@@ -359,7 +359,9 @@ class ERP_rg_classifier(Generic_classifier):
             self.clf = updated_model
         else:
             print("Not doing channel selection")
-            self.clf, preds, accuracy, precision, recall = __erp_rg_kernel(self.X, self.y)
+            self.clf, preds, accuracy, precision, recall = __erp_rg_kernel(
+                self.X, self.y
+            )
 
         # Print performance stats
         # accuracy
