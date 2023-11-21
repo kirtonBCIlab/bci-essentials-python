@@ -1758,6 +1758,7 @@ class ERP_data(EEG_data):
         max_decisions=500,
         max_loops=1000000000,
         training=False,
+        train_complete=False,
         online=False,
         print_markers=True,
         print_training=True,
@@ -1818,6 +1819,11 @@ class ERP_data(EEG_data):
             - `True`: The data will be used to train the classifier.
             - `False`: The data will be used to predict with the classifier.
             - Default is `True`.
+        train_complete : bool, *optional*
+            Flag to indicate if the classifier has been trained.
+            - `True`: The classifier has been trained.
+            - `False`: The classifier has not been trained.
+            - Default is `False`.
         online : bool, *optional*
             Flag to indicate if the data will be processed in `online` mode.
             - `True`: The data will be processed in `online` mode.
@@ -1943,7 +1949,6 @@ class ERP_data(EEG_data):
             self.num_options_per_decision = np.zeros((max_decisions))
 
             loops = 0
-            train_complete = False
 
         while loops < max_loops:
             # load data chunk from search start position
