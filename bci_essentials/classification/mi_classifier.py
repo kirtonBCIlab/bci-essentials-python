@@ -180,7 +180,7 @@ class MI_classifier(Generic_classifier):
         # Init predictions to all false
         preds = np.zeros(nwindows)
 
-        def mi_kernel(subX, suby):
+        def __mi_kernel(subX, suby):
             """MI kernel.
 
             Parameters
@@ -259,7 +259,7 @@ class MI_classifier(Generic_classifier):
                 recall,
                 results_df,
             ) = channel_selection_by_method(
-                mi_kernel,
+                __mi_kernel,
                 self.X,
                 self.y,
                 self.channel_labels,  # kernel setup
@@ -279,7 +279,7 @@ class MI_classifier(Generic_classifier):
             self.clf = updated_model
         else:
             print("Not doing channel selection")
-            self.clf, preds, accuracy, precision, recall = mi_kernel(subX, suby)
+            self.clf, preds, accuracy, precision, recall = __mi_kernel(subX, suby)
 
         # Print performance stats
 

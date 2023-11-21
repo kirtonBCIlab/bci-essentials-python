@@ -873,7 +873,7 @@ class EEG_data:
 
         # other preprocessing options go here\
 
-    def package_resting_state_data(self):
+    def __package_resting_state_data(self):
         """Package resting state data.
 
         Returns
@@ -1277,7 +1277,7 @@ class EEG_data:
                         self.marker_data[self.marker_count][0]
                         == "Done with all RS collection"
                     ):
-                        self.package_resting_state_data()
+                        self.__package_resting_state_data()
                         self.marker_count += 1
 
                     elif self.marker_data[self.marker_count][0] == "Trial Started":
@@ -2006,7 +2006,7 @@ class ERP_data(EEG_data):
                         self.marker_data[self.marker_count][0]
                         == "Done with all RS collection"
                     ):
-                        self.package_resting_state_data()
+                        self.__package_resting_state_data()
                         self.marker_count += 1
 
                     # If training completed then train the classifier

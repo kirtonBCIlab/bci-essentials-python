@@ -133,7 +133,7 @@ def channel_selection_by_method(
             print("Initial subset: ", initial_channels)
 
         # pass arguments to SBS
-        return sbs(
+        return __sbs(
             kernel_func,
             X,
             y,
@@ -154,7 +154,7 @@ def channel_selection_by_method(
             print("Initial subset: ", initial_channels)
 
         # pass arguments to SBS
-        return sfs(
+        return __sfs(
             kernel_func,
             X,
             y,
@@ -178,7 +178,7 @@ def channel_selection_by_method(
             print("Initial subset: ", initial_channels)
 
         # pass arguments to SBS
-        return sbfs(
+        return __sbfs(
             kernel_func,
             X,
             y,
@@ -199,7 +199,7 @@ def channel_selection_by_method(
             print("Initial subset: ", initial_channels)
 
         # pass arguments to SBS
-        return sffs(
+        return __sffs(
             kernel_func,
             X,
             y,
@@ -216,7 +216,7 @@ def channel_selection_by_method(
         )
 
 
-def check_stopping_criterion(
+def __check_stopping_criterion(
     current_time,
     nchannels,
     current_performance_delta,
@@ -282,7 +282,7 @@ def check_stopping_criterion(
         return False
 
 
-def sfs(
+def __sfs(
     kernel_func,
     X,
     y,
@@ -534,7 +534,7 @@ def sfs(
 
         step += 1
 
-        stop_criterion = check_stopping_criterion(
+        stop_criterion = __check_stopping_criterion(
             time.time() - start_time,
             len(new_channel_subset),
             p_delta,
@@ -565,7 +565,7 @@ def sfs(
     )
 
 
-def sbs(
+def __sbs(
     kernel_func,
     X,
     y,
@@ -822,7 +822,7 @@ def sbs(
         if len(sbs_subset) == 1:
             break
 
-        stop_criterion = check_stopping_criterion(
+        stop_criterion = __check_stopping_criterion(
             time.time() - start_time,
             len(new_channel_subset),
             p_delta,
@@ -851,7 +851,7 @@ def sbs(
     )
 
 
-def sbfs(
+def __sbfs(
     kernel_func,
     X,
     y,
@@ -1268,7 +1268,7 @@ def sbfs(
                 break
 
             # Check stopping criterion
-            stop_criterion = check_stopping_criterion(
+            stop_criterion = __check_stopping_criterion(
                 time.time() - start_time,
                 len(new_channel_subset),
                 p_delta,
@@ -1279,7 +1279,7 @@ def sbfs(
                 print_output,
             )
 
-        stop_criterion = check_stopping_criterion(
+        stop_criterion = __check_stopping_criterion(
             time.time() - start_time,
             len(new_channel_subset),
             p_delta,
@@ -1312,7 +1312,7 @@ def sbfs(
     )
 
 
-def sffs(
+def __sffs(
     kernel_func,
     X,
     y,
@@ -1724,7 +1724,7 @@ def sffs(
 
             # Check stopping criterion
             if pass_stopping_criterion is False:
-                stop_criterion = check_stopping_criterion(
+                stop_criterion = __check_stopping_criterion(
                     time.time() - start_time,
                     len(new_channel_subset),
                     p_delta,
@@ -1739,7 +1739,7 @@ def sffs(
             pass_stopping_criterion = False
             continue
         else:
-            stop_criterion = check_stopping_criterion(
+            stop_criterion = __check_stopping_criterion(
                 time.time() - start_time,
                 len(new_channel_subset),
                 p_delta,
