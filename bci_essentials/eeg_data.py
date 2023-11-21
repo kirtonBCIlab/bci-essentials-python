@@ -527,7 +527,7 @@ class EEG_data:
         print(self.channel_labels)
 
     # Get new data from stream
-    def __pull_data_from_stream(
+    def _pull_data_from_stream(
         self, include_markers=True, include_eeg=True, return_eeg=False
     ):
         """Get new data from stream.
@@ -783,7 +783,7 @@ class EEG_data:
 
     # SIGNAL PROCESSING
     # Preprocessing goes here (windows are nchannels by nsamples)
-    def __preprocessing(self, window, option=None, order=5, fc=60, fl=10, fh=50):
+    def _preprocessing(self, window, option=None, order=5, fc=60, fl=10, fh=50):
         """Signal preprocessing.
 
         Preprocesses the signal using one of the methods from the
@@ -1222,7 +1222,7 @@ class EEG_data:
 
             # if online, then pull new data with each iteration
             if online:
-                self.__pull_data_from_stream()
+                self._pull_data_from_stream()
 
                 # Create a stream to send markers back to Unity, but only create the stream once
                 if self.stream_outlet is False:
@@ -1534,7 +1534,7 @@ class EEG_data:
                 # This is where to do preprocessing
                 current_processed_eeg_windows[
                     current_nwindows, : self.nchannels, : self.nsamples
-                ] = self.__preprocessing(
+                ] = self._preprocessing(
                     window=current_raw_eeg_windows[
                         current_nwindows, : self.nchannels, : self.nsamples
                     ],
