@@ -3,7 +3,7 @@ Test P300 offline using data from an existing stream
 
 """
 
-from bci_essentials.bci_data import ERP_data
+from bci_essentials.eeg_data import ERP_data
 from bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
 
 # Identify the file to simulate

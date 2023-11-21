@@ -1,4 +1,4 @@
-from bci_essentials.bci_data import EEG_data
+from bci_essentials.eeg_data import EEG_data
 from bci_essentials.classification.ssvep_basic_tf_classifier import (
     SSVEP_basic_tf_classifier,
 )

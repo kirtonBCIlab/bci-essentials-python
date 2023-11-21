@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 from pylsl import StreamOutlet, StreamInfo
 from pylsl.pylsl import IRREGULAR_RATE
 
-from bci_essentials.bci_data import EEG_data
+from bci_essentials.eeg_data import EEG_data
 
 
 # ERP Data
