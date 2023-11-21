@@ -1,15 +1,29 @@
-import sys
-import pyxdf
+"""Module for managing ERP data.
+
+This module provides data classes for different BCI paradigms.
+
+It includes the loading of offline data in `xdf` format
+or the live streaming of LSL data.
+
+The loaded/streamed data is added to a buffer such that offline and
+online processing pipelines are identical.
+
+Data is pre-processed (using the `signal_processing` module), windowed,
+and classified (using one of the `classification` sub-modules).
+
+Classes
+-------
+- `ERP_data` : For processing P300 or other Event Related Potentials
+(ERP).
+
+"""
+
 import time
 import numpy as np
-import matplotlib.pyplot as plt
 
 from pylsl import StreamOutlet, StreamInfo
 from pylsl.pylsl import IRREGULAR_RATE
 
-# from bci_essentials.bci_data_settings import *
-# from bci_essentials.visuals import *
-from bci_essentials.signal_processing import notch, bandpass
 from bci_essentials.bci_data import EEG_data
 
 

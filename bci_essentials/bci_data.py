@@ -15,8 +15,6 @@ Classes
 -------
 - `EEG_data` : For processing continuous data in windows of a defined
 length.
-- `ERP_data` : For processing P300 or other Event Related Potentials
-(ERP).
 
 """
 
