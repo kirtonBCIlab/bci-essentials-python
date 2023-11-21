@@ -870,7 +870,8 @@ class EEG_data:
 
         # other preprocessing options go here\
 
-    def package_resting_state_data(self):
+    # I don't think this is being used....
+    def __package_resting_state_data(self):
         """Package resting state data.
 
         Returns
