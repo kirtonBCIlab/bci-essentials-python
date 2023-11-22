@@ -374,7 +374,7 @@ class ERP_data(EEG_data):
             if online:
                 # Time sync if not synced
 
-                self.pull_data_from_stream()
+                self._pull_data_from_stream()
 
                 # Create a stream to send markers back to Unity, but only create the stream once
                 if self.stream_outlet is False:
@@ -737,7 +737,7 @@ class ERP_data(EEG_data):
                     # This is where to do preprocessing
                     self.erp_windows_processed[
                         self.nwindows, : self.nchannels, : self.nsamples
-                    ] = self.preprocessing(
+                    ] = self._preprocessing(
                         window=self.erp_windows_raw[
                             self.nwindows, : self.nchannels, : self.nsamples
                         ],
@@ -750,7 +750,7 @@ class ERP_data(EEG_data):
                     # This is where to do artefact rejection
                     self.erp_windows_processed[
                         self.nwindows, : self.nchannels, : self.nsamples
-                    ] = self.artefact_rejection(
+                    ] = self._artefact_rejection(
                         window=self.erp_windows_processed[
                             self.nwindows, : self.nchannels, : self.nsamples
                         ],

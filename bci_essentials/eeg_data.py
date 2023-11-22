@@ -205,7 +205,7 @@ class EEG_data:
 
             # Unless explicit settings are desired, get settings from headset
             # if self.explicit_settings is False:
-            self.get_info_from_file(data, print_output)
+            self.__get_info_from_file(data, print_output)
 
         # support for other file types goes here
 
@@ -214,7 +214,7 @@ class EEG_data:
             print("Error: file format not supported")
 
     # Get metadata saved to the offline data file to fill in headset information
-    def get_info_from_file(self, data, print_output=True):
+    def __get_info_from_file(self, data, print_output=True):
         """Get EEG metadata from the stream.
 
         Parameters
@@ -411,7 +411,7 @@ class EEG_data:
 
             # if there are no explicit settings
             if self.explicit_settings is False:
-                self.get_info_from_stream()
+                self.__get_info_from_stream()
 
         except Exception as e:
             print("No EEG stream currently available")
@@ -434,7 +434,7 @@ class EEG_data:
         self.eeg_timestamps = np.array(self.eeg_timestamps)
 
     # Get headset data from stream
-    def get_info_from_stream(self):
+    def __get_info_from_stream(self):
         """Get headset data from stream.
 
         Returns
@@ -527,7 +527,7 @@ class EEG_data:
         print(self.channel_labels)
 
     # Get new data from stream
-    def pull_data_from_stream(
+    def _pull_data_from_stream(
         self, include_markers=True, include_eeg=True, return_eeg=False
     ):
         """Get new data from stream.
@@ -783,7 +783,7 @@ class EEG_data:
 
     # SIGNAL PROCESSING
     # Preprocessing goes here (windows are nchannels by nsamples)
-    def preprocessing(self, window, option=None, order=5, fc=60, fl=10, fh=50):
+    def _preprocessing(self, window, option=None, order=5, fc=60, fl=10, fh=50):
         """Signal preprocessing.
 
         Preprocesses the signal using one of the methods from the
@@ -839,7 +839,7 @@ class EEG_data:
         # other preprocessing options go here
 
     # Artefact rejection goes here (windows are nchannels by nsamples)
-    def artefact_rejection(self, window, option=None):
+    def _artefact_rejection(self, window, option=None):
         """Artefact rejection.
 
         Parameters
@@ -870,7 +870,8 @@ class EEG_data:
 
         # other preprocessing options go here\
 
-    def package_resting_state_data(self):
+    # I don't think this is being used....
+    def __package_resting_state_data(self):
         """Package resting state data.
 
         Returns
@@ -1221,7 +1222,7 @@ class EEG_data:
 
             # if online, then pull new data with each iteration
             if online:
-                self.pull_data_from_stream()
+                self._pull_data_from_stream()
 
                 # Create a stream to send markers back to Unity, but only create the stream once
                 if self.stream_outlet is False:
@@ -1533,7 +1534,7 @@ class EEG_data:
                 # This is where to do preprocessing
                 current_processed_eeg_windows[
                     current_nwindows, : self.nchannels, : self.nsamples
-                ] = self.preprocessing(
+                ] = self._preprocessing(
                     window=current_raw_eeg_windows[
                         current_nwindows, : self.nchannels, : self.nsamples
                     ],
@@ -1546,7 +1547,7 @@ class EEG_data:
                 # This is where to do artefact rejection
                 current_processed_eeg_windows[
                     current_nwindows, : self.nchannels, : self.nsamples
-                ] = self.artefact_rejection(
+                ] = self._artefact_rejection(
                     window=current_processed_eeg_windows[
                         current_nwindows, : self.nchannels, : self.nsamples
                     ],

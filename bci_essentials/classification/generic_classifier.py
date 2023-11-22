@@ -324,6 +324,7 @@ class Generic_classifier:
             self.y = np.append(self.y, labels, axis=0)
 
     # predict a label based on a decision block
+    # This doesn't seem to be used anywhere
     def predict_decision_block(self, decision_block, print_predict=True):
         """Predict a label based on a decision block.
 

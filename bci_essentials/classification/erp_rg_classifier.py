@@ -184,7 +184,7 @@ class ERP_rg_classifier(Generic_classifier):
         preds = np.zeros(len(self.y))
 
         #
-        def erp_rg_kernel(X, y):
+        def __erp_rg_kernel(X, y):
             """ERP RG kernel.
 
             Parameters
@@ -337,7 +337,7 @@ class ERP_rg_classifier(Generic_classifier):
                 recall,
                 results_df,
             ) = channel_selection_by_method(
-                erp_rg_kernel,
+                __erp_rg_kernel,
                 self.X,
                 self.y,
                 self.channel_labels,  # kernel setup
@@ -359,7 +359,9 @@ class ERP_rg_classifier(Generic_classifier):
             self.clf = updated_model
         else:
             print("Not doing channel selection")
-            self.clf, preds, accuracy, precision, recall = erp_rg_kernel(self.X, self.y)
+            self.clf, preds, accuracy, precision, recall = __erp_rg_kernel(
+                self.X, self.y
+            )
 
         # Print performance stats
         # accuracy

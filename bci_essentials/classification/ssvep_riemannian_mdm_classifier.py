@@ -207,7 +207,7 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
         # Init predictions to all false
         preds = np.zeros(nwindows)
 
-        def ssvep_kernel(subX, suby):
+        def __ssvep_kernel(subX, suby):
             """SSVEP kernel.
 
             Parameters
@@ -288,7 +288,7 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
                 precision,
                 recall,
             ) = channel_selection_by_method(
-                ssvep_kernel,
+                __ssvep_kernel,
                 self.X,
                 self.y,
                 self.channel_labels,  # kernel setup
@@ -309,7 +309,7 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
             self.clf = updated_model
         else:
             print("Not doing channel selection")
-            self.clf, preds, accuracy, precision, recall = ssvep_kernel(subX, suby)
+            self.clf, preds, accuracy, precision, recall = __ssvep_kernel(subX, suby)
 
         # Print performance stats
 

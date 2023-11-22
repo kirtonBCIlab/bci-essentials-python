@@ -50,7 +50,8 @@ def get_shape(data):
     return W, C, S
 
 
-def bandpower(data, fs, fmin, fmax, normalization=None):
+# This function is never used at the moment, anywhere in the code. Renaming to more clear convention on it being a public function.
+def get_bandpower(data, fs, fmin, fmax, normalization=None):
     """Get the bandpower of a window of EEG.
 
     Parameters
