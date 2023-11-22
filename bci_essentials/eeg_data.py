@@ -839,7 +839,7 @@ class EEG_data:
         # other preprocessing options go here
 
     # Artefact rejection goes here (windows are nchannels by nsamples)
-    def __artefact_rejection(self, window, option=None):
+    def _artefact_rejection(self, window, option=None):
         """Artefact rejection.
 
         Parameters
@@ -1547,7 +1547,7 @@ class EEG_data:
                 # This is where to do artefact rejection
                 current_processed_eeg_windows[
                     current_nwindows, : self.nchannels, : self.nsamples
-                ] = self.__artefact_rejection(
+                ] = self._artefact_rejection(
                     window=current_processed_eeg_windows[
                         current_nwindows, : self.nchannels, : self.nsamples
                     ],
