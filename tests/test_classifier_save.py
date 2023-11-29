@@ -85,12 +85,8 @@ class TestClassifierSave(unittest.TestCase):
         )
 
         # Check that X and y are the same
-        self.assertTrue(
-            np.array_equal(mi_classifier1.X, mi_classifier2.X)
-        )
-        self.assertTrue(
-            np.array_equal(mi_classifier1.y, mi_classifier2.y)
-        )
+        self.assertTrue(np.array_equal(mi_classifier1.X, mi_classifier2.X))
+        self.assertTrue(np.array_equal(mi_classifier1.y, mi_classifier2.y))
 
         # Check that the last predictions are the same for the mi_example given, the last 78 predictions should be the same
         self.assertTrue(

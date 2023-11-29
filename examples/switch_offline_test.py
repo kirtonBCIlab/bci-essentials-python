@@ -10,9 +10,7 @@ filename = os.path.join("data", "switch_example.xdf")
 
 # Select a classifier
 classifier = Switch_mdm_classifier()
-classifier.set_switch_classifier_settings(
-    n_splits=2, rebuild=True, random_seed=35
-)
+classifier.set_switch_classifier_settings(n_splits=2, rebuild=True, random_seed=35)
 
 # Initialize data object
 test_switch = EEG_data(classifier)
