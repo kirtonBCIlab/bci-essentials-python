@@ -19,8 +19,6 @@ class TestSmoke(unittest.TestCase):
 
         # Select a classifier
         classifier = MI_classifier()
-
-        # Define the classifier settings
         classifier.set_mi_classifier_settings(
             n_splits=5, type="TS", random_seed=35, channel_selection="riemann"
         )
@@ -63,8 +61,6 @@ class TestSmoke(unittest.TestCase):
 
         # Select a classifier
         classifier = ERP_rg_classifier()
-
-        # Define the classifier settings
         classifier.set_p300_clf_settings(
             n_splits=5,
             lico_expansion_factor=4,
@@ -117,8 +113,6 @@ class TestSmoke(unittest.TestCase):
 
         # Select a classifier
         classifier = SSVEP_riemannian_mdm_classifier()
-
-        # Define the classifier settings
         classifier.set_ssvep_settings(
             n_splits=3,
             random_seed=35,

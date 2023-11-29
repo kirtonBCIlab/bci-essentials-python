@@ -18,11 +18,6 @@ class TestClassifierSave(unittest.TestCase):
 
         # Select a classifier
         mi_classifier1 = MI_classifier()
-
-        # Create an EEG_data object
-        mi_data1 = EEG_data(mi_classifier1)
-
-        # Define the classifier settings
         mi_classifier1.set_mi_classifier_settings(
             n_splits=5,
             type="TS",
@@ -49,10 +44,10 @@ class TestClassifierSave(unittest.TestCase):
             print_predict=False,
         )
 
-        # Save the classifier model
+        # Save the classifier
         save_classifier(mi_classifier1, "test_mi_classifier.pkl")
 
-        # Select a classifier
+        # Load the classifier
         mi_classifier2 = load_classifier("test_mi_classifier.pkl")
 
         # Create a new EEG_data object
@@ -104,8 +99,6 @@ class TestClassifierSave(unittest.TestCase):
 
         # Select a classifier
         p300_classifier1 = ERP_rg_classifier()
-
-        # Define the classifier settings
         p300_classifier1.set_p300_clf_settings(
             n_splits=5,
             lico_expansion_factor=4,
