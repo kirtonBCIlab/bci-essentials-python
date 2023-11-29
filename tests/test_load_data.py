@@ -1,7 +1,6 @@
 import unittest
 import os
 from bci_essentials.eeg_data import EEG_data
-from bci_essentials.classification.null_classifier import Null_classifier
 
 
 class TestLoadData(unittest.TestCase):
@@ -10,7 +9,7 @@ class TestLoadData(unittest.TestCase):
         rs_xdf_path = os.path.join("examples", "data", "rs_example.xdf")
 
         # Load the data
-        rs_data = EEG_data(Null_classifier())
+        rs_data = EEG_data()
         rs_data.load_offline_eeg_data(filename=rs_xdf_path, print_output=False)
 
         # Check that fsample > 0

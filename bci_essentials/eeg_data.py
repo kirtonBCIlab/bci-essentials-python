@@ -28,6 +28,7 @@ from pylsl.pylsl import IRREGULAR_RATE
 
 from bci_essentials.signal_processing import notch, bandpass
 from bci_essentials.classification.generic_classifier import Generic_classifier
+from bci_essentials.classification.null_classifier import Null_classifier
 
 
 # EEG data
@@ -41,7 +42,7 @@ class EEG_data:
 
     """
 
-    def __init__(self, classifier: Generic_classifier):
+    def __init__(self, classifier: Generic_classifier = Null_classifier()):
         """Initializes `EEG_data` class.
 
         Parameters
