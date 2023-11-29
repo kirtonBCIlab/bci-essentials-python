@@ -12,16 +12,16 @@ from bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
 filename = os.path.join("data", "rs_example.xdf")
 
 try:
-    # Initialize data object
-    test_rs = EEG_data()
-
     # Select a classifier
-    test_rs.classifier = MI_classifier()  # you can add a subset here
+    classifier = MI_classifier()  # you can add a subset here
 
     # Define the classifier settings
-    test_rs.classifier.set_mi_classifier_settings(
+    classifier.set_mi_classifier_settings(
         n_splits=5, type="TS", random_seed=35, channel_selection="riemann"
     )
+
+    # Initialize data object
+    test_rs = EEG_data(classifier)
 
     # Load the xdf
     test_rs.load_offline_eeg_data(
@@ -47,10 +47,10 @@ except Exception:
         test_rs = ERP_data()
 
         # Choose a classifier
-        test_rs.classifier = ERP_rg_classifier()  # you can add a subset here
+        classifier = ERP_rg_classifier()  # you can add a subset here
 
         # Set classifier settings
-        test_rs.classifier.set_p300_clf_settings(
+        classifier.set_p300_clf_settings(
             n_splits=5, lico_expansion_factor=1, oversample_ratio=0, undersample_ratio=0
         )
 

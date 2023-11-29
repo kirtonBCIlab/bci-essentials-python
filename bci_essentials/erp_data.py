@@ -431,7 +431,7 @@ class ERP_data(EEG_data):
                         if train_complete is False:
                             if print_training:
                                 print("Training the classifier")
-                            self.classifier.fit(
+                            self._classifier.fit(
                                 print_fit=print_fit, print_performance=print_performance
                             )
                         train_complete = True
@@ -517,7 +517,7 @@ class ERP_data(EEG_data):
                                                 self.decision_count, unity_label
                                             )
                                         )
-                                    self.classifier.add_to_train(
+                                    self._classifier.add_to_train(
                                         self.decision_blocks_processed[
                                             self.decision_count,
                                             : self.num_options,
@@ -538,7 +538,7 @@ class ERP_data(EEG_data):
                                                 self.labels[self.decision_count],
                                             )
                                         )
-                                    self.classifier.add_to_train(
+                                    self._classifier.add_to_train(
                                         self.decision_blocks_processed[
                                             self.decision_count,
                                             : self.num_options,
@@ -553,7 +553,7 @@ class ERP_data(EEG_data):
                                     if self.decision_count == len(self.labels) - 1:
                                         # FIT
                                         print("training the classifier")
-                                        self.classifier.fit(
+                                        self._classifier.fit(
                                             n_splits=len(self.labels),
                                             print_fit=print_fit,
                                             print_performance=print_performance,
@@ -562,7 +562,7 @@ class ERP_data(EEG_data):
                             # else do the predict the label
                             else:
                                 # PREDICT
-                                prediction = self.classifier.predict_decision_block(
+                                prediction = self._classifier.predict_decision_block(
                                     decision_block=self.decision_blocks_processed[
                                         self.decision_count, 0 : self.num_options, :, :
                                     ],
