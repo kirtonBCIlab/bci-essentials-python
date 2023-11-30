@@ -13,14 +13,11 @@ from bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
 # within the same folder as this script
 filename = os.path.join("data", "p300_example.xdf")
 
-# Initialize the ERP data object
-test_erp = ERP_data()
-
 # Choose a classifier
-test_erp.classifier = ERP_rg_classifier()  # you can add a subset here
+classifier = ERP_rg_classifier()  # you can add a subset here
 
 # Set classifier settings
-test_erp.classifier.set_p300_clf_settings(
+classifier.set_p300_clf_settings(
     n_splits=5,
     lico_expansion_factor=4,
     oversample_ratio=0,
@@ -28,6 +25,9 @@ test_erp.classifier.set_p300_clf_settings(
     random_seed=35,
     covariance_estimator="oas",
 )
+
+# Initialize the ERP data object
+test_erp = ERP_data(classifier)
 
 # Load the xdf
 test_erp.load_offline_eeg_data(
