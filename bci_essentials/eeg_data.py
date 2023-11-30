@@ -18,7 +18,6 @@ length.
 
 """
 
-import sys
 import pyxdf
 import time
 import numpy as np
@@ -380,49 +379,68 @@ class EEG_data:
 
         self.subset = subset
 
-        exit_flag = 0
+        wait_for_markers_flag = True
+        wait_for_eeg_flag = True
 
-        if eeg_only is False:
-            try:
-                print("Resolving LSL marker stream... ")
-                marker_stream = resolve_byprop(
-                    "type", "LSL_Marker_Strings", timeout=timeout
-                )
-                self.marker_inlet = StreamInlet(marker_stream[0], processing_flags=0)
-                print("Getting stream info...")
-                marker_info = self.marker_inlet.info()
-                print("The marker stream's XML meta-data is: ")
-                print(marker_info.as_xml())
+        while wait_for_markers_flag is True or wait_for_eeg_flag is True:
+            if eeg_only is True:
+                wait_for_markers_flag = False
 
-            except Exception:
-                print("No marker stream currently available")
-                exit_flag = 1
+            if wait_for_markers_flag is True:
+                # Try to resolve LSL marker stream
+                try:
+                    print("Resolving LSL marker stream... ")
+                    marker_stream = resolve_byprop(
+                        "type", "LSL_Marker_Strings", timeout=timeout
+                    )
+                    self.marker_inlet = StreamInlet(
+                        marker_stream[0], processing_flags=0
+                    )
+                    print("Getting stream info...")
+                    marker_info = self.marker_inlet.info()
+                    print("The marker stream's XML meta-data is: ")
+                    print(marker_info.as_xml())
 
-        # Resolve EEG marker stream
-        try:
-            print("Resolving LSL EEG stream... ")
-            eeg_stream = resolve_byprop("type", "EEG", timeout=timeout)
-            self.eeg_inlet = StreamInlet(eeg_stream[0], processing_flags=0)
-            print("Getting stream info...")
-            eeg_info = self.eeg_inlet.info()
-            print("The EEG stream's XML meta-data is: ")
-            print(eeg_info.as_xml())
-            print(eeg_info)
-            # print(eeg_info.created_at)
+                    wait_for_markers_flag = False
 
-            # if there are no explicit settings
-            if self.explicit_settings is False:
-                self.__get_info_from_stream()
+                except Exception:
+                    print("No marker stream currently available")
+                    wait_for_markers_flag = True
 
-        except Exception as e:
-            print("No EEG stream currently available")
-            print(e)  # print the exception
-            exit_flag = 1
+            if wait_for_eeg_flag is True:
+                # Try to resolve EEG marker stream
+                try:
+                    print("Resolving LSL EEG stream... ")
+                    eeg_stream = resolve_byprop("type", "EEG", timeout=timeout)
+                    self.eeg_inlet = StreamInlet(eeg_stream[0], processing_flags=0)
+                    print("Getting stream info...")
+                    eeg_info = self.eeg_inlet.info()
+                    print("The EEG stream's XML meta-data is: ")
+                    print(eeg_info.as_xml())
+                    print(eeg_info)
+                    # print(eeg_info.created_at)
 
-        # Exit if one or both streams are unavailable
-        if exit_flag == 1:
-            print("No streams available, exiting...")
-            sys.exit()
+                    # if there are no explicit settings
+                    if self.explicit_settings is False:
+                        self.__get_info_from_stream()
+
+                    wait_for_eeg_flag = False
+
+                except Exception as e:
+                    print("No EEG stream currently available")
+                    print(e)  # print the exception
+                    wait_for_eeg_flag = True
+
+            # Exit if one or both streams are unavailable
+            if wait_for_markers_flag is True or wait_for_eeg_flag is True:
+                if wait_for_markers_flag is True:
+                    print("Waiting for marker stream")
+                if wait_for_eeg_flag is True:
+                    print("Waiting for EEG stream")
+
+                print("Waiting 5 seconds for streams to become available...")
+                print("Press Ctrl-C to exit")
+                time.sleep(5)
 
         self.marker_data = []
         self.marker_timestamps = []
