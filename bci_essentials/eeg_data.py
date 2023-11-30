@@ -377,7 +377,7 @@ class EEG_data:
 
         print("printing incoming stream")
 
-        #Unclear, but this is set twice...going to comment this out.
+        # Unclear, but this is set twice...going to comment this out.
         # self.subset = subset
 
         wait_for_markers_flag = True
