@@ -10,7 +10,7 @@ import logging
 import datetime
 
 
-def setup_logging(level=logging.INFO):
+def setup(level=logging.INFO):
     """Set up logging for the 'bci_essentials' package.
 
     This function configures logging specifically for the 'bci_essentials' package.
@@ -33,7 +33,7 @@ def setup_logging(level=logging.INFO):
     --------
     Set up default logging (to INFO level) for 'bci_essentials':
     >>> import logger
-    >>> logger.setup_logging()
+    >>> logger.setup()
 
     Package Users can set a different logging level for 'bci_essentials' as follows:
     >>> import logging
