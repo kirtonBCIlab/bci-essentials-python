@@ -18,7 +18,6 @@ length.
 
 """
 
-import sys
 import pyxdf
 import time
 import numpy as np
@@ -433,10 +432,10 @@ class EEG_data:
                     wait_for_eeg_flag = True
 
             # Exit if one or both streams are unavailable
-            if wait_for_markers_flag == True or wait_for_eeg_flag == True:
-                if wait_for_markers_flag == True:
+            if wait_for_markers_flag is True or wait_for_eeg_flag is True:
+                if wait_for_markers_flag is True:
                     print("Waiting for marker stream")
-                if wait_for_eeg_flag == True:
+                if wait_for_eeg_flag is True:
                     print("Waiting for EEG stream")
 
                 print("Waiting 5 seconds for streams to become available...")
