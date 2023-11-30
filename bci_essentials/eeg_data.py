@@ -377,7 +377,8 @@ class EEG_data:
 
         print("printing incoming stream")
 
-        self.subset = subset
+        #Unclear, but this is set twice...going to comment this out.
+        # self.subset = subset
 
         wait_for_markers_flag = True
         wait_for_eeg_flag = True
@@ -412,6 +413,7 @@ class EEG_data:
                 try:
                     print("Resolving LSL EEG stream... ")
                     eeg_stream = resolve_byprop("type", "EEG", timeout=timeout)
+                    # We may want to explore better the properties of the stream inlet call. For refrence see here: https://github.com/labstreaminglayer/pylsl/blob/master/pylsl/pylsl.py
                     self.eeg_inlet = StreamInlet(eeg_stream[0], processing_flags=0)
                     print("Getting stream info...")
                     eeg_info = self.eeg_inlet.info()
@@ -596,11 +598,24 @@ class EEG_data:
             )
 
         if include_eeg:
+            # Add a try exception around pulling the chunks
             new_eeg_data, new_eeg_timestamps = self.eeg_inlet.pull_chunk(timeout=0.1)
+
+            # Interrogate the pulled chunk for quality to make sure that it's size makes sense and is not null.
+            # This should be done later with a python data structure.
+            # Check to see if any nan vals are present
+            nanValsPresent = np.isnan(np.dot(new_eeg_data, new_eeg_data))
+            if nanValsPresent:
+                raise ValueError(
+                    "Seems that there are null values in the EEG chunk pulled. Returning"
+                )
+
+            # Convert into a numpy array
             new_eeg_data = np.array(new_eeg_data)
 
-            # Handle the case when you are using subsets
+            # Handle the case when you are using subsets - seemingly always have a subset.
             if self.subset != []:
+                # add try/except phrase around pulling the subset in the chance that something is wrong.
                 new_eeg_data = new_eeg_data[:, self.subset_indices]
 
             # if time is in milliseconds, divide by 1000, works for sampling rates above 10Hz
@@ -1233,7 +1248,12 @@ class EEG_data:
 
             # if online, then pull new data with each iteration
             if online:
-                self._pull_data_from_stream()
+                # Adding a try catch here, incase error happens in the _pull_data_from_stream() call.
+                try:
+                    self._pull_data_from_stream()
+                except Exception as e:
+                    print(f"An error has occurred when pulling data: {e}")
+                    continue
 
                 # Create a stream to send markers back to Unity, but only create the stream once
                 if self.stream_outlet is False:
