@@ -424,7 +424,7 @@ class EEG_data:
                     # if there are no explicit settings
                     if self.explicit_settings is False:
                         self.__get_info_from_stream()
-                    
+
                     wait_for_eeg_flag = False
 
                 except Exception as e:
