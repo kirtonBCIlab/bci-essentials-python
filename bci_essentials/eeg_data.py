@@ -402,6 +402,8 @@ class EEG_data:
                     print("The marker stream's XML meta-data is: ")
                     print(marker_info.as_xml())
 
+                    wait_for_markers_flag = False
+
                 except Exception:
                     print("No marker stream currently available")
                     wait_for_markers_flag = True
@@ -422,6 +424,8 @@ class EEG_data:
                     # if there are no explicit settings
                     if self.explicit_settings is False:
                         self.__get_info_from_stream()
+                    
+                    wait_for_eeg_flag = False
 
                 except Exception as e:
                     print("No EEG stream currently available")
