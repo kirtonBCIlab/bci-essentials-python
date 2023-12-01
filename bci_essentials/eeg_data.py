@@ -18,16 +18,16 @@ length.
 
 """
 
-import pyxdf
 import time
 import numpy as np
 
 from pylsl import StreamInlet, resolve_byprop, StreamOutlet, StreamInfo
 from pylsl.pylsl import IRREGULAR_RATE
 
-from bci_essentials.signal_processing import notch, bandpass
-from bci_essentials.classification.generic_classifier import Generic_classifier
-from bci_essentials.classification.null_classifier import Null_classifier
+from .signal_processing import notch, bandpass
+from .classification.generic_classifier import Generic_classifier
+from .classification.null_classifier import Null_classifier
+from .sources.xdf_sources import XdfEegSource, XdfMarkerSource
 
 
 # EEG data
@@ -162,59 +162,77 @@ class EEG_data:
         """
         self.subset = subset
 
-        if format == "xdf":
-            if print_output:
-                print("loading ERP data from {}".format(filename))
+        # if format == "xdf":
+        #     if print_output:
+        #         print("loading ERP data from {}".format(filename))
 
-            # load from xdf
-            data, self.header = pyxdf.load_xdf(filename)
+        #     # load from xdf
+        #     data, self.header = pyxdf.load_xdf(filename)
 
-            # get the indexes of data
-            for i in range(len(data)):
-                namestring = data[i]["info"]["name"][0]
-                typestring = data[i]["info"]["type"][0]
-                if print_output:
-                    print(namestring)
-                    print(typestring)
+        #     # get the indexes of data
+        #     for i in range(len(data)):
+        #         namestring = data[i]["info"]["name"][0]
+        #         typestring = data[i]["info"]["type"][0]
+        #         if print_output:
+        #             print(namestring)
+        #             print(typestring)
 
-                if typestring == "EEG":
-                    self.eeg_index = i
-                if "LSL_Marker_Strings" in typestring:
-                    self.marker_index = i
-                if "PythonResponse" in namestring:
-                    self.response_index = i
+        #         if typestring == "EEG":
+        #             self.eeg_index = i
+        #         if "LSL_Marker_Strings" in typestring:
+        #             self.marker_index = i
+        #         if "PythonResponse" in namestring:
+        #             self.response_index = i
 
-            # fill up the marker and eeg buffers with the saved data
-            try:
-                self.marker_data = data[self.marker_index]["time_series"]
-                self.marker_timestamps = data[self.marker_index]["time_stamps"]
-            except Exception:
-                print("Marker data not available")
+        #     # fill up the marker and eeg buffers with the saved data
+        #     try:
+        #         self.marker_data = data[self.marker_index]["time_series"]
+        #         self.marker_timestamps = data[self.marker_index]["time_stamps"]
+        #     except Exception:
+        #         print("Marker data not available")
 
-            try:
-                self.eeg_data = data[self.eeg_index]["time_series"]
-                self.eeg_timestamps = data[self.eeg_index]["time_stamps"]
-            except Exception:
-                print("EEG data not available")
+        #     try:
+        #         self.eeg_data = data[self.eeg_index]["time_series"]
+        #         self.eeg_timestamps = data[self.eeg_index]["time_stamps"]
+        #     except Exception:
+        #         print("EEG data not available")
 
-            try:
-                self.response_data = data[self.response_index]["time_series"]
-                self.response_timestamps = data[self.response_index]["time_stamps"]
-            except Exception:
-                print("Response data not available")
+        #     try:
+        #         self.response_data = data[self.response_index]["time_series"]
+        #         self.response_timestamps = data[self.response_index]["time_stamps"]
+        #     except Exception:
+        #         print("Response data not available")
 
-            # Unless explicit settings are desired, get settings from headset
-            # if self.explicit_settings is False:
-            self.__get_info_from_file(data, print_output)
+        # Unless explicit settings are desired, get settings from headset
+        # if self.explicit_settings is False:
+        # self.__get_info_from_file(data, print_output)
+
+        # TODO - eventually, move up to init where the sources are injected
+        marker_source = XdfMarkerSource(filename)
+        self.marker_data, self.marker_timestamps = marker_source.get_markers()
+
+        eeg_source = XdfEegSource(filename)
+        self.eeg_data, self.eeg_timestamps = eeg_source.get_samples()
+
+        self.headset_string = eeg_source.name
+        self.fsample = eeg_source.fsample
+        self.nchannels = eeg_source.nchannels
+
+        self.ch_type = eeg_source.channel_types
+        self.ch_units = eeg_source.channel_units
+        self.channel_labels = eeg_source.channel_labels
+
+        # TODO - this is likely duplicated on the LSL side now, also move to init
+        self.__get_info_from_file(print_output)
 
         # support for other file types goes here
 
         # otherwise show an error
-        else:
-            print("Error: file format not supported")
+        # else:
+        #     print("Error: file format not supported")
 
     # Get metadata saved to the offline data file to fill in headset information
-    def __get_info_from_file(self, data, print_output=True):
+    def __get_info_from_file(self, print_output=True):
         """Get EEG metadata from the stream.
 
         Parameters
@@ -231,53 +249,53 @@ class EEG_data:
 
         """
 
-        self.headset_string = data[self.eeg_index]["info"]["name"][
-            0
-        ]  # headset name in string format
-        self.fsample = float(
-            data[self.eeg_index]["info"]["nominal_srate"][0]
-        )  # sampling rate
-        self.nchannels = int(
-            data[self.eeg_index]["info"]["channel_count"][0]
-        )  # number of channels
+        # self.headset_string = data[self.eeg_index]["info"]["name"][
+        #     0
+        # ]  # headset name in string format
+        # self.fsample = float(
+        #     data[self.eeg_index]["info"]["nominal_srate"][0]
+        # )  # sampling rate
+        # self.nchannels = int(
+        #     data[self.eeg_index]["info"]["channel_count"][0]
+        # )  # number of channels
 
-        # get chtypes, chunits
-        self.ch_type = []
-        self.ch_units = []
-        for i in range(self.nchannels):
-            # type
-            ch_type = data[self.eeg_index]["info"]["desc"][0]["channels"][0]["channel"][
-                i
-            ]["type"][0]
-            # send to lower case letters for mne
-            ch_type = ch_type.lower()
-            # save trigger channel as stim
-            if ch_type == "trg":
-                ch_type = "stim"
-            # add to list
-            self.ch_type.append(ch_type)
+        # # get chtypes, chunits
+        # self.ch_type = []
+        # self.ch_units = []
+        # for i in range(self.nchannels):
+        #     # type
+        #     ch_type = data[self.eeg_index]["info"]["desc"][0]["channels"][0]["channel"][
+        #         i
+        #     ]["type"][0]
+        #     # send to lower case letters for mne
+        #     ch_type = ch_type.lower()
+        #     # save trigger channel as stim
+        #     if ch_type == "trg":
+        #         ch_type = "stim"
+        #     # add to list
+        #     self.ch_type.append(ch_type)
 
-            # units
-            ch_units = data[self.eeg_index]["info"]["desc"][0]["channels"][0][
-                "channel"
-            ][i]["unit"][0]
-            self.ch_units.append(ch_units)
+        #     # units
+        #     ch_units = data[self.eeg_index]["info"]["desc"][0]["channels"][0][
+        #         "channel"
+        #     ][i]["unit"][0]
+        #     self.ch_units.append(ch_units)
 
-        self.channel_labels = []  # channel labels/locations, 'TRG' means trigger
-        try:
-            for i in range(self.nchannels):
-                self.channel_labels.append(
-                    data[self.eeg_index]["info"]["desc"][0]["channels"][0]["channel"][
-                        i
-                    ]["label"][0]
-                )
+        # self.channel_labels = []  # channel labels/locations, 'TRG' means trigger
+        # try:
+        #     for i in range(self.nchannels):
+        #         self.channel_labels.append(
+        #             data[self.eeg_index]["info"]["desc"][0]["channels"][0]["channel"][
+        #                 i
+        #             ]["label"][0]
+        #         )
 
-        except Exception:
-            for i in range(self.nchannels):
-                self.channel_labels.append("?")
+        # except Exception:
+        #     for i in range(self.nchannels):
+        #         self.channel_labels.append("?")
 
-        if print_output:
-            print(self.channel_labels)
+        # if print_output:
+        #     print(self.channel_labels)
 
         # if it is the DSI7 flex, relabel the channels, may want to make this more flexible in the future
         if print_output:
