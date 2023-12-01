@@ -1,14 +1,40 @@
 import pyxdf
 
-from .sample_source import SampleSource
+from .sources import EegSource, MarkerSource
 
 
-class XdfSampleSource(SampleSource):
-    def __init__(self, filepath: str, streamtype: str):
-        self.__info = None
-        self.__samples: list[list] = [[]]
-        self.__timestamps: list = []
-        self.__load_xdf_stream(filepath, streamtype)
+class XdfMarkerSource(MarkerSource):
+    def __init__(self, filepath: str):
+        samples, timestamps, info = load_xdf_stream(filepath, "LSL_Marker_Strings")
+        self.__samples = samples
+        self.__timestamps = timestamps
+        self.__info = info
+
+    @property
+    def name(self) -> str:
+        return self.__info["name"][0]
+
+    def get_samples(self) -> tuple[list[list] | None, list]:
+        # return all data on first get
+        samples = self.__samples
+        timestamps = self.__timestamps
+
+        # reset to empty for next get
+        self.__samples = None
+        self.__timestamps = []
+
+        return [samples, timestamps]
+
+    def time_correction(self) -> float:
+        return 0.0
+
+
+class XdfEegSource(EegSource):
+    def __init__(self, filepath: str):
+        samples, timestamps, info = load_xdf_stream(filepath, "EEG")
+        self.__samples = samples
+        self.__timestamps = timestamps
+        self.__info = info
 
     @property
     def name(self) -> str:
@@ -25,19 +51,12 @@ class XdfSampleSource(SampleSource):
     @property
     def channel_types(self) -> list[str]:
         types = []
-        for channel in range(self.nchannels):
-            try:
-                description = self.__info["desc"][0]["channels"][0]["channel"][channel]
-                type = description["type"][0]
-                type = type.lower()
-
-                # save trigger type channel as stim
-                if type == "trg":
-                    type = "stim"
-
-                types.append(type)
-            except Exception:
-                break
+        try:
+            description = self.__info["desc"][0]["channels"][0]["channel"]
+            types = [channel["type"][0] for channel in description]
+            types = [str.lower(type) for type in types]
+        except Exception:
+            pass
 
         return types
 
@@ -54,14 +73,11 @@ class XdfSampleSource(SampleSource):
     @property
     def channel_labels(self) -> list[str]:
         labels = []
-        for channel in range(self.nchannels):
-            try:
-                description = self.__info["desc"][0]["channels"][0]["channel"][channel]
-                label = description["label"][0]
-            except Exception:
-                label = "?"
-            labels.append(label)
-
+        try:
+            description = self.__info["desc"][0]["channels"][0]["channel"]
+            labels = [channel["label"][0] for channel in description]
+        except Exception:
+            pass
         return labels
 
     def get_samples(self) -> tuple[list[list] | None, list]:
@@ -78,30 +94,27 @@ class XdfSampleSource(SampleSource):
     def time_correction(self) -> float:
         return 0.0
 
-    def __load_xdf_stream(self, filepath: str, streamtype: str):
-        #  Initialize stream and info from xdf file if the streamtype is present
-        #  Don't need the header returned by load_xdf()
-        streams, _ = pyxdf.load_xdf(filepath)
-        for i in range(len(streams)):
-            stream = streams[i]
-            info = stream["info"]
-            type = info["type"][0]
-            if type == streamtype:
-                try:
-                    self.__info = info
-                    self.__samples = stream["time_series"]
-                    self.__timestamps = stream["time_stamps"]
 
-                except Exception:
-                    print(streamtype + " data not available")
-                break
+def load_xdf_stream(filepath: str, streamtype: str) -> tuple[list[list], list, list]:
+    #  Initialize stream and info from xdf file if the streamtype is present
+    #  Don't need the header returned by load_xdf()
+    streams, _ = pyxdf.load_xdf(filepath)
 
+    samples = [[]]
+    timestamps = []
+    info = []
 
-class XdfMarkerSource(XdfSampleSource):
-    def __init__(self, filepath: str):
-        super().__init__(filepath, "LSL_Marker_Strings")
+    for i in range(len(streams)):
+        stream = streams[i]
+        info = stream["info"]
+        type = info["type"][0]
+        if type == streamtype:
+            try:
+                samples = stream["time_series"]
+                timestamps = stream["time_stamps"]
 
+            except Exception:
+                print(streamtype + " data not available")
+            break
 
-class XdfEegSource(XdfSampleSource):
-    def __init__(self, filepath: str):
-        super().__init__(filepath, "EEG")
+    return (samples, timestamps, info)

@@ -3,6 +3,30 @@ import os
 from bci_essentials.sources.xdf_sources import XdfEegSource, XdfMarkerSource
 
 
+class TestXdfMarkerSource(unittest.TestCase):
+    def setUp(self) -> None:
+        filepath = os.path.join("examples", "data", "rs_example.xdf")
+        self.source = XdfMarkerSource(filepath)
+
+    def test_marker_name(self):
+        self.assertEqual(self.source.name, "UnityMarkerStream")
+
+    def test_marker_get_samples_provides_all_samples_in_one_go(self):
+        # first get is all the samples
+        samples, timestamps = self.source.get_samples()
+        self.assertIsNotNone(samples)
+        self.assertGreater(len(samples), 0)
+        self.assertGreater(len(timestamps), 0)
+
+        # second get is empty
+        samples, timestamps = self.source.get_samples()
+        self.assertIsNone(samples)
+        self.assertEqual(len(timestamps), 0)
+
+    def test_marker_time_correction_is_zero_for_xdf(self):
+        self.assertEqual(self.source.time_correction(), 0.0)
+
+
 class TestXdfEegSource(unittest.TestCase):
     def setUp(self) -> None:
         filepath = os.path.join("examples", "data", "rs_example.xdf")
@@ -42,46 +66,6 @@ class TestXdfEegSource(unittest.TestCase):
         self.assertEqual(len(timestamps), 0)
 
     def test_eeg_time_correction_is_zero_for_xdf(self):
-        self.assertEqual(self.source.time_correction(), 0.0)
-
-
-class TestXdfMarkerSource(unittest.TestCase):
-    def setUp(self) -> None:
-        filepath = os.path.join("examples", "data", "rs_example.xdf")
-        self.source = XdfMarkerSource(filepath)
-
-    def test_marker_name(self):
-        self.assertEqual(self.source.name, "UnityMarkerStream")
-
-    def test_marker_fsample(self):
-        self.assertEqual(self.source.fsample, 0.0)
-
-    def test_marker_nchannel(self):
-        self.assertEqual(self.source.nchannels, 1)
-
-    def test_marker_channel_types(self):
-        self.assertEqual(len(self.source.channel_types), 0)
-
-    def test_marker_channel_units(self):
-        self.assertEqual(len(self.source.channel_units), 0)
-
-    def test_channel_labels(self):
-        self.assertEqual(len(self.source.channel_labels), 1)
-        self.assertEqual(self.source.channel_labels[0], "?")
-
-    def test_marker_get_samples_provides_all_samples_in_one_go(self):
-        # first get is all the samples
-        samples, timestamps = self.source.get_samples()
-        self.assertIsNotNone(samples)
-        self.assertGreater(len(samples), 0)
-        self.assertGreater(len(timestamps), 0)
-
-        # second get is empty
-        samples, timestamps = self.source.get_samples()
-        self.assertIsNone(samples)
-        self.assertEqual(len(timestamps), 0)
-
-    def test_marker_time_correction_is_zero_for_xdf(self):
         self.assertEqual(self.source.time_correction(), 0.0)
 
 
