@@ -18,7 +18,6 @@ length.
 
 """
 
-import sys
 import pyxdf
 import time
 import numpy as np
@@ -26,11 +25,9 @@ import numpy as np
 from pylsl import StreamInlet, resolve_byprop, StreamOutlet, StreamInfo
 from pylsl.pylsl import IRREGULAR_RATE
 
-# from bci_essentials.eeg_data_settings import *
-# from bci_essentials.visuals import *
 from bci_essentials.signal_processing import notch, bandpass
-
-# from bci_essentials.classification import *
+from bci_essentials.classification.generic_classifier import Generic_classifier
+from bci_essentials.classification.null_classifier import Null_classifier
 
 
 # EEG data
@@ -44,16 +41,18 @@ class EEG_data:
 
     """
 
-    def __init__(self):
+    def __init__(self, classifier: Generic_classifier = Null_classifier()):
         """Initializes `EEG_data` class.
+
+        Parameters
+        ----------
+        classifier : Generic_classifier
+            The classifier used by EEG_data
 
         Attributes
         ----------
         explict_settings : bool
             Description of attribute `explict_settings`.
-            - Initial value is `False`.
-        classifier_defined : bool
-            Description of attribute `classifier_defined`.
             - Initial value is `False`.
         stream_outlet : bool
             Description of attribute `stream_outlet`.
@@ -69,8 +68,9 @@ class EEG_data:
             - Initial value is `False`.
 
         """
+        self._classifier = classifier
+
         self.explicit_settings = False
-        self.classifier_defined = False
         self.stream_outlet = False
         self.ping_count = 0
         self.ping_interval = 5
@@ -328,7 +328,7 @@ class EEG_data:
 
         # send channel labels to classifier
         try:
-            self.classifier.channel_labels = self.channel_labels
+            self._classifier.channel_labels = self.channel_labels
         except Exception:
             if print_output:
                 print("no classifier defined")
@@ -379,49 +379,68 @@ class EEG_data:
 
         self.subset = subset
 
-        exit_flag = 0
+        wait_for_markers_flag = True
+        wait_for_eeg_flag = True
 
-        if eeg_only is False:
-            try:
-                print("Resolving LSL marker stream... ")
-                marker_stream = resolve_byprop(
-                    "type", "LSL_Marker_Strings", timeout=timeout
-                )
-                self.marker_inlet = StreamInlet(marker_stream[0], processing_flags=0)
-                print("Getting stream info...")
-                marker_info = self.marker_inlet.info()
-                print("The marker stream's XML meta-data is: ")
-                print(marker_info.as_xml())
+        while wait_for_markers_flag is True or wait_for_eeg_flag is True:
+            if eeg_only is True:
+                wait_for_markers_flag = False
 
-            except Exception:
-                print("No marker stream currently available")
-                exit_flag = 1
+            if wait_for_markers_flag is True:
+                # Try to resolve LSL marker stream
+                try:
+                    print("Resolving LSL marker stream... ")
+                    marker_stream = resolve_byprop(
+                        "type", "LSL_Marker_Strings", timeout=timeout
+                    )
+                    self.marker_inlet = StreamInlet(
+                        marker_stream[0], processing_flags=0
+                    )
+                    print("Getting stream info...")
+                    marker_info = self.marker_inlet.info()
+                    print("The marker stream's XML meta-data is: ")
+                    print(marker_info.as_xml())
 
-        # Resolve EEG marker stream
-        try:
-            print("Resolving LSL EEG stream... ")
-            eeg_stream = resolve_byprop("type", "EEG", timeout=timeout)
-            self.eeg_inlet = StreamInlet(eeg_stream[0], processing_flags=0)
-            print("Getting stream info...")
-            eeg_info = self.eeg_inlet.info()
-            print("The EEG stream's XML meta-data is: ")
-            print(eeg_info.as_xml())
-            print(eeg_info)
-            # print(eeg_info.created_at)
+                    wait_for_markers_flag = False
 
-            # if there are no explicit settings
-            if self.explicit_settings is False:
-                self.__get_info_from_stream()
+                except Exception:
+                    print("No marker stream currently available")
+                    wait_for_markers_flag = True
 
-        except Exception as e:
-            print("No EEG stream currently available")
-            print(e)  # print the exception
-            exit_flag = 1
+            if wait_for_eeg_flag is True:
+                # Try to resolve EEG marker stream
+                try:
+                    print("Resolving LSL EEG stream... ")
+                    eeg_stream = resolve_byprop("type", "EEG", timeout=timeout)
+                    self.eeg_inlet = StreamInlet(eeg_stream[0], processing_flags=0)
+                    print("Getting stream info...")
+                    eeg_info = self.eeg_inlet.info()
+                    print("The EEG stream's XML meta-data is: ")
+                    print(eeg_info.as_xml())
+                    print(eeg_info)
+                    # print(eeg_info.created_at)
 
-        # Exit if one or both streams are unavailable
-        if exit_flag == 1:
-            print("No streams available, exiting...")
-            sys.exit()
+                    # if there are no explicit settings
+                    if self.explicit_settings is False:
+                        self.__get_info_from_stream()
+
+                    wait_for_eeg_flag = False
+
+                except Exception as e:
+                    print("No EEG stream currently available")
+                    print(e)  # print the exception
+                    wait_for_eeg_flag = True
+
+            # Exit if one or both streams are unavailable
+            if wait_for_markers_flag is True or wait_for_eeg_flag is True:
+                if wait_for_markers_flag is True:
+                    print("Waiting for marker stream")
+                if wait_for_eeg_flag is True:
+                    print("Waiting for EEG stream")
+
+                print("Waiting 5 seconds for streams to become available...")
+                print("Press Ctrl-C to exit")
+                time.sleep(5)
 
         self.marker_data = []
         self.marker_timestamps = []
@@ -518,7 +537,7 @@ class EEG_data:
 
         # send channel labels to classifier
         try:
-            self.classifier.channel_labels = self.channel_labels
+            self._classifier.channel_labels = self.channel_labels
         except Exception:
             print("no classifier defined")
 
@@ -1169,14 +1188,6 @@ class EEG_data:
         `None`
 
         """
-        # Check if there is a classifier defined
-        try:
-            clf = self.classifier
-            self.classifier_defined = True
-        except Exception:
-            self.classifier_defined = False
-
-        # flag that classifier has not yet been defined, if false it means it will be defined by the marker data
 
         # if this is the first time this function is being called for a given dataset then run some initialization
         if eeg_start == 0:
@@ -1288,12 +1299,6 @@ class EEG_data:
                         if print_markers:
                             print("Trial ended")
 
-                        # If no classifier, then ideally just continue adding to the windows and labels arrays
-                        if self.classifier_defined is False:
-                            print("NO CLASSIFIER DEFINED")
-                            self.marker_count += 1
-                            break
-
                         # Trim the unused ends of numpy arrays
                         current_raw_eeg_windows = current_raw_eeg_windows[
                             0:current_nwindows, 0 : self.nchannels, 0 : self.nsamples
@@ -1305,7 +1310,7 @@ class EEG_data:
 
                         # TRAIN
                         if training:
-                            self.classifier.add_to_train(
+                            self._classifier.add_to_train(
                                 current_processed_eeg_windows,
                                 current_labels,
                                 print_training=print_training,
@@ -1323,7 +1328,7 @@ class EEG_data:
                                     print(
                                         "Added current samples to training set, now making a prediction"
                                     )
-                                prediction = self.classifier.predict(
+                                prediction = self._classifier.predict(
                                     current_processed_eeg_windows,
                                     print_predict=print_predict,
                                 )
@@ -1363,7 +1368,7 @@ class EEG_data:
 
                             # make the prediciton
                             try:
-                                prediction = self.classifier.predict(
+                                prediction = self._classifier.predict(
                                     current_processed_eeg_windows, print_predict
                                 )
                                 self.online_selections.append(prediction)
@@ -1405,14 +1410,10 @@ class EEG_data:
                         self.marker_data[self.marker_count][0] == "Training Complete"
                         and train_complete is False
                     ):
-                        if self.classifier_defined is False:
-                            print("NO CLASSIFIER DEFINED")
-                            self.marker_count += 1
-                            break
                         if print_training:
                             print("Training the classifier")
 
-                        self.classifier.fit(
+                        self._classifier.fit(
                             print_fit=print_fit, print_performance=print_performance
                         )
                         train_complete = True
@@ -1423,7 +1424,7 @@ class EEG_data:
                         if print_training:
                             print("Retraining the classifier")
 
-                        self.classifier.fit(
+                        self._classifier.fit(
                             print_fit=print_fit, print_performance=print_performance
                         )
 
@@ -1457,10 +1458,10 @@ class EEG_data:
 
                     # Load the correct SSVEP freqs
                     if marker_info[0] == "ssvep":
-                        clf.target_freqs = [1] * (len(marker_info) - 4)
-                        clf.sampling_freq = self.fsample
+                        self._classifier.target_freqs = [1] * (len(marker_info) - 4)
+                        self._classifier.sampling_freq = self.fsample
                         for i in range(4, len(marker_info)):
-                            clf.target_freqs[i - 4] = float(marker_info[i])
+                            self._classifier.target_freqs[i - 4] = float(marker_info[i])
                             # print("changed ", i-4, "target frequency to", marker_info[i])
 
                 # Check if the whole EEG window corresponding to the marker is available
@@ -1578,7 +1579,7 @@ class EEG_data:
                 if live_update:
                     try:
                         if self.nsamples != 0:
-                            pred = self.classifier.predict(
+                            pred = self._classifier.predict(
                                 current_processed_eeg_windows[
                                     current_nwindows,
                                     0 : self.nchannels,

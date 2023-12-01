@@ -17,20 +17,18 @@ class TestSmoke(unittest.TestCase):
         # Get the MI example data from ./examples/data
         mi_xdf_path = os.path.join(data_folder_path, "mi_example.xdf")
 
-        # Load the data
-        mi_data = EEG_data()
-        mi_data.load_offline_eeg_data(filename=mi_xdf_path, print_output=False)
-
         # Select a classifier
-        mi_data.classifier = MI_classifier()
-
-        # Define the classifier settings
-        mi_data.classifier.set_mi_classifier_settings(
+        classifier = MI_classifier()
+        classifier.set_mi_classifier_settings(
             n_splits=5, type="TS", random_seed=35, channel_selection="riemann"
         )
 
+        # Load the data
+        data = EEG_data(classifier)
+        data.load_offline_eeg_data(filename=mi_xdf_path, print_output=False)
+
         # Run main loop, this will do all of the classification for online or offline
-        mi_data.main(
+        data.main(
             online=False,
             training=True,
             pp_low=5,
@@ -44,16 +42,16 @@ class TestSmoke(unittest.TestCase):
         )
 
         # Check that a model was trained
-        self.assertIsNotNone(mi_data.classifier.clf)
+        self.assertIsNotNone(classifier.clf)
 
         # Check that accuracy, precision, recall and covariance matrix exist
-        self.assertIsNotNone(mi_data.classifier.offline_accuracy)
-        self.assertIsNotNone(mi_data.classifier.offline_precision)
-        self.assertIsNotNone(mi_data.classifier.offline_recall)
-        self.assertIsNotNone(mi_data.classifier.offline_cm)
+        self.assertIsNotNone(classifier.offline_accuracy)
+        self.assertIsNotNone(classifier.offline_precision)
+        self.assertIsNotNone(classifier.offline_recall)
+        self.assertIsNotNone(classifier.offline_cm)
 
         # Check that the list of class predictions exists
-        self.assertIsNotNone(mi_data.classifier.predictions)
+        self.assertIsNotNone(classifier.predictions)
 
         print("MI test complete")
 
@@ -61,15 +59,9 @@ class TestSmoke(unittest.TestCase):
         # Get the P300 example data from ./examples/data
         p300_xdf_path = os.path.join(data_folder_path, "p300_example.xdf")
 
-        # Load the data
-        p300_data = ERP_data()
-        p300_data.load_offline_eeg_data(filename=p300_xdf_path, print_output=False)
-
         # Select a classifier
-        p300_data.classifier = ERP_rg_classifier()
-
-        # Define the classifier settings
-        p300_data.classifier.set_p300_clf_settings(
+        classifier = ERP_rg_classifier()
+        classifier.set_p300_clf_settings(
             n_splits=5,
             lico_expansion_factor=4,
             oversample_ratio=0,
@@ -77,8 +69,12 @@ class TestSmoke(unittest.TestCase):
             random_seed=35,
         )
 
+        # Load the data
+        data = ERP_data(classifier)
+        data.load_offline_eeg_data(filename=p300_xdf_path, print_output=False)
+
         # Run main loop, this will do all of the classification for online or offline
-        p300_data.main(
+        data.main(
             online=False,
             training=True,
             pp_low=0.1,
@@ -98,16 +94,16 @@ class TestSmoke(unittest.TestCase):
         )
 
         # Check that a model was trained
-        self.assertIsNotNone(p300_data.classifier.clf)
+        self.assertIsNotNone(classifier.clf)
 
         # Check that accuracy, precision, recall and covariance matrix exist
-        self.assertIsNotNone(p300_data.classifier.offline_accuracy)
-        self.assertIsNotNone(p300_data.classifier.offline_precision)
-        self.assertIsNotNone(p300_data.classifier.offline_recall)
-        self.assertIsNotNone(p300_data.classifier.offline_cm)
+        self.assertIsNotNone(classifier.offline_accuracy)
+        self.assertIsNotNone(classifier.offline_precision)
+        self.assertIsNotNone(classifier.offline_recall)
+        self.assertIsNotNone(classifier.offline_cm)
 
         # Check that the list of class predictions exists
-        self.assertIsNotNone(p300_data.classifier.predictions)
+        self.assertIsNotNone(classifier.predictions)
 
         print("P300 test complete")
 
@@ -115,15 +111,9 @@ class TestSmoke(unittest.TestCase):
         # Get the SSVEP example data from ./examples/data
         ssvep_xdf_path = os.path.join(data_folder_path, "ssvep_example.xdf")
 
-        # Load the data
-        ssvep_data = EEG_data()
-        ssvep_data.load_offline_eeg_data(filename=ssvep_xdf_path, print_output=False)
-
         # Select a classifier
-        ssvep_data.classifier = SSVEP_riemannian_mdm_classifier()
-
-        # Define the classifier settings
-        ssvep_data.classifier.set_ssvep_settings(
+        classifier = SSVEP_riemannian_mdm_classifier()
+        classifier.set_ssvep_settings(
             n_splits=3,
             random_seed=35,
             n_harmonics=2,
@@ -131,8 +121,12 @@ class TestSmoke(unittest.TestCase):
             covariance_estimator="scm",
         )
 
+        # Load the data
+        data = EEG_data(classifier)
+        data.load_offline_eeg_data(filename=ssvep_xdf_path, print_output=False)
+
         # Run main loop, this will do all of the classification for online or offline
-        ssvep_data.main(
+        data.main(
             online=False,
             training=True,
             pp_type="bandpass",
@@ -147,16 +141,16 @@ class TestSmoke(unittest.TestCase):
         )
 
         # Check that a model was trained
-        self.assertIsNotNone(ssvep_data.classifier.clf)
+        self.assertIsNotNone(classifier.clf)
 
         # Check that accuracy, precision, recall and covariance matrix exist
-        self.assertIsNotNone(ssvep_data.classifier.offline_accuracy)
-        self.assertIsNotNone(ssvep_data.classifier.offline_precision)
-        self.assertIsNotNone(ssvep_data.classifier.offline_recall)
-        self.assertIsNotNone(ssvep_data.classifier.offline_cm)
+        self.assertIsNotNone(classifier.offline_accuracy)
+        self.assertIsNotNone(classifier.offline_precision)
+        self.assertIsNotNone(classifier.offline_recall)
+        self.assertIsNotNone(classifier.offline_cm)
 
         # Check that the list of class predictions exists
-        self.assertIsNotNone(ssvep_data.classifier.predictions)
+        self.assertIsNotNone(classifier.predictions)
 
         print("SSVEP test complete")
 

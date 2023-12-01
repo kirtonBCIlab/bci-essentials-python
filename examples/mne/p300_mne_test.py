@@ -3,27 +3,27 @@ Test P300 offline using data from an existing stream
 
 """
 
-from bci_essentials.eeg_data import ERP_data
+from bci_essentials.erp_data import ERP_data
 from bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
 
 # Identify the file to simulate
 # This won't work on anyone else's computer
 filename = "C:\\Users\\brian\\OneDrive\\Documents\\BCI\\BCIEssentials\\fatigueDataAnalysis\\fatigueData\\participants\\sub-P06_p300\\ses-postRS_p300\\eeg\\sub-P06_p300_ses-postRS_p300_task-T1_run-001_eeg.xdf"
 
-# Initialize the ERP data object
-test_erp = ERP_data()
-
 # Choose a classifier
-test_erp.classifier = ERP_rg_classifier()  # you can add a subset here
+classifier = ERP_rg_classifier()  # you can add a subset here
 
 # Set classifier settings
-test_erp.classifier.set_p300_clf_settings(
+classifier.set_p300_clf_settings(
     n_splits=5,
     lico_expansion_factor=4,
     oversample_ratio=0,
     undersample_ratio=0,
     random_seed=35,
 )
+
+# Initialize the ERP data object
+test_erp = ERP_data(classifier)
 
 # Load the xdf
 test_erp.load_offline_eeg_data(

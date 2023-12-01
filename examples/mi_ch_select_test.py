@@ -14,18 +14,15 @@ from bci_essentials.classification.mi_classifier import MI_classifier
 # within the same folder as this script
 filename = os.path.join("data", "mi_example_2.xdf")
 
-# Initialize data object
-test_mi = EEG_data()
-
 # Select a classifier
-test_mi.classifier = MI_classifier()  # you can add a subset here
+classifier = MI_classifier()  # you can add a subset here
 
 # Define the classifier settings
-test_mi.classifier.set_mi_classifier_settings(n_splits=5, type="TS", random_seed=35)
+classifier.set_mi_classifier_settings(n_splits=5, type="TS", random_seed=35)
 
 # Define channel selection settings
 initial_subset = []
-test_mi.classifier.setup_channel_selection(
+classifier.setup_channel_selection(
     method="SFFS",
     metric="accuracy",
     iterative_selection=True,
@@ -38,6 +35,9 @@ test_mi.classifier.setup_channel_selection(
     print_output="silent",
     record_performance=True,
 )
+
+# Initialize data object
+test_mi = EEG_data(classifier)
 
 # Load the xdf
 
@@ -63,6 +63,6 @@ test_mi.main(
     print_predict=False,
 )
 
-print(test_mi.classifier.results_df)
+print(classifier.results_df)
 
 print("debug")

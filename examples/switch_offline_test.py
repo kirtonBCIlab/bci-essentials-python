@@ -8,14 +8,12 @@ from bci_essentials.classification.switch_mdm_classifier import Switch_mdm_class
 # within the same folder as this script
 filename = os.path.join("data", "switch_example.xdf")
 
-# Initialize data object
-test_switch = EEG_data()
-
 # Select a classifier
-test_switch.classifier = Switch_mdm_classifier()
-test_switch.classifier.set_switch_classifier_settings(
-    n_splits=2, rebuild=True, random_seed=35
-)
+classifier = Switch_mdm_classifier()
+classifier.set_switch_classifier_settings(n_splits=2, rebuild=True, random_seed=35)
+
+# Initialize data object
+test_switch = EEG_data(classifier)
 
 # Select a file to run, use a file that you have locally
 test_switch.load_offline_eeg_data(filename=filename)
