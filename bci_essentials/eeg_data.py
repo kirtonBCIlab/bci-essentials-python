@@ -71,7 +71,6 @@ class EEG_data:
         """
         self._classifier = classifier
 
-        self.explicit_settings = False
         self.stream_outlet = False
         self.ping_count = 0
         self.ping_interval = 5
@@ -79,8 +78,6 @@ class EEG_data:
         # resting state
         self.resting_state_exists = False
 
-    # LOADING DATA
-    # Explicit definition of settings, not recommended
     def edit_settings(
         self,
         user_id="0000",
@@ -89,11 +86,8 @@ class EEG_data:
         fsample=256,
         max_size=10000,
     ):
-        """Explicit definition of settings.
-
-        Change the settings for (...?)
-
-        "not recommended."
+        """
+        Override settings taked from eeg_source an initialization
 
         Parameters
         ----------
@@ -116,7 +110,6 @@ class EEG_data:
         Returns
         -------
         `None`
-            `self.explicit_settings` is set to `True`.
 
         """
         self.user_id = user_id  # user id
@@ -124,9 +117,6 @@ class EEG_data:
         self.channel_labels = channel_labels  # EEG electrode placements
         self.fsample = fsample  # sampling rate
         self.max_size = max_size  # maximum size of eeg
-        self.explicit_settings = (
-            True  # settings are explicit and will not be updated based on headset data
-        )
 
         if len(channel_labels) != self.nchannels:
             print("Channel locations do not fit number of channels!!!")
@@ -219,7 +209,6 @@ class EEG_data:
         self.channel_labels = self.__eeg_source.channel_labels
 
         # Unless explicit settings are desired, get settings from headset
-        # if self.explicit_settings is False:
         # self.__get_info_from_file(data, print_output)
         # TODO - this is likely duplicated on the LSL side now, also move to init
         self.__get_info_from_file(print_output)
@@ -448,19 +437,17 @@ class EEG_data:
                     # print(eeg_info.created_at)
                     self.__eeg_source = LslEegSource(timeout)
 
-                    # if there are no explicit settings
                     # TODO - move this to init, duplicated on Xdf side also
-                    if self.explicit_settings is False:
-                        self.headset_string = self.__eeg_source.name
-                        self.fsample = self.__eeg_source.fsample
-                        self.nchannels = self.__eeg_source.nchannels
-                        self.ch_type = self.__eeg_source.channel_types
-                        self.ch_units = self.__eeg_source.channel_units
-                        self.channel_labels = self.__eeg_source.channel_labels
-                        print(self.channel_labels)
+                    self.headset_string = self.__eeg_source.name
+                    self.fsample = self.__eeg_source.fsample
+                    self.nchannels = self.__eeg_source.nchannels
+                    self.ch_type = self.__eeg_source.channel_types
+                    self.ch_units = self.__eeg_source.channel_units
+                    self.channel_labels = self.__eeg_source.channel_labels
+                    print(self.channel_labels)
 
-                        # TODO - move this to init
-                        self.__get_info_from_stream()
+                    # TODO - move this to init
+                    self.__get_info_from_stream()
 
                     wait_for_eeg_flag = False
 
