@@ -153,53 +153,9 @@ class EEG_data:
         """
         self.subset = subset
 
-        # if format == "xdf":
-        #     if print_output:
-        #         print("loading ERP data from {}".format(filename))
-
-        #     # load from xdf
-        #     data, self.header = pyxdf.load_xdf(filename)
-
-        #     # get the indexes of data
-        #     for i in range(len(data)):
-        #         namestring = data[i]["info"]["name"][0]
-        #         typestring = data[i]["info"]["type"][0]
-        #         if print_output:
-        #             print(namestring)
-        #             print(typestring)
-
-        #         if typestring == "EEG":
-        #             self.eeg_index = i
-        #         if "LSL_Marker_Strings" in typestring:
-        #             self.marker_index = i
-        #         if "PythonResponse" in namestring:
-        #             self.response_index = i
-
-        #     # fill up the marker and eeg buffers with the saved data
-        #     try:
-        #         self.marker_data = data[self.marker_index]["time_series"]
-        #         self.marker_timestamps = data[self.marker_index]["time_stamps"]
-        #     except Exception:
-        #         print("Marker data not available")
-
-        #     try:
-        #         self.eeg_data = data[self.eeg_index]["time_series"]
-        #         self.eeg_timestamps = data[self.eeg_index]["time_stamps"]
-        #     except Exception:
-        #         print("EEG data not available")
-
-        #     try:
-        #         self.response_data = data[self.response_index]["time_series"]
-        #         self.response_timestamps = data[self.response_index]["time_stamps"]
-        #     except Exception:
-        #         print("Response data not available")
-
         # TODO - eventually, move up to init where the sources are injected
         self.__marker_source = XdfMarkerSource(filename)
-        # self.marker_data, self.marker_timestamps = self.__marker_source.get_markers()
-
         self.__eeg_source = XdfEegSource(filename)
-        # self.eeg_data, self.eeg_timestamps = self.__eeg_source.get_samples()
 
         self.headset_string = self.__eeg_source.name
         self.fsample = self.__eeg_source.fsample
@@ -208,102 +164,12 @@ class EEG_data:
         self.ch_units = self.__eeg_source.channel_units
         self.channel_labels = self.__eeg_source.channel_labels
 
-        # Unless explicit settings are desired, get settings from headset
-        # self.__get_info_from_file(data, print_output)
-        # TODO - this is likely duplicated on the LSL side now, also move to init
-        self.__get_info_from_file(print_output)
-
-        self.marker_data = []
-        self.marker_timestamps = []
-        self.eeg_data = []
-        self.eeg_timestamps = []
-
-        self.marker_data = np.array(self.marker_data)
-        self.marker_timestamps = np.array(self.marker_timestamps)
-        self.eeg_data = np.array(self.eeg_data)
-        self.eeg_timestamps = np.array(self.eeg_timestamps)
-
-        # support for other file types goes here
-
-        # otherwise show an error
-        # else:
-        #     print("Error: file format not supported")
-
-    # Get metadata saved to the offline data file to fill in headset information
-    def __get_info_from_file(self, print_output=True):
-        """Get EEG metadata from the stream.
-
-        Parameters
-        ----------
-        data : pylsl.StreamInlet - need to verify
-            Data object from the LSL stream.
-        print_output : bool, *optional*
-            Output is printed if `True`.
-            - Default is `True`.
-
-        Returns:
-        `None`
-            `self` is updated.
-
-        """
-
-        # self.headset_string = data[self.eeg_index]["info"]["name"][
-        #     0
-        # ]  # headset name in string format
-        # self.fsample = float(
-        #     data[self.eeg_index]["info"]["nominal_srate"][0]
-        # )  # sampling rate
-        # self.nchannels = int(
-        #     data[self.eeg_index]["info"]["channel_count"][0]
-        # )  # number of channels
-
-        # # get chtypes, chunits
-        # self.ch_type = []
-        # self.ch_units = []
-        # for i in range(self.nchannels):
-        #     # type
-        #     ch_type = data[self.eeg_index]["info"]["desc"][0]["channels"][0]["channel"][
-        #         i
-        #     ]["type"][0]
-        #     # send to lower case letters for mne
-        #     ch_type = ch_type.lower()
-        #     # save trigger channel as stim
-        #     if ch_type == "trg":
-        #         ch_type = "stim"
-        #     # add to list
-        #     self.ch_type.append(ch_type)
-
-        #     # units
-        #     ch_units = data[self.eeg_index]["info"]["desc"][0]["channels"][0][
-        #         "channel"
-        #     ][i]["unit"][0]
-        #     self.ch_units.append(ch_units)
-
-        # self.channel_labels = []  # channel labels/locations, 'TRG' means trigger
-        # try:
-        #     for i in range(self.nchannels):
-        #         self.channel_labels.append(
-        #             data[self.eeg_index]["info"]["desc"][0]["channels"][0]["channel"][
-        #                 i
-        #             ]["label"][0]
-        #         )
-
-        # except Exception:
-        #     for i in range(self.nchannels):
-        #         self.channel_labels.append("?")
-
-        # if print_output:
-        #     print(self.channel_labels)
-
         # if it is the DSI7 flex, relabel the channels, may want to make this more flexible in the future
         if print_output:
             print(self.headset_string)
         if self.headset_string == "DSI7":
             if print_output:
                 print(self.channel_labels)
-            # self.channel_labels[self.channel_labels.index('S1')] = 'O1'
-            # self.channel_labels[self.channel_labels.index('S2')] = 'Pz'
-            # self.channel_labels[self.channel_labels.index('S3')] = 'O2'
 
             self.nchannels = 7
             self.channel_labels.pop()
@@ -311,13 +177,6 @@ class EEG_data:
         if self.headset_string == "DSI24":
             self.nchannels = 23
             self.channel_labels.pop()
-
-        # if self.headset_string == "EmotivDataStream-EEG":
-
-        #     self.nchannels = 32
-        #     self.channel_labels = self.channel_labels[3:-2]
-
-        # if other headsets have quirks, they can be accomodated for here
 
         # If a subset is to be used, define a new nchannels, channel labels, and eeg data
         if self.subset != []:
@@ -342,27 +201,25 @@ class EEG_data:
         else:
             self.subset_indices = list(range(0, self.nchannels))
 
-        # send channel labels to classifier
-        try:
-            self._classifier.channel_labels = self.channel_labels
-        except Exception:
-            if print_output:
-                print("no classifier defined")
+        self._classifier.channel_labels = self.channel_labels
 
         if print_output:
             print(self.headset_string)
             print(self.channel_labels)
 
+        self.marker_data = []
+        self.marker_timestamps = []
+        self.eeg_data = []
+        self.eeg_timestamps = []
+
+        self.marker_data = np.array(self.marker_data)
+        self.marker_timestamps = np.array(self.marker_timestamps)
+        self.eeg_data = np.array(self.eeg_data)
+        self.eeg_timestamps = np.array(self.eeg_timestamps)
+
     # ONLINE
     # stream data from an online source
-    def stream_online_eeg_data(
-        self,
-        timeout=5,
-        max_eeg_samples=1000000,
-        max_marker_samples=100000,
-        eeg_only=False,
-        subset=[],
-    ):
+    def stream_online_eeg_data(self, timeout=5, eeg_only=False, subset=[]):
         """Stream data from an online source.
 
         Parameters
@@ -370,12 +227,6 @@ class EEG_data:
         timeout : int, *optional*
             Description of parameter `timeout`.
             Default is `5`.
-        max_eeg_samples : int, *optional*
-            Description of parameter `max_eeg_samples`.
-            - Default is `1000000`.
-        max_marker_samples : int, *optional*
-            Description of parameter `max_marker_samples`.
-            - Default is `100000`.
         eeg_only : bool, *optional*
             Description of parameter `eeg_only`.
             - Default is `False`.
@@ -386,36 +237,20 @@ class EEG_data:
         Returns
         -------
         `None`
-            `self` is updated.
 
         """
-        # self.subset = subset
-
-        # print("printing incoming stream")
 
         self.subset = subset
 
         wait_for_markers_flag = True
         wait_for_eeg_flag = True
-
         while wait_for_markers_flag is True or wait_for_eeg_flag is True:
             if eeg_only is True:
                 wait_for_markers_flag = False
 
             if wait_for_markers_flag is True:
-                # Try to resolve LSL marker stream
                 try:
-                    # print("Resolving LSL marker stream... ")
-                    # marker_stream = resolve_byprop(
-                    #     "type", "LSL_Marker_Strings", timeout=timeout
-                    # )
-                    # self.marker_inlet = StreamInlet(
-                    #     marker_stream[0], processing_flags=0
-                    # )
-                    # print("Getting stream info...")
-                    # marker_info = self.marker_inlet.info()
-                    # print("The marker stream's XML meta-data is: ")
-                    # print(marker_info.as_xml())
+                    # Try to resolve LSL marker stream
                     self.__marker_source = LslMarkerSource(timeout)
                     wait_for_markers_flag = False
 
@@ -424,31 +259,9 @@ class EEG_data:
                     wait_for_markers_flag = True
 
             if wait_for_eeg_flag is True:
-                # Try to resolve EEG marker stream
                 try:
-                    # print("Resolving LSL EEG stream... ")
-                    # eeg_stream = resolve_byprop("type", "EEG", timeout=timeout)
-                    # self.eeg_inlet = StreamInlet(eeg_stream[0], processing_flags=0)
-                    # print("Getting stream info...")
-                    # eeg_info = self.eeg_inlet.info()
-                    # print("The EEG stream's XML meta-data is: ")
-                    # print(eeg_info.as_xml())
-                    # print(eeg_info)
-                    # print(eeg_info.created_at)
+                    # Try to resolve EEG marker stream
                     self.__eeg_source = LslEegSource(timeout)
-
-                    # TODO - move this to init, duplicated on Xdf side also
-                    self.headset_string = self.__eeg_source.name
-                    self.fsample = self.__eeg_source.fsample
-                    self.nchannels = self.__eeg_source.nchannels
-                    self.ch_type = self.__eeg_source.channel_types
-                    self.ch_units = self.__eeg_source.channel_units
-                    self.channel_labels = self.__eeg_source.channel_labels
-                    print(self.channel_labels)
-
-                    # TODO - move this to init
-                    self.__get_info_from_stream()
-
                     wait_for_eeg_flag = False
 
                 except Exception as e:
@@ -467,65 +280,24 @@ class EEG_data:
                 print("Press Ctrl-C to exit")
                 time.sleep(5)
 
-        self.marker_data = []
-        self.marker_timestamps = []
-        self.eeg_data = []
-        self.eeg_timestamps = []
+        # TODO - move this to init, duplicated on Xdf side also
+        self.headset_string = self.__eeg_source.name
+        self.fsample = self.__eeg_source.fsample
+        self.nchannels = self.__eeg_source.nchannels
+        self.ch_type = self.__eeg_source.channel_types
+        self.ch_units = self.__eeg_source.channel_units
+        self.channel_labels = self.__eeg_source.channel_labels
+        print(self.channel_labels)
 
-        self.marker_data = np.array(self.marker_data)
-        self.marker_timestamps = np.array(self.marker_timestamps)
-        self.eeg_data = np.array(self.eeg_data)
-        self.eeg_timestamps = np.array(self.eeg_timestamps)
-
-    # Get headset data from stream
-    def __get_info_from_stream(self):
-        """Get headset data from stream.
-
-        Returns
-        -------
-        `None`
-            `self` is updated.
-        """
-        # get info obect from stream
-        # eeg_info = self.eeg_inlet.info()
-
-        # self.headset_string = eeg_info.name()  # headset name in string format
-        # self.fsample = float(eeg_info.nominal_srate())  # sampling rate
-        # self.nchannels = int(eeg_info.channel_count())  # number of channels
-
-        # get online channel types and units
-
-        # iterate through children of <"channels"> to get the channel labels
-        # ch = eeg_info.desc().child("channels").child("channel")
-        # self.channel_labels = []  # channel labels/locations, 'TRG' means trigger
-        # print("num channels = ", self.nchannels)
-        # for i in range(self.nchannels):
-        #     name = ch.child_value("name")
-        #     if name == "":
-        #         name = ch.child_value("label")
-        #     self.channel_labels.append(name)
-        #     # go to next sibling
-        #     ch = ch.next_sibling()
-
+        # TODO - move this to init
         # if it is the DSI7 flex, relabel the channels, may want to make this more flexible in the future
         if self.headset_string == "DSI7":
-            # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            # print(self.channel_labels)
-            # self.channel_labels[self.channel_labels.index('S1')] = 'O1'
-            # self.channel_labels[self.channel_labels.index('S2')] = 'Pz'
-            # self.channel_labels[self.channel_labels.index('S3')] = 'O2'
-
             self.channel_labels.pop()
             self.nchannels = 7
 
         if self.headset_string == "DSI24":
             self.channel_labels.pop()
             self.nchannels = 23
-
-        # if self.headset_string == "EmotivDataStream-EEG":
-
-        #     self.nchannels = 32
-        #     self.channel_labels = self.channel_labels[3:-2] #Accounting for all the extra parts in EmotivFlex
 
         # If a subset is to be used, define a new nchannels, and channel labels
         if self.subset != []:
@@ -539,8 +311,6 @@ class EEG_data:
             self.channel_labels = self.subset
             print("Subset channels")
             print(self.channel_labels)
-
-        # if other headsets have quirks, they can be accomodated for here
 
         # If a subset is to be used, define a new nchannels, channel labels, and eeg data
         if self.subset != []:
@@ -560,15 +330,21 @@ class EEG_data:
         else:
             self.subset_indices = list(range(0, self.nchannels))
 
-        # send channel labels to classifier
-        try:
-            self._classifier.channel_labels = self.channel_labels
-        except Exception:
-            print("no classifier defined")
+        self._classifier.channel_labels = self.channel_labels
 
         # Print some headset info
         print(self.headset_string)
         print(self.channel_labels)
+
+        self.marker_data = []
+        self.marker_timestamps = []
+        self.eeg_data = []
+        self.eeg_timestamps = []
+
+        self.marker_data = np.array(self.marker_data)
+        self.marker_timestamps = np.array(self.marker_timestamps)
+        self.eeg_data = np.array(self.eeg_data)
+        self.eeg_timestamps = np.array(self.eeg_timestamps)
 
     # Get new data from source, whatever it is
     def _pull_data_from_source(
@@ -598,16 +374,8 @@ class EEG_data:
             Only returns if `return_eeg` is `True`.
 
         """
-        # Pull chunks of new data
         if include_markers:
-            # pull marker chunk
-            # new_marker_data, new_marker_timestamps = self.marker_inlet.pull_chunk(
-            #     timeout=0.1
-            # )
             new_marker_data, new_marker_timestamps = self.__marker_source.get_markers()
-
-            # pull marker time correction
-            # self.marker_time_correction = self.marker_inlet.time_correction()
             self.marker_time_correction = self.__marker_source.time_correction()
 
             # apply time correction
@@ -623,7 +391,6 @@ class EEG_data:
             )
 
         if include_eeg:
-            # new_eeg_data, new_eeg_timestamps = self.eeg_inlet.pull_chunk(timeout=0.1)
             new_eeg_data, new_eeg_timestamps = self.__eeg_source.get_samples()
             new_eeg_data = np.array(new_eeg_data)
 
@@ -657,7 +424,6 @@ class EEG_data:
                     self.time_units = "seconds"
 
             # apply time correction, this is essential for headsets like neurosity which have their own clock
-            # self.eeg_time_correction = self.eeg_inlet.time_correction()
             self.eeg_time_correction = self.__eeg_source.time_correction()
 
             # MAYBE DONT NEED THIS WITH NEW PROC SETTINGS
