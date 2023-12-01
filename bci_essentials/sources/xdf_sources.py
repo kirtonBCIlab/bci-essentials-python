@@ -14,13 +14,13 @@ class XdfMarkerSource(MarkerSource):
     def name(self) -> str:
         return self.__info["name"][0]
 
-    def get_markers(self) -> tuple[list[list] | None, list]:
+    def get_markers(self) -> tuple[list, list]:
         # return all data on first get
         samples = self.__samples
         timestamps = self.__timestamps
 
         # reset to empty for next get
-        self.__samples = None
+        self.__samples = []
         self.__timestamps = []
 
         return [samples, timestamps]
@@ -80,13 +80,13 @@ class XdfEegSource(EegSource):
             pass
         return labels
 
-    def get_samples(self) -> tuple[list[list] | None, list]:
+    def get_samples(self) -> tuple[list, list]:
         # return all data on first get
         samples = self.__samples
         timestamps = self.__timestamps
 
         # reset to empty for next get
-        self.__samples = None
+        self.__samples = []
         self.__timestamps = []
 
         return [samples, timestamps]

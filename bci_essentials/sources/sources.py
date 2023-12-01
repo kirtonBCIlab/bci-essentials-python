@@ -12,7 +12,7 @@ class MarkerSource(ABC):
         pass
 
     @abstractmethod
-    def get_markers(self) -> tuple[list[list] | None, list]:
+    def get_markers(self) -> tuple[list, list]:
         pass
 
     @abstractmethod
@@ -59,7 +59,7 @@ class EegSource(ABC):
         pass
 
     @abstractmethod
-    def get_samples(self) -> tuple[list[list] | None, list]:
+    def get_samples(self) -> tuple[list, list]:
         pass
 
     @abstractmethod

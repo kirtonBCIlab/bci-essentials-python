@@ -13,7 +13,8 @@ class LslMarkerSource(MarkerSource):
     def name(self) -> str:
         return self.__info.name()
 
-    def get_markers(self) -> tuple[list[list] | None, list]:
+    def get_markers(self) -> tuple[list, list]:
+        # TODO - pull_chunk can return None, which blows up Bessy
         samples, timestamps = self.__inlet.pull_chunk(timeout=0.1)
         return [samples, timestamps]
 
@@ -51,7 +52,8 @@ class LslEegSource(EegSource):
     def channel_labels(self) -> list[str]:
         return self.__get_channel_properties("name")
 
-    def get_samples(self) -> tuple[list[list] | None, list]:
+    def get_samples(self) -> tuple[list, list]:
+        # TODO - pull_chunk can return None, which blows up Bessy
         samples, timestamps = self.__inlet.pull_chunk(timeout=0.1)
         return [samples, timestamps]
 

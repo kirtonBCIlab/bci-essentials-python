@@ -382,11 +382,11 @@ class ERP_data(EEG_data):
             if online is False:
                 loops = max_loops
 
-            # online load data
+            # read from sources to get new data
+            self._pull_data_from_source()
+
             if online:
                 # Time sync if not synced
-
-                self._pull_data_from_stream()
 
                 # Create a stream to send markers back to Unity, but only create the stream once
                 if self.stream_outlet is False:

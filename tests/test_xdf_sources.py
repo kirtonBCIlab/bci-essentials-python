@@ -20,7 +20,7 @@ class TestXdfMarkerSource(unittest.TestCase):
 
         # second get is empty
         samples, timestamps = self.source.get_markers()
-        self.assertIsNone(samples)
+        self.assertEqual(samples, [])
         self.assertEqual(len(timestamps), 0)
 
     def test_marker_time_correction_is_zero_for_xdf(self):
@@ -59,10 +59,11 @@ class TestXdfEegSource(unittest.TestCase):
         self.assertIsNotNone(samples)
         self.assertGreater(len(samples), 0)
         self.assertGreater(len(timestamps), 0)
+        self.assertGreater(samples.shape[0], 0)
 
         # second get is empty
         samples, timestamps = self.source.get_samples()
-        self.assertIsNone(samples)
+        self.assertEqual(samples, [])
         self.assertEqual(len(timestamps), 0)
 
     def test_eeg_time_correction_is_zero_for_xdf(self):
