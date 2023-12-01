@@ -13,13 +13,13 @@ class TestXdfMarkerSource(unittest.TestCase):
 
     def test_marker_get_samples_provides_all_samples_in_one_go(self):
         # first get is all the samples
-        samples, timestamps = self.source.get_samples()
+        samples, timestamps = self.source.get_markers()
         self.assertIsNotNone(samples)
         self.assertGreater(len(samples), 0)
         self.assertGreater(len(timestamps), 0)
 
         # second get is empty
-        samples, timestamps = self.source.get_samples()
+        samples, timestamps = self.source.get_markers()
         self.assertIsNone(samples)
         self.assertEqual(len(timestamps), 0)
 
