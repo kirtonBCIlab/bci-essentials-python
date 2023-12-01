@@ -29,6 +29,11 @@ from bci_essentials.signal_processing import notch, bandpass
 from bci_essentials.classification.generic_classifier import Generic_classifier
 from bci_essentials.classification.null_classifier import Null_classifier
 
+# Set-up logging
+import logging
+from .utils.logger import Logger
+
+logger = Logger(name=__name__)
 
 # EEG data
 class EEG_data:
