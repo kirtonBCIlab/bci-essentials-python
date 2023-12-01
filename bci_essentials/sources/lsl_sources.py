@@ -49,7 +49,7 @@ class LslEegSource(EegSource):
 
     @property
     def channel_labels(self) -> list[str]:
-        return self.__get_channel_properties("label")
+        return self.__get_channel_properties("name")
 
     def get_samples(self) -> tuple[list[list] | None, list]:
         samples, timestamps = self.__inlet.pull_chunk(timeout=0.1)
