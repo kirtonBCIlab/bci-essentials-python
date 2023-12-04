@@ -589,6 +589,11 @@ class EEG_data:
             # Add a try exception around pulling the chunks
             new_eeg_data, new_eeg_timestamps = self.eeg_inlet.pull_chunk(timeout=0.1)
 
+            # Make sure the new_eeg_data is not None, due to the dest_obj in pull_chunk being assigned somewhere?
+            if new_eeg_data is None:
+                raise ValueError(
+                    "Got a `None` value back from pull chunk! Something went wrong, returning"
+                )
             # Interrogate the pulled chunk for quality to make sure that it's size makes sense and is not null.
             # This should be done later with a python data structure.
             # Check to see if any nan vals are present
