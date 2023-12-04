@@ -504,19 +504,6 @@ class EEG_data:
         #     self.nchannels = 32
         #     self.channel_labels = self.channel_labels[3:-2] #Accounting for all the extra parts in EmotivFlex
 
-        # If a subset is to be used, define a new nchannels, and channel labels
-        if self.subset != []:
-            print("A subset was defined")
-            print("Original channels")
-            print(self.channel_labels)
-            self.nchannels = len(self.subset)
-            self.subset_indices = []
-            for s in self.subset:
-                self.subset_indices.append(self.channel_labels.index(s))
-            self.channel_labels = self.subset
-            print("Subset channels")
-            print(self.channel_labels)
-
         # if other headsets have quirks, they can be accomodated for here
 
         # If a subset is to be used, define a new nchannels, channel labels, and eeg data
@@ -535,6 +522,7 @@ class EEG_data:
             print(self.channel_labels)
 
         else:
+            print("No subset was defined. Using all channels")
             self.subset_indices = list(range(0, self.nchannels))
 
         # send channel labels to classifier
@@ -616,6 +604,7 @@ class EEG_data:
             # Handle the case when you are using subsets - seemingly always have a subset.
             if self.subset != []:
                 # add try/except phrase around pulling the subset in the chance that something is wrong.
+                # The bug is around the array size being 1-dimensional but us accessing 2 dimensions.
                 new_eeg_data = new_eeg_data[:, self.subset_indices]
 
             # if time is in milliseconds, divide by 1000, works for sampling rates above 10Hz
