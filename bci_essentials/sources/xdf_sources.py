@@ -2,6 +2,8 @@ import pyxdf
 
 from .sources import EegSource, MarkerSource
 
+__all__ = ["XdfMarkerSource", "XdfEegSource"]
+
 
 class XdfMarkerSource(MarkerSource):
     def __init__(self, filename: str):
@@ -46,6 +48,7 @@ class XdfEegSource(EegSource):
     filename : str
         The full name of file, including path.  If file isn't found, an Exception is raised.
     """
+
     def __init__(self, filename: str):
         samples, timestamps, info = load_xdf_stream(filename, "EEG")
         self.__samples = samples

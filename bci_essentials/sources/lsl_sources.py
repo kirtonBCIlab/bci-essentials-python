@@ -2,6 +2,8 @@ from pylsl import StreamInlet, resolve_byprop, FOREVER
 
 from .sources import MarkerSource, EegSource
 
+__all__ = ["LslMarkerSource", "LslEegSource"]
+
 
 class LslMarkerSource(MarkerSource):
     def __init__(self, timeout: float = FOREVER):
