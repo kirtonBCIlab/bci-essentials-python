@@ -133,7 +133,8 @@ class EEG_data:
         )
 
         if len(channel_labels) != self.nchannels:
-            print("Channel locations do not fit number of channels!!!")
+            # print("Channel locations do not fit number of channels!!!")
+            logger.warning("Channel locations do not fit number of channels!!!")
             self.channel_labels = ["?"] * self.nchannels
 
     # Load data from a variety of sources
@@ -169,7 +170,8 @@ class EEG_data:
 
         if format == "xdf":
             if print_output:
-                print("loading ERP data from {}".format(filename))
+                # print("loading ERP data from {}".format(filename))
+                logger.info("loading ERP data from {}".format(filename))
 
             # load from xdf
             data, self.header = pyxdf.load_xdf(filename)
@@ -179,8 +181,10 @@ class EEG_data:
                 namestring = data[i]["info"]["name"][0]
                 typestring = data[i]["info"]["type"][0]
                 if print_output:
-                    print(namestring)
-                    print(typestring)
+                    # print(namestring)
+                    logger.info(namestring)
+                    # print(typestring)
+                    logger.info(typestring)
 
                 if typestring == "EEG":
                     self.eeg_index = i
@@ -194,13 +198,15 @@ class EEG_data:
                 self.marker_data = data[self.marker_index]["time_series"]
                 self.marker_timestamps = data[self.marker_index]["time_stamps"]
             except Exception:
-                print("Marker data not available")
+                # print("Marker data not available")
+                logger.warning("Marker data not available")
 
             try:
                 self.eeg_data = data[self.eeg_index]["time_series"]
                 self.eeg_timestamps = data[self.eeg_index]["time_stamps"]
             except Exception:
-                print("EEG data not available")
+                # print("EEG data not available")
+                logger.warning("EEG data not available")
 
             try:
                 self.response_data = data[self.response_index]["time_series"]
