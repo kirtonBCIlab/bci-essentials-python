@@ -4,8 +4,16 @@ from .sources import EegSource, MarkerSource
 
 
 class XdfMarkerSource(MarkerSource):
-    def __init__(self, filepath: str):
-        samples, timestamps, info = load_xdf_stream(filepath, "LSL_Marker_Strings")
+    def __init__(self, filename: str):
+        """
+        Create a MarkerSource object that obtains markers from an XDF file
+
+        Parameters
+        ----------
+        filename : str
+            The full name of file, including path.  If file isn't found, an Exception is raised.
+        """
+        samples, timestamps, info = load_xdf_stream(filename, "LSL_Marker_Strings")
         self.__samples = samples
         self.__timestamps = timestamps
         self.__info = info
@@ -30,8 +38,16 @@ class XdfMarkerSource(MarkerSource):
 
 
 class XdfEegSource(EegSource):
-    def __init__(self, filepath: str):
-        samples, timestamps, info = load_xdf_stream(filepath, "EEG")
+    """
+    Create a MarkerSource object that obtains EEG from an XDF file
+
+    Parameters
+    ----------
+    filename : str
+        The full name of file, including path.  If file isn't found, an Exception is raised.
+    """
+    def __init__(self, filename: str):
+        samples, timestamps, info = load_xdf_stream(filename, "EEG")
         self.__samples = samples
         self.__timestamps = timestamps
         self.__info = info

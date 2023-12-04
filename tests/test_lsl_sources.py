@@ -5,6 +5,16 @@ from pylsl import StreamInfo, StreamOutlet, IRREGULAR_RATE
 from bci_essentials.sources.lsl_sources import LslMarkerSource, LslEegSource
 
 
+class TestLslSourceTimeouts(unittest.TestCase):
+    def test_lsl_marker_source_raises_exception_on_timeout(self):
+        with self.assertRaises(Exception):
+            LslMarkerSource(timeout=0)
+
+    def test_lsl_eeg_source_raises_exception_on_timeout(self):
+        with self.assertRaises(Exception):
+            LslEegSource(timeout=0)
+
+
 class TestLslMarkerSource(unittest.TestCase):
     def setUp(self) -> None:
         self.sender = LslSender("LSL_Marker_Strings", 1)
@@ -74,7 +84,7 @@ class LslSender:
         self.__outlet = StreamOutlet(info)
         self.__mark_count: float = 0.0
 
-    # This won't work properly unless runnign in a separate thread / process
+    # This won't work properly unless running in a separate thread / process
     def mark(self):
         marker = [self.__mark_count]
         self.__outlet.push_sample(marker)

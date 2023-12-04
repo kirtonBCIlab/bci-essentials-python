@@ -3,6 +3,16 @@ import os
 from bci_essentials.sources.xdf_sources import XdfEegSource, XdfMarkerSource
 
 
+class TestXdfSourceNonexistentFiles(unittest.TestCase):
+    def test_xdf_marker_source_raises_exception_on_bad_filename(self):
+        with self.assertRaises(Exception):
+            XdfMarkerSource("./doesnt_exist.xdf")
+
+    def test_xdf_eeg_source_raises_exception_on_bad_filename(self):
+        with self.assertRaises(Exception):
+            XdfEegSource("./doesnt_exist.xdf")
+
+
 class TestXdfMarkerSource(unittest.TestCase):
     def setUp(self) -> None:
         filepath = os.path.join("examples", "data", "rs_example.xdf")

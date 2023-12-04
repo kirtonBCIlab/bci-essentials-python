@@ -1,13 +1,27 @@
-from pylsl import StreamInlet, resolve_byprop
+from pylsl import StreamInlet, resolve_byprop, FOREVER
 
 from .sources import MarkerSource, EegSource
 
 
 class LslMarkerSource(MarkerSource):
-    def __init__(self, timeout: float = 5.0):
-        marker_stream = resolve_byprop("type", "LSL_Marker_Strings", timeout=timeout)
-        self.__inlet = StreamInlet(marker_stream[0], processing_flags=0)
-        self.__info = self.__inlet.info()
+    def __init__(self, timeout: float = FOREVER):
+        """
+        Create a MarkerSource object that obtains markers from an LSL outlet
+
+        Parameters
+        ----------
+        timeout : float, *optional*
+            How long to wait for marker outlet stream to be discovered.  If no stream
+            is discovered, an Exception is raised.  By defalut init will wait forever.
+        """
+        try:
+            marker_stream = resolve_byprop(
+                "type", "LSL_Marker_Strings", timeout=timeout
+            )
+            self.__inlet = StreamInlet(marker_stream[0], processing_flags=0)
+            self.__info = self.__inlet.info()
+        except Exception:
+            raise Exception("LslMarkerSource: could not create stream")
 
     @property
     def name(self) -> str:
@@ -23,10 +37,22 @@ class LslMarkerSource(MarkerSource):
 
 
 class LslEegSource(EegSource):
-    def __init__(self, timeout: float = 5.0):
-        eeg_stream = resolve_byprop("type", "EEG", timeout=timeout)
-        self.__inlet = StreamInlet(eeg_stream[0], processing_flags=0)
-        self.__info = self.__inlet.info()
+    def __init__(self, timeout: float = FOREVER):
+        """
+        Create a MarkerSource object that obtains EEG from an LSL outlet
+
+        Parameters
+        ----------
+        timeout : float, *optional*
+            How long to wait for marker outlet stream to be discovered.  If no stream
+            is discovered, an Exception is raised.  By defalut init will wait forever.
+        """
+        try:
+            eeg_stream = resolve_byprop("type", "EEG", timeout=timeout)
+            self.__inlet = StreamInlet(eeg_stream[0], processing_flags=0)
+            self.__info = self.__inlet.info()
+        except Exception:
+            raise Exception("LslMarkerSource: could not create stream")
 
     @property
     def name(self) -> str:
