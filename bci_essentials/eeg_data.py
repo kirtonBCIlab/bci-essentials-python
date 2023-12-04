@@ -28,12 +28,12 @@ from pylsl.pylsl import IRREGULAR_RATE
 from bci_essentials.signal_processing import notch, bandpass
 from bci_essentials.classification.generic_classifier import Generic_classifier
 from bci_essentials.classification.null_classifier import Null_classifier
+from .utils.logger import Logger  # Logger class
 
-# Set-up logging
-import logging
-from .utils.logger import Logger
+# Instantiate a logger for the module at the default level of logging.INFO
+logger = Logger(name=__name__)  # bci_essentials.eeg_data
+logger.debug("Imported EEG_data module")
 
-logger = Logger(name=__name__)
 
 # EEG data
 class EEG_data:

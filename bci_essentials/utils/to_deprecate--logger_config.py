@@ -1,8 +1,29 @@
 """Logger Configuration for bci-essentials package.
 
-It provides functions to configure python's logging module with default
-settings for the log format and date format. It also provides a function
-to enable logging to a file with a specified filename.
+This module provides a class to configure logging for the 'bci_essentials' package.
+
+The Logger class in this module allows for easy configuration of logging settings, including the logging level and log message format. It provides a convenient way to set up logging for the 'bci_essentials' package and customize it according to specific needs.
+
+Example usage:
+    from logger import Logger
+
+    # Create a logger instance with default settings
+    logger = Logger()
+
+    # Save logs to a file
+    logger.save()
+
+    # Log an informational message
+    logger.logger.info("This is an informational message")
+
+    # Log a warning message
+    logger.logger.warning("This is a warning message")
+
+    # Log an error message
+    logger.logger.error("This is an error message")
+
+    # Log a critical message
+    logger.logger.critical("This is a critical message")
 
 """
 
