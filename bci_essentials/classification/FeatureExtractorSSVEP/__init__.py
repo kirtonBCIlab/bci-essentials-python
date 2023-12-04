@@ -1,0 +1,10 @@
+from FeatureExtractorSSVEP.featureExtractor import FeatureExtractor
+
+from FeatureExtractorSSVEP.featureExtractorTemplateMatching \
+    import FeatureExtractorTemplateMatching
+    
+from FeatureExtractorSSVEP.featureExtractorCCA import FeatureExtractorCCA
+
+from FeatureExtractorSSVEP.featureExtractorMEC import FeatureExtractorMEC
+
+from FeatureExtractorSSVEP.featureExtractorMSI import FeatureExtractorMSI
