@@ -1,1 +1,0 @@
-""" Interfacing classifier to use NCAN SSVEP classifiers with BCI-essentials-python """
