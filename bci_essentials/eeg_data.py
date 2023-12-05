@@ -473,7 +473,6 @@ class EEG_data:
             # Exit if one or both streams are unavailable
             # ??? Where is the exit?
             if wait_for_markers_flag is True or wait_for_eeg_flag is True:
-                # How would we get rid of these flags if all they do is log messages?
                 if wait_for_markers_flag is True:
                     logger.warning("Waiting for marker stream")
                     # print("Waiting for marker stream")
