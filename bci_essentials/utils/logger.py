@@ -14,12 +14,10 @@ Example usage:
     logger = Logger()
 
     # Create a logger instance with modified logging level e.g. DEBUG
-    import logging
-    logger = Logger(level=logging.DEBUG)
+    logger = Logger(Logger.DEBUG)
 
-    # Change the logging level of an existing logger instance
-    import logging
-    logger.setLevel(logging.DEBUG)
+    # Change the logging level of an existing logger instance e.g. DEBUG
+    logger.set_level(Logger.DEBUG)
 
     # Start saving logs to a file
     # NOTE: This will save all logs AFTER this function is called
@@ -44,14 +42,47 @@ import datetime
 
 
 class Logger():
-    def __init__(self, level=logging.INFO, name='bci_essentials'):
+    """
+    A custom logger for the 'bci_essentials' package.
+
+    This class provides an easy-to-use interface for logging within the 'bci_essentials'
+    package. It supports standard logging levels and allows saving log messages to a
+    file.
+
+    Class Properties
+    ----------------
+    DEBUG : logging.Level
+        Debug level logging. This level outputs detailed information, typically 
+        of interest only when diagnosing problems.
+    INFO : logging.Level
+        Info level logging. Confirmation that things are working as expected.
+    WARNING : logging.Level
+        Warning level logging. An indication that something unexpected happened,
+        or indicative of some problem in the near future (e.g., 'disk space low').
+        The software is still working as expected.
+    ERROR : logging.Level
+        Error level logging. Due to a more serious problem, the software has not been able to perform some function.
+    CRITICAL : logging.Level
+        Critical level logging. A serious error, indicating that the program itself may be unable to continue running.
+
+    """
+    DEBUG = logging.DEBUG
+    INFO = logging.INFO
+    WARNING = logging.WARNING
+    ERROR = logging.ERROR
+    CRITICAL = logging.CRITICAL
+
+    # Setting the default logging level to INFO
+    __default_level = INFO
+
+    def __init__(self, level=__default_level, name='bci_essentials'):
         """Initializes and configures the logger.
 
         Parameters
         ----------
         level : logging.Level
             Logging level as per python `logging` module.
-            - Default is `logging.INFO`.
+            - Default is `INFO`.
         name : str, *optional*
             Name of the logger. **IMPORTANT**: When Logger() is instantiated
             outside of 'bci_essentials' package (e.g. in a user script),
@@ -85,7 +116,7 @@ class Logger():
         if not self.logger.hasHandlers():
             # The logger does not have any handlers set up yet
             # Set the logging level
-            self.setLevel(level)
+            self.set_level(level)
 
             # Create a console handler that logs to standard output
             console_handler = logging.StreamHandler()
@@ -99,13 +130,14 @@ class Logger():
             for handler in self.logger.handlers:
                 handler.setFormatter(logging_format)
 
-    def setLevel(self, level):
+    def set_level(self, level=__default_level):
         """Sets the logging level for the logger.
 
         Parameters
         ----------
         level : logging.Level
             Logging level to be set for the logger.
+            – Default is `INFO`.
 
         """
         # Set the level for the logger

@@ -1,5 +1,6 @@
 import unittest
 import os
+import logging
 
 from bci_essentials.eeg_data import EEG_data
 from bci_essentials.erp_data import ERP_data
@@ -8,9 +9,14 @@ from bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
 from bci_essentials.classification.ssvep_riemannian_mdm_classifier import (
     SSVEP_riemannian_mdm_classifier,
 )
+from bci_essentials.utils.logger import Logger  # Logger class
 
 # data_folder_path = os.path.join("examples", "data")
 data_folder_path = os.path.join("../examples", "data")
+
+# Instantiate a logger for the module at the level of logging.debug
+logger = Logger(name=__name__,level=logging.DEBUG)
+logger.debug("Starting test_logger.py...")
 
 
 class TestSmoke(unittest.TestCase):
@@ -54,7 +60,7 @@ class TestSmoke(unittest.TestCase):
         # Check that the list of class predictions exists
         self.assertIsNotNone(classifier.predictions)
 
-        print("MI test complete")
+        logger.info("MI test complete")
 
     def test_p300_offline(self):
         # Get the P300 example data from ./examples/data
@@ -106,7 +112,7 @@ class TestSmoke(unittest.TestCase):
         # Check that the list of class predictions exists
         self.assertIsNotNone(classifier.predictions)
 
-        print("P300 test complete")
+        logger.info("P300 test complete")
 
     def test_ssvep_offline(self):
         # Get the SSVEP example data from ./examples/data
@@ -153,8 +159,10 @@ class TestSmoke(unittest.TestCase):
         # Check that the list of class predictions exists
         self.assertIsNotNone(classifier.predictions)
 
-        print("SSVEP test complete")
+        logger.info("SSVEP test complete")
 
 
 if __name__ == "__main__":
     unittest.main()
+
+logger.debug("Finished test_logger.py")
