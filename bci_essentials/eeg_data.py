@@ -199,6 +199,7 @@ class EEG_data:
                 self.marker_timestamps = data[self.marker_index]["time_stamps"]
             except Exception:
                 # print("Marker data not available")
+                # Should this be an error?
                 logger.warning("Marker data not available")
 
             try:
@@ -206,6 +207,7 @@ class EEG_data:
                 self.eeg_timestamps = data[self.eeg_index]["time_stamps"]
             except Exception:
                 # print("EEG data not available")
+                # Should this be an error?
                 logger.warning("EEG data not available")
 
             try:
@@ -213,6 +215,8 @@ class EEG_data:
                 self.response_timestamps = data[self.response_index]["time_stamps"]
             except Exception:
                 print("Response data not available")
+                # Should this be an error?
+                logger.warning("Response data not available")
 
             # Unless explicit settings are desired, get settings from headset
             # if self.explicit_settings is False:
@@ -222,7 +226,8 @@ class EEG_data:
 
         # otherwise show an error
         else:
-            print("Error: file format not supported")
+            # print("Error: file format not supported")
+            logger.error("File format not supported")
 
     # Get metadata saved to the offline data file to fill in headset information
     def __get_info_from_file(self, data, print_output=True):
@@ -287,15 +292,20 @@ class EEG_data:
             for i in range(self.nchannels):
                 self.channel_labels.append("?")
 
-        if print_output:
-            print(self.channel_labels)
+        logger.info(self.channel_labels)
+        # if print_output:
+            # print(self.channel_labels)
+            
 
         # if it is the DSI7 flex, relabel the channels, may want to make this more flexible in the future
-        if print_output:
-            print(self.headset_string)
+        logger.info(self.headset_string)
+        # if print_output:
+            # print(self.headset_string)
         if self.headset_string == "DSI7":
-            if print_output:
-                print(self.channel_labels)
+            logger.info(self.channel_labels)
+            # if print_output:
+                # print(self.channel_labels)
+                
             # self.channel_labels[self.channel_labels.index('S1')] = 'O1'
             # self.channel_labels[self.channel_labels.index('S2')] = 'Pz'
             # self.channel_labels[self.channel_labels.index('S3')] = 'O2'
@@ -316,10 +326,12 @@ class EEG_data:
 
         # If a subset is to be used, define a new nchannels, channel labels, and eeg data
         if self.subset != []:
-            if print_output:
-                print("A subset was defined")
-                print("Original channels")
-                print(self.channel_labels)
+            logger.info("A subset was defined")
+            logger.info("Original channels\n%s", self.channel_labels)
+            # if print_output:
+            #     print("A subset was defined")
+            #     print("Original channels")
+            #     print(self.channel_labels)
 
             self.nchannels = len(self.subset)
             self.subset_indices = []
@@ -327,9 +339,10 @@ class EEG_data:
                 self.subset_indices.append(self.channel_labels.index(s))
 
             self.channel_labels = self.subset
-            if print_output:
-                print("Subset channels")
-                print(self.channel_labels)
+            logger.info("Subset channels\n%s", self.channel_labels)
+            # if print_output:
+            #     print("Subset channels")
+            #     print(self.channel_labels)
 
             # Apply the subset to the raw data
             self.eeg_data = self.eeg_data[:, self.subset_indices]
@@ -341,12 +354,15 @@ class EEG_data:
         try:
             self._classifier.channel_labels = self.channel_labels
         except Exception:
-            if print_output:
-                print("no classifier defined")
+            logger.warning("No classifier defined")
+            # if print_output:
+            #     print("no classifier defined")
 
-        if print_output:
-            print(self.headset_string)
-            print(self.channel_labels)
+        logger.info(self.headset_string)
+        logger.info(self.channel_labels)
+        # if print_output:
+        #     print(self.headset_string)
+        #     print(self.channel_labels)
 
     # ONLINE
     # stream data from an online source
@@ -386,7 +402,8 @@ class EEG_data:
         """
         self.subset = subset
 
-        print("printing incoming stream")
+        logger.info("Printing incoming stream")
+        # print("printing incoming stream")
 
         self.subset = subset
 
@@ -400,35 +417,45 @@ class EEG_data:
             if wait_for_markers_flag is True:
                 # Try to resolve LSL marker stream
                 try:
-                    print("Resolving LSL marker stream... ")
+                    logger.info("Resolving LSL marker stream... ")
+                    # print("Resolving LSL marker stream... ")
                     marker_stream = resolve_byprop(
                         "type", "LSL_Marker_Strings", timeout=timeout
                     )
                     self.marker_inlet = StreamInlet(
                         marker_stream[0], processing_flags=0
                     )
-                    print("Getting stream info...")
+                    # print("Getting stream info...")
+                    logger.info("Getting stream info...")
                     marker_info = self.marker_inlet.info()
-                    print("The marker stream's XML meta-data is: ")
-                    print(marker_info.as_xml())
+                    logger.info("The marker stream's XML meta-data is:\n%s",
+                                marker_info.as_xml())
+                    # print("The marker stream's XML meta-data is: ")
+                    # print(marker_info.as_xml())
 
                     wait_for_markers_flag = False
 
                 except Exception:
-                    print("No marker stream currently available")
+                    logger.warning("No marker stream currently available")
+                    # print("No marker stream currently available")
                     wait_for_markers_flag = True
 
             if wait_for_eeg_flag is True:
                 # Try to resolve EEG marker stream
                 try:
-                    print("Resolving LSL EEG stream... ")
+                    logger.info("Resolving LSL EEG stream... ")
+                    # print("Resolving LSL EEG stream... ")
                     eeg_stream = resolve_byprop("type", "EEG", timeout=timeout)
                     self.eeg_inlet = StreamInlet(eeg_stream[0], processing_flags=0)
-                    print("Getting stream info...")
+                    logger.info("Getting stream info...")
+                    # print("Getting stream info...")
                     eeg_info = self.eeg_inlet.info()
-                    print("The EEG stream's XML meta-data is: ")
-                    print(eeg_info.as_xml())
-                    print(eeg_info)
+                    logger.info("The EEG stream's XML meta-data is:\n%s\n%s",
+                                eeg_info.as_xml(),
+                                eeg_info)
+                    # print("The EEG stream's XML meta-data is: ")
+                    # print(eeg_info.as_xml())
+                    # print(eeg_info)
                     # print(eeg_info.created_at)
 
                     # if there are no explicit settings
@@ -438,8 +465,9 @@ class EEG_data:
                     wait_for_eeg_flag = False
 
                 except Exception as e:
-                    print("No EEG stream currently available")
-                    print(e)  # print the exception
+                    logger.warning("No EEG stream currently available\n%s", e)
+                    # print("No EEG stream currently available")
+                    # print(e)  # print the exception
                     wait_for_eeg_flag = True
 
             # Exit if one or both streams are unavailable

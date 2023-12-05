@@ -1,6 +1,6 @@
 """Utility for logging within BCI-Essentials.
 
-This module provides a `Logger` class that allows for easy configuration of
+This module provides a `Logger` wrapper class that allows for easy configuration of
 logging settings for the 'bci_essentials' package. It uses the `logging` module
 from Python's standard library to handle logging functionality.
 
@@ -66,6 +66,8 @@ class Logger():
         Critical level logging. A serious error, indicating that the program itself may be unable to continue running.
 
     """
+    # Define logging levels as a Class Property for easy access.
+    # These are the same as the logging levels in the `logging` module.
     DEBUG = logging.DEBUG
     INFO = logging.INFO
     WARNING = logging.WARNING
@@ -73,7 +75,16 @@ class Logger():
     CRITICAL = logging.CRITICAL
 
     # Setting the default logging level to INFO
+    # Update docstrings on __init__ and set_level() if this is changed
     __default_level = INFO
+    # Mapping of logging levels to their string representations
+    __level_names = {
+        logging.DEBUG: "DEBUG",
+        logging.INFO: "INFO",
+        logging.WARNING: "WARNING",
+        logging.ERROR: "ERROR",
+        logging.CRITICAL: "CRITICAL"
+    }
 
     def __init__(self, level=__default_level, name='bci_essentials'):
         """Initializes and configures the logger.
@@ -81,8 +92,10 @@ class Logger():
         Parameters
         ----------
         level : logging.Level
-            Logging level as per python `logging` module.
-            - Default is `INFO`.
+            Logging level as per python `logging` module. This can be set using
+            the class properties `Logger.DEBUG`, `Logger.INFO`,
+            `Logger.WARNING`, `Logger.ERROR`, and `Logger.CRITICAL`.
+            - Default is `Logger.INFO`.
         name : str, *optional*
             Name of the logger. **IMPORTANT**: When Logger() is instantiated
             outside of 'bci_essentials' package (e.g. in a user script),
@@ -136,10 +149,16 @@ class Logger():
         Parameters
         ----------
         level : logging.Level
-            Logging level to be set for the logger.
-            – Default is `INFO`.
+            Logging level as per python `logging` module. This can be set using
+            the class properties `Logger.DEBUG`, `Logger.INFO`,
+            `Logger.WARNING`, `Logger.ERROR`, and `Logger.CRITICAL`.
+            - Default is `Logger.INFO`.
 
         """
+        # Inform the user of the new logging level
+        level_name = self.__level_names.get(level, "Unknown Level")
+        self.info(f'Setting logging level to {level_name}')
+        
         # Set the level for the logger
         self.logger.setLevel(level)
 
@@ -170,59 +189,97 @@ class Logger():
         file_handler.setFormatter(file_formatter)
         self.logger.addHandler(file_handler)
 
-    def debug(self, message):
-        """Logs a DEBUG message.
+    def debug(self, msg, *args, **kwargs):
+        """
+        Logs a DEBUG message.
 
         Parameters
         ----------
-        message : str
-            Message to be logged at the DEBUG level.
+        msg : str
+            The log message format string.
+        *args
+            Arguments merged into msg using string formatting.
+        **kwargs
+            Additional keyword arguments.
 
+        Examples
+        --------
+        >>> logger.debug("Debug message with variable: %s", variable_name)
         """
-        self.logger.debug(message)
+        self.logger.debug(msg, *args, **kwargs)
 
-    def info(self, message):
-        """Logs an INFO message.
-
-        This is the default logging level.
+    def info(self, msg, *args, **kwargs):
+        """
+        Logs an INFO message.
 
         Parameters
         ----------
-        message : str
-            Message to be logged at the INFO level.
+        msg : str
+            The log message format string.
+        *args
+            Arguments merged into msg using string formatting.
+        **kwargs
+            Additional keyword arguments.
 
+        Examples
+        --------
+        >>> logger.info("Info message with variable: %s", variable_name)
         """
-        self.logger.info(message)
+        self.logger.info(msg, *args, **kwargs)
 
-    def warning(self, message):
-        """Logs a WARNING message.
+    def warning(self, msg, *args, **kwargs):
+        """
+        Logs a WARNING message.
 
         Parameters
         ----------
-        message : str
-            Message to be logged at the WARNING level.
+        msg : str
+            The log message format string.
+        *args
+            Arguments merged into msg using string formatting.
+        **kwargs
+            Additional keyword arguments.
 
+        Examples
+        --------
+        >>> logger.warning("Warning message with variable: %s", variable_name)
         """
-        self.logger.warning(message)
+        self.logger.warning(msg, *args, **kwargs)
 
-    def error(self, message):
-        """Logs an ERROR message.
+    def error(self, msg, *args, **kwargs):
+        """
+        Logs an ERROR message.
 
         Parameters
         ----------
-        message : str
-            Message to be logged at the ERROR level.
+        msg : str
+            The log message format string.
+        *args
+            Arguments merged into msg using string formatting.
+        **kwargs
+            Additional keyword arguments.
 
+        Examples
+        --------
+        >>> logger.error("Error message with variable: %s", variable_name)
         """
-        self.logger.error(message)
+        self.logger.error(msg, *args, **kwargs)
 
-    def critical(self, message):
-        """Logs a CRITICAL message.
+    def critical(self, msg, *args, **kwargs):
+        """
+        Logs a CRITICAL message.
 
         Parameters
         ----------
-        message : str
-            Message to be logged at the CRITICAL level.
+        msg : str
+            The log message format string.
+        *args
+            Arguments merged into msg using string formatting.
+        **kwargs
+            Additional keyword arguments.
 
+        Examples
+        --------
+        >>> logger.critical("Critical message with variable: %s", variable_name)
         """
-        self.logger.critical(message)
+        self.logger.critical(msg, *args, **kwargs)
