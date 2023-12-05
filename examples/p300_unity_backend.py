@@ -1,5 +1,10 @@
+from bci_essentials.sources.lsl_sources import LslEegSource, LslMarkerSource
 from bci_essentials.erp_data import ERP_data
 from bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
+
+# create LSL sources, these will block until the outlets are present
+eeg_source = LslEegSource()
+marker_source = LslMarkerSource()
 
 # Set classifier settings ()
 classifier = ERP_rg_classifier()  # you can add a subset here
@@ -14,10 +19,7 @@ classifier.set_p300_clf_settings(
 )
 
 # Initialize the ERP
-test_erp = ERP_data(classifier)
-
-# Connect the streams
-test_erp.stream_online_eeg_data()  # you can also add a subset here
+test_erp = ERP_data(eeg_source, marker_source, classifier)
 
 # Run main
 test_erp.main(

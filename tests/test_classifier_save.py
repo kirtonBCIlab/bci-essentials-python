@@ -2,6 +2,7 @@ import unittest
 import os
 import numpy as np
 
+from bci_essentials.sources.xdf_sources import XdfEegSource, XdfMarkerSource
 from bci_essentials.eeg_data import EEG_data
 from bci_essentials.erp_data import ERP_data
 from bci_essentials.classification.mi_classifier import MI_classifier
@@ -15,6 +16,8 @@ class TestClassifierSave(unittest.TestCase):
     def test_mi_manual_classifier_save(self):
         # Get the MI example data from ./examples/data
         mi_xdf_path = os.path.join(data_folder_path, "mi_example.xdf")
+        mi_eeg_source1 = XdfEegSource(mi_xdf_path)
+        mi_marker_source1 = XdfMarkerSource(mi_xdf_path)
 
         # Select a classifier
         mi_classifier1 = MI_classifier()
@@ -27,8 +30,7 @@ class TestClassifierSave(unittest.TestCase):
         )
 
         # Load the data
-        mi_data1 = EEG_data(mi_classifier1)
-        mi_data1.load_offline_eeg_data(filename=mi_xdf_path, print_output=False)
+        mi_data1 = EEG_data(mi_eeg_source1, mi_marker_source1, mi_classifier1)
 
         # Run main loop, this will do all of the classification for online or offline
         mi_data1.main(
@@ -50,11 +52,10 @@ class TestClassifierSave(unittest.TestCase):
         # Load the classifier
         mi_classifier2 = load_classifier("test_mi_classifier.pkl")
 
-        # Create a new EEG_data object
-        mi_data2 = EEG_data(mi_classifier2)
-
-        # Load the data
-        mi_data2.load_offline_eeg_data(filename=mi_xdf_path, print_output=False)
+        # Create a new EEG_data object, recreate xdf sources to reload files
+        mi_eeg_source2 = XdfEegSource(mi_xdf_path)
+        mi_marker_source2 = XdfMarkerSource(mi_xdf_path)
+        mi_data2 = EEG_data(mi_eeg_source2, mi_marker_source2, mi_classifier2)
 
         # Check that all values of the classifier's numpy arrays are the same
         self.assertTrue(np.array_equal(mi_classifier1.X, mi_classifier2.X))
@@ -96,6 +97,8 @@ class TestClassifierSave(unittest.TestCase):
     def test_p300_manual_classifier_save(self):
         # Get the P300 example data from ./examples/data
         p300_xdf_path = os.path.join(data_folder_path, "p300_example.xdf")
+        p300_eeg_source1 = XdfEegSource(p300_xdf_path)
+        p300_marker_source1 = XdfMarkerSource(p300_xdf_path)
 
         # Select a classifier
         p300_classifier1 = ERP_rg_classifier()
@@ -108,8 +111,7 @@ class TestClassifierSave(unittest.TestCase):
         )
 
         # Load the data
-        p300_data1 = ERP_data(p300_classifier1)
-        p300_data1.load_offline_eeg_data(filename=p300_xdf_path, print_output=False)
+        p300_data1 = ERP_data(p300_eeg_source1, p300_marker_source1, p300_classifier1)
 
         # Run main loop, this will do all of the classification for online or offline
         p300_data1.main(
@@ -137,11 +139,10 @@ class TestClassifierSave(unittest.TestCase):
         # Load the classifier
         p300_classifier2 = load_classifier("test_p300_classifier.pkl")
 
-        # Create a new ERP_data object
-        p300_data2 = ERP_data(p300_classifier2)
-
-        # Load the data
-        p300_data2.load_offline_eeg_data(filename=p300_xdf_path, print_output=False)
+        # Create a new ERP_data object, recreate xdf sources to reload files
+        p300_eeg_source2 = XdfEegSource(p300_xdf_path)
+        p300_marker_source2 = XdfMarkerSource(p300_xdf_path)
+        p300_data2 = ERP_data(p300_eeg_source2, p300_marker_source2, p300_classifier2)
 
         # Check that all values of the classifier's numpy arrays are the same
         self.assertTrue(np.array_equal(p300_classifier1.X, p300_classifier2.X))

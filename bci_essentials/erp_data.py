@@ -25,28 +25,14 @@ import matplotlib.pyplot as plt
 from pylsl import StreamOutlet, StreamInfo
 from pylsl.pylsl import IRREGULAR_RATE
 
-from bci_essentials.eeg_data import EEG_data
-from bci_essentials.classification.generic_classifier import Generic_classifier
+from .eeg_data import EEG_data
 
 
 # ERP Data
 class ERP_data(EEG_data):
-    """Class that holds, windows, processes and classifies ERP data.
-
-    Above description needs to be verified.
-
     """
-
-    def __init__(self, classifier: Generic_classifier):
-        """Initializes `ERP_data` class.
-
-        Parameters
-        ----------
-        classifier : Generic_classifier
-            The classifier used by ERP_data
-
-        """
-        super().__init__(classifier)
+    Class that holds, windows, processes and classifies ERP data.
+    """
 
     def mne_export_as_raw(self):
         """MNE export EEG as RawArray

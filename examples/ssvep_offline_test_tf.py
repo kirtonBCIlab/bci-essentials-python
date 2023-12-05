@@ -3,6 +3,7 @@
 
 import os
 
+from bci_essentials.sources.xdf_sources import XdfEegSource, XdfMarkerSource
 from bci_essentials.eeg_data import EEG_data
 from bci_essentials.classification.ssvep_basic_tf_classifier import (
     SSVEP_basic_tf_classifier,
@@ -12,6 +13,8 @@ from bci_essentials.classification.ssvep_basic_tf_classifier import (
 # Filename assumes the data is within a subfolder called "data" located
 # within the same folder as this script
 filename = os.path.join("data", "ssvep_example.xdf")
+eeg_source = XdfEegSource(filename)
+marker_source = XdfMarkerSource(filename)
 
 # Define the classifier
 classifier = SSVEP_basic_tf_classifier(subset=[])
@@ -35,10 +38,7 @@ classifier.set_ssvep_settings(
 
 # Initialize the SSVEP
 # should try to automate the reading of some of this stuff from the file header
-test_ssvep = EEG_data(classifier)
-
-# Load from xdf into erp_data format
-test_ssvep.load_offline_eeg_data(filename=filename, format="xdf")
+test_ssvep = EEG_data(eeg_source, marker_source, classifier)
 
 test_ssvep.main(
     online=False,
