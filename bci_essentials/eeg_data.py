@@ -77,6 +77,9 @@ class EEG_data:
         self.ch_units = self.__eeg_source.channel_units
         self.channel_labels = self.__eeg_source.channel_labels
 
+        # Switch any trigger channels to stim, this is for mne/bids export (?)
+        self.ch_type = [type.replace("trg", "stim") for type in self.ch_type]
+
         # if it is the DSI7 flex, relabel the channels, may want to make this more flexible in the future
         if self.headset_string == "DSI7":
             self.channel_labels.pop()
