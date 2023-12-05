@@ -131,7 +131,7 @@ class EEG_data:
         fsample=256,
         max_size=10000,
     ):
-        """Override settings taked from eeg_source an initialization
+        """Override settings obtained from eeg_source on init
 
         Parameters
         ----------

@@ -13,7 +13,7 @@ class LslMarkerSource(MarkerSource):
         ----------
         timeout : float, *optional*
             How long to wait for marker outlet stream to be discovered.  If no stream
-            is discovered, an Exception is raised.  By defalut init will wait forever.
+            is discovered, an Exception is raised.  By default init will wait forever.
         """
         try:
             marker_stream = resolve_byprop(
