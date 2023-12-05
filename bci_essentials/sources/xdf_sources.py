@@ -7,8 +7,7 @@ __all__ = ["XdfMarkerSource", "XdfEegSource"]
 
 class XdfMarkerSource(MarkerSource):
     def __init__(self, filename: str):
-        """
-        Create a MarkerSource object that obtains markers from an XDF file.
+        """Create a MarkerSource object that obtains markers from an XDF file.
 
         Parameters
         ----------
@@ -25,9 +24,8 @@ class XdfMarkerSource(MarkerSource):
         return self.__info["name"][0]
 
     def get_markers(self) -> tuple[list, list]:
-        """
-        Read markers and related timestamps from the XDF file.  Returns the contents of the file
-        on the first call to get_markers(), then empty lists.
+        """Read markers and related timestamps from the XDF file.  Returns the contents of the file
+        on the first call to get_markers(), returns empty lists thereafter.
         """
         # return all data on first get
         samples = self.__samples
@@ -44,8 +42,7 @@ class XdfMarkerSource(MarkerSource):
 
 
 class XdfEegSource(EegSource):
-    """
-    Create a MarkerSource object that obtains EEG from an XDF file
+    """Create a MarkerSource object that obtains EEG from an XDF file
 
     Parameters
     ----------
@@ -104,9 +101,8 @@ class XdfEegSource(EegSource):
         return labels
 
     def get_samples(self) -> tuple[list, list]:
-        """
-        Read markers and related timestamps from the XDF file.  Returns the contents of the file
-        on the first call to get_markers(), then empty lists.
+        """Read markers and related timestamps from the XDF file.  Returns the contents of the file
+        on the first call to get_markers(), returns empty lists thereafter.
         """
         # return all data on first get
         samples = self.__samples
@@ -123,9 +119,7 @@ class XdfEegSource(EegSource):
 
 
 def load_xdf_stream(filepath: str, streamtype: str) -> tuple[list, list, list]:
-    """
-    Load the contents of the XDF file and return stream data, timestamps and info
-    """
+    """A helper function to load the contents of the XDF file and return stream data, timestamps and info"""
     #  Don't need the header returned by load_xdf()
     streams, _ = pyxdf.load_xdf(filepath)
 

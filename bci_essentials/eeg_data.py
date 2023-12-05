@@ -43,8 +43,7 @@ class EEG_data:
         marker_source: MarkerSource | None = None,
         subset: list[str] = [],
     ):
-        """
-        Initializes `EEG_data` class.
+        """Initializes `EEG_data` class.
 
         Parameters
         ----------
@@ -53,17 +52,18 @@ class EEG_data:
         eeg_source : EegSource
             Source of EEG data and timestamps, this could be from a file or headset via LSL, etc.
         marker_source : EegSource
-            Source of Marker/Control data and timestamps, this could be from a file or unity via LSL, etc.
-            The default value is None.
+            Source of Marker/Control data and timestamps, this could be from a file or unity via
+            LSL, etc.  The default value is None.
         subset : list of `int`, *optional*
             The list of EEG channel names to process, default is `[]`, meaning all channels.
-
         """
 
         # Check the types of incoming dependencies
         assert isinstance(classifier, Generic_classifier), "classifier type error"
         assert isinstance(eeg_source, EegSource), "eeg_source type error"
-        assert isinstance(marker_source, MarkerSource | None), "marker_source type error"
+        assert isinstance(
+            marker_source, MarkerSource | None
+        ), "marker_source type error"
 
         self._classifier = classifier
         self.__eeg_source = eeg_source
@@ -131,8 +131,7 @@ class EEG_data:
         fsample=256,
         max_size=10000,
     ):
-        """
-        Override settings taked from eeg_source an initialization
+        """Override settings taked from eeg_source an initialization
 
         Parameters
         ----------
@@ -169,9 +168,9 @@ class EEG_data:
 
     # Get new data from source, whatever it is
     def _pull_data_from_source(self):
-        """
-        Get pull data from EEG and optionally, the marker source.
+        """Get pull data from EEG and optionally, the marker source.
 
+        This method will fill up the marker_data, eeg_data and corresponding timestamp arrays.
         """
         # pull from marker source if present
         if self.__marker_source is not None:

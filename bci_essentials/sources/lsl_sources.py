@@ -7,8 +7,7 @@ __all__ = ["LslMarkerSource", "LslEegSource"]
 
 class LslMarkerSource(MarkerSource):
     def __init__(self, timeout: float = FOREVER):
-        """
-        Create a MarkerSource object that obtains markers from an LSL outlet
+        """Create a MarkerSource object that obtains markers from an LSL outlet
 
         Parameters
         ----------
@@ -40,8 +39,7 @@ class LslMarkerSource(MarkerSource):
 
 class LslEegSource(EegSource):
     def __init__(self, timeout: float = FOREVER):
-        """
-        Create a MarkerSource object that obtains EEG from an LSL outlet
+        """Create a MarkerSource object that obtains EEG from an LSL outlet
 
         Parameters
         ----------
