@@ -1,6 +1,9 @@
 
 import numpy as np
-import FeatureExtractorSSVEP
+from ..classification import FeatureExtractorSSVEP
+# import ..classification.FeatureExtractorSSVEP as FeatureExtractorSSVEP
+# from ..classification.FeatureExtractorSSVEP import FeatureExtractor
+# import FeatureExtractorSSVEP
 from ..classification.generic_classifier import Generic_classifier
 
 class SSVEP_NCAN_classifier(Generic_classifier):
@@ -12,10 +15,10 @@ class SSVEP_NCAN_classifier(Generic_classifier):
     def set_ssvep_settings(
         self,
         sampling_freq:int,
-        target_freqs:list[int],
+        target_freqs:np.ndarray,
         classifier_name:str="MEC",
         harmonics_count:int=4,
-        subbands:np.ndarray=None,
+        subbands=None,
         voters_count:int=1,
         use_gpu:bool=False,
         max_batch_size:int=16,
@@ -72,20 +75,27 @@ class SSVEP_NCAN_classifier(Generic_classifier):
         self.max_batch_size = max_batch_size
         self.explicit_multithreading = explicit_multithreading
         
+        # Create classifier object
+        classifiers = {
+            "CCA": FeatureExtractorSSVEP.FeatureExtractorCCA,
+            "MEC": FeatureExtractorSSVEP.FeatureExtractorMEC,
+            "MSI": FeatureExtractorSSVEP.featureExtractorMSI,
+        }
+        self.clf = classifiers[classifier_name]()
+
         # Flag to determine if the classifier has been created and set up
         self.setup = False
-
         
-    def fit(self):
+    def fit(self, print_fit=True, print_performance=True):
         """ Fit the model. """
 
-    def predict(self, X):
+    def predict(self, X, print_predict):
         # Get the shape of the data
         (nwindows, nchannels, nsamples) = X.shape
 
         # Check that the classifier has not been created, to create it only once
         if self.setup == False:
-            self.clf = exec(f"import FeatureExtractorSSVEP.FeatureExtractor{self.classifier_name}()")
+            # self.clf = exec(f"import FeatureExtractorSSVEP.FeatureExtractor{self.classifier_name}()")
             self.clf.setup_feature_extractor(
                 harmonics_count = self.harmonics_count,
                 targets_frequencies = self.target_freqs,
@@ -94,9 +104,8 @@ class SSVEP_NCAN_classifier(Generic_classifier):
                 use_gpu = self.use_gpu,
                 max_batch_size = self.max_batch_size,
                 explicit_multithreading = self.explicit_multithreading,
-                samples_count = nwindows,
+                samples_count = nsamples,
                 subbands = self.subbands,
-                max_correlation_only = True,
             )
 
             self.setup = True

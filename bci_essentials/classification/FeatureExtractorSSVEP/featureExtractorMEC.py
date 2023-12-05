@@ -8,8 +8,7 @@ Implementation of MEC feature extraction method
 """
 # Import the definition of the parent class.  Make sure the file is in the
 # working directory.  
-from FeatureExtractorSSVEP_modified.featureExtractorTemplateMatching \
-    import FeatureExtractorTemplateMatching
+from .featureExtractorTemplateMatching import FeatureExtractorTemplateMatching
 
 # Needed for many matrix computations
 import numpy as np

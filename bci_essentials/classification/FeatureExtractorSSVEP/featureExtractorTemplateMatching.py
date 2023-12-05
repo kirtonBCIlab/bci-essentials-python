@@ -1,6 +1,6 @@
 # featureExtractorTemplateMatching.py
 """Definition for the parent class for CCA, MEC, and MSI"""
-from FeatureExtractorSSVEP_modified.featureExtractor import FeatureExtractor
+from .featureExtractor import FeatureExtractor
 import numpy as np
 
 class FeatureExtractorTemplateMatching(FeatureExtractor):

@@ -2,7 +2,6 @@
 """Definition of the class FeatureExtractor"""
 import numpy as np
 import sys
-import nvtx
 from scipy.signal import sosfiltfilt, butter
 from multiprocessing import Pool
 
@@ -350,7 +349,6 @@ class FeatureExtractor:
         # Do nothing
         pass
     
-    @nvtx.annotate("Process signals - agnostic", color="red", domain="NVTX", category="processing-agnostic")
     def process_signals_platform_agnostic(self):
         """Process signals on GPU or CPU depending on use_gpu flag"""
         # Perform pre-computations that are common for all voters.

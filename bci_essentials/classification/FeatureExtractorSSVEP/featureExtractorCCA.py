@@ -8,14 +8,12 @@ Journal of neural engineering 12.4 (2015): 046008.
 
 # Import the definition of the parent class.  Make sure the file is in the
 # working directory. 
-from FeatureExtractorSSVEP_modified.featureExtractorTemplateMatching \
-    import FeatureExtractorTemplateMatching
+from .featureExtractorTemplateMatching import FeatureExtractorTemplateMatching
 
 # Needed for basic matrix operations. 
 from sklearn.cross_decomposition import CCA
 from sklearn import config_context
 import numpy as np
-import nvtx
 
 try:
     import cupy as cp
@@ -192,7 +190,6 @@ class FeatureExtractorCCA(FeatureExtractorTemplateMatching):
             
         self.max_correlation_only = max_correlation_only
                        
-    @nvtx.annotate("get features", color='blue', domain="NVTX")   
     def get_features(self, device):
         """Extract features using CCA"""   
         # Get the current batch of data        
@@ -269,7 +266,6 @@ class FeatureExtractorCCA(FeatureExtractorTemplateMatching):
         
         return features
 
-    @nvtx.annotate("CCA", color="blue", domain="NVTX", category="feature-extraction")
     def canonical_correlation_reduced(self, signal, device):
         """Compute the canonical correlation between X and Y. """         
         q_template = self.q_template_handle[device]
@@ -295,13 +291,11 @@ class FeatureExtractorCCA(FeatureExtractorTemplateMatching):
         
         return r
     
-    @nvtx.annotate("SVD decomposition", color="red", domain="NVTX", category="signal-processing")
     def svd(self, xp, product, full_matrices, compute_uv):
         """ Computes SVD """
         r = xp.linalg.svd(product, full_matrices, compute_uv)
         return r
     
-    @nvtx.annotate("QR decomposition", color="purple", domain="NVTX", category="signal-processing")     
     def default_qr_decomposition(self, X, xp):
         """ Default QR decomposition included in CUPY"""
         q_signal = xp.linalg.qr(X)[0]
@@ -382,7 +376,6 @@ class FeatureExtractorCCA(FeatureExtractorTemplateMatching):
         self.q_template_handle = self.handle_generator(
             self.q_template)
 
-    @nvtx.annotate("Get current batch", color="purple", domain="NVTX", category="batch")    
     def get_current_data_batch(self):
         """Bundle all data so they can be processed toegher"""
         # Bundling helps increase GPU and CPU utilization. 
@@ -422,7 +415,6 @@ class FeatureExtractorCCA(FeatureExtractorTemplateMatching):
             
         return batch
     
-    @nvtx.annotate("Convert to GPU", color="orange", domain="NVTX") 
     def data_to_cp(self, signal):
         """ Moves extracted data to GPU if needed """
         return cp.asarray(signal)
