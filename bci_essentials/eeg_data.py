@@ -38,9 +38,9 @@ class EEG_data:
 
     def __init__(
         self,
+        classifier: Generic_classifier,
         eeg_source: EegSource,
         marker_source: MarkerSource,
-        classifier: Generic_classifier,
         subset: list[str] = [],
     ):
         """

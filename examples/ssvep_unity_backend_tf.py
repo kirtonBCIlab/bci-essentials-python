@@ -12,7 +12,7 @@ marker_source = LslMarkerSource()
 classifier = SSVEP_basic_tf_classifier()
 
 # Initialize the EEG Data
-test_ssvep = EEG_data(eeg_source, marker_source, classifier)
+test_ssvep = EEG_data(classifier, eeg_source, marker_source)
 
 # set train complete to true so that predictions will be allowed
 test_ssvep.train_complete = True

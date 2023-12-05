@@ -16,9 +16,9 @@ data_folder_path = os.path.join("examples", "data")
 class TestSmoke(unittest.TestCase):
     def test_mi_offline(self):
         # Get the MI example data from ./examples/data
-        mi_xdf_path = os.path.join(data_folder_path, "mi_example.xdf")
-        eeg_source = XdfEegSource(mi_xdf_path)
-        marker_source = XdfMarkerSource(mi_xdf_path)
+        xdf_path = os.path.join(data_folder_path, "mi_example.xdf")
+        eeg_source = XdfEegSource(xdf_path)
+        marker_source = XdfMarkerSource(xdf_path)
 
         # Select a classifier
         classifier = MI_classifier()
@@ -27,10 +27,10 @@ class TestSmoke(unittest.TestCase):
         )
 
         # Load the data
-        mi_data = EEG_data(eeg_source, marker_source, classifier)
+        data = EEG_data(classifier, eeg_source, marker_source)
 
         # Run main loop, this will do all of the classification for online or offline
-        mi_data.main(
+        data.main(
             online=False,
             training=True,
             pp_low=5,
@@ -59,9 +59,9 @@ class TestSmoke(unittest.TestCase):
 
     def test_p300_offline(self):
         # Get the P300 example data from ./examples/data
-        p300_xdf_path = os.path.join(data_folder_path, "p300_example.xdf")
-        eeg_source = XdfEegSource(p300_xdf_path)
-        marker_source = XdfMarkerSource(p300_xdf_path)
+        xdf_path = os.path.join(data_folder_path, "p300_example.xdf")
+        eeg_source = XdfEegSource(xdf_path)
+        marker_source = XdfMarkerSource(xdf_path)
 
         # Select a classifier
         classifier = ERP_rg_classifier()
@@ -74,10 +74,10 @@ class TestSmoke(unittest.TestCase):
         )
 
         # Load the data
-        p300_data = ERP_data(eeg_source, marker_source, classifier)
+        data = ERP_data(classifier, eeg_source, marker_source)
 
         # Run main loop, this will do all of the classification for online or offline
-        p300_data.main(
+        data.main(
             online=False,
             training=True,
             pp_low=0.1,
@@ -112,9 +112,9 @@ class TestSmoke(unittest.TestCase):
 
     def test_ssvep_offline(self):
         # Get the SSVEP example data from ./examples/data
-        ssvep_xdf_path = os.path.join(data_folder_path, "ssvep_example.xdf")
-        eeg_source = XdfEegSource(ssvep_xdf_path)
-        marker_source = XdfMarkerSource(ssvep_xdf_path)
+        xdf_path = os.path.join(data_folder_path, "ssvep_example.xdf")
+        eeg_source = XdfEegSource(xdf_path)
+        marker_source = XdfMarkerSource(xdf_path)
 
         # Select a classifier
         classifier = SSVEP_riemannian_mdm_classifier()
@@ -127,10 +127,10 @@ class TestSmoke(unittest.TestCase):
         )
 
         # Load the data
-        ssvep_data = EEG_data(eeg_source, marker_source, classifier)
+        data = EEG_data(classifier, eeg_source, marker_source)
 
         # Run main loop, this will do all of the classification for online or offline
-        ssvep_data.main(
+        data.main(
             online=False,
             training=True,
             pp_type="bandpass",

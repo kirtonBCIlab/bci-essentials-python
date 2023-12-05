@@ -38,7 +38,7 @@ classifier.set_ssvep_settings(
 
 # Initialize the SSVEP
 # should try to automate the reading of some of this stuff from the file header
-test_ssvep = EEG_data(eeg_source, marker_source, classifier)
+test_ssvep = EEG_data(classifier, eeg_source, marker_source)
 
 test_ssvep.main(
     online=False,

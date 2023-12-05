@@ -16,7 +16,7 @@ classifier = Switch_mdm_classifier()
 classifier.set_switch_classifier_settings(n_splits=2, rebuild=True, random_seed=35)
 
 # Initialize data object
-test_switch = EEG_data(eeg_source, marker_source, classifier)
+test_switch = EEG_data(classifier, eeg_source, marker_source)
 
 # Run it, brrr brrr
 test_switch.main(online=False, training=True)

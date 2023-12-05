@@ -15,13 +15,13 @@ data_folder_path = os.path.join("examples", "data")
 class TestClassifierSave(unittest.TestCase):
     def test_mi_manual_classifier_save(self):
         # Get the MI example data from ./examples/data
-        mi_xdf_path = os.path.join(data_folder_path, "mi_example.xdf")
-        mi_eeg_source1 = XdfEegSource(mi_xdf_path)
-        mi_marker_source1 = XdfMarkerSource(mi_xdf_path)
+        xdf_path = os.path.join(data_folder_path, "mi_example.xdf")
+        eeg_source1 = XdfEegSource(xdf_path)
+        marker_source1 = XdfMarkerSource(xdf_path)
 
         # Select a classifier
-        mi_classifier1 = MI_classifier()
-        mi_classifier1.set_mi_classifier_settings(
+        classifier1 = MI_classifier()
+        classifier1.set_mi_classifier_settings(
             n_splits=5,
             type="TS",
             random_seed=35,
@@ -30,10 +30,10 @@ class TestClassifierSave(unittest.TestCase):
         )
 
         # Load the data
-        mi_data1 = EEG_data(mi_eeg_source1, mi_marker_source1, mi_classifier1)
+        data1 = EEG_data(classifier1, eeg_source1, marker_source1)
 
         # Run main loop, this will do all of the classification for online or offline
-        mi_data1.main(
+        data1.main(
             online=False,
             training=True,
             pp_low=5,
@@ -47,26 +47,26 @@ class TestClassifierSave(unittest.TestCase):
         )
 
         # Save the classifier
-        save_classifier(mi_classifier1, "test_mi_classifier.pkl")
+        save_classifier(classifier1, "test_mi_classifier.pkl")
 
         # Load the classifier
-        mi_classifier2 = load_classifier("test_mi_classifier.pkl")
+        classifier2 = load_classifier("test_mi_classifier.pkl")
 
         # Create a new EEG_data object, recreate xdf sources to reload files
-        mi_eeg_source2 = XdfEegSource(mi_xdf_path)
-        mi_marker_source2 = XdfMarkerSource(mi_xdf_path)
-        mi_data2 = EEG_data(mi_eeg_source2, mi_marker_source2, mi_classifier2)
+        eeg_source2 = XdfEegSource(xdf_path)
+        marker_source2 = XdfMarkerSource(xdf_path)
+        data2 = EEG_data(classifier2, eeg_source2, marker_source2)
 
         # Check that all values of the classifier's numpy arrays are the same
-        self.assertTrue(np.array_equal(mi_classifier1.X, mi_classifier2.X))
+        self.assertTrue(np.array_equal(classifier1.X, classifier2.X))
 
         print("Classifier reloaded")
 
         # Delete classifier predictions
-        mi_classifier2.predictions = []
+        classifier2.predictions = []
 
         # Run the main loop
-        mi_data2.main(
+        data2.main(
             online=False,
             training=False,
             train_complete=True,
@@ -81,14 +81,14 @@ class TestClassifierSave(unittest.TestCase):
         )
 
         # Check that X and y are the same
-        self.assertTrue(np.array_equal(mi_classifier1.X, mi_classifier2.X))
-        self.assertTrue(np.array_equal(mi_classifier1.y, mi_classifier2.y))
+        self.assertTrue(np.array_equal(classifier1.X, classifier2.X))
+        self.assertTrue(np.array_equal(classifier1.y, classifier2.y))
 
         # Check that the last predictions are the same for the mi_example given, the last 78 predictions should be the same
         self.assertTrue(
             np.array_equal(
-                mi_classifier1.predictions[-78:],
-                mi_classifier2.predictions[-78:],
+                classifier1.predictions[-78:],
+                classifier2.predictions[-78:],
             )
         )
 
@@ -96,13 +96,13 @@ class TestClassifierSave(unittest.TestCase):
 
     def test_p300_manual_classifier_save(self):
         # Get the P300 example data from ./examples/data
-        p300_xdf_path = os.path.join(data_folder_path, "p300_example.xdf")
-        p300_eeg_source1 = XdfEegSource(p300_xdf_path)
-        p300_marker_source1 = XdfMarkerSource(p300_xdf_path)
+        xdf_path = os.path.join(data_folder_path, "p300_example.xdf")
+        eeg_source1 = XdfEegSource(xdf_path)
+        marker_source1 = XdfMarkerSource(xdf_path)
 
         # Select a classifier
-        p300_classifier1 = ERP_rg_classifier()
-        p300_classifier1.set_p300_clf_settings(
+        classifier1 = ERP_rg_classifier()
+        classifier1.set_p300_clf_settings(
             n_splits=5,
             lico_expansion_factor=4,
             oversample_ratio=0,
@@ -111,10 +111,10 @@ class TestClassifierSave(unittest.TestCase):
         )
 
         # Load the data
-        p300_data1 = ERP_data(p300_eeg_source1, p300_marker_source1, p300_classifier1)
+        data1 = ERP_data(classifier1, eeg_source1, marker_source1)
 
         # Run main loop, this will do all of the classification for online or offline
-        p300_data1.main(
+        data1.main(
             online=False,
             training=True,
             pp_low=0.1,
@@ -134,26 +134,26 @@ class TestClassifierSave(unittest.TestCase):
         )
 
         # Save the classifier model
-        save_classifier(p300_classifier1, "test_p300_classifier.pkl")
+        save_classifier(classifier1, "test_p300_classifier.pkl")
 
         # Load the classifier
-        p300_classifier2 = load_classifier("test_p300_classifier.pkl")
+        classifier2 = load_classifier("test_p300_classifier.pkl")
 
         # Create a new ERP_data object, recreate xdf sources to reload files
-        p300_eeg_source2 = XdfEegSource(p300_xdf_path)
-        p300_marker_source2 = XdfMarkerSource(p300_xdf_path)
-        p300_data2 = ERP_data(p300_eeg_source2, p300_marker_source2, p300_classifier2)
+        eeg_source2 = XdfEegSource(xdf_path)
+        marker_source2 = XdfMarkerSource(xdf_path)
+        data2 = ERP_data(classifier2, eeg_source2, marker_source2)
 
         # Check that all values of the classifier's numpy arrays are the same
-        self.assertTrue(np.array_equal(p300_classifier1.X, p300_classifier2.X))
+        self.assertTrue(np.array_equal(classifier1.X, classifier2.X))
 
         print("Classifier reloaded")
 
         # Delete classifier predictions
-        p300_classifier2.predictions = []
+        classifier2.predictions = []
 
         # Run the main loop
-        p300_data2.main(
+        data2.main(
             online=False,
             training=False,
             train_complete=True,
@@ -174,15 +174,15 @@ class TestClassifierSave(unittest.TestCase):
         )
 
         # Check that X and y are the same
-        self.assertTrue(np.array_equal(p300_classifier1.X, p300_classifier2.X))
-        self.assertTrue(np.array_equal(p300_classifier1.y, p300_classifier2.y))
+        self.assertTrue(np.array_equal(classifier1.X, classifier2.X))
+        self.assertTrue(np.array_equal(classifier1.y, classifier2.y))
 
         # Check that the last predictions are the same for the p300_example given, the last predictions should be the same
-        num_preds = len(p300_classifier1.predictions)
+        num_preds = len(classifier1.predictions)
         self.assertTrue(
             np.array_equal(
-                p300_classifier1.predictions[-num_preds:],
-                p300_classifier2.predictions[-num_preds:],
+                classifier1.predictions[-num_preds:],
+                classifier2.predictions[-num_preds:],
             )
         )
 

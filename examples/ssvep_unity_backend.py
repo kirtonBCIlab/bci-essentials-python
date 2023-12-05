@@ -15,7 +15,7 @@ classifier.set_ssvep_settings(
 )
 
 # Initialize the data class
-test_ssvep = EEG_data(eeg_source, marker_source, classifier)
+test_ssvep = EEG_data(classifier, eeg_source, marker_source)
 
 # # Channel Selection
 # initial_subset=[]

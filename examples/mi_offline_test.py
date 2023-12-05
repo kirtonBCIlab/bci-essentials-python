@@ -30,7 +30,7 @@ classifier.set_mi_classifier_settings(
 )
 
 # Initialize data object
-test_mi = EEG_data(eeg_source, marker_source, classifier)
+test_mi = EEG_data(classifier, eeg_source, marker_source)
 
 # Run main loop, this will do all of the classification for online or offline
 test_mi.main(

@@ -26,7 +26,7 @@ try:
     )
 
     # Initialize data object
-    test_rs = EEG_data(eeg_source, marker_source, classifier)
+    test_rs = EEG_data(classifier, eeg_source, marker_source)
 
     # Run main loop, this will do all of the classification for online or offline
     test_rs.main(
@@ -58,7 +58,7 @@ except Exception:
         )
 
         # Load the xdf
-        test_rs = ERP_data(eeg_source, marker_source, classifier)
+        test_rs = ERP_data(classifier, eeg_source, marker_source)
 
         # Run main loop, this will do all of the classification for online or offline
         test_rs.main(

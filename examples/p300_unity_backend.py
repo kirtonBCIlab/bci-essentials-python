@@ -19,7 +19,7 @@ classifier.set_p300_clf_settings(
 )
 
 # Initialize the ERP
-test_erp = ERP_data(eeg_source, marker_source, classifier)
+test_erp = ERP_data(classifier, eeg_source, marker_source)
 
 # Run main
 test_erp.main(
