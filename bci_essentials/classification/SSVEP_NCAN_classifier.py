@@ -87,7 +87,13 @@ class SSVEP_NCAN_classifier(Generic_classifier):
         self.setup = False
         
     def fit(self, print_fit=True, print_performance=True):
-        """ Fit the model. """
+        """ Fit the model. Not used in this classifiers """
+
+        # TODO: You are able to call predict and self.X here because it is accesing
+        #       by the EEG_data object. Write code to get a classification accuracy.
+        predictions = self.predict(self.X, False)
+        print(predictions)
+
 
     def predict(self, X, print_predict):
         # Get the shape of the data
@@ -109,13 +115,16 @@ class SSVEP_NCAN_classifier(Generic_classifier):
             )
 
             self.setup = True
+            pass
         else: 
             # Convert data to 32-bit for better GPU performance
             X = np.float32(X)
 
-            prediction = self.clf.extract_features(X)
-
-        return prediction
+            prediction = np.squeeze(self.clf.extract_features(X))
+            prediction = np.argmax(prediction, axis=1)
+            
+            print(prediction)
+            return prediction
         
 
         
