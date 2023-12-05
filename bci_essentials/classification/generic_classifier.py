@@ -7,6 +7,12 @@ Used as Parent classifier class for other classifiers.
 # Stock libraries
 import numpy as np
 
+from bci_essentials.utils.logger import Logger  # Logger class
+
+# Instantiate a logger for the module at the default level of logging.INFO
+logger = Logger(name=__name__)
+logger.debug("Loaded generic_classifier.py")
+
 
 class Generic_classifier:
     """The base generic classifier class for other classifiers."""
@@ -77,7 +83,8 @@ class Generic_classifier:
             - Initial value is `[]`.
 
         """
-        print("initializing the classifier")
+        # print("initializing the classifier")
+        logger.info("Initializing the classifier")
         self.X = np.ndarray([0])
         """@private (This is just for the API docs, to avoid double listing."""
         self.y = np.ndarray([0])
@@ -305,8 +312,9 @@ class Generic_classifier:
         `None`
 
         """
-        if print_training:
-            print("adding to training set")
+        logger.info("Adding to training set")
+        # if print_training:
+        #     print("adding to training set")
         # n = number of channels
         # m = number of samples
         # p = number of epochs
@@ -350,8 +358,9 @@ class Generic_classifier:
             decision_block, self.subset, self.channel_labels
         )
 
-        if print_predict:
-            print("making a prediction")
+        logger.info("Making a prediction")
+        # if print_predict:
+        #     print("making a prediction")
 
         # get prediction probabilities for all
         proba_mat = self.clf.predict_proba(decision_block)
@@ -362,9 +371,10 @@ class Generic_classifier:
 
         log_proba = np.log(relative_proba)
 
-        if print_predict:
-            print("log relative probabilities")
-            print(log_proba)
+        logger.info("log relative probabilities:\n%s", log_proba)
+        # if print_predict:
+        #     print("log relative probabilities")
+        #     print(log_proba)
 
         # the selection is the highest probability
 
