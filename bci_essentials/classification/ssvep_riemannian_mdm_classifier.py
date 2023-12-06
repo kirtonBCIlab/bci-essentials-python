@@ -18,8 +18,12 @@ from pyriemann.estimation import Covariances
 from ..classification.generic_classifier import Generic_classifier
 from ..signal_processing import bandpass
 from ..channel_selection import channel_selection_by_method
+from ..utils.logger import Logger  # Logger wrapper
 
-# from ..visuals import *   # Don't do this but this is how you would do it
+# Instantiate a logger for the module at the default level of logging.INFO
+# Logs to bci_essentials.__module__) where __module__ is the name of the module
+logger = Logger(name=__name__)
+logger.debug("Loaded %s", __name__)
 
 
 class SSVEP_riemannian_mdm_classifier(Generic_classifier):
@@ -169,17 +173,8 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
 
         return super_X
 
-    def fit(self, print_fit=True, print_performance=True):
+    def fit(self):
         """Fit the model.
-
-        Parameters
-        ----------
-        print_fit : bool, *optional*
-            Description of parameter `print_fit`.
-            - Default is `True`.
-        print_performance : bool, *optional*
-            Description of parameter `print_performance`.
-            - Default is `True`.
 
         Returns
         -------
@@ -278,7 +273,7 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
 
         # Check if channel selection is true
         if self.channel_selection_setup:
-            print("Doing channel selection")
+            logger.info("Doing channel selection")
 
             (
                 updated_subset,
@@ -300,18 +295,17 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
                 self.chs_max_channels,
                 self.chs_performance_delta,  # stopping criterion
                 self.chs_n_jobs,
-                self.chs_output,
             )
 
-            print("The optimal subset is ", updated_subset)
+            logger.info("The optimal subset is: %s", updated_subset)
 
             self.subset = updated_subset
             self.clf = updated_model
         else:
-            print("Not doing channel selection")
+            logger.warning("Not doing channel selection")
             self.clf, preds, accuracy, precision, recall = __ssvep_kernel(subX, suby)
 
-        # Print performance stats
+        # Log performance stats
 
         self.offline_window_count = nwindows
         self.offline_window_counts.append(self.offline_window_count)
@@ -319,29 +313,24 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
         # accuracy
         accuracy = sum(preds == self.y) / len(preds)
         self.offline_accuracy.append(accuracy)
-        if print_performance:
-            print("accuracy = {}".format(accuracy))
+        logger.info("Accuracy = %s", accuracy)
 
         # precision
         precision = precision_score(self.y, preds, average="micro")
         self.offline_precision.append(precision)
-        if print_performance:
-            print("precision = {}".format(precision))
+        logger.info("Precision = %s", precision)
 
         # recall
         recall = recall_score(self.y, preds, average="micro")
         self.offline_recall.append(recall)
-        if print_performance:
-            print("recall = {}".format(recall))
+        logger.info("Recall = %s", recall)
 
         # confusion matrix in command line
         cm = confusion_matrix(self.y, preds)
         self.offline_cm = cm
-        if print_performance:
-            print("confusion matrix")
-            print(cm)
+        logger.info("Confusion matrix:\n%s", cm)
 
-    def predict(self, X, print_predict=True):
+    def predict(self, X):
         """Predict the class labels for the provided data.
 
         Parameters
@@ -352,9 +341,6 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
             3D array containing data with `float` type.
 
             shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
-        print_predict : bool, *optional*
-            Description of parameter `print_predict`.
-            - Default is `True`.
 
         Returns
         -------
@@ -370,8 +356,7 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
 
         X = self.get_subset(X)
 
-        if print_predict:
-            print("the shape of X is", X.shape)
+        logger.info("The shape of X is %s", X.shape)
 
         X_super = self.get_ssvep_supertrial(
             X,
@@ -384,9 +369,8 @@ class SSVEP_riemannian_mdm_classifier(Generic_classifier):
         pred = self.clf.predict(X_super)
         pred_proba = self.clf.predict_proba(X_super)
 
-        if print_predict:
-            print(pred)
-            print(pred_proba)
+        logger.info("Prediction: %s", pred)
+        logger.info("Prediction probabilities: %s", pred_proba)
 
         for i in range(len(pred)):
             self.predictions.append(pred[i])

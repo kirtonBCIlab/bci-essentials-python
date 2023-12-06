@@ -10,33 +10,30 @@ The classifier always predicts 0.
 
 # Import bci_essentials modules and methods
 from ..classification.generic_classifier import Generic_classifier
+from ..utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+# Logs to bci_essentials.__module__) where __module__ is the name of the module
+logger = Logger(name=__name__)
+logger.debug("Loaded %s", __name__)
 
 
 class Null_classifier(Generic_classifier):
     """Null Classifier class (*inherits from Generic_classifier*)."""
 
-    def fit(self, print_fit=True, print_performance=True):
+    def fit(self):
         """Fit the classifier to the data.
 
         No fitting is done.
-
-        Parameters
-        ----------
-        print_fit : bool, *optional*
-            Description of parameter `print_fit`.
-            - Default is `True`.
-        print_performance : bool, *optional*
-            Description of parameter `print_performance`.
-            - Default is `True`.
 
         Returns
         -------
         `None`
 
         """
-        print("This is a null classifier, there is no fitting")
+        logger.warning("This is a null classifier, there is no fitting")
 
-    def predict(self, X, print_predict):
+    def predict(self, X):
         """Predict the class of the data.
 
         Parameters
@@ -47,12 +44,12 @@ class Null_classifier(Generic_classifier):
             3D array containing data with `float` type.
 
             shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
-        print_predict : bool
-            Description of parameter `print_predict`.
 
         Returns
         -------
         `0`
 
         """
+        logger.warning("This is a null classifier, there is no return value")
+        logger.warning("Returning 0")
         return 0

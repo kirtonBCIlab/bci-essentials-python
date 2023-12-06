@@ -30,7 +30,7 @@ from .sources.sources import EegSource, MarkerSource
 from .utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
-# Logs to `bci_essentials` logs under the module name.
+# Logs to bci_essentials.__module__) where __module__ is the name of the module
 logger = Logger(name=__name__)
 logger.debug("Loaded %s", __name__)
 
@@ -73,17 +73,17 @@ class EEG_data:
         # Another way to do as above, while retraining the logger functionality
         if not isinstance(classifier, Generic_classifier):
             error_message = f"Classifier type error: Expected Generic_classifier, got {type(classifier).__name__}"
-            logger.error(error_message)
+            logger.critical(error_message)
             raise TypeError(error_message)
 
         if not isinstance(eeg_source, EegSource):
             error_message = f"EEG source type error: Expected EegSource, got {type(eeg_source).__name__}"
-            logger.error(error_message)
+            logger.critical(error_message)
             raise TypeError(error_message)
 
         if not isinstance(marker_source, (MarkerSource, type(None))):
             error_message = f"Marker source type error: Expected MarkerSource or None, got {type(marker_source).__name__}"
-            logger.error(error_message)
+            logger.critical(error_message)
             raise TypeError(error_message)
 
         self._classifier = classifier
@@ -299,7 +299,7 @@ class EEG_data:
             MNE RawArray object.
 
         """
-        logger.warning("mne_export_as_raw has not been implemented yet")
+        logger.error("mne_export_as_raw has not been implemented yet")
         # Check for mne
         try:
             import mne
@@ -379,7 +379,7 @@ class EEG_data:
             MNE RawArray object.
 
         """
-        logger.warning("mne_export_as_raw has not been implemented yet")
+        logger.error("mne_export_as_raw has not been implemented yet")
         # Check for mne
         try:
             import mne
@@ -512,7 +512,7 @@ class EEG_data:
 
         """
         try:
-            logger.info("Packaging resting state data")
+            logger.debug("Packaging resting state data")
 
             eyes_open_start_time = []
             eyes_open_end_time = []
@@ -609,7 +609,7 @@ class EEG_data:
                         self.eyes_open_windows[i, c, :] = channel_data
                         self.eyes_open_timestamps
 
-            logger.info("Done packaging resting state data")
+            logger.debug("Done packaging resting state data")
 
             # Eyes closed
 
@@ -834,7 +834,7 @@ class EEG_data:
                         channel_format="string",
                         source_id="pyp30042",
                     )
-                    logger.debug("%s", info)
+                    logger.debug("Marker Info: %s", info)
                     # create the outlet
                     self.outlet = StreamOutlet(info)
 
@@ -866,7 +866,7 @@ class EEG_data:
                         )
 
                     ############
-                    logger.info("%s", self.marker_data[self.marker_count][0])
+                    logger.info("Marker: %s", self.marker_data[self.marker_count][0])
 
                     # once all resting state data is collected then go and compile it
                     if (
@@ -974,7 +974,7 @@ class EEG_data:
 
                         # OH DEAR
                         else:
-                            logger.warning("Unable to classify... womp womp")
+                            logger.error("Unable to classify... womp womp")
 
                         # Reset windows and labels
                         self.marker_count += 1
@@ -1058,7 +1058,7 @@ class EEG_data:
                         self.marker_count += 1
                         break
 
-                logger.info("%s", marker_info)
+                logger.info("Marker information: %s", marker_info)
 
                 # send feedback to unity if there is an available outlet
                 if self.stream_outlet:
@@ -1166,7 +1166,7 @@ class EEG_data:
                             )
                             self.outlet.push_sample(["{}".format(int(pred[0]))])
                     except Exception:
-                        logger.warning("Unable to classify this window")
+                        logger.error("Unable to classify this window")
 
                 # iterate to next window
                 self.marker_count += 1

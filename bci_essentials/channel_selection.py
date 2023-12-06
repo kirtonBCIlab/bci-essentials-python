@@ -16,8 +16,9 @@ import pandas as pd
 from .utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
-logger = Logger(name=__name__)  # bci_essentials.channel_selection
-logger.debug("Loaded channel_selection.py")
+# Logs to bci_essentials.__module__) where __module__ is the name of the module
+logger = Logger(name=__name__)
+logger.debug("Loaded %s", __name__)
 
 
 def channel_selection_by_method(

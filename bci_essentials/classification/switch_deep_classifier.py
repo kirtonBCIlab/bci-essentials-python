@@ -21,6 +21,12 @@ import tensorflow as tf
 
 # Import bci_essentials modules and methods
 from ..classification.generic_classifier import Generic_classifier
+from ..utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+# Logs to bci_essentials.__module__) where __module__ is the name of the module
+logger = Logger(name=__name__)
+logger.debug("Loaded %s", __name__)
 
 
 class Switch_deep_classifier(Generic_classifier):
@@ -108,21 +114,12 @@ class Switch_deep_classifier(Generic_classifier):
         )
         """
 
-    def fit(self, print_fit=True, print_performance=True):
+    def fit(self):
         """Fitting function for Switch_deep_classifier.
 
         Function uses the StratifiedKFold() function to split the data and
         then preprocess it using StandardScalar().
         The neural network is then fit and appended to a list before being reset.
-
-        Parameters
-        ----------
-        print_fit : bool, *optional*
-            Description of parameter `print_fit`.
-            - Default is `True`.
-        print_performance : bool, *optional*
-            Description of parameter `print_performance`.
-            - Default is `True`.
 
         Returns
         -------
@@ -132,8 +129,8 @@ class Switch_deep_classifier(Generic_classifier):
         """
         # Check for list and correct if needed
         if isinstance(self.X, list):
-            print("Error. Self.X should not be a list")
-            print("Correcting now...")
+            logger.error("Self.X should not be a list")
+            logger.warning("Correcting now...")
             self.X = np.array(self.X)
 
         # get dimensions
@@ -148,14 +145,14 @@ class Switch_deep_classifier(Generic_classifier):
 
         # Determining number of classes (0, 1, 2 normally)
         self.num_classes = len(np.unique(y))
-        print(f"Unique self.y: {np.unique(self.y)}")
+        logger.info("Unique self.y: %s", np.unique(self.y))
 
         # find the number of classes in y there shoud be N + 1, where N is the number of objects in the scene and also the number of classifiers
-        print(f"Number of classes: {self.num_classes}")
+        logger.info("Number of classes: %s", self.num_classes)
 
         # loop through and build the classifiers. Classification should occur between neutral and an activation state
         for i in range(self.num_classes - 1):
-            print("\nStarting on model...")
+            logger.info("\nStarting on model %s", i + 1)
             # take a subset / do spatial filtering
             X = X[:, :, :]  # Does nothing for now
 
@@ -219,54 +216,50 @@ class Switch_deep_classifier(Generic_classifier):
             # Remove weights on classifer for next run through for loop
             self.clf = self.clf_model
 
-            print("\nFinished model.")
+            logger.info("\nFinished model %s", i + 1)
 
             self.offline_window_count = nwindows
             self.offline_window_counts.append(self.offline_window_count)
 
             # accuracy
-            if print_performance:
-                z_dim, y_dim, x_dim = X_class_test.shape
-                X_class_test = X_class_test.reshape(z_dim, x_dim * y_dim)
-                # Scaling the data
-                scaler_train = preprocessing.StandardScaler().fit(X_class_test)
-                X_class_test_scaled = scaler_train.transform(X_class_test)
+            z_dim, y_dim, x_dim = X_class_test.shape
+            X_class_test = X_class_test.reshape(z_dim, x_dim * y_dim)
+            # Scaling the data
+            scaler_train = preprocessing.StandardScaler().fit(X_class_test)
+            X_class_test_scaled = scaler_train.transform(X_class_test)
 
-                preds = self.clf.predict(X_class_test_scaled)
+            preds = self.clf.predict(X_class_test_scaled)
 
-                final_preds = np.array([])
+            final_preds = np.array([])
 
-                print(f"preds is: {preds}")
+            logger.info("Predictions are: %s", preds)
 
-                for row in preds:
-                    print(f"row is: {row}")
-                    if i == 0:
-                        if row[0] > row[1]:
-                            final_preds = np.append(final_preds, 0)
-                        elif row[0] < row[1]:
-                            final_preds = np.append(final_preds, 1)
-                    elif i == 1:
-                        if row[0] > row[2]:
-                            final_preds = np.append(final_preds, 0)
-                        elif row[0] < row[2]:
-                            final_preds = np.append(final_preds, 2)
+            for row in preds:
+                logger.info("Row is: %s", row)
+                if i == 0:
+                    if row[0] > row[1]:
+                        final_preds = np.append(final_preds, 0)
+                    elif row[0] < row[1]:
+                        final_preds = np.append(final_preds, 1)
+                elif i == 1:
+                    if row[0] > row[2]:
+                        final_preds = np.append(final_preds, 0)
+                    elif row[0] < row[2]:
+                        final_preds = np.append(final_preds, 2)
 
-                accuracy = accuracy_score(y_class_test, final_preds)
-                self.offline_accuracy.append(accuracy)
+            accuracy = accuracy_score(y_class_test, final_preds)
+            self.offline_accuracy.append(accuracy)
 
-                print(f"final_preds is: {final_preds}")
-                print(f"y_class_test is: {y_class_test}")
-
-                print("accuracy = {}".format(accuracy))
+            logger.info("Final prediction is: %s", final_preds)
+            logger.info("y_class_test is: %s", y_class_test)
+            logger.info("Accuracy = %s", accuracy)
 
             # confusion matrix in command line
             cm = confusion_matrix(y_class_test, final_preds)
             self.offline_cm = cm
-            if print_performance:
-                print("confusion matrix")
-                print(cm)
+            logger.info("Confusion matrix:\n%s", cm)
 
-    def predict(self, X, print_predict):
+    def predict(self, X):
         """Predict function which preprocesses data and makes prediction(s).
 
         Function is passed an array of size `(X, 8, 512)` from `eeg_data.py`
@@ -278,8 +271,6 @@ class Switch_deep_classifier(Generic_classifier):
         X : np.ndarray
             An array that will be predicted upon by previously trained
             models.
-        print_predict : bool
-            Description of parameter `print_predict`.
 
         Returns
         -------
@@ -297,7 +288,7 @@ class Switch_deep_classifier(Generic_classifier):
         if len(X.shape) < 3:
             X = X[np.newaxis, ...]
 
-        print("the shape of X is", X.shape)
+        logger.info("The shape of X is: %s", X.shape)
 
         # Reshaping data and preprocessing the same way as done in fit
         z_dim, y_dim, x_dim = X.shape
@@ -309,7 +300,7 @@ class Switch_deep_classifier(Generic_classifier):
         final_predictions = []
 
         # Make predictions
-        print(f"The number of classsifiers in the list are: {len(self.clfs)}")
+        logger.info("The number of classsifiers in the list are: %s", len(self.clfs))
         for i in range(len(self.clfs)):
             preds = self.clfs[i].predict(X_predict_scaled)
             final_predictions.append(np.ndarray.tolist(preds))
@@ -349,12 +340,13 @@ class Switch_deep_classifier(Generic_classifier):
 
             final_string = ", ".join(string_list)
 
-            print(f"final preds is: {final_preds}")
-            print(f"string_preds are: {final_string}")
+            logger.info("Final predictions are: %s", final_predictions)
+            logger.info("String predictions (string_peds) are: %s", final_string)
 
             return final_string
         except Exception:
-            print(
-                "Error - there are not an appropriate amount of labels (three) to complete predictions on"
+            logger.error(
+                "Error - there are not an appropriate amount of labels " +
+                "(three) to complete predictions on"
             )
             return None
