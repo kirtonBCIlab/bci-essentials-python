@@ -63,12 +63,30 @@ class EEG_data:
             The list of EEG channel names to process, default is `[]`, meaning all channels.
         """
 
-        # Check the types of incoming dependencies
-        assert isinstance(classifier, Generic_classifier), "classifier type error"
-        assert isinstance(eeg_source, EegSource), "eeg_source type error"
-        assert isinstance(
-            marker_source, MarkerSource | None
-        ), "marker_source type error"
+        # # Check the types of incoming dependencies
+        # assert isinstance(classifier, Generic_classifier), "classifier type error"
+        # assert isinstance(eeg_source, EegSource), "eeg_source type error"
+        # assert isinstance(
+        #     marker_source, MarkerSource | None
+        # ), "marker_source type error"
+        # Another way to do as above, while retraining the logger functionality
+        if not isinstance(classifier, Generic_classifier):
+            error_message = \
+                f"Classifier type error: Expected Generic_classifier, got {type(classifier).__name__}"
+            logger.error(error_message)
+            raise TypeError(error_message)
+
+        if not isinstance(eeg_source, EegSource):
+            error_message = \
+                f"EEG source type error: Expected EegSource, got {type(eeg_source).__name__}"
+            logger.error(error_message)
+            raise TypeError(error_message)
+
+        if not isinstance(marker_source, (MarkerSource, type(None))):
+            error_message = \
+                f"Marker source type error: Expected MarkerSource or None, got {type(marker_source).__name__}"
+            logger.error(error_message)
+            raise TypeError(error_message)
 
         self._classifier = classifier
         self.__eeg_source = eeg_source
