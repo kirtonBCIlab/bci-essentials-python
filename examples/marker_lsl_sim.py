@@ -22,7 +22,7 @@ import os
 
 from pylsl import StreamInfo, StreamOutlet
 
-from bci_essentials.eeg_data import EEG_data
+from bci_essentials.sources.xdf_sources import XdfEegSource, XdfMarkerSource
 
 # Identify the file to simulate
 # Filename assumes the data is within a subfolder called "data" located
@@ -48,27 +48,25 @@ try:
 except Exception:
     nloops = 1
 
-# Load the example EEG stream
-eeg_stream = EEG_data()
-eeg_stream.load_offline_eeg_data(filename)
+# Load the example EEG / marker streams
+marker_source = XdfMarkerSource(filename)
+eeg_source = XdfEegSource(filename)
 
 # Get the data from that stream
-marker_time_stamps = eeg_stream.marker_timestamps
-marker_time_series = eeg_stream.marker_data
-eeg_time_stamps = eeg_stream.eeg_timestamps
-eeg_time_series = eeg_stream.eeg_data
+marker_data, marker_timestamps = marker_source.get_markers()
+eeg_data, eeg_timestamps = eeg_source.get_samples()
 
 # find the time range of the marker stream and delete EEG data out of this range
-time_start = min(marker_time_stamps)
-time_stop = max(marker_time_stamps)
+time_start = min(marker_timestamps)
+time_stop = max(marker_timestamps)
 
-eeg_keep_ind = [(eeg_time_stamps > time_start) & (eeg_time_stamps < time_stop)]
-eeg_time_stamps = eeg_time_stamps[tuple(eeg_keep_ind)]
-eeg_time_series = eeg_time_series[tuple(eeg_keep_ind)]
+eeg_keep_ind = [(eeg_timestamps > time_start) & (eeg_timestamps < time_stop)]
+eeg_timestamps = eeg_timestamps[tuple(eeg_keep_ind)]
+eeg_data = eeg_data[tuple(eeg_keep_ind)]
 
 # estimate sampling rates
-fs_marker = round(len(marker_time_stamps) / (time_stop - time_start))
-fs_eeg = round(len(eeg_time_stamps) / (time_stop - time_start))
+fs_marker = round(len(marker_timestamps) / (time_stop - time_start))
+fs_eeg = round(len(eeg_timestamps) / (time_stop - time_start))
 
 i = 0
 info = StreamInfo(
@@ -95,12 +93,12 @@ now_time = datetime.datetime.now()
 print("Current time is ", now_time)
 
 while i < nloops:
-    for j in range(0, len(marker_time_series) - 1):
+    for j in range(0, len(marker_data) - 1):
         # publish to stream
-        outlet.push_sample(marker_time_series[j])
+        outlet.push_sample(marker_data[j])
 
-        if j != len(marker_time_stamps):
-            time.sleep((marker_time_stamps[j + 1] - marker_time_stamps[j]))
+        if j != len(marker_timestamps):
+            time.sleep((marker_timestamps[j + 1] - marker_timestamps[j]))
     i += 1
 
 # delete the outlet
