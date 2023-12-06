@@ -101,9 +101,9 @@ class Logger():
             outside of 'bci_essentials' package (e.g. in a user script),
             **DO NOT** change the default value of this parameter. It is set to
             'bci_essentials' by default, and is used by other modules to set
-            set module-specific loggers. Changing the default value will break
-            logging behaviour in other modules, which will effectively cause
-            log messages to be lost.
+            set module-specific loggers by inputting `name=__name__`.
+            Changing the default name in User files will break behaviour in
+            other modules, which will effectively cause log messages to be lost.
             - Default is "bci_essentials".
 
         """
