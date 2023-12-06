@@ -108,8 +108,11 @@ abs_bandpower, rel_bandpower, rel_bandpower_mat = get_bandpower_features(
     eyes_open_windows, fs=fsample, transition_freqs=[1, 4, 8, 12, 30]
 )
 
+print("Absolute bandpower of each band, last value is sum")
 print(abs_bandpower[:, 0])
+print("Relative bandpower of each band, last column is 1")
 print(rel_bandpower[:, 0])
+print("Matrix of band powers relative to one another")
 print(rel_bandpower_mat[:, :, 0])
 
 print("debug")
