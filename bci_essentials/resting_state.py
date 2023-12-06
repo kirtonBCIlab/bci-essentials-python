@@ -126,13 +126,16 @@ def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
 
     Returns
     -------
-    peak : float
-        The peak alpha frequency.
+    alpha_peak : numpy.ndarray
+        The peak alpha frequency (in Hz) for each window.
     """
 
     fs = 256
 
     W, C, S = get_shape(data)
+
+    # Create alpha_peaks of length W
+    alpha_peaks = np.zeros(W)
 
     for win in range(W):
         # Calculate PSD using Welch's method, nfft = nsamples
@@ -145,15 +148,8 @@ def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
         f = f[ind_min:ind_max]
         Pxx = Pxx[:, ind_min:ind_max]
 
-        # try:
-        #     median_Pxx[win, :] = np.median(Pxx, axis=0)
-
-        # except Exception:
-        #     median_Pxx = np.zeros([W, len(f)])
-        #     median_Pxx[win, :] = np.median(Pxx, axis=0)
-
-        alpha_peak = f[np.argmax(np.median(Pxx, axis=0))]
-        print("Alpha peak of window {} ".format(win), alpha_peak)
+        alpha_peaks[win] = f[np.argmax(np.median(Pxx, axis=0))]
+        print("Alpha peak of window {} ".format(win), alpha_peaks[win])
 
         if plot_psd:
             nrows = int(np.ceil(np.sqrt(C)))
@@ -167,10 +163,6 @@ def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
                     axs[r, c].set_title(ch)
                     axs[r, c].plot(f, Pxx[ch, :])
 
-                    # # axs[r, c].set_ylim([-20, 20])
-                    # if r == 0 and c == 0:
-                    #     axs[r, c].legend(["Open", "Closed"])
-
             plt.show()
 
             plt.figure()
@@ -178,10 +170,7 @@ def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
 
             plt.show()
 
-    overall_alpha_peak = f[np.argmax(np.median(axis=0))]
-    print("Overall alpha peak:", overall_alpha_peak)
-
-    return overall_alpha_peak
+    return alpha_peaks
 
 
 # Bandpower features
