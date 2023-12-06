@@ -126,7 +126,7 @@ def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
 
     Returns
     -------
-    alpha_peak : numpy.ndarray
+    alpha_peaks : numpy.ndarray
         The peak alpha frequency (in Hz) for each window.
     """
 
