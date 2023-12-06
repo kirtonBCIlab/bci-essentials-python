@@ -30,7 +30,8 @@ from .sources.sources import EegSource, MarkerSource
 from .utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
-logger = Logger(name=__name__)  # bci_essentials.eeg_data
+# Logs to `bci_essentials` logs under the module name.
+logger = Logger(name=__name__)
 logger.debug("Loaded %s", __name__)
 
 

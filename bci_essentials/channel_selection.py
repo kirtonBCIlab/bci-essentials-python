@@ -33,7 +33,6 @@ def channel_selection_by_method(
     max_channels=999,
     performance_delta=0.001,
     n_jobs=1,
-    print_output="silent",
     record_performance=True,
 ):
     """Passes the BCI kernel function into a wrapper defined by `method`.
@@ -84,12 +83,6 @@ def channel_selection_by_method(
     n_jobs : int, *optional*
         The number of threads to dedicate to this calculation.
         - Default is `1`.
-    print_output : str, *optional*
-        Flag on whether or not to print output. Options are:
-        - `"verbose"`: Print output at each step.
-        - `"final"`: Print output at the end.
-        - `"silent"`: No output.
-        - Default is `"silent"`.
     record_performance : bool, *optional*
         Whether or not to record the performance of the channel selection
         - Default is `True`.
@@ -148,7 +141,6 @@ def channel_selection_by_method(
             max_channels=max_channels,
             performance_delta=performance_delta,
             n_jobs=n_jobs,
-            print_output=print_output,
             record_performance=record_performance,
         )
 
@@ -168,7 +160,6 @@ def channel_selection_by_method(
             max_channels=max_channels,
             performance_delta=performance_delta,
             n_jobs=n_jobs,
-            print_output=print_output,
             record_performance=record_performance,
         )
 
@@ -190,7 +181,6 @@ def channel_selection_by_method(
             max_channels=max_channels,
             performance_delta=performance_delta,
             n_jobs=n_jobs,
-            print_output=print_output,
             record_performance=record_performance,
         )
 
@@ -210,7 +200,6 @@ def channel_selection_by_method(
             max_channels=max_channels,
             performance_delta=performance_delta,
             n_jobs=n_jobs,
-            print_output=print_output,
             record_performance=record_performance,
         )
 
@@ -223,7 +212,6 @@ def __check_stopping_criterion(
     min_channels,
     max_channels,
     performance_delta,
-    print_output=True,
 ):
     """Function to check if a stopping criterion has been met.
 
@@ -246,11 +234,6 @@ def __check_stopping_criterion(
     performance_delta : float
         The performance delta under which the algorithm is considered to
         be close enough to optimal.
-    print_output : str
-        Flag on whether or not to print output. Options are:
-        - `"verbose"`: Print output at each step.
-        - `"final"`: Print output at the end.
-        - `"silent"`: No output.
 
     Returns
     -------
@@ -289,7 +272,6 @@ def __sfs(
     max_channels,
     performance_delta,
     n_jobs,
-    print_output,
     record_performance,
 ):
     """
@@ -330,11 +312,6 @@ def __sfs(
         be close enough to optimal.
     n_jobs : int
         The number of threads to dedicate to this calculation.
-    print_output : str
-        Flag on whether or not to print output. Options are:
-        - `"verbose"`: Print output at each step.
-        - `"final"`: Print output at the end.
-        - `"silent"`: No output.
     record_performance : bool
         Flag on whether or not to record performance at each step.
 
@@ -536,15 +513,13 @@ def __sfs(
             min_channels,
             max_channels,
             performance_delta,
-            print_output,
         )
 
     new_channel_subset = [channel_labels[c] for c in sfs_subset]
 
-    if print_output == "verbose" or print_output == "final":
-        print(best_channel_subset)
-        print(metric, " : ", best_performance)
-        print("Time to optimal subset: ", time.time() - start_time, "s")
+    logger.debug("Best channel subset: %s", best_channel_subset)
+    logger.debug("%s : %s", metric, best_performance)
+    logger.debug("Time to optimal subset: %s s", time.time() - start_time)
 
     # Get the best model
 
@@ -571,7 +546,6 @@ def __sbs(
     max_channels,
     performance_delta,
     n_jobs,
-    print_output,
     record_performance,
 ):
     """The Sequential Backward Selection (SBS) method for channel selection.
@@ -611,11 +585,6 @@ def __sbs(
         be close enough to optimal.
     n_jobs : int
         The number of threads to dedicate to this calculation.
-    print_output : str
-        Flag on whether or not to print output. Options are:
-        - `"verbose"`: Print output at each step.
-        - `"final"`: Print output at the end.
-        - `"silent"`: No output.
     record_performance : bool
         Flag on whether or not to record performance metrics at each step.
 
@@ -754,7 +723,7 @@ def __sbs(
         elif metric == "recall":
             performances = recalls
         else:
-            print("performance metric invalid, defaulting to accuracy")
+            logger.warning("Performance metric invalid, defaulting to accuracy")
             performances = accuracies
 
         best_set_index = accuracies.index(np.max(performances))
@@ -769,11 +738,10 @@ def __sbs(
         recall = recalls[best_set_index]
 
         current_performance = performances[best_set_index]
-        if print_output == "verbose":
-            print("Removed a channel")
-            print("new subset ", new_channel_subset)
-            print("accuracy ", accuracy)
-            print("accuracies ", accuracies)
+        logger.debug("Removed a channel")
+        logger.debug("New subset: %s", new_channel_subset)
+        logger.debug("Accuracy: %s", accuracy)
+        logger.debug("Accuracies: %s", accuracies)
 
         p_delta = current_performance - previous_performance
         previous_performance = current_performance
@@ -823,16 +791,14 @@ def __sbs(
             max_time,
             min_channels,
             max_channels,
-            performance_delta,
-            print_output,
+            performance_delta
         )
 
     new_channel_subset = [channel_labels[c] for c in sbs_subset]
 
-    if print_output == "verbose" or print_output == "final":
-        print(best_channel_subset)
-        print(metric, " : ", best_performance)
-        print("Time to optimal subset: ", time.time() - start_time, "s")
+    logger.debug("Best channel subset: %s", best_channel_subset)
+    logger.debug("%s : %s", metric, best_performance)
+    logger.debug("Time to optimal subset: %s s", time.time() - start_time)
 
     return (
         best_channel_subset,
@@ -857,7 +823,6 @@ def __sbfs(
     max_channels,
     performance_delta,
     n_jobs,
-    print_output,
     record_performance,
 ):
     """The Sequential Backward Floating Selection (SBFS) method for channel selection.
@@ -897,11 +862,6 @@ def __sbfs(
         be close enough to optimal.
     n_jobs : int
         The number of threads to dedicate to this calculation.
-    print_output : str
-        Flag on whether or not to print output. Options are:
-        - `"verbose"`: Print output at each step.
-        - `"final"`: Print output at the end.
-        - `"silent"`: No output.
     record_performance : bool
         Flag on whether or not to record performance metrics at each step.
 
@@ -1056,7 +1016,7 @@ def __sbfs(
         elif metric == "recall":
             performances = recalls
         else:
-            print("performance metric invalid, defaulting to accuracy")
+            logger.warning("Performance metric invalid, defaulting to accuracy")
             performances = accuracies
 
         best_round_performance = np.max(performances)
@@ -1070,11 +1030,10 @@ def __sbfs(
         precision = precisions[best_set_index]
         recall = recalls[best_set_index]
 
-        if print_output == "verbose":
-            print("Removed a channel")
-            print("new subset ", new_channel_subset)
-            print("accuracy ", accuracy)
-            print("accuracies ", accuracies)
+        logger.debug("Removed a channel")
+        logger.debug("New subset: %s", new_channel_subset)
+        logger.debug("Accuracy: %s", accuracy)
+        logger.debug("Accuracies: %s", accuracies)
 
         current_performance = best_round_performance
 
@@ -1188,7 +1147,7 @@ def __sbfs(
             elif metric == "recall":
                 performances = recalls
             else:
-                print("performance metric invalid, defaulting to accuracy")
+                logger.warning("Performance metric invalid, defaulting to accuracy")
                 performances = accuracies
 
             best_round_performance = np.max(performances)
@@ -1207,11 +1166,10 @@ def __sbfs(
                 precision = precisions[best_set_index]
                 recall = recalls[best_set_index]
 
-                if print_output == "verbose":
-                    print("Added back a channel")
-                    print("new subset ", new_channel_subset)
-                    print("accuracy ", accuracy)
-                    print("accuracies ", accuracies)
+                logger.debug("Added back a channel")
+                logger.debug("New subset: %s", new_channel_subset)
+                logger.debug("Accuracy: %s", accuracy)
+                logger.debug("Accuracies: %s", accuracies)
 
                 current_performance = best_round_performance
 
@@ -1270,7 +1228,6 @@ def __sbfs(
                 min_channels,
                 max_channels,
                 performance_delta,
-                print_output,
             )
 
         stop_criterion = __check_stopping_criterion(
@@ -1281,7 +1238,6 @@ def __sbfs(
             min_channels,
             max_channels,
             performance_delta,
-            print_output,
         )
 
         # Break if SBFS subset is 1 channel
@@ -1290,10 +1246,9 @@ def __sbfs(
 
     new_channel_subset = [channel_labels[c] for c in sbfs_subset]
 
-    if print_output == "verbose" or print_output == "final":
-        print(best_channel_subset)
-        print(metric, " : ", best_performance)
-        print("Time to optimal subset: ", time.time() - start_time, "s")
+    logger.debug("Best channel subset: %s", best_channel_subset)
+    logger.debug("%s : %s", metric, best_performance)
+    logger.debug("Time to optimal subset: %s s", time.time() - start_time)
 
     return (
         best_channel_subset,
@@ -1318,7 +1273,6 @@ def __sffs(
     max_channels,
     performance_delta,
     n_jobs,
-    print_output,
     record_performance,
 ):
     """The Sequential Forward Floating Selection (SFFS) method for channel selection.
@@ -1358,11 +1312,6 @@ def __sffs(
         be close enough to optimal.
     n_jobs : int
         The number of threads to dedicate to this calculation.
-    print_output : str
-        Flag on whether or not to print output. Options are:
-        - `"verbose"`: Print output at each step.
-        - `"final"`: Print output at the end.
-        - `"silent"`: No output.
     record_performance : bool
         Flag on whether or not to record performance metrics at each step.
 
@@ -1511,7 +1460,7 @@ def __sffs(
         elif metric == "recall":
             performances = recalls
         else:
-            print("performance metric invalid, defaulting to accuracy")
+            logger.warning("Performance metric invalid, defaulting to accuracy")
             performances = accuracies
 
         best_round_performance = np.max(performances)
@@ -1527,11 +1476,10 @@ def __sffs(
 
         current_performance = best_round_performance
 
-        if print_output == "verbose":
-            print("Removed a channel")
-            print("new subset ", new_channel_subset)
-            print("accuracy ", accuracy)
-            print("accuracies ", accuracies)
+        logger.debug("Removed a channel")
+        logger.debug("New subset: %s", new_channel_subset)
+        logger.debug("Accuracy: %s", accuracy)
+        logger.debug("Accuracies: %s", accuracies)
 
         # If this is the best perfomance at nchannels
         if performance_at_nchannels[len(sffs_subset) - 1] < current_performance:
@@ -1645,7 +1593,7 @@ def __sffs(
             elif metric == "recall":
                 performances = recalls
             else:
-                print("performance metric invalid, defaulting to accuracy")
+                logger.warning("Performance metric invalid, defaulting to accuracy")
                 performances = accuracies
 
             best_round_performance = np.max(performances)
@@ -1663,11 +1611,11 @@ def __sffs(
                 accuracy = accuracies[best_set_index]
                 precision = precisions[best_set_index]
                 recall = recalls[best_set_index]
-                if print_output == "verbose":
-                    print("Added back a channel")
-                    print("new subset ", new_channel_subset)
-                    print("accuracy ", accuracy)
-                    print("accuracies ", accuracies)
+
+                logger.debug("Added back a channel")
+                logger.debug("New subset: %s", new_channel_subset)
+                logger.debug("Accuracy: %s", accuracy)
+                logger.debug("Accuracies: %s", accuracies)
 
                 current_performance = best_round_performance
 
@@ -1726,7 +1674,6 @@ def __sffs(
                     min_channels,
                     max_channels,
                     performance_delta,
-                    print_output,
                 )
 
         if pass_stopping_criterion:
@@ -1740,16 +1687,14 @@ def __sffs(
                 max_time,
                 min_channels,
                 max_channels,
-                performance_delta,
-                print_output,
+                performance_delta
             )
 
     new_channel_subset = [channel_labels[c] for c in sffs_subset]
 
-    if print_output == "verbose" or print_output == "final":
-        print(best_channel_subset)
-        print(metric, " : ", best_performance)
-        print("Time to optimal subset: ", time.time() - start_time, "s")
+    logger.debug("Best channel subset: %s", best_channel_subset)
+    logger.debug("%s : %s", metric, best_performance)
+    logger.debug("Time to optimal subset: %s s", time.time() - start_time)
 
     return (
         best_channel_subset,
