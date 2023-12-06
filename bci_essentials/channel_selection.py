@@ -13,6 +13,11 @@ from joblib import Parallel, delayed
 import time
 import numpy as np
 import pandas as pd
+from .utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+logger = Logger(name=__name__)  # bci_essentials.channel_selection
+logger.debug("Loaded channel_selection.py")
 
 
 def channel_selection_by_method(
@@ -113,24 +118,22 @@ def channel_selection_by_method(
 
     # max length can't be greater than the length of channel labels
     if max_channels > len(channel_labels):
-        if print_output == "verbose" or print_output == "final":
-            print(
-                "Maximum number of channels must be less than or equal to the number of channels. Setting to number of channels."
-            )
+        logger.debug(
+            "Maximum number of channels must be less than or equal to " +
+            "the number of channels. Setting to number of channels."
+        )
         max_channels = len(channel_labels)
 
     # min length can't be less than 1
     if min_channels < 1:
-        if print_output == "verbose" or print_output == "final":
-            print("Minimum number of channels must be greater than 0. Setting to 1.")
+        logger.debug("Minimum number of channels must be greater than 0. Setting to 1.")
         min_channels = 1
 
+    logger.debug("Running channel selection method: %s", method)
     if method == "SBS":
         if initial_channels == []:
             initial_channels = channel_labels
-
-        if print_output == "verbose" or print_output == "final":
-            print("Initial subset: ", initial_channels)
+        logger.debug("Initial subset: %s", initial_channels)
 
         # pass arguments to SBS
         return __sbs(
@@ -150,8 +153,7 @@ def channel_selection_by_method(
         )
 
     elif method == "SFS":
-        if print_output == "verbose" or print_output == "final":
-            print("Initial subset: ", initial_channels)
+        logger.debug("Initial subset: %s", initial_channels)
 
         # pass arguments to SBS
         return __sfs(
@@ -173,9 +175,7 @@ def channel_selection_by_method(
     elif method == "SBFS":
         if initial_channels == []:
             initial_channels = channel_labels
-
-        if print_output == "verbose" or print_output == "final":
-            print("Initial subset: ", initial_channels)
+        logger.debug("Initial subset: %s", initial_channels)
 
         # pass arguments to SBS
         return __sbfs(
@@ -195,8 +195,7 @@ def channel_selection_by_method(
         )
 
     elif method == "SFFS":
-        if print_output == "verbose" or print_output == "final":
-            print("Initial subset: ", initial_channels)
+        logger.debug("Initial subset: %s", initial_channels)
 
         # pass arguments to SBS
         return __sffs(
@@ -260,23 +259,19 @@ def __check_stopping_criterion(
 
     """
     if current_time > max_time:
-        if print_output == "verbose" or print_output == "final":
-            print("Stopping based on time")
+        logger.debug("Stopping based on time")
         return True
 
     elif nchannels <= min_channels:
-        if print_output == "verbose" or print_output == "final":
-            print("Stopping because minimum number of channels reached")
+        logger.debug("Stopping because minimum number of channels reached")
         return True
 
     elif nchannels >= max_channels:
-        if print_output == "verbose" or print_output == "final":
-            print("Stopping because maximum number of channels reached")
+        logger.debug("Stopping because maximum number of channels reached")
         return True
 
     elif current_performance_delta < performance_delta:
-        if print_output == "verbose" or print_output == "final":
-            print("Stopping because performance improvements are declining")
+        logger.debug("Stopping because performance improvements are declining")
         return True
     else:
         return False
@@ -475,7 +470,7 @@ def __sfs(
         elif metric == "recall":
             performances = recalls
         else:
-            print("performance metric invalid, defaulting to accuracy")
+            logger.warning("Performance metric invalid, defaulting to accuracy")
             performances = accuracies
 
         # Get the index of the best X tried in this round
@@ -489,10 +484,9 @@ def __sfs(
         # best_overall_accuracy = accuracy
         precision = precisions[best_set_index]
         recall = recalls[best_set_index]
-        if print_output == "verbose":
-            print("new subset ", new_channel_subset)
-            print("accuracy ", accuracy)
-            print("accuracies ", accuracies)
+        logger.debug("New subset: %s", new_channel_subset)
+        logger.debug("Accuracy: %s", accuracy)
+        logger.debug("Accuracies: %s", accuracies)
 
         if metric == "accuracy":
             current_performance = accuracy

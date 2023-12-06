@@ -71,20 +71,17 @@ class EEG_data:
         # ), "marker_source type error"
         # Another way to do as above, while retraining the logger functionality
         if not isinstance(classifier, Generic_classifier):
-            error_message = \
-                f"Classifier type error: Expected Generic_classifier, got {type(classifier).__name__}"
+            error_message = f"Classifier type error: Expected Generic_classifier, got {type(classifier).__name__}"
             logger.error(error_message)
             raise TypeError(error_message)
 
         if not isinstance(eeg_source, EegSource):
-            error_message = \
-                f"EEG source type error: Expected EegSource, got {type(eeg_source).__name__}"
+            error_message = f"EEG source type error: Expected EegSource, got {type(eeg_source).__name__}"
             logger.error(error_message)
             raise TypeError(error_message)
 
         if not isinstance(marker_source, (MarkerSource, type(None))):
-            error_message = \
-                f"Marker source type error: Expected MarkerSource or None, got {type(marker_source).__name__}"
+            error_message = f"Marker source type error: Expected MarkerSource or None, got {type(marker_source).__name__}"
             logger.error(error_message)
             raise TypeError(error_message)
 
@@ -315,7 +312,9 @@ class EEG_data:
         try:
             import mne
         except Exception:
-            logger.critical("Could not import mne, you may have to install (pip install mne)")
+            logger.critical(
+                "Could not import mne, you may have to install (pip install mne)"
+            )
             # print("Could not import mne, you may have to install (pip install mne)")
 
         # create info from metadata
@@ -351,7 +350,9 @@ class EEG_data:
         try:
             import mne
         except Exception:
-            logger.critical("Could not import mne, you may have to install (pip install mne)")
+            logger.critical(
+                "Could not import mne, you may have to install (pip install mne)"
+            )
             # print("Could not import mne, you may have to install (pip install mne)")
 
         # create info from metadata
@@ -394,7 +395,9 @@ class EEG_data:
         try:
             import mne
         except Exception:
-            logger.critical("Could not import mne, you may have to install (pip install mne)")
+            logger.critical(
+                "Could not import mne, you may have to install (pip install mne)"
+            )
             # print("Could not import mne, you may have to install (pip install mne)")
 
         # create info from metadata
@@ -414,7 +417,9 @@ class EEG_data:
 
         except Exception:
             # could not find resting state data, sending the whole collection instead
-            logger.warning("NO PROPER RESTING STATE DATA FOUND, SENDING ALL OF THE EEG DATA INSTEAD")
+            logger.warning(
+                "NO PROPER RESTING STATE DATA FOUND, SENDING ALL OF THE EEG DATA INSTEAD"
+            )
             # print(
             #     "NO PROPER RESTING STATE DATA FOUND, SENDING ALL OF THE EEG DATA INSTEAD"
             # )
@@ -848,18 +853,14 @@ class EEG_data:
             # initialize loop count
             loops = 0
 
-        # start the main loop, stops after pulling now data, max_loops times
+        # start the main loop, stops after pulling new data, max_loops times
         while loops < max_loops:
             #
             if loops % 100 == 0:
-                # This could be a good example of a logging level to change to debug
-                logger.info(loops)
-                # if print_markers:
-                #     print(loops)
+                logger.debug(loops)
 
             if loops == max_loops - 1:
-                # print("last loop")
-                logger.info("last loop")  # debug?
+                logger.debug("last loop")
 
             # if offline, then all data is already loaded, no need to iterate
             if online is False:
@@ -916,8 +917,6 @@ class EEG_data:
 
                     ############
                     logger.info("%s", self.marker_data[self.marker_count][0])
-                    # if print_markers:
-                        # print(self.marker_data[self.marker_count][0])
 
                     # once all resting state data is collected then go and compile it
                     if (
@@ -928,17 +927,16 @@ class EEG_data:
                         self.marker_count += 1
 
                     elif self.marker_data[self.marker_count][0] == "Trial Started":
-                        logger.info("Trial started")  # Change level to debug?
-                        # if print_markers:
-                        #     print("Trial started")
+                        logger.debug(
+                            "Trial started, incrementing marker count and continuing"
+                        )
                         # Note that a marker occured, but do nothing else
                         self.marker_count += 1
 
                     elif self.marker_data[self.marker_count][0] == "Trial Ends":
-                        logger.info("Trial ended")  # Change level to debug?
-                        # if print_markers:
-                        #     print("Trial ended")
-
+                        logger.debug(
+                            "Trial ended, trim the unused ends of numpy arrays"
+                        )
                         # Trim the unused ends of numpy arrays
                         current_raw_eeg_windows = current_raw_eeg_windows[
                             0:current_nwindows, 0 : self.nchannels, 0 : self.nsamples
@@ -956,24 +954,18 @@ class EEG_data:
                                 print_training=print_training,
                             )
 
-                            logger.info("%s windows and labels added to training set",
-                                        current_nwindows)
-                            # if print_training:
-                            #     print(
-                            #         current_nwindows,
-                            #         " windows and labels added to training set",
-                            #     )
+                            logger.debug(
+                                "%s windows and labels added to training set",
+                                current_nwindows,
+                            )
 
                             # if iterative training is on and active then also make a prediction
                             if iterative_training:
                                 logger.info(
-                                    "Added current samples to training set, " +
-                                    "now making a prediction"
+                                    "Added current samples to training set, "
+                                    + "now making a prediction"
                                 )
-                                # if print_predict:
-                                #     print(
-                                #         "Added current samples to training set, now making a prediction"
-                                #     )
+
                                 prediction = self._classifier.predict(
                                     current_processed_eeg_windows,
                                     print_predict=print_predict,
@@ -981,9 +973,9 @@ class EEG_data:
 
                                 # Send the prediction to Unity
                                 logger.info(
-                                    "%s was selected by the iterative classifier, " +
-                                    "sending to Unity",
-                                    prediction
+                                    "%s was selected by the iterative classifier, "
+                                    + "sending to Unity",
+                                    prediction,
                                 )
                                 # if print_predict:
                                 #     print(
@@ -999,8 +991,10 @@ class EEG_data:
 
                         # PREDICT
                         elif train_complete and current_nwindows != 0:
-                            logger.info("Making a prediction based on %s windows",
-                                        current_nwindows)
+                            logger.info(
+                                "Making a prediction based on %s windows",
+                                current_nwindows,
+                            )
                             # if print_predict:
                             #     print(
                             #         "making a prediction based on ",
@@ -1028,7 +1022,9 @@ class EEG_data:
                                 self.online_selections.append(prediction)
 
                                 logger.info("Recieved prediction from classifier")
-                                logger.info("%s was selected, sending to Unity", prediction)
+                                logger.info(
+                                    "%s was selected, sending to Unity", prediction
+                                )
                                 # if print_predict:
                                 #     print("Recieved prediction from classifier")
 
@@ -1068,9 +1064,7 @@ class EEG_data:
                         self.marker_data[self.marker_count][0] == "Training Complete"
                         and train_complete is False
                     ):
-                        logger.info("Training the classifier")
-                        # if print_training:
-                        #     print("Training the classifier")
+                        logger.debug("Training the classifier")
 
                         self._classifier.fit(
                             print_fit=print_fit, print_performance=print_performance
@@ -1080,9 +1074,7 @@ class EEG_data:
                         self.marker_count += 1
 
                     elif self.marker_data[self.marker_count][0] == "Update Classifier":
-                        logger.info("Retraining the classifier")
-                        # if print_training:
-                        #     print("Retraining the classifier")
+                        logger.debug("Retraining the classifier")
 
                         self._classifier.fit(
                             print_fit=print_fit, print_performance=print_performance
@@ -1122,7 +1114,11 @@ class EEG_data:
                         self._classifier.sampling_freq = self.fsample
                         for i in range(4, len(marker_info)):
                             self._classifier.target_freqs[i - 4] = float(marker_info[i])
-                            logger.debug("changed %s target frequency to %s", i-4, marker_info[i])
+                            logger.debug(
+                                "changed %s target frequency to %s",
+                                i - 4,
+                                marker_info[i],
+                            )
                             # print("changed ", i-4, "target frequency to", marker_info[i])
 
                 # Check if the whole EEG window corresponding to the marker is available
@@ -1141,8 +1137,6 @@ class EEG_data:
                         break
 
                 logger.info("%s", marker_info)
-                # if print_markers:
-                #     print(marker_info)
 
                 # send feedback to unity if there is an available outlet
                 if self.stream_outlet:
