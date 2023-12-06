@@ -23,7 +23,7 @@ import datetime
 from pylsl import StreamInfo, StreamOutlet
 
 # Import local bci_essentials
-from bci_essentials.eeg_data import EEG_data
+from bci_essentials.sources.xdf_sources import XdfEegSource, XdfMarkerSource
 
 # Identify the file to simulate
 # Filename assumes the data is within a subfolder called "data" located
@@ -49,35 +49,32 @@ try:
 except Exception:
     nloops = 1
 
-# Load the example EEG stream
-eeg_stream = EEG_data()
-eeg_stream.load_offline_eeg_data(filename)
+# Load the example EEG / marker streams
+marker_source = XdfMarkerSource(filename)
+eeg_source = XdfEegSource(filename)
 
 # Get the data from that stream
-marker_time_stamps = eeg_stream.marker_timestamps
-marker_time_series = eeg_stream.marker_data
-eeg_time_stamps = eeg_stream.eeg_timestamps
-eeg_time_series = eeg_stream.eeg_data
+marker_data, marker_timestamps = marker_source.get_markers()
+eeg_data, eeg_timestamps = eeg_source.get_samples()
 
 # find the time range of the marker stream and delete EEG data out of this range
-time_start = min(marker_time_stamps)
-time_stop = max(marker_time_stamps)
+time_start = min(marker_timestamps)
+time_stop = max(marker_timestamps)
 
-eeg_keep_ind = [(eeg_time_stamps > time_start) & (eeg_time_stamps < time_stop)]
-eeg_time_stamps = eeg_time_stamps[tuple(eeg_keep_ind)]
-eeg_time_series = eeg_time_series[tuple(eeg_keep_ind)]
-
+eeg_keep_ind = [(eeg_timestamps > time_start) & (eeg_timestamps < time_stop)]
+eeg_timestamps = eeg_timestamps[tuple(eeg_keep_ind)]
+eeg_data = eeg_data[tuple(eeg_keep_ind)]
 
 # estimate sampling rates
-fs_marker = round(len(marker_time_stamps) / (time_stop - time_start))
-fs_eeg = round(len(eeg_time_stamps) / (time_stop - time_start))
+fs_marker = round(len(marker_timestamps) / (time_stop - time_start))
+fs_eeg = round(len(eeg_timestamps) / (time_stop - time_start))
 
 # create the eeg stream
 info = StreamInfo("MockEEG", "EEG", 8, fs_eeg, "float32", "mockeeg1")
 
 # add channel data
 channels = info.desc().append_child("channels")
-for c in eeg_stream.channel_labels:
+for c in eeg_source.channel_labels:
     channels.append_child("channel").append_child_value("name", c).append_child_value(
         "unit", "microvolts"
     ).append_child_value("type", "EEG")
@@ -105,12 +102,12 @@ print("Current time is ", now_time)
 
 i = 0
 while i < nloops:
-    for j in range(0, len(eeg_time_stamps) - 1):
+    for j in range(0, len(eeg_timestamps) - 1):
         # publish to stream
-        eeg_sample = eeg_time_series[j][:]
+        eeg_sample = eeg_data[j][:]
         outlet.push_sample(eeg_sample)
-        if j != len(eeg_time_stamps):
-            time.sleep(eeg_time_stamps[j + 1] - eeg_time_stamps[j])
+        if j != len(eeg_timestamps):
+            time.sleep(eeg_timestamps[j + 1] - eeg_timestamps[j])
     i += 1
 
 # delete the outlet

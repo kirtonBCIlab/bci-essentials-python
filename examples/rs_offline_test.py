@@ -1,5 +1,6 @@
 import os
 
+from bci_essentials.sources.xdf_sources import XdfEegSource, XdfMarkerSource
 from bci_essentials.eeg_data import EEG_data
 from bci_essentials.erp_data import ERP_data
 from bci_essentials.resting_state import get_alpha_peak, get_bandpower_features
@@ -12,6 +13,10 @@ from bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
 filename = os.path.join("data", "rs_example.xdf")
 
 try:
+    # Load the xdf
+    eeg_source = XdfEegSource(filename)
+    marker_source = XdfMarkerSource(filename)
+
     # Select a classifier
     classifier = MI_classifier()  # you can add a subset here
 
@@ -21,12 +26,7 @@ try:
     )
 
     # Initialize data object
-    test_rs = EEG_data(classifier)
-
-    # Load the xdf
-    test_rs.load_offline_eeg_data(
-        filename=filename, print_output=False
-    )  # you can also add a subset here
+    test_rs = EEG_data(classifier, eeg_source, marker_source)
 
     # Run main loop, this will do all of the classification for online or offline
     test_rs.main(
@@ -44,7 +44,10 @@ try:
 
 except Exception:
     try:
-        test_rs = ERP_data()
+        # Load the xdf
+        print(filename)
+        eeg_source = XdfEegSource(filename)
+        marker_source = XdfMarkerSource(filename)
 
         # Choose a classifier
         classifier = ERP_rg_classifier()  # you can add a subset here
@@ -55,10 +58,7 @@ except Exception:
         )
 
         # Load the xdf
-        print(filename)
-        test_rs.load_offline_eeg_data(
-            filename=filename, format="xdf", print_output=False
-        )  # you can also add a subset here
+        test_rs = ERP_data(classifier, eeg_source, marker_source)
 
         # Run main loop, this will do all of the classification for online or offline
         test_rs.main(
@@ -101,7 +101,6 @@ fsample = test_rs.fsample
 channel_labels = test_rs.channel_labels
 
 # Get alpha peak from eyes closed?
-
 get_alpha_peak(eyes_closed_windows, alpha_min=8, alpha_max=12, plot_psd=False)
 
 # Get bandpower features from eyes open
