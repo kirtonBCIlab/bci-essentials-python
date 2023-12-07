@@ -79,8 +79,20 @@ class LslEegSource(EegSource):
         return self.__get_channel_properties("name")
 
     def get_samples(self) -> tuple[list, list]:
-        # TODO - pull_chunk can return None, which blows up Bessy
-        samples, timestamps = self.__inlet.pull_chunk(timeout=0.1)
+        # Check whether samples are available
+        # TODO - Shoul dthis be a while loop instead, or pick-up the samples?
+        samples_available = self.__inlet.samples_available()
+        # Handle if the samples available is a None call or lost error.
+        if samples_available is None:
+            # TODO - Should we flush the queue? What does that cause?
+            # For now, just passing back two empty arrays.
+            samples, timestamps = [], []
+        if samples_available < 1:
+            # TODO - We can just pass back an empty array here since there are no samples.
+            # TODO - pass the print statement as a debug logger to note that we are passing this back.
+            samples, timestamps = [], []
+        else:
+            samples, timestamps = self.__inlet.pull_chunk(timeout=0.1)
         return [samples, timestamps]
 
     def time_correction(self) -> float:

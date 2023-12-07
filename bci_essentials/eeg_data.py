@@ -193,8 +193,22 @@ class EEG_data:
         new_eeg_data, new_eeg_timestamps = self.__eeg_source.get_samples()
         new_eeg_data = np.array(new_eeg_data)
 
+        # # Handle when we pass back an empty array
+        # if np.size(new_eeg_data) == 0:
+        #     # Return
+        #     return
+
         # Handle the case when you are using subsets
         if self.__subset != []:
+            # Check to see the dimensions of new_eeg_data bessy will crash if it isn't 2D here.
+            if new_eeg_data.ndim != 2:
+                try:
+                    print(
+                        "Found an issue with the previous data pull. Going to clear the cache and try again"
+                    )
+                except Exception:
+                    raise Exception("EEG Data pulled from LSL is not 2D.")
+
             new_eeg_data = new_eeg_data[:, self.subset_indices]
 
         # if time is in milliseconds, divide by 1000, works for sampling rates above 10Hz
