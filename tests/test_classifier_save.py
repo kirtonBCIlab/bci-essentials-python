@@ -12,7 +12,6 @@ from bci_essentials.utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
 logger = Logger()
-logger.debug("Running %s", __file__)
 
 data_folder_path = os.path.join("examples", "data")
 

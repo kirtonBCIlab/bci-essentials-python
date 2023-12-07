@@ -6,7 +6,6 @@ from bci_essentials.utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
 logger = Logger()
-logger.debug("Running %s", __file__)
 
 # Select a file
 # filename = "C:/Users/brian/Documents/OptimizationStudy/TestData/P300/March29/BI/sub-P001/ses-S001/eeg/sub-P001_ses-S001_task-StandardSingle_run-001_eeg.xdf"
