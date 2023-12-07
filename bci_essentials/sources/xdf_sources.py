@@ -1,6 +1,12 @@
 import pyxdf
 
 from .sources import EegSource, MarkerSource
+from ..utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+# Logs to bci_essentials.__module__) where __module__ is the name of the module
+logger = Logger(name=__name__)
+logger.debug("Loaded %s", __name__)
 
 __all__ = ["XdfMarkerSource", "XdfEegSource"]
 
@@ -24,8 +30,8 @@ class XdfMarkerSource(MarkerSource):
         return self.__info["name"][0]
 
     def get_markers(self) -> tuple[list, list]:
-        """Read markers and related timestamps from the XDF file.  Returns the contents of the file
-        on the first call to get_markers(), returns empty lists thereafter.
+        """Read markers and related timestamps from the XDF file.  Returns the contents
+        of the file on the first call to get_markers(), returns empty lists thereafter.
         """
         # return all data on first get
         samples = self.__samples
@@ -47,7 +53,7 @@ class XdfEegSource(EegSource):
     Parameters
     ----------
     filename : str
-        The full name of file, including path.  If file isn't found, an Exception is raised.
+        The full name of file, including path. If file isn't found, an Exception is raised.
     """
 
     def __init__(self, filename: str):
@@ -137,7 +143,7 @@ def load_xdf_stream(filepath: str, streamtype: str) -> tuple[list, list, list]:
                 timestamps = stream["time_stamps"]
 
             except Exception:
-                print(streamtype + " data not available")
+                logger.error("%s data not available", streamtype)
             break
 
     return (samples, timestamps, info)

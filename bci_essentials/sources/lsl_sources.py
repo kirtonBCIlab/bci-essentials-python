@@ -1,6 +1,12 @@
 from pylsl import StreamInlet, resolve_byprop, FOREVER
 
 from .sources import MarkerSource, EegSource
+from ..utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+# Logs to bci_essentials.__module__) where __module__ is the name of the module
+logger = Logger(name=__name__)
+logger.debug("Loaded %s", __name__)
 
 __all__ = ["LslMarkerSource", "LslEegSource"]
 
@@ -22,7 +28,9 @@ class LslMarkerSource(MarkerSource):
             self.__inlet = StreamInlet(marker_stream[0], processing_flags=0)
             self.__info = self.__inlet.info()
         except Exception:
-            raise Exception("LslMarkerSource: could not create stream")
+            exception_message = "LslMarkerSource: could not create stream"
+            logger.critical(exception_message)
+            raise Exception(exception_message)
 
     @property
     def name(self) -> str:
@@ -52,7 +60,9 @@ class LslEegSource(EegSource):
             self.__inlet = StreamInlet(eeg_stream[0], processing_flags=0)
             self.__info = self.__inlet.info()
         except Exception:
-            raise Exception("LslMarkerSource: could not create stream")
+            exception_message = "LslMarkerSource: could not create stream"
+            logger.critical(exception_message)
+            raise Exception(exception_message)
 
     @property
     def name(self) -> str:
