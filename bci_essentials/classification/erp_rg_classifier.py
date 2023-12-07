@@ -220,7 +220,7 @@ class ERP_rg_classifier(Generic_classifier):
                 logger.debug(
                     "Before LICO:\n\tShape X: %s\n\tShape y: %s",
                     X_train.shape,
-                    y_train.shape
+                    y_train.shape,
                 )
 
                 if sum(y_train) > 2:
@@ -237,7 +237,7 @@ class ERP_rg_classifier(Generic_classifier):
                 logger.debug(
                     "After LICO:\n\tShape X: %s\n\tShape y: %s",
                     X_train.shape,
-                    y_train.shape
+                    y_train.shape,
                 )
 
                 # Oversampling

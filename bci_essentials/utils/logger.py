@@ -41,7 +41,7 @@ import logging
 import datetime
 
 
-class Logger():
+class Logger:
     """
     A custom logger for the 'bci_essentials' package.
 
@@ -52,7 +52,7 @@ class Logger():
     Class Properties
     ----------------
     DEBUG : logging.Level
-        Debug level logging. This level outputs detailed information, typically 
+        Debug level logging. This level outputs detailed information, typically
         of interest only when diagnosing problems.
     INFO : logging.Level
         Info level logging. Confirmation that things are working as expected.
@@ -66,6 +66,7 @@ class Logger():
         Critical level logging. A serious error, indicating that the program itself may be unable to continue running.
 
     """
+
     # Define logging levels as a Class Property for easy access.
     # These are the same as the logging levels in the `logging` module.
     DEBUG = logging.DEBUG
@@ -83,10 +84,10 @@ class Logger():
         logging.INFO: "INFO",
         logging.WARNING: "WARNING",
         logging.ERROR: "ERROR",
-        logging.CRITICAL: "CRITICAL"
+        logging.CRITICAL: "CRITICAL",
     }
 
-    def __init__(self, level=__default_level, name='bci_essentials'):
+    def __init__(self, level=__default_level, name="bci_essentials"):
         """Initializes and configures the logger.
 
         Parameters
@@ -121,8 +122,8 @@ class Logger():
         """
         # Set the format for log messages
         logging_format = logging.Formatter(
-            fmt='%(asctime)s - %(levelname)s - %(name)s : %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
+            fmt="%(asctime)s - %(levelname)s - %(name)s : %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
         )
 
         # Check if this logger already has handlers set up
@@ -157,8 +158,8 @@ class Logger():
         """
         # Inform the user of the new logging level
         level_name = self.__level_names.get(level, "Unknown Level")
-        self.info(f'Setting logging level to {level_name}')
-        
+        self.info(f"Setting logging level to {level_name}")
+
         # Set the level for the logger
         self.logger.setLevel(level)
 
@@ -181,11 +182,16 @@ class Logger():
             - Default is is "YYYYMMDD-HMS-bci_essentials.log".
         """
         if filename is None:
-            filename = datetime.datetime.now().strftime('%Y%m%d-%H%M%S') + '-bci_essentials.log'
-        self.info(f'Logging to file: {filename}')
+            filename = (
+                datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+                + "-bci_essentials.log"
+            )
+        self.info(f"Logging to file: {filename}")
 
         file_handler = logging.FileHandler(filename)
-        file_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(name)s : %(message)s')
+        file_formatter = logging.Formatter(
+            "%(asctime)s - %(levelname)s - %(name)s : %(message)s"
+        )
         file_handler.setFormatter(file_formatter)
         self.logger.addHandler(file_handler)
 

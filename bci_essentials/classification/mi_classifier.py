@@ -241,8 +241,8 @@ class MI_classifier(Generic_classifier):
             if self.chs_iterative_selection is True and self.subset is not None:
                 initial_subset = self.subset
                 logger.info(
-                    "Using subset from previous channel selection " +
-                    "because iterative selection is TRUE"
+                    "Using subset from previous channel selection "
+                    + "because iterative selection is TRUE"
                 )
             else:
                 initial_subset = self.chs_initial_subset

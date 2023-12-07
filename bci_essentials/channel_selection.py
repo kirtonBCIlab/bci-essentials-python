@@ -113,8 +113,8 @@ def channel_selection_by_method(
     # max length can't be greater than the length of channel labels
     if max_channels > len(channel_labels):
         logger.debug(
-            "Maximum number of channels must be less than or equal to " +
-            "the number of channels. Setting to number of channels."
+            "Maximum number of channels must be less than or equal to "
+            + "the number of channels. Setting to number of channels."
         )
         max_channels = len(channel_labels)
 
@@ -792,7 +792,7 @@ def __sbs(
             max_time,
             min_channels,
             max_channels,
-            performance_delta
+            performance_delta,
         )
 
     new_channel_subset = [channel_labels[c] for c in sbs_subset]
@@ -1688,7 +1688,7 @@ def __sffs(
                 max_time,
                 min_channels,
                 max_channels,
-                performance_delta
+                performance_delta,
             )
 
     new_channel_subset = [channel_labels[c] for c in sffs_subset]

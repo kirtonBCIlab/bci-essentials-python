@@ -272,9 +272,7 @@ class Generic_classifier:
         self.channel_selection_setup = True
 
     # add training data, to the training set using a decision block and a label
-    def add_to_train(
-        self, decision_block, labels, num_options=0, meta=[]
-    ):
+    def add_to_train(self, decision_block, labels, num_options=0, meta=[]):
         """Add training data to the training set using a decision block
         and a label.
 

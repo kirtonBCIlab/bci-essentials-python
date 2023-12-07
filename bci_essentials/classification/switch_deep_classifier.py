@@ -346,7 +346,7 @@ class Switch_deep_classifier(Generic_classifier):
             return final_string
         except Exception:
             logger.error(
-                "Error - there are not an appropriate amount of labels " +
-                "(three) to complete predictions on"
+                "Error - there are not an appropriate amount of labels "
+                + "(three) to complete predictions on"
             )
             return None

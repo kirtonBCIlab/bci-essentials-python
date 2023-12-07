@@ -81,7 +81,9 @@ class Switch_mdm_classifier(Generic_classifier):
         self.clf = Pipeline([("MDM", mdm)])
         # self.clf0and1 = MDM()
 
-    def fit(self,):
+    def fit(
+        self,
+    ):
         """Fit the model.
 
         Returns
