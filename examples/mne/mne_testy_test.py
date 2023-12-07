@@ -1,7 +1,7 @@
 import numpy as np
 import mne
 
-from bci_essentials.erp_data import ERP_data
+from bci_essentials.sources.xdf_sources import XdfEegSource, XdfMarkerSource
 
 
 # Select a file
@@ -13,21 +13,19 @@ filename = "C:/Users/brian/Documents/OptimizationStudy/TestData/P300/April12/BI/
 # multi
 # filename = "C:/Users/brian/Documents/OptimizationStudy/TestData/P300/March29/BI/sub-P001/ses-S001/eeg/sub-P001_ses-S001_task-StandardMulti_run-001_eeg.xdf"
 
-# If multiple files selected
+# Load the example EEG / marker streams
+marker_source = XdfMarkerSource(filename)
+eeg_source = XdfEegSource(filename)
 
-
-# Break down the xdf
-test_erp = ERP_data()
-test_erp.load_offline_eeg_data(filename, format="xdf")
-
-
-# test_erp.eeg_data[:,:23] = test_erp.eeg_data[:,:23] - ()
+# Get the data from that stream
+marker_data, marker_timestamps = marker_source.get_markers()
+eeg_data, eeg_timestamps = eeg_source.get_samples()
 
 # Parse EEG to MNE
 info = mne.create_info(
-    test_erp.channel_labels, test_erp.fsample, ["eeg"] * test_erp.nchannels
+    eeg_source.channel_labels, eeg_source.fsample, ["eeg"] * eeg_source.nchannels
 )
-raw = mne.io.RawArray(np.transpose(test_erp.eeg_data[:, :23]), info)
+raw = mne.io.RawArray(np.transpose(eeg_data[:, :23]), info)
 raw.filter(l_freq=0.1, h_freq=15)
 mne.set_eeg_reference(raw, ref_channels="average")
 
@@ -47,23 +45,25 @@ stim_table = [[[] for i in range(4)] for i in range(1000)]
 stim_array = np.ndarray([1000, 3], dtype=int)
 erp_stim_array = np.ndarray([1000, 3], dtype=int)
 
-t0 = test_erp.eeg_timestamps[0]
+t0 = eeg_timestamps[0]
 
-for i in range(len(test_erp.marker_timestamps)):
+for i in range(len(marker_timestamps)):
     # if it is a regular marker
-    marker_string = test_erp.marker_data[i][0]
+    marker_string = marker_data[i][0]
     markers = marker_string.split(",")
 
     # DIVDE BY THOUSAND FOR NEUROSITY
-    timestamp = test_erp.marker_timestamps[i] - t0
+    timestamp = marker_timestamps[i] - t0
 
     if len(markers) >= 5 and markers[0] == "p300":
         # if length is greater than 5 (ie. multiflash) then we need to create an event for each
         for j in range(len(markers) - 4):
             # onset
             stim_table[stim_index][0] = timestamp
-            stim_array[stim_index, 0] = int(np.round(timestamp * test_erp.fsample))
-            erp_stim_array[stim_index, 0] = int(np.round(timestamp * test_erp.fsample))
+            stim_array[stim_index, 0] = int(np.round(timestamp * eeg_source.fsample))
+            erp_stim_array[stim_index, 0] = int(
+                np.round(timestamp * eeg_source.fsample)
+            )
 
             # duration (will have to add this in)
             stim_table[stim_index][1] = 0.2

@@ -3,6 +3,7 @@ Test P300 offline using data from an existing stream
 
 """
 
+from bci_essentials.sources.xdf_sources import XdfEegSource, XdfMarkerSource
 from bci_essentials.erp_data import ERP_data
 from bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
 
@@ -12,6 +13,8 @@ filename = "C:\\Users\\brian\\OneDrive\\Documents\\BCI\\BCIEssentials\\fatigueDa
 
 # Choose a classifier
 classifier = ERP_rg_classifier()  # you can add a subset here
+eeg_source = XdfEegSource(filename)
+marker_source = XdfMarkerSource(filename)
 
 # Set classifier settings
 classifier.set_p300_clf_settings(
@@ -23,14 +26,7 @@ classifier.set_p300_clf_settings(
 )
 
 # Initialize the ERP data object
-test_erp = ERP_data(classifier)
-
-# Load the xdf
-test_erp.load_offline_eeg_data(
-    filename=filename,
-    format="xdf",
-    print_output=False,
-)  # you can also add a subset here
+test_erp = ERP_data(classifier, eeg_source, marker_source)
 
 # Run main loop, this will do all of the classification for online or offline
 test_erp.main(
