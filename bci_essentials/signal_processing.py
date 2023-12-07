@@ -12,6 +12,12 @@ The EEG data inputs can be 2D or 3D arrays. Either 'N x M' or 'P x N x M', where
 import numpy as np
 from scipy import signal
 import random
+from .utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+# Logs to bci_essentials.__module__) where __module__ is the name of the module
+logger = Logger(name=__name__)
+logger.debug("Loaded %s", __name__)
 
 
 def bandpass(data, f_low, f_high, order, fsample):
@@ -249,7 +255,7 @@ def lico(X, y, expansion_factor=3, sum_num=2, shuffle=False):
     true_X = X[y == 1]
 
     n, m, p = true_X.shape
-    print("Shape of ERPs only ", true_X.shape)
+    logger.info("Shape of ERPs only: %s", true_X.shape)
     new_n = n * np.round(expansion_factor - 1)
     new_X = np.zeros([new_n, m, p])
     for i in range(n):
