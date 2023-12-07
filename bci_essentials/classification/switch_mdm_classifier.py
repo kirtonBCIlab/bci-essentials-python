@@ -21,6 +21,11 @@ from pyriemann.classification import MDM
 
 # Import bci_essentials modules and methods
 from ..classification.generic_classifier import Generic_classifier
+from ..utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+# Logs to bci_essentials.__module__) where __module__ is the name of the module
+logger = Logger(name=__name__)
 
 
 # TODO: Missing correct implementation of this classifier
@@ -75,17 +80,10 @@ class Switch_mdm_classifier(Generic_classifier):
         self.clf = Pipeline([("MDM", mdm)])
         # self.clf0and1 = MDM()
 
-    def fit(self, print_fit=True, print_performance=True):
+    def fit(
+        self,
+    ):
         """Fit the model.
-
-        Parameters
-        ----------
-        print_fit : bool, *optional*
-            Description of parameter `print_fit`.
-            - Default is `True`.
-        print_performance : bool, *optional*
-            Description of parameter `print_performance`.
-            - Default is `True`.
 
         Returns
         -------
@@ -102,7 +100,7 @@ class Switch_mdm_classifier(Generic_classifier):
 
         # find the number of classes in y there shoud be N + 1, where N is the number of objects in the scene and also the number of classifiers
         self.num_classifiers = len(list(np.unique(self.y))) - 1
-        print(f"Number of classes: {self.num_classifiers}")
+        logger.info("Number of classes: %s", self.num_classifiers)
 
         # make a list to hold all of the classifiers
         self.clfs = []
@@ -133,7 +131,7 @@ class Switch_mdm_classifier(Generic_classifier):
                 scaler_train = preprocessing.StandardScaler().fit(X_train)
                 X_train_scaled = scaler_train.transform(X_train)
 
-                print(f"The shape of X_train_scaled is {X_train_scaled.shape}")
+                logger.info("The shape of X_train_scaled is %s", X_train_scaled.shape)
 
                 z_dim, y_dim, x_dim = X_test.shape
                 X_test = X_test.reshape(z_dim, x_dim * y_dim)
@@ -142,7 +140,7 @@ class Switch_mdm_classifier(Generic_classifier):
 
                 if i == 0:
                     # Compile the model
-                    print("\nWorking on first model...")
+                    logger.info("\nWorking on first model...")
                     self.clf0and1.compile(
                         # optimizer=Adam(learning_rate=0.001),
                         loss="sparse_categorical_crossentropy",
@@ -160,7 +158,7 @@ class Switch_mdm_classifier(Generic_classifier):
                     )  # Need to reshape X_train
 
                 else:
-                    print("\nWorking on second model...")
+                    logger.info("\nWorking on second model...")
                     # Compile the model
                     self.clf0and2.compile(
                         # optimizer=Adam(learning_rate=0.001),
@@ -178,10 +176,10 @@ class Switch_mdm_classifier(Generic_classifier):
                         validation_data=(X_test_scaled, y_test),
                     )  # Need to reshape X_train
 
-            # Print performance stats
+            # Log performance stats
             # accuracy
             # correct = preds == self.y
-            # #print(correct)
+            # logger.info("Correct: %s", correct)
 
             # COMMENTED OUT DUE TO INCOMPLETE IMPLEMENTATION
             """
@@ -190,23 +188,22 @@ class Switch_mdm_classifier(Generic_classifier):
             # accuracy
             accuracy = sum(preds == self.y) / len(preds)
             self.offline_accuracy.append(accuracy)
-            print("accuracy = {}".format(accuracy))
+            logger.info("Accuracy = %s", accuracy)
             # precision
             precision = precision_score(self.y, preds, average="micro")
             self.offline_precision.append(precision)
-            print("precision = {}".format(precision))
+            logger.info("Precision = %s", precision))
             # recall
             recall = recall_score(self.y, preds, average="micro")
             self.offline_recall.append(recall)
-            print("recall = {}".format(recall))
+            logger.info("Recall = %s", recall)
             # confusion matrix in command line
             cm = confusion_matrix(self.y, preds)
             self.offline_cm = cm
-            print("confusion matrix")
-            print(cm)
+            logger.info("Confusion matrix:\n%s", cm)
             """
 
-    def predict(self, X, print_predict):
+    def predict(self, X):
         """Predict the class labels for the provided data.
 
         Parameters
@@ -217,8 +214,6 @@ class Switch_mdm_classifier(Generic_classifier):
             3D array containing data with `float` type.
 
             shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
-        print_predict : bool
-            Description of parameter `print_predict`.
 
         Returns
         -------
@@ -232,7 +227,7 @@ class Switch_mdm_classifier(Generic_classifier):
         if len(X.shape) < 3:
             X = X[np.newaxis, ...]
 
-        print("the shape of X is", X.shape)
+        logger.info("The shape of X is %s", X.shape)
 
         # self.predict0and1 = Sequential(
         #     [

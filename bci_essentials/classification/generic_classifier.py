@@ -7,6 +7,12 @@ Used as Parent classifier class for other classifiers.
 # Stock libraries
 import numpy as np
 
+from ..utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+# Logs to bci_essentials.__module__) where __module__ is the name of the module
+logger = Logger(name=__name__)
+
 
 class Generic_classifier:
     """The base generic classifier class for other classifiers."""
@@ -77,7 +83,7 @@ class Generic_classifier:
             - Initial value is `[]`.
 
         """
-        print("initializing the classifier")
+        logger.info("Initializing the classifier")
         self.X = np.ndarray([0])
         """@private (This is just for the API docs, to avoid double listing."""
         self.y = np.ndarray([0])
@@ -154,13 +160,13 @@ class Generic_classifier:
                 return X
 
             if type(self.subset[0]) is int:
-                print("Using subset indices")
+                logger.info("Using subset indices")
 
                 subset_indices = self.subset
 
             # Or channel labels
             if type(self.subset[0]) is str:
-                print("Using channel labels and subset labels")
+                logger.info("Using channel labels and subset labels")
 
                 # Replace indices with those described by labels
                 for sl in self.subset:
@@ -191,7 +197,7 @@ class Generic_classifier:
 
         # notify if failed
         except Exception:
-            print("something went wrong, no subset taken")
+            logger.warning("something went wrong, no subset taken")
             return X
 
     def setup_channel_selection(
@@ -205,7 +211,6 @@ class Generic_classifier:
         max_channels=999,
         performance_delta=0.001,  # stopping criterion
         n_jobs=1,
-        print_output="silent",
         record_performance=False,
     ):
         """Setup channel selection parameters.
@@ -239,13 +244,6 @@ class Generic_classifier:
         n_jobs : int, *optional*
             The number of threads to dedicate to this calculation.
             - Default is `1`.
-        print_output : string, *optional*
-            Decides what to print to command line. The output settings are:
-            - `silent`: no messages
-            - `final`: final selected channels and performance
-            - `verbose`: verbose (everything).
-
-            - Default is `"silent"`.
         record_performance : bool, *optional*
             Decides whether or not to record performance of channel selection.
             - Default is `False`.
@@ -268,15 +266,12 @@ class Generic_classifier:
         self.chs_min_channels = min_channels  # minimum number of channels
         self.chs_max_channels = max_channels  # maximum number of channels
         self.chs_performance_delta = performance_delta  # smallest performance increment to justify continuing search
-        self.chs_output = print_output  # output setting, silent, final, or verbose
         self.chs_record_performance = record_performance  # record performance
 
         self.channel_selection_setup = True
 
     # add training data, to the training set using a decision block and a label
-    def add_to_train(
-        self, decision_block, labels, num_options=0, meta=[], print_training=True
-    ):
+    def add_to_train(self, decision_block, labels, num_options=0, meta=[]):
         """Add training data to the training set using a decision block
         and a label.
 
@@ -296,17 +291,13 @@ class Generic_classifier:
         meta : type, *optional*
             Description of parameter `meta`.
             - Default is `[]`.
-        print_training : bool, *optional*
-            Description of parameter `print_training`.
-            - Default is `True`.
 
         Returns
         -------
         `None`
 
         """
-        if print_training:
-            print("adding to training set")
+        logger.debug("Adding to training set")
         # n = number of channels
         # m = number of samples
         # p = number of epochs
@@ -325,7 +316,7 @@ class Generic_classifier:
 
     # predict a label based on a decision block
     # This doesn't seem to be used anywhere
-    def predict_decision_block(self, decision_block, print_predict=True):
+    def predict_decision_block(self, decision_block):
         """Predict a label based on a decision block.
 
         Parameters
@@ -336,9 +327,6 @@ class Generic_classifier:
             3D array containing data with `float` type.
 
             shape = (`first_dimension`,`second_dimension`,`third_dimension`)
-        print_predict : type, *optional*
-            Description of parameter `print_predict`.
-            - Default is `True`.
 
         Returns
         -------
@@ -350,8 +338,7 @@ class Generic_classifier:
             decision_block, self.subset, self.channel_labels
         )
 
-        if print_predict:
-            print("making a prediction")
+        logger.info("Making a prediction")
 
         # get prediction probabilities for all
         proba_mat = self.clf.predict_proba(decision_block)
@@ -362,9 +349,7 @@ class Generic_classifier:
 
         log_proba = np.log(relative_proba)
 
-        if print_predict:
-            print("log relative probabilities")
-            print(log_proba)
+        logger.info("log relative probabilities:\n%s", log_proba)
 
         # the selection is the highest probability
 

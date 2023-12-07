@@ -3,6 +3,10 @@ import unittest
 from bci_essentials.sources.sources import MarkerSource, EegSource
 from bci_essentials.eeg_data import EEG_data
 from bci_essentials.classification.null_classifier import Null_classifier
+from bci_essentials.utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+logger = Logger()
 
 
 class TestEegData(unittest.TestCase):

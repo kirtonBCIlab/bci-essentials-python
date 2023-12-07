@@ -27,6 +27,11 @@ from pylsl.pylsl import IRREGULAR_RATE
 from .signal_processing import notch, bandpass
 from .classification.generic_classifier import Generic_classifier
 from .sources.sources import EegSource, MarkerSource
+from .utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+# Logs to bci_essentials.__module__) where __module__ is the name of the module
+logger = Logger(name=__name__)
 
 
 # EEG data
@@ -58,7 +63,7 @@ class EEG_data:
             The list of EEG channel names to process, default is `[]`, meaning all channels.
         """
 
-        # Check the types of incoming dependencies
+        # # Check the types of incoming dependencies
         assert isinstance(classifier, Generic_classifier), "classifier type error"
         assert isinstance(eeg_source, EegSource), "eeg_source type error"
         assert isinstance(
@@ -91,9 +96,8 @@ class EEG_data:
 
         # If a subset is to be used, define a new nchannels, channel labels, and eeg data
         if self.__subset != []:
-            print("A subset was defined")
-            print("Original channels")
-            print(self.channel_labels)
+            logger.info("A subset was defined")
+            logger.info("Original channels\n%s", self.channel_labels)
 
             self.nchannels = len(self.__subset)
             self.subset_indices = []
@@ -101,16 +105,15 @@ class EEG_data:
                 self.subset_indices.append(self.channel_labels.index(s))
 
             self.channel_labels = self.__subset
-            print("Subset channels")
-            print(self.channel_labels)
+            logger.info("Subset channels\n%s", self.channel_labels)
 
         else:
             self.subset_indices = list(range(0, self.nchannels))
 
         self._classifier.channel_labels = self.channel_labels
 
-        print(self.headset_string)
-        print(self.channel_labels)
+        logger.info(self.headset_string)
+        logger.info(self.channel_labels)
 
         # Initialize data and timestamp arrays so they exist, will fill up later
         self.marker_data = np.array([])
@@ -163,7 +166,7 @@ class EEG_data:
         self.max_size = max_size  # maximum size of eeg
 
         if len(channel_labels) != self.nchannels:
-            print("Channel locations do not fit number of channels!!!")
+            logger.warning("Channel locations do not fit number of channels!!!")
             self.channel_labels = ["?"] * self.nchannels
 
     # Get new data from source, whatever it is
@@ -280,12 +283,14 @@ class EEG_data:
             MNE RawArray object.
 
         """
-        print("mne_export_as_raw has not been implemented yet")
+        logger.error("mne_export_as_raw has not been implemented yet")
         # Check for mne
         try:
             import mne
         except Exception:
-            print("Could not import mne, you may have to install (pip install mne)")
+            logger.critical(
+                "Could not import mne, you may have to install (pip install mne)"
+            )
 
         # create info from metadata
         info = mne.create_info(
@@ -320,7 +325,9 @@ class EEG_data:
         try:
             import mne
         except Exception:
-            print("Could not import mne, you may have to install (pip install mne)")
+            logger.critical(
+                "Could not import mne, you may have to install (pip install mne)"
+            )
 
         # create info from metadata
         info = mne.create_info(
@@ -356,12 +363,14 @@ class EEG_data:
             MNE RawArray object.
 
         """
-        print("mne_export_as_raw has not been implemented yet")
+        logger.error("mne_export_as_raw has not been implemented yet")
         # Check for mne
         try:
             import mne
         except Exception:
-            print("Could not import mne, you may have to install (pip install mne)")
+            logger.critical(
+                "Could not import mne, you may have to install (pip install mne)"
+            )
 
         # create info from metadata
         info = mne.create_info(
@@ -380,7 +389,7 @@ class EEG_data:
 
         except Exception:
             # could not find resting state data, sending the whole collection instead
-            print(
+            logger.warning(
                 "NO PROPER RESTING STATE DATA FOUND, SENDING ALL OF THE EEG DATA INSTEAD"
             )
             raw_data = self.eeg_data.transpose()
@@ -487,7 +496,7 @@ class EEG_data:
 
         """
         try:
-            print("Packaging resting state data")
+            logger.debug("Packaging resting state data")
 
             eyes_open_start_time = []
             eyes_open_end_time = []
@@ -517,36 +526,36 @@ class EEG_data:
                 if self.marker_data[i][0] == "Start Eyes Open RS: 1":
                     eyes_open_start_time.append(self.marker_timestamps[i])
                     eyes_open_start_loc.append(current_timestamp_loc - 1)
-                    # print("received eyes open start")
+                    logger.debug("received eyes open start")
 
                 # get eyes open end times
                 if self.marker_data[i][0] == "End Eyes Open RS: 1":
                     eyes_open_end_time.append(self.marker_timestamps[i])
                     eyes_open_end_loc.append(current_timestamp_loc)
-                    # print("received eyes open end")
+                    logger.debug("received eyes open end")
 
                 # get eyes closed start times
                 if self.marker_data[i][0] == "Start Eyes Closed RS: 2":
                     eyes_closed_start_time.append(self.marker_timestamps[i])
                     eyes_closed_start_loc.append(current_timestamp_loc - 1)
-                    # print("received eyes closed start")
+                    logger.debug("received eyes closed start")
 
                 # get eyes closed end times
                 if self.marker_data[i][0] == "End Eyes Closed RS: 2":
                     eyes_closed_end_time.append(self.marker_timestamps[i])
                     eyes_closed_end_loc.append(current_timestamp_loc)
-                    # print("received eyes closed end")
+                    logger.debug("received eyes closed end")
 
                 # get rest start times
                 if self.marker_data[i][0] == "Start Rest for RS: 0":
                     rest_start_time.append(self.marker_timestamps[i])
                     rest_start_loc.append(current_timestamp_loc - 1)
-                    # print("received rest start")
+                    logger.debug("received rest start")
                 # get rest end times
                 if self.marker_data[i][0] == "End Rest for RS: 0":
                     rest_end_time.append(self.marker_timestamps[i])
                     rest_end_loc.append(current_timestamp_loc)
-                    # print("received rest end")
+                    logger.debug("received rest end")
 
             # Eyes open
             # Get duration, nsmaples
@@ -584,7 +593,7 @@ class EEG_data:
                         self.eyes_open_windows[i, c, :] = channel_data
                         self.eyes_open_timestamps
 
-            print("Done packaging resting state data")
+            logger.debug("Done packaging resting state data")
 
             # Eyes closed
 
@@ -658,7 +667,7 @@ class EEG_data:
                         self.rest_windows[i, c, :] = channel_data
                         self.rest_timestamps
         except Exception:
-            print("Failed to package resting state data")
+            logger.warning("Failed to package resting state data")
 
     # main
     # add pp_low, pp_high, pp_order, subset
@@ -676,11 +685,6 @@ class EEG_data:
         train_complete=False,
         iterative_training=False,
         live_update=False,
-        print_markers=True,
-        print_training=True,
-        print_fit=True,
-        print_performance=True,
-        print_predict=True,
         pp_type="bandpass",  # preprocessing method
         pp_low=1,  # bandpass lower cutoff
         pp_high=40,  # bandpass upper cutoff
@@ -738,25 +742,6 @@ class EEG_data:
             Flag to indicate if the classifier will be used to provide
             live updates on window classification.
             - Default is `False`.
-        print_markers : bool, *optional*
-            Flag to indicate if the markers will be printed to the console.
-            - Default is `True`.
-        print_training : bool, *optional*
-            Flag to indicate if the training progress will be printed to the
-            console.
-            - Default is `True`.
-        print_fit : bool, *optional*
-            Flag to indicate if the classifier fit will be printed to the
-            console.
-            - Default is `True`.
-        print_performance : bool, *optional*
-            Flag to indicate if the classifier performance will be printed
-            to the console.
-            - Default is `True`.
-        print_predict : bool, *optional*
-            Flag to indicate if the classifier predictions will be printed
-            to the console.
-            - Default is `True`.
         pp_type : str, *optional*
             Preprocessing method to apply to the EEG data.
             - Default is `"bandpass"`.
@@ -804,15 +789,14 @@ class EEG_data:
             # initialize loop count
             loops = 0
 
-        # start the main loop, stops after pulling now data, max_loops times
+        # start the main loop, stops after pulling new data, max_loops times
         while loops < max_loops:
             #
             if loops % 100 == 0:
-                if print_markers:
-                    print(loops)
+                logger.debug(loops)
 
             if loops == max_loops - 1:
-                print("last loop")
+                logger.debug("last loop")
 
             # if offline, then all data is already loaded, no need to iterate
             if online is False:
@@ -834,12 +818,12 @@ class EEG_data:
                         channel_format="string",
                         source_id="pyp30042",
                     )
-                    # print(info)
+                    logger.debug("Marker Info: %s", info)
                     # create the outlet
                     self.outlet = StreamOutlet(info)
 
                     # next make an outlet
-                    print("the outlet exists")
+                    logger.info("the outlet exists")
                     self.stream_outlet = True
 
                     # Push the data
@@ -866,8 +850,7 @@ class EEG_data:
                         )
 
                     ############
-                    if print_markers:
-                        print(self.marker_data[self.marker_count][0])
+                    logger.info("Marker: %s", self.marker_data[self.marker_count][0])
 
                     # once all resting state data is collected then go and compile it
                     if (
@@ -878,15 +861,16 @@ class EEG_data:
                         self.marker_count += 1
 
                     elif self.marker_data[self.marker_count][0] == "Trial Started":
-                        if print_markers:
-                            print("Trial started")
+                        logger.debug(
+                            "Trial started, incrementing marker count and continuing"
+                        )
                         # Note that a marker occured, but do nothing else
                         self.marker_count += 1
 
                     elif self.marker_data[self.marker_count][0] == "Trial Ends":
-                        if print_markers:
-                            print("Trial ended")
-
+                        logger.debug(
+                            "Trial ended, trim the unused ends of numpy arrays"
+                        )
                         # Trim the unused ends of numpy arrays
                         current_raw_eeg_windows = current_raw_eeg_windows[
                             0:current_nwindows, 0 : self.nchannels, 0 : self.nsamples
@@ -899,52 +883,49 @@ class EEG_data:
                         # TRAIN
                         if training:
                             self._classifier.add_to_train(
-                                current_processed_eeg_windows,
-                                current_labels,
-                                print_training=print_training,
+                                current_processed_eeg_windows, current_labels
                             )
 
-                            if print_training:
-                                print(
-                                    current_nwindows,
-                                    " windows and labels added to training set",
-                                )
+                            logger.debug(
+                                "%s windows and labels added to training set",
+                                current_nwindows,
+                            )
 
                             # if iterative training is on and active then also make a prediction
                             if iterative_training:
-                                if print_predict:
-                                    print(
-                                        "Added current samples to training set, now making a prediction"
-                                    )
-                                prediction = self._classifier.predict(
-                                    current_processed_eeg_windows,
-                                    print_predict=print_predict,
+                                logger.info(
+                                    "Added current samples to training set, "
+                                    + "now making a prediction"
                                 )
 
-                                # Send the prediction to Unity
-                                if print_predict:
-                                    print(
-                                        "{} was selected by the iterative classifier, sending to Unity".format(
-                                            prediction
-                                        )
-                                    )
-                                # pick a sample to send an wait for a bit
+                                # Make a prediction
+                                prediction = self._classifier.predict(
+                                    current_processed_eeg_windows
+                                )
 
-                                # if online, send the packet to Unity
+                                # Log the prediction
+                                logger.info(
+                                    "%s was selected by the iterative classifier",
+                                    prediction,
+                                )
+
+                                # If online, send the prediction packet to Unity
                                 if online:
+                                    logger.info(
+                                        "Sending prediction %s from iterative classifier to Unity",
+                                        prediction,
+                                    )
                                     self.outlet.push_sample(["{}".format(prediction)])
 
                         # PREDICT
                         elif train_complete and current_nwindows != 0:
-                            if print_predict:
-                                print(
-                                    "making a prediction based on ",
-                                    current_nwindows,
-                                    " windows",
-                                )
+                            logger.info(
+                                "Making a prediction based on %s windows",
+                                current_nwindows,
+                            )
 
                             if current_nwindows == 0:
-                                print("No windows to make a decision")
+                                logger.error("No windows to make a decision")
                                 self.marker_count += 1
                                 break
 
@@ -957,31 +938,26 @@ class EEG_data:
                             # make the prediciton
                             try:
                                 prediction = self._classifier.predict(
-                                    current_processed_eeg_windows, print_predict
+                                    current_processed_eeg_windows
                                 )
                                 self.online_selections.append(prediction)
-
-                                if print_predict:
-                                    print("Recieved prediction from classifier")
-
-                                    # Send the prediction to Unity
-                                    print(
-                                        "{} was selected, sending to Unity".format(
-                                            prediction
-                                        )
-                                    )
+                                # Log the prediction
+                                logger.info("%s was selected by classifier", prediction)
 
                                 # if online, send the packet to Unity
                                 if online:
+                                    logger.info(
+                                        "Sending prediction %s from classifier to Unity",
+                                        prediction,
+                                    )
                                     self.outlet.push_sample(["{}".format(prediction)])
 
                             except Exception:
-                                if print_predict:
-                                    print("This classification failed...")
+                                logger.warning("This classification failed...")
 
                         # OH DEAR
                         else:
-                            print("Unable to classify... womp womp")
+                            logger.error("Unable to classify... womp womp")
 
                         # Reset windows and labels
                         self.marker_count += 1
@@ -998,23 +974,17 @@ class EEG_data:
                         self.marker_data[self.marker_count][0] == "Training Complete"
                         and train_complete is False
                     ):
-                        if print_training:
-                            print("Training the classifier")
+                        logger.debug("Training the classifier")
 
-                        self._classifier.fit(
-                            print_fit=print_fit, print_performance=print_performance
-                        )
+                        self._classifier.fit()
                         train_complete = True
                         training = False
                         self.marker_count += 1
 
                     elif self.marker_data[self.marker_count][0] == "Update Classifier":
-                        if print_training:
-                            print("Retraining the classifier")
+                        logger.debug("Retraining the classifier")
 
-                        self._classifier.fit(
-                            print_fit=print_fit, print_performance=print_performance
-                        )
+                        self._classifier.fit()
 
                         iterative_training = True
                         if online:
@@ -1050,7 +1020,11 @@ class EEG_data:
                         self._classifier.sampling_freq = self.fsample
                         for i in range(4, len(marker_info)):
                             self._classifier.target_freqs[i - 4] = float(marker_info[i])
-                            # print("changed ", i-4, "target frequency to", marker_info[i])
+                            logger.debug(
+                                "Changed %s target frequency to %s",
+                                i - 4,
+                                marker_info[i],
+                            )
 
                 # Check if the whole EEG window corresponding to the marker is available
                 end_time_plus_buffer = (
@@ -1067,12 +1041,11 @@ class EEG_data:
                         self.marker_count += 1
                         break
 
-                if print_markers:
-                    print(marker_info)
+                logger.info("Marker information: %s", marker_info)
 
                 # send feedback to unity if there is an available outlet
                 if self.stream_outlet:
-                    print("sending feedback to Unity")
+                    logger.info("sending feedback to Unity")
                     # send feedback for each marker that you receive
                     self.outlet.push_sample(
                         [
@@ -1172,12 +1145,11 @@ class EEG_data:
                                     current_nwindows,
                                     0 : self.nchannels,
                                     0 : self.nsamples,
-                                ],
-                                print_predict=print_predict,
+                                ]
                             )
                             self.outlet.push_sample(["{}".format(int(pred[0]))])
                     except Exception:
-                        print("unable to classify this window")
+                        logger.error("Unable to classify this window")
 
                 # iterate to next window
                 self.marker_count += 1

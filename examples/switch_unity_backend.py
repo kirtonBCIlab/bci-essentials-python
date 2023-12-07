@@ -1,6 +1,10 @@
 from bci_essentials.sources.lsl_sources import LslEegSource, LslMarkerSource
 from bci_essentials.eeg_data import EEG_data
 from bci_essentials.classification.switch_mdm_classifier import Switch_mdm_classifier
+from bci_essentials.utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+logger = Logger()
 
 # create LSL sources, these will block until the outlets are present
 eeg_source = LslEegSource()

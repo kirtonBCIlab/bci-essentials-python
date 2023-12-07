@@ -8,6 +8,10 @@ from bci_essentials.eeg_data import EEG_data
 from bci_essentials.classification.ssvep_basic_tf_classifier import (
     SSVEP_basic_tf_classifier,
 )
+from bci_essentials.utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+logger = Logger()
 
 # Identify the file to simulate
 # Filename assumes the data is within a subfolder called "data" located
@@ -49,7 +53,7 @@ test_ssvep.main(
     pp_high=50,
 )
 
-print("debug")
+logger.debug("Ran in DEBUG mode")
 
 # Some optional plotting
 # # plot a spectrogram of the session
@@ -94,7 +98,7 @@ print("debug")
 #     plt.hlines(y=[f_target,f_target*2,f_target*3], xmin=-5, xmax=5, color='r')
 #     plt.show()
 
-#     print("debug")
+#     logger.debug("Ran in DEBUG mode")
 
 #     # clear
 #     plt.clf()

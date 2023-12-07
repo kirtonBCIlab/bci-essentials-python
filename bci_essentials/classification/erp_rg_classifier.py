@@ -25,6 +25,11 @@ from pyriemann.tangentspace import TangentSpace
 from ..classification.generic_classifier import Generic_classifier
 from ..signal_processing import lico
 from ..channel_selection import channel_selection_by_method
+from ..utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+# Logs to bci_essentials.__module__) where __module__ is the name of the module
+logger = Logger(name=__name__)
 
 
 class ERP_rg_classifier(Generic_classifier):
@@ -78,7 +83,7 @@ class ERP_rg_classifier(Generic_classifier):
         self.random_seed = random_seed
         self.covariance_estimator = covariance_estimator
 
-    def add_to_train(self, decision_block, label_idx, print_training=True):
+    def add_to_train(self, decision_block, label_idx):
         """Add to training set.
 
         Parameters
@@ -91,17 +96,13 @@ class ERP_rg_classifier(Generic_classifier):
             shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
         label_idx : type
             Description of parameter `label_idx`.
-        print_training : bool, *optional*
-            Description of parameter `print_training`.
-            - Default is `True`.
 
         Returns
         -------
         `None`
 
         """
-        if print_training:
-            print("adding to training set")
+        logger.debug("Adding to training set")
         # n = number of channels
         # m = number of samples
         # p = number of epochs
@@ -113,8 +114,7 @@ class ERP_rg_classifier(Generic_classifier):
         # get labels from label_idx
         labels = np.zeros([p])
         labels[label_idx] = 1
-        if print_training:
-            print(labels)
+        logger.debug("Labels: %s", labels)
 
         # If the classifier has no data then initialize
         if self.X.size == 0:
@@ -132,8 +132,6 @@ class ERP_rg_classifier(Generic_classifier):
         plot_cm=False,
         plot_roc=False,
         lico_expansion_factor=1,
-        print_fit=True,
-        print_performance=True,
     ):
         """Fit the model.
 
@@ -151,12 +149,6 @@ class ERP_rg_classifier(Generic_classifier):
         lico_expansion_factor : int, *optional*
             Description of parameter `lico_expansion_factor`.
             - Default is `1`.
-        print_fit : bool, *optional*
-            Description of parameter `print_fit`.
-            - Default is `True`.
-        print_performance : bool, *optional*
-            Description of parameter `print_performance`.
-            - Default is `True`.
 
         Returns
         -------
@@ -164,9 +156,9 @@ class ERP_rg_classifier(Generic_classifier):
             Models created used in `predict()`.
 
         """
-        if print_fit:
-            print("Fitting the model using RG")
-            print(self.X.shape, self.y.shape)
+        logger.info("Fitting the model using RG")
+        logger.info("X shape: %s", self.X.shape)
+        logger.info("y shape: %s", self.y.shape)
 
         # Define the strategy for cross validation
         cv = StratifiedKFold(
@@ -224,10 +216,12 @@ class ERP_rg_classifier(Generic_classifier):
                 X_test = X[test_idx]
 
                 # LICO
-                if print_fit:
-                    print(
-                        "Before LICO: Shape X", X_train.shape, "Shape y", y_train.shape
-                    )
+                logger.debug(
+                    "Before LICO:\n\tShape X: %s\n\tShape y: %s",
+                    X_train.shape,
+                    y_train.shape,
+                )
+
                 if sum(y_train) > 2:
                     if lico_expansion_factor > 1:
                         X_train, y_train = lico(
@@ -237,12 +231,13 @@ class ERP_rg_classifier(Generic_classifier):
                             sum_num=2,
                             shuffle=False,
                         )
-                        if print_fit:
-                            print("y_train =", y_train)
-                if print_fit:
-                    print(
-                        "After LICO: Shape X", X_train.shape, "Shape y", y_train.shape
-                    )
+                        logger.debug("y_train = %s", y_train)
+
+                logger.debug(
+                    "After LICO:\n\tShape X: %s\n\tShape y: %s",
+                    X_train.shape,
+                    y_train.shape,
+                )
 
                 # Oversampling
                 if self.oversample_ratio > 0:
@@ -308,12 +303,10 @@ class ERP_rg_classifier(Generic_classifier):
                 # TODO handle exception where two probabilities are the same
                 prediction = int(np.where(predprobs == np.amax(predprobs))[0][0])
 
-                if print_fit:
-                    print("y_test =", y_test)
-
-                    print(predproba)
-                    print(real[0])
-                    print(prediction)
+                logger.debug("y_test = %s", y_test)
+                logger.debug("predproba = %s", predproba)
+                logger.debug("real = %s", real[0])
+                logger.debug("prediction = %s", prediction)
 
             model = self.clf
 
@@ -325,8 +318,8 @@ class ERP_rg_classifier(Generic_classifier):
 
         # Check if channel selection is true
         if self.channel_selection_setup:
-            print("Doing channel selection")
-            # print("Initial subset ", self.chs_initial_subset)
+            logger.info("Doing channel selection")
+            logger.debug("Initial subset: %s", self.chs_initial_subset)
 
             (
                 updated_subset,
@@ -349,45 +342,39 @@ class ERP_rg_classifier(Generic_classifier):
                 self.chs_max_channels,
                 self.chs_performance_delta,  # stopping criterion
                 self.chs_n_jobs,
-                self.chs_output,
             )  # njobs, output messages
 
-            print("The optimal subset is ", updated_subset)
+            logger.info("The optimal subset is %s", updated_subset)
 
             self.results_df = results_df
             self.subset = updated_subset
             self.clf = updated_model
         else:
-            print("Not doing channel selection")
+            logger.warning("Not doing channel selection")
             self.clf, preds, accuracy, precision, recall = __erp_rg_kernel(
                 self.X, self.y
             )
 
-        # Print performance stats
+        # Log performance stats
         # accuracy
         accuracy = sum(preds == self.y) / len(preds)
         self.offline_accuracy = accuracy
-        if print_performance:
-            print("accuracy = {}".format(accuracy))
+        logger.info("Accuracy = %s", accuracy)
 
         # precision
         precision = precision_score(self.y, preds)
         self.offline_precision = precision
-        if print_performance:
-            print("precision = {}".format(precision))
+        logger.info("Precision = %s", precision)
 
         # recall
         recall = recall_score(self.y, preds)
         self.offline_recall = recall
-        if print_performance:
-            print("recall = {}".format(recall))
+        logger.info("Recall = %s", recall)
 
         # confusion matrix in command line
         cm = confusion_matrix(self.y, preds)
         self.offline_cm = cm
-        if print_performance:
-            print("confusion matrix")
-            print(cm)
+        logger.info("Confusion matrix:\n%s", cm)
 
         if plot_cm:
             cm = confusion_matrix(self.y, preds)
@@ -395,5 +382,5 @@ class ERP_rg_classifier(Generic_classifier):
             plt.show()
 
         if plot_roc:
-            print("plotting the ROC...")
-            print("just kidding ROC has not been implemented")
+            logger.info("Plotting the ROC...")
+            logger.error("Just kidding ROC has not been implemented")

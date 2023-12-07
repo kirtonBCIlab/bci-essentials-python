@@ -8,6 +8,10 @@ import os
 from bci_essentials.sources.xdf_sources import XdfEegSource, XdfMarkerSource
 from bci_essentials.erp_data import ERP_data
 from bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
+from bci_essentials.utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger at the default level of logging.INFO
+logger = Logger()
 
 # Identify the file to simulate
 # Filename assumes the data is within a subfolder called "data" located
@@ -41,11 +45,6 @@ test_erp.main(
     plot_erp=False,
     window_start=0.0,
     window_end=0.8,
-    print_markers=False,
-    print_training=False,
-    print_fit=False,
-    print_performance=True,
-    print_predict=False,
 )
 
-print("debug")
+logger.debug("Finished running in DEBUG mode")

@@ -9,3 +9,4 @@ dist/
 *.swp
 plugins/FeatureExtractorSSVEP
 session_saves/*.pkl
+*.log

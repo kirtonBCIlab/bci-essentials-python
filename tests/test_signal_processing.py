@@ -2,6 +2,10 @@ import numpy as np
 import unittest
 
 from bci_essentials.signal_processing import lowpass, highpass, bandpass, notch
+from bci_essentials.utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+logger = Logger()
 
 
 class TestLoadData(unittest.TestCase):
@@ -59,11 +63,11 @@ class TestLoadData(unittest.TestCase):
         mse_3d_band = np.mean(np.square(example_3D_band[0, 0, :] - random_band))
         mse_3d_all = np.mean(np.square(example_3D_band[0, 0, :] - random_all))
 
-        # # Print the MSEs
-        # print("MSE 2D band: " + str(mse_2d_band))
-        # print("MSE 2D all: " + str(mse_2d_all))
-        # print("MSE 3D band: " + str(mse_3d_band))
-        # print("MSE 3D all: " + str(mse_3d_all))
+        # # Log the MSEs
+        logger.debug("MSE 2D band: %s", mse_2d_band)
+        logger.debug("MSE 2D all: %s", mse_2d_all)
+        logger.debug("MSE 3D band: %s", mse_3d_band)
+        logger.debug("MSE 3D all: %s", mse_3d_all)
 
         # Check that output is correct
         assert mse_2d_band < mse_2d_all
@@ -122,11 +126,11 @@ class TestLoadData(unittest.TestCase):
         mse_3d_low = np.mean(np.square(example_3D_low[0, 0, :] - random_low))
         mse_3d_all = np.mean(np.square(example_3D_low[0, 0, :] - random_all))
 
-        # # Print the MSEs
-        # print("MSE 2D low: " + str(mse_2d_low))
-        # print("MSE 2D all: " + str(mse_2d_all))
-        # print("MSE 3D low: " + str(mse_3d_low))
-        # print("MSE 3D all: " + str(mse_3d_all))
+        # # Log the MSEs
+        logger.debug("MSE 2D low: %s", mse_2d_low)
+        logger.debug("MSE 2D all: %s", mse_2d_all)
+        logger.debug("MSE 3D low: %s", mse_3d_low)
+        logger.debug("MSE 3D all: %s", mse_3d_all)
 
         # Check that output is correct
         assert mse_2d_low < mse_2d_all
@@ -185,11 +189,11 @@ class TestLoadData(unittest.TestCase):
         mse_3d_high = np.mean(np.square(example_3D_high[0, 0, :] - random_high))
         mse_3d_all = np.mean(np.square(example_3D_high[0, 0, :] - random_all))
 
-        # # Print the MSEs
-        # print("MSE 2D high: " + str(mse_2d_high))
-        # print("MSE 2D all: " + str(mse_2d_all))
-        # print("MSE 3D high: " + str(mse_3d_high))
-        # print("MSE 3D all: " + str(mse_3d_all))
+        # # Log the MSEs
+        logger.debug("MSE 2D high: %s", mse_2d_high)
+        logger.debug("MSE 2D all: %s", mse_2d_all)
+        logger.debug("MSE 3D high: %s", mse_3d_high)
+        logger.debug("MSE 3D all: %s", mse_3d_all)
 
         # Check that output is correct
         assert mse_2d_high < mse_2d_all
@@ -248,11 +252,11 @@ class TestLoadData(unittest.TestCase):
         mse_3d_notch = np.mean(np.square(example_3D_notch[0, 0, :] - random_notch))
         mse_3d_all = np.mean(np.square(example_3D_notch[0, 0, :] - random_all))
 
-        # # Print the MSEs
-        # print("MSE 2D notch: " + str(mse_2d_notch))
-        # print("MSE 2D all: " + str(mse_2d_all))
-        # print("MSE 3D notch: " + str(mse_3d_notch))
-        # print("MSE 3D all: " + str(mse_3d_all))
+        # # Log the MSEs
+        logger.debug("MSE 2D notch: %s", mse_2d_notch)
+        logger.debug("MSE 2D all: %s", mse_2d_all)
+        logger.debug("MSE 3D notch: %s", mse_3d_notch)
+        logger.debug("MSE 3D all: %s", mse_3d_all)
 
         # Check that output is correct
         assert mse_2d_notch < mse_2d_all

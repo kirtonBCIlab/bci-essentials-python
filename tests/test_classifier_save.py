@@ -8,6 +8,10 @@ from bci_essentials.erp_data import ERP_data
 from bci_essentials.classification.mi_classifier import MI_classifier
 from bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
 from bci_essentials.session_saving import save_classifier, load_classifier
+from bci_essentials.utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+logger = Logger()
 
 data_folder_path = os.path.join("examples", "data")
 
@@ -39,11 +43,6 @@ class TestClassifierSave(unittest.TestCase):
             pp_low=5,
             pp_high=50,
             pp_order=5,
-            print_markers=False,
-            print_training=False,
-            print_fit=False,
-            print_performance=False,
-            print_predict=False,
         )
 
         # Save the classifier
@@ -60,7 +59,7 @@ class TestClassifierSave(unittest.TestCase):
         # Check that all values of the classifier's numpy arrays are the same
         self.assertTrue(np.array_equal(classifier1.X, classifier2.X))
 
-        print("Classifier reloaded")
+        logger.info("Classifier reloaded")
 
         # Delete classifier predictions
         classifier2.predictions = []
@@ -73,11 +72,6 @@ class TestClassifierSave(unittest.TestCase):
             pp_low=5,
             pp_high=50,
             pp_order=5,
-            print_markers=False,
-            print_training=False,
-            print_fit=False,
-            print_performance=False,
-            print_predict=False,
         )
 
         # Check that X and y are the same
@@ -92,7 +86,7 @@ class TestClassifierSave(unittest.TestCase):
             )
         )
 
-        print("MI classifier save/load test passed")
+        logger.info("MI classifier save/load test passed")
 
     def test_p300_manual_classifier_save(self):
         # Get the P300 example data from ./examples/data
@@ -126,11 +120,6 @@ class TestClassifierSave(unittest.TestCase):
             max_num_options=9,
             max_windows_per_option=16,
             max_decisions=20,
-            print_markers=False,
-            print_training=False,
-            print_fit=False,
-            print_performance=False,
-            print_predict=False,
         )
 
         # Save the classifier model
@@ -147,7 +136,7 @@ class TestClassifierSave(unittest.TestCase):
         # Check that all values of the classifier's numpy arrays are the same
         self.assertTrue(np.array_equal(classifier1.X, classifier2.X))
 
-        print("Classifier reloaded")
+        logger.info("Classifier reloaded")
 
         # Delete classifier predictions
         classifier2.predictions = []
@@ -166,11 +155,6 @@ class TestClassifierSave(unittest.TestCase):
             max_num_options=9,
             max_windows_per_option=16,
             max_decisions=20,
-            print_markers=False,
-            print_training=False,
-            print_fit=False,
-            print_performance=False,
-            print_predict=False,
         )
 
         # Check that X and y are the same

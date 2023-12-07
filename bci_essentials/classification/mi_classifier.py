@@ -20,6 +20,11 @@ from pyriemann.channelselection import FlatChannelRemover, ElectrodeSelection
 # Import bci_essentials modules and methods
 from ..classification.generic_classifier import Generic_classifier
 from ..channel_selection import channel_selection_by_method
+from ..utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+# Logs to bci_essentials.__module__) where __module__ is the name of the module
+logger = Logger(name=__name__)
 
 
 class MI_classifier(Generic_classifier):
@@ -118,10 +123,10 @@ class MI_classifier(Generic_classifier):
         #     self.clf = Pipeline([('CSP', csp), ('LogisticRegression', lr)])
 
         else:
-            print("Classifier type not defined")
+            logger.error("Classifier type not defined")
 
         if artifact_rejection == "potato":
-            print("Potato not implemented")
+            logger.error("Potato not implemented")
 
         if whitening:
             self.clf_model.steps.insert(0, ["Whitening", Whitening()])
@@ -143,17 +148,8 @@ class MI_classifier(Generic_classifier):
         # Rebuild from scratch with each training
         self.rebuild = True
 
-    def fit(self, print_fit=True, print_performance=True):
+    def fit(self):
         """Fit the model.
-
-        Parameters
-        ----------
-        print_fit : bool, *optional*
-            Description of parameter `print_fit`.
-            - Default is `True`.
-        print_performance : bool, *optional*
-            Description of parameter `print_performance`.
-            - Default is `True`.
 
         Returns
         -------
@@ -243,13 +239,14 @@ class MI_classifier(Generic_classifier):
         if self.channel_selection_setup:
             if self.chs_iterative_selection is True and self.subset is not None:
                 initial_subset = self.subset
-                print(
-                    "Using subset from previous channel selection, because iterative selection is TRUE"
+                logger.info(
+                    "Using subset from previous channel selection "
+                    + "because iterative selection is TRUE"
                 )
             else:
                 initial_subset = self.chs_initial_subset
 
-            print("Doing channel selection")
+            logger.info("Doing channel selection")
             (
                 updated_subset,
                 updated_model,
@@ -271,17 +268,16 @@ class MI_classifier(Generic_classifier):
                 self.chs_max_channels,
                 self.chs_performance_delta,  # stopping criterion
                 self.chs_n_jobs,
-                self.chs_output,
             )
 
             self.results_df = results_df
             self.subset = updated_subset
             self.clf = updated_model
         else:
-            print("Not doing channel selection")
+            logger.warning("Not doing channel selection")
             self.clf, preds, accuracy, precision, recall = __mi_kernel(subX, suby)
 
-        # Print performance stats
+        # Log performance stats
 
         self.offline_window_count = nwindows
         self.offline_window_counts.append(self.offline_window_count)
@@ -289,29 +285,24 @@ class MI_classifier(Generic_classifier):
         # accuracy
         accuracy = sum(preds == self.y) / len(preds)
         self.offline_accuracy.append(accuracy)
-        if print_performance:
-            print("accuracy = {}".format(accuracy))
+        logger.info("Accuracy = %s", accuracy)
 
         # precision
         precision = precision_score(self.y, preds, average="micro")
         self.offline_precision.append(precision)
-        if print_performance:
-            print("precision = {}".format(precision))
+        logger.info("Precision = %s", precision)
 
         # recall
         recall = recall_score(self.y, preds, average="micro")
         self.offline_recall.append(recall)
-        if print_performance:
-            print("recall = {}".format(recall))
+        logger.info("Recall = %s", recall)
 
         # confusion matrix in command line
         cm = confusion_matrix(self.y, preds)
         self.offline_cm = cm
-        if print_performance:
-            print("confusion matrix")
-            print(cm)
+        logger.info("Confusion matrix:\n%s", cm)
 
-    def predict(self, X, print_predict=True):
+    def predict(self, X):
         """Predict the class labels for the provided data.
 
         Parameters
@@ -322,9 +313,6 @@ class MI_classifier(Generic_classifier):
             3D array containing data with `float` type.
 
             shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
-        print_predict : bool, *optional*
-            Description of parameter `print_predict`.
-            - Default is `True`.
 
         Returns
         -------
@@ -340,17 +328,15 @@ class MI_classifier(Generic_classifier):
 
         X = self.get_subset(X, self.subset, self.channel_labels)
 
-        if print_predict:
-            print("the shape of X is", X.shape)
+        logger.info("The shape of X is %s", X.shape)
 
         X_cov = Covariances(estimator=self.covariance_estimator).transform(X)
 
         pred = self.clf.predict(X_cov)
         pred_proba = self.clf.predict_proba(X_cov)
 
-        if print_predict:
-            print(pred)
-            print(pred_proba)
+        logger.info("Prediction: %s", pred)
+        logger.info("Prediction probabilities: %s", pred_proba)
 
         for i in range(len(pred)):
             self.predictions.append(pred[i])

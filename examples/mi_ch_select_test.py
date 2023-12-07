@@ -9,6 +9,10 @@ import os
 from bci_essentials.sources.xdf_sources import XdfEegSource, XdfMarkerSource
 from bci_essentials.eeg_data import EEG_data
 from bci_essentials.classification.mi_classifier import MI_classifier
+from bci_essentials.utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger at the default level of logging.INFO
+logger = Logger()
 
 # Identify the file to simulate
 # Filename assumes the data is within a subfolder called "data" located
@@ -35,7 +39,6 @@ classifier.setup_channel_selection(
     max_channels=20,
     performance_delta=-0.05,  # stopping criterion
     n_jobs=-1,
-    print_output="silent",
     record_performance=True,
 )
 
@@ -49,13 +52,8 @@ test_mi.main(
     pp_low=5,
     pp_high=30,
     pp_order=5,
-    print_markers=True,
-    print_training=False,
-    print_fit=False,
-    print_performance=True,
-    print_predict=False,
 )
 
-print(classifier.results_df)
+logger.info("%s", classifier.results_df)
 
-print("debug")
+logger.debug("Finished running in DEBUG mode")

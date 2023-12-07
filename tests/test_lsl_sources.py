@@ -3,15 +3,21 @@ import unittest
 from pylsl import StreamInfo, StreamOutlet, IRREGULAR_RATE
 
 from bci_essentials.sources.lsl_sources import LslMarkerSource, LslEegSource
+from bci_essentials.utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+logger = Logger()
 
 
 class TestLslSourceTimeouts(unittest.TestCase):
     def test_lsl_marker_source_raises_exception_on_timeout(self):
         with self.assertRaises(Exception):
+            logger.critical("LSL Marker source timeout")
             LslMarkerSource(timeout=0)
 
     def test_lsl_eeg_source_raises_exception_on_timeout(self):
         with self.assertRaises(Exception):
+            logger.critical("LSL EEG source timeout")
             LslEegSource(timeout=0)
 
 

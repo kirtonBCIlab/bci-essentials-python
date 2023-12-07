@@ -10,11 +10,11 @@ from scipy import signal
 
 # Import bci_essentials modules and methods
 from ..classification.generic_classifier import Generic_classifier
+from ..utils.logger import Logger  # Logger wrapper
 
-# Don't do "import *", but this is how to do it if desired with relative import
-# from ..visuals import *
-# from ..signal_processing import *
-# from ..channel_selection import *
+# Instantiate a logger for the module at the default level of logging.INFO
+# Logs to bci_essentials.__module__) where __module__ is the name of the module
+logger = Logger(name=__name__)
 
 
 class SSVEP_basic_tf_classifier(Generic_classifier):
@@ -43,17 +43,8 @@ class SSVEP_basic_tf_classifier(Generic_classifier):
         self.target_freqs = target_freqs
         self.setup = False
 
-    def fit(self, print_fit=True, print_performance=True):
+    def fit(self):
         """Fit the model.
-
-        Parameters
-        ----------
-        print_fit : bool, *optional*
-            Description of parameter `print_fit`.
-            - Default is `True`.
-        print_performance : bool, *optional*
-            Description of parameter `print_performance`.
-            - Default is `True`.
 
         Returns
         -------
@@ -61,13 +52,13 @@ class SSVEP_basic_tf_classifier(Generic_classifier):
             Models created used in `predict()`.
 
         """
-        print(
+        logger.warning(
             "Oh deary me you must have mistaken me for another classifier which requires training"
         )
-        print("I DO NOT NEED TRAINING.")
-        print("THIS IS MY FINAL FORM")
+        logger.warning("I DO NOT NEED TRAINING.")
+        logger.warning("THIS IS MY FINAL FORM")
 
-    def predict(self, X, print_predict):
+    def predict(self, X):
         """Predict the class labels for the provided data.
 
         Parameters
@@ -78,8 +69,6 @@ class SSVEP_basic_tf_classifier(Generic_classifier):
             3D array containing data with `float` type.
 
             shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
-        print_predict : bool
-            Description of parameter `print_predict`.
 
         Returns
         -------
@@ -93,7 +82,7 @@ class SSVEP_basic_tf_classifier(Generic_classifier):
         nwindows, nchannels, nsamples = X.shape
         # The first time it is called it must be set up
         if self.setup is False:
-            print("setting up the training free classifier")
+            logger.info("Setting up the training free classifier")
 
             self.setup = True
 

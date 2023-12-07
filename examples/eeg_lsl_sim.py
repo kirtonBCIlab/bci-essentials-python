@@ -24,6 +24,10 @@ from pylsl import StreamInfo, StreamOutlet
 
 # Import local bci_essentials
 from bci_essentials.sources.xdf_sources import XdfEegSource, XdfMarkerSource
+from bci_essentials.utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+logger = Logger()
 
 # Identify the file to simulate
 # Filename assumes the data is within a subfolder called "data" located
@@ -35,7 +39,7 @@ start_now = False
 try:
     arg1 = sys.argv[1]
     if arg1 == "now" or arg1 == "-n":
-        print("starting stream immediately")
+        logger.info("Starting stream immediately")
         start_now = True
 except Exception:
     start_now = False
@@ -44,7 +48,7 @@ except Exception:
 nloops = 1
 try:
     nloops = int(sys.argv[2])
-    print("repeating for ", nloops, " loops")
+    logger.info("Repeating for %s loops", nloops)
 
 except Exception:
     nloops = 1
@@ -85,7 +89,7 @@ outlet = StreamOutlet(info)
 if start_now is False:
     # publish to stream at the next rounded minute
     now_time = datetime.datetime.now()
-    print("Current time is ", now_time)
+    logger.info("Current time is %s", now_time)
     seconds = (now_time - now_time.min).seconds
     microseconds = now_time.microsecond
     # // is a floor division, not a comment on following line:
@@ -93,12 +97,12 @@ if start_now is False:
     round_time = now_time + datetime.timedelta(
         0, 60 + rounding - seconds, -microseconds
     )
-    print(microseconds)
-    print("Stream will begin at ", round_time)
+    logger.info("microseconds: %s", microseconds)
+    logger.info("Stream will begin at %s", round_time)
     time.sleep(60 + rounding - seconds - (0.000001 * microseconds))
 
 now_time = datetime.datetime.now()
-print("Current time is ", now_time)
+logger.info("Current time is %s", now_time)
 
 i = 0
 while i < nloops:
@@ -111,6 +115,6 @@ while i < nloops:
     i += 1
 
 # delete the outlet
-print("Deleting EEG stream")
+logger.info("Deleting EEG stream")
 outlet.__del__()
-print("Done.")
+logger.info("Done.")

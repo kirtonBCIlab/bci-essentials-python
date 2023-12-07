@@ -18,6 +18,12 @@ import scipy.signal
 
 from matplotlib import pyplot as plt
 
+from .utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+# Logs to bci_essentials.__module__) where __module__ is the name of the module
+logger = Logger(name=__name__)
+
 
 def get_shape(data):
     """Get the shape of the input data.
@@ -149,7 +155,7 @@ def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
         Pxx = Pxx[:, ind_min:ind_max]
 
         alpha_peaks[win] = f[np.argmax(np.median(Pxx, axis=0))]
-        print("Alpha peak of window {} ".format(win), alpha_peaks[win])
+        logger.info("Alpha peak of window %s is %s", win, alpha_peaks[win])
 
         if plot_psd:
             nrows = int(np.ceil(np.sqrt(C)))

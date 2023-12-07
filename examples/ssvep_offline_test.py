@@ -8,6 +8,10 @@ from bci_essentials.eeg_data import EEG_data
 from bci_essentials.classification.ssvep_riemannian_mdm_classifier import (
     SSVEP_riemannian_mdm_classifier,
 )
+from bci_essentials.utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+logger = Logger()
 
 # Identify the file to simulate
 # Filename assumes the data is within a subfolder called "data" located
@@ -27,7 +31,7 @@ test_ssvep = EEG_data(classifier, eeg_source, marker_source)
 # initial_subset=['PO7', 'PO3', 'POz', 'PO4', 'PO8', 'O1', 'Oz', 'O2', 'Cp4', 'C4', 'F4', 'Cp3', 'C3', 'F3', 'Cz', 'Fz']
 # test_ssvep.classifier.setup_channel_selection(method = "SBS", metric="accuracy", initial_channels = initial_subset,    # wrapper setup
 #                                 max_time= 999, min_channels=2, max_channels=16, performance_delta=0,      # stopping criterion
-#                                 n_jobs=-1, print_output="verbose")
+#                                 n_jobs=-1)
 
 test_ssvep.main(
     online=False,
@@ -38,7 +42,7 @@ test_ssvep.main(
     pp_high=50,
 )
 
-print("debug")
+logger.debug("Ran in DEBUG mode")
 
 # Some optional plotting
 # # plot a spectrogram of the session
@@ -83,7 +87,7 @@ print("debug")
 #     plt.hlines(y=[f_target,f_target*2,f_target*3], xmin=-5, xmax=5, color='r')
 #     plt.show()
 
-#     print("debug")
+#     logger.debug("Ran in DEBUG mode")
 
 #     # clear
 #     plt.clf()

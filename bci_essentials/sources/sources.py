@@ -1,5 +1,11 @@
 from abc import ABC, abstractmethod
 
+from ..utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+# Logs to bci_essentials.__module__) where __module__ is the name of the module
+logger = Logger(name=__name__)
+
 
 class MarkerSource(ABC):
     """MarkerSource objects send time synchronized markers/commands to EEG_data."""

@@ -16,6 +16,12 @@ decision blocks.
 import matplotlib.pyplot as plt
 import numpy as np
 
+from .utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+# Logs to bci_essentials.__module__) where __module__ is the name of the module
+logger = Logger(name=__name__)
+
 
 def decision_vis(decision_block, f_sample, label, channel_labels=[], ylims=(-100, 100)):
     """Visualization for P300 ERP.

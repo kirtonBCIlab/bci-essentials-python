@@ -26,6 +26,11 @@ from pylsl import StreamOutlet, StreamInfo
 from pylsl.pylsl import IRREGULAR_RATE
 
 from .eeg_data import EEG_data
+from .utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+# Logs to bci_essentials.__module__) where __module__ is the name of the module
+logger = Logger(name=__name__)
 
 
 # ERP Data
@@ -52,12 +57,14 @@ class ERP_data(EEG_data):
             This is what the code will return once it has been implemented.
 
         """
-        print("mne_export_as_raw has not been implemented yet")
+        logger.error("mne_export_as_raw has not been implemented yet")
         # # Check for mne
         # try:
         #     import mne
         # except Exception:
-        #     print("Could not import mne, you may have to install (pip install mne)")
+        #    logger.critical(
+        #         "Could not import mne, you may have to install (pip install mne)"
+        #     )
 
         # # create info from metadata
         # info = mne.create_info(ch_names=self.channel_labels, sfreq=self.fsample, ch_types='eeg')
@@ -90,7 +97,9 @@ class ERP_data(EEG_data):
         try:
             import mne
         except Exception:
-            print("Could not import mne, you may have to install (pip install mne)")
+            logger.critical(
+                "Could not import mne, you may have to install (pip install mne)"
+            )
 
         # create info from metadata
         info = mne.create_info(
@@ -131,12 +140,14 @@ class ERP_data(EEG_data):
             This is what the code will return once it has been implemented.
 
         """
-        print("mne_export_as_evoked has not yet been implemented")
+        logger.error("mne_export_as_evoked has not yet been implemented")
         # # Check for mne
         # try:
         #     import mne
         # except Exception:
-        #     print("Could not import mne, you may have to install (pip install mne)")
+        #     logger.critical(
+        #         "Could not import mne, you may have to install (pip install mne)"
+        #     )
 
         # # create info from metadata
         # info = mne.create_info(ch_names=self.channel_labels, sfreq=self.fsample, ch_types=self.ch_type)
@@ -172,16 +183,10 @@ class ERP_data(EEG_data):
         training=False,
         train_complete=False,
         online=False,
-        print_markers=True,
-        print_training=True,
-        print_fit=True,
-        print_performance=True,
-        print_predict=True,
-        # Preprocessing
-        pp_type="bandpass",  # preprocessing method
-        pp_low=1,  # bandpass lower cutoff
-        pp_high=40,  # bandpass upper cutoff
-        pp_order=5,  # bandpass order
+        pp_type="bandpass",  # Preprocessing method
+        pp_low=1,  # Preprocessing: bandpass lower cutoff
+        pp_high=40,  # Preprocessing: bandpass upper cutoff
+        pp_order=5,  # Preprocessing: bandpass order
         plot_erp=False,
     ):
         """Main function of `ERP_data` class.
@@ -240,25 +245,6 @@ class ERP_data(EEG_data):
             Flag to indicate if the data will be processed in `online` mode.
             - `True`: The data will be processed in `online` mode.
             - `False`: The data will be processed in `offline` mode.
-            - Default is `True`.
-        print_markers : bool, *optional*
-            Flag to indicate if the markers will be printed to the console.
-            - Default is `True`.
-        print_training : bool, *optional*
-            Flag to indicate if the training progress will be printed to the
-            console.
-            - Default is `True`.
-        print_fit : bool, *optional*
-            Flag to indicate if the classifier fit will be printed to the
-            console.
-            - Default is `True`.
-        print_performance : bool, *optional*
-            Flag to indicate if the classifier performance will be printed
-            to the console.
-            - Default is `True`.
-        print_predict : bool, *optional*
-            Flag to indicate if the classifier predictions will be printed
-            to the console.
             - Default is `True`.
         pp_type : str, *optional*
             Preprocessing method to apply to the EEG data.
@@ -385,12 +371,12 @@ class ERP_data(EEG_data):
                         channel_format="string",
                         source_id="pyp30042",
                     )
-                    # print(info)
+                    logger.debug("Stream info: %s", info)
                     # create the outlet
                     self.outlet = StreamOutlet(info)
 
                     # next make an outlet
-                    print("the outlet exists")
+                    logger.info("The outlet exists")
                     self.stream_outlet = True
 
                     # Push the data
@@ -409,9 +395,11 @@ class ERP_data(EEG_data):
                         or self.marker_data[self.marker_count][0] == "Trial Started"
                     ):
                         # Note that a marker occured, but do nothing else
-                        if print_markers:
-                            print("Trial Started")
+                        logger.info("Trial Started")
                         self.marker_count += 1
+                        logger.debug(
+                            "Increased marker count by 1 to %s", self.marker_count
+                        )
 
                     # once all resting state data is collected then go and compile it
                     elif (
@@ -427,11 +415,8 @@ class ERP_data(EEG_data):
                         and train_complete is False
                     ):
                         if train_complete is False:
-                            if print_training:
-                                print("Training the classifier")
-                            self._classifier.fit(
-                                print_fit=print_fit, print_performance=print_performance
-                            )
+                            logger.debug("Training the classifier")
+                            self._classifier.fit()
                         train_complete = True
                         training = False
                         self.marker_count += 1
@@ -494,8 +479,9 @@ class ERP_data(EEG_data):
                             fig1.show()
                             fig2.show()
 
-                        if print_markers:
-                            print(self.marker_data[self.marker_count][0])
+                        logger.info(
+                            "Marker: %s", self.marker_data[self.marker_count][0]
+                        )
 
                         self.marker_count += 1
 
@@ -509,12 +495,12 @@ class ERP_data(EEG_data):
                             if train_complete is False:
                                 # ADD to training set
                                 if unity_train:
-                                    if print_training:
-                                        print(
-                                            "adding decision block {} to the classifier with label {}".format(
-                                                self.decision_count, unity_label
-                                            )
-                                        )
+                                    logger.debug(
+                                        "Adding decision block %s to "
+                                        + "the classifier with label %s",
+                                        self.decision_count,
+                                        unity_label,
+                                    )
                                     self._classifier.add_to_train(
                                         self.decision_blocks_processed[
                                             self.decision_count,
@@ -523,19 +509,17 @@ class ERP_data(EEG_data):
                                             :,
                                         ],
                                         unity_label,
-                                        print_training=print_training,
                                     )
 
                                     # plot what was added
                                     # decision_vis(self.decision_blocks[self.decision_count,:,:,:], self.fsample, unity_label, self.channel_labels)
                                 else:
-                                    if print_training:
-                                        print(
-                                            "adding decision block {} to the classifier with label {}".format(
-                                                self.decision_count,
-                                                self.labels[self.decision_count],
-                                            )
-                                        )
+                                    logger.debug(
+                                        "Adding decision block %s to "
+                                        + "the classifier with label %s",
+                                        self.decision_count,
+                                        self.labels[self.decision_count],
+                                    )
                                     self._classifier.add_to_train(
                                         self.decision_blocks_processed[
                                             self.decision_count,
@@ -544,18 +528,13 @@ class ERP_data(EEG_data):
                                             :,
                                         ],
                                         self.labels[self.decision_count],
-                                        print_train=print_training,
                                     )
 
                                     # if the last of the labelled data was just added
                                     if self.decision_count == len(self.labels) - 1:
                                         # FIT
-                                        print("training the classifier")
-                                        self._classifier.fit(
-                                            n_splits=len(self.labels),
-                                            print_fit=print_fit,
-                                            print_performance=print_performance,
-                                        )
+                                        logger.debug("Training the classifier")
+                                        self._classifier.fit(n_splits=len(self.labels))
 
                             # else do the predict the label
                             else:
@@ -564,29 +543,31 @@ class ERP_data(EEG_data):
                                     decision_block=self.decision_blocks_processed[
                                         self.decision_count, 0 : self.num_options, :, :
                                     ],
-                                    print_predict=print_predict,
                                 )
 
                                 # save the selection indices
 
                                 # Send the prediction to Unity
-                                if print_predict:
-                                    print(
-                                        "{} was selected, sending to Unity".format(
-                                            prediction
-                                        )
-                                    )
+                                logger.info(
+                                    "%s was selected by the classifier", prediction
+                                )
                                 # pick a sample to send an wait for a bit
 
                                 # if online, send the packet to Unity
                                 if online:
+                                    logger.info(
+                                        "Sending prediction %s to Unity", prediction
+                                    )
                                     self.outlet.push_sample(["{}".format(prediction)])
 
-                        # TODO
+                        # TODO: Code is currently unreachable
                         else:
-                            print("Insufficient windows to make a decision")
+                            logger.error("Insufficient windows to make a decision")
                             self.decision_count -= 1
-                            # print(self.windows_per_decision)
+                            # logger.info(
+                            #     "Windows per decision: %s",
+                            #     self.windows_per_decision
+                            # )
 
                         self.decision_count += 1
                         self.windows_per_decision = np.zeros((self.num_options))
@@ -656,8 +637,7 @@ class ERP_data(EEG_data):
 
                     # current_target = target_order[self.decision_count]
                     if unity_train:
-                        if print_markers:
-                            print(marker_info)
+                        logger.info("Marker information: %s", marker_info)
                         current_target = unity_label
 
                     self.training_labels[self.nwindows] = current_target
@@ -676,7 +656,9 @@ class ERP_data(EEG_data):
 
                 # locate the indices of the window in the eeg data
                 for i, s in enumerate(self.eeg_timestamps[search_index:-1]):
-                    # print("i,s",i,s)
+                    logger.debug(
+                        "Indices (i,s) of the window in the eeg data: (%s,%s)", i, s
+                    )
                     if s > start_time:
                         start_loc = search_index + i - 1
                         # if start_loc < 0:
@@ -688,7 +670,9 @@ class ERP_data(EEG_data):
                 # Adjust windows per option
                 # self.windows_per_option = np.zeros(self.num_options, dtype=int)
 
-                # print("start loc, end loc ", start_loc, end_loc)
+                logger.debug(
+                    "Window (start_loc, end_loc): (%s, %s)", start_loc, end_loc
+                )
                 # linear interpolation and add to numpy array
                 for flash_index in flash_indices:
                     for c in range(self.nchannels):
