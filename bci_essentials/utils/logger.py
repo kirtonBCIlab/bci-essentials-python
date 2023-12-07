@@ -1,39 +1,117 @@
 """Utility for logging within BCI-Essentials.
 
-This module provides a `Logger` wrapper class that allows for easy configuration of
-logging settings for the 'bci_essentials' package. It uses the `logging` module
-from Python's standard library to handle logging functionality.
+This module provides a `Logger` wrapper class that allows for easy
+configuration of logging settings for the 'bci_essentials' package.
+The `Logger` class provides methods to initialize and configure the logger.
 
-The `Logger` class provides methods to initialize and configure the logger,
-set the logging level, and format log messages.
+It uses the `logging` module from Python's standard library to handle
+the logging functionality. The logging levels are the same as the ones
+in the `logging` module. They are given here in order of increasing
+severity. When the logging level is set to a particular level, all
+messages of that level and higher will be logged.
 
-Example usage:
-    from logger import Logger
+The logging levels can be accessed as class properties of the `Logger`
+class. For example, the `Logger.INFO` property can be used to set the
+logging level to INFO.
 
-    # Create a logger instance with default settings (INFO level)
-    logger = Logger()
+Logging Levels
+--------------
+DEBUG :
+    Debug level logging. This level outputs detailed information,
+    typically of interest only when diagnosing problems.
+INFO :
+    Info level logging. Confirmation that things are working as expected.
+    - Default logging level for the 'bci_essentials' package
+WARNING :
+    Warning level logging. An indication that something unexpected happened,
+    or indicative of some problem in the near future (e.g., 'disk space low').
+    The software is still working as expected.
+ERROR :
+    Error level logging. Due to a more serious problem, the software has not
+    been able to perform some function.
+CRITICAL :
+    Critical level logging. A serious error, indicating that the program itself
+    may be unable to continue running.
 
-    # Create a logger instance with modified logging level e.g. DEBUG
-    logger = Logger(Logger.DEBUG)
 
-    # Change the logging level of an existing logger instance e.g. DEBUG
-    logger.set_level(Logger.DEBUG)
+Examples
+--------
 
-    # Start saving logs to a file
-    # NOTE: This will save all logs AFTER this function is called
-    logger.start_saving()
+Example 1A: Creating a Logger object within the 'bci_essentials' package
+---------------------------------------------------------------------
+The following example shows how to use the `Logger` class within the
+'bci_essentials' package, i.e. within package modules. After importing
+the `Logger` class, a logger instance is created at the package default
+log level of `Logger.INFO`. The name of the logger is set to the name
+the module it is being used in (e.g. 'bci_essentials.utils.logger') so
+that log messages can be traced back to the module they originated from.
+    >>> from bci_essentials.utils.logger import Logger
+    >>> logger = Logger(name=__name__)
 
-    # Log an informational message
-    logger.logger.info("This is an informational message")
+Example 1B: Creating the Logger object outside of the 'bci_essentials' package
+------------------------------------------------------------------------------
+The following example shows how to use the `Logger` class to log messages
+from bci_essentials in a **User** script. After importing the `Logger` class,
+the User can create a logger instance with the default logging level of INFO.
 
-    # Log a warning message
-    logger.logger.warning("This is a warning message")
+**NOTE**: It is important to **NOT** change the default name of the
+logger instance in User scripts. The default name is set to 'bci_essentials'
+and is used by other modules to set module-specific loggers.
 
-    # Log an error message
-    logger.logger.error("This is an error message")
+Here is an example of creating a logger instance at the default logging
+level of INFO:
+    >>> from bci_essentials.utils.logger import Logger
+    >>> logger = Logger()
 
-    # Log a critical message
-    logger.logger.critical("This is a critical message")
+Here is an example of creating a logger instance at the DEBUG logging level:
+    >>> from bci_essentials.utils.logger import Logger
+    >>> logger = Logger(Logger.DEBUG)
+
+Example 2: Logging messages
+---------------------------
+After creating the logger instance, log messages can be recorded in the
+same way as the `logging` module, calling methods for debug(), info(),
+warning(), error(), and critical() messages. The logger instance will
+automatically log the name of the module it is being used in, along with
+the logging level and the message.
+    >>> logger.debug("This is a DEBUG message")
+    >>> logger.info("This is an INFO message")
+    >>> logger.logger.warning("This is a warning message")
+    >>> logger.logger.error("This is an error message")
+    >>> logger.logger.critical("This is a critical message")
+
+This is an example of including a variable in the output at the INFO level:
+    >>> logger.info("The number of channels is %s", num_channels)
+
+Example 3: Changing the logging level after Logger instantiation
+----------------------------------------------------------------
+The logging level can be changed after instantiation using the `set_level()`
+method. All messages of that level and higher will be logged going forward
+(i.e. after the logging level is changed).
+
+Here is an example of changing the logging level to DEBUG:
+    >>> logger.set_level(Logger.DEBUG)
+
+Here is an example of changing the logging level to ERROR:
+    >>> logger.set_level(Logger.ERROR)
+
+The logger level can be reset to the default level using:
+    >>> logger.set_level()
+
+Example 4: Saving logs to a file
+--------------------------------
+The logger can be configured to simultaneously save logs to a file using
+the `start_saving()` method. This will save all logs **AFTER** this
+function is called. *Messages before this function is called will not be
+saved*. The filename can be specified as an argument to the function.
+If no filename is specified, the default filename will be used, which is
+the current date and time in the format "YYYYmmdd-HHMS-bci_essentials.log".
+
+Here is an example of saving logs to a file with the default filename:
+    >>> logger.start_saving()
+
+Here is an example of saving logs to a file with a specified filename:
+    >>> logger.start_saving(filename="my_log_file.log")
 
 """
 
@@ -52,18 +130,15 @@ class Logger:
     Class Properties
     ----------------
     DEBUG : logging.Level
-        Debug level logging. This level outputs detailed information, typically
-        of interest only when diagnosing problems.
+        Debug level logging.
     INFO : logging.Level
-        Info level logging. Confirmation that things are working as expected.
+        Info level logging.
     WARNING : logging.Level
-        Warning level logging. An indication that something unexpected happened,
-        or indicative of some problem in the near future (e.g., 'disk space low').
-        The software is still working as expected.
+        Warning level logging.
     ERROR : logging.Level
-        Error level logging. Due to a more serious problem, the software has not been able to perform some function.
+        Error level logging.
     CRITICAL : logging.Level
-        Critical level logging. A serious error, indicating that the program itself may be unable to continue running.
+        Critical level logging.
 
     """
 
@@ -179,7 +254,7 @@ class Logger:
         ----------
         filename : str, *optional*
             Name of the file to log messages to
-            - Default is is "YYYYMMDD-HMS-bci_essentials.log".
+            - Default is is "YYYYmmdd-HHMMSS-bci_essentials.log".
         """
         if filename is None:
             filename = (
