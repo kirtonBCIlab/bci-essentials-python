@@ -2,7 +2,11 @@ import numpy as np
 import mne
 
 from bci_essentials.sources.xdf_sources import XdfEegSource, XdfMarkerSource
+from bci_essentials.utils.logger import Logger  # Logger wrapper
 
+# Instantiate a logger for the module at the default level of logging.INFO
+logger = Logger()
+logger.debug("Running %s", __file__)
 
 # Select a file
 # filename = "C:/Users/brian/Documents/OptimizationStudy/TestData/P300/March29/BI/sub-P001/ses-S001/eeg/sub-P001_ses-S001_task-StandardSingle_run-001_eeg.xdf"
@@ -29,7 +33,7 @@ raw = mne.io.RawArray(np.transpose(eeg_data[:, :23]), info)
 raw.filter(l_freq=0.1, h_freq=15)
 mne.set_eeg_reference(raw, ref_channels="average")
 
-print(info)
+logger.info("MNE information: %s", info)
 # raw.plot(scalings=dict(eeg=20), duration=1, start=10)
 
 
@@ -90,7 +94,7 @@ for i in range(len(marker_timestamps)):
             # increment the stim index
             stim_index += 1
 
-# print(stim_table)
+logger.debug("stim_table: %s", stim_table)
 
 events = np.array(stim_array[:stim_index, :])
 erp_events = np.array(erp_stim_array[:stim_index, :])
@@ -185,5 +189,3 @@ fig8 = averages[8].plot(spatial_colors=True)
 #     fig.subplots_adjust(top=0.9)  # make room for title
 #     ref = 'Average' if proj else 'No'
 #     fig.suptitle(f'{ref} reference', size='xx-large', weight='bold')
-
-print("howdy")

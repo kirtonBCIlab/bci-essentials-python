@@ -3,6 +3,11 @@ from bci_essentials.eeg_data import EEG_data
 from bci_essentials.classification.ssvep_basic_tf_classifier import (
     SSVEP_basic_tf_classifier,
 )
+from bci_essentials.utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+logger = Logger()
+logger.debug("Running %s", __file__)
 
 # create LSL sources, these will block until the outlets are present
 eeg_source = LslEegSource()

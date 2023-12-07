@@ -6,6 +6,11 @@ from bci_essentials.erp_data import ERP_data
 from bci_essentials.resting_state import get_alpha_peak, get_bandpower_features
 from bci_essentials.classification.mi_classifier import MI_classifier
 from bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
+from bci_essentials.utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+logger = Logger()
+logger.debug("Running %s", __file__)
 
 # Identify the file to simulate
 # Filename assumes the data is within a subfolder called "data" located
@@ -35,17 +40,12 @@ try:
         pp_low=5,
         pp_high=30,
         pp_order=5,
-        print_markers=False,
-        print_training=False,
-        print_fit=False,
-        print_performance=False,
-        print_predict=False,
     )
 
 except Exception:
     try:
         # Load the xdf
-        print(filename)
+        logger.warning("Loading file: %s", filename)
         eeg_source = XdfEegSource(filename)
         marker_source = XdfMarkerSource(filename)
 
@@ -72,30 +72,25 @@ except Exception:
             plot_erp=False,
             window_start=0.0,
             window_end=0.6,
-            print_markers=False,
-            print_training=False,
-            print_fit=False,
-            print_performance=False,
-            print_predict=False,
         )
 
     except Exception:
-        print("Couldn't find resting state data")
+        logger.error("Couldn't find resting state data")
 
 try:
     eyes_open_windows = test_rs.eyes_open_windows
 except Exception:
-    print("Couldn't find eyes open data")
+    logger.error("Couldn't find eyes open data")
 
 try:
     eyes_closed_windows = test_rs.eyes_closed_windows
 except Exception:
-    print("Couldn't find eyes closed data")
+    logger.error("Couldn't find eyes closed data")
 
 try:
     rest_windows = test_rs.rest_windows
 except Exception:
-    print("Couldn't find rest data")
+    logger.error("Couldn't find rest data")
 
 fsample = test_rs.fsample
 channel_labels = test_rs.channel_labels
@@ -108,11 +103,16 @@ abs_bandpower, rel_bandpower, rel_bandpower_mat = get_bandpower_features(
     eyes_open_windows, fs=fsample, transition_freqs=[1, 4, 8, 12, 30]
 )
 
-print("Absolute bandpower of each band, last value is sum")
-print(abs_bandpower[:, 0])
-print("Relative bandpower of each band, last column is 1")
-print(rel_bandpower[:, 0])
-print("Matrix of band powers relative to one another")
-print(rel_bandpower_mat[:, :, 0])
+logger.info(
+    "Absolute bandpower of each band, last value is sum:\n%s", abs_bandpower[:, 0]
+)
 
-print("debug")
+logger.info(
+    "Relative bandpower of each band, last column is 1:\n%s", rel_bandpower[:, 0]
+)
+
+logger.info(
+    "Matrix of band powers relative to one another:\n%s", rel_bandpower_mat[:, :, 0]
+)
+
+logger.debug("Ran in DEBUG mode")

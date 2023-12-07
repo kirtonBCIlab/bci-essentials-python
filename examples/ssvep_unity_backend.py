@@ -3,6 +3,11 @@ from bci_essentials.eeg_data import EEG_data
 from bci_essentials.classification.ssvep_riemannian_mdm_classifier import (
     SSVEP_riemannian_mdm_classifier,
 )
+from bci_essentials.utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+logger = Logger()
+logger.debug("Running %s", __file__)
 
 # create LSL sources, these will block until the outlets are present
 eeg_source = LslEegSource()
@@ -21,7 +26,7 @@ test_ssvep = EEG_data(classifier, eeg_source, marker_source)
 # initial_subset=[]
 # test_ssvep.classifier.setup_channel_selection(method = "SBFS", metric="accuracy", initial_channels = initial_subset,    # wrapper setup
 #                                 max_time= 999, min_channels=2, max_channels=14, performance_delta=0,      # stopping criterion
-#                                 n_jobs=-1, print_output="verbose")
+#                                 n_jobs=-1)
 
 test_ssvep.main(
     online=True,
@@ -32,4 +37,4 @@ test_ssvep.main(
     pp_high=50,
 )
 
-print("debug")
+logger.debug("Ran in DEBUG mode")

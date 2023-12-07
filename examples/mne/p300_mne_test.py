@@ -6,6 +6,11 @@ Test P300 offline using data from an existing stream
 from bci_essentials.sources.xdf_sources import XdfEegSource, XdfMarkerSource
 from bci_essentials.erp_data import ERP_data
 from bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
+from bci_essentials.utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+logger = Logger()
+logger.debug("Running %s", __file__)
 
 # Identify the file to simulate
 # This won't work on anyone else's computer
@@ -39,20 +44,15 @@ test_erp.main(
     plot_erp=False,
     window_start=0.0,
     window_end=0.8,
-    print_markers=False,
-    print_training=False,
-    print_fit=False,
-    print_performance=True,
-    print_predict=False,
 )
 
 
-print("debug")
+logger.debug("test_erp.mne_export_resting_state_as_raw()")
 rs_mne = test_erp.mne_export_resting_state_as_raw()
 
-print("debug")
+logger.debug("test_erp.mne_export_as_epochs()")
 mne_epochs = test_erp.mne_export_as_epochs()
 
 mne_epochs.plot(picks="eeg")
 
-print("debug")
+logger.debug("Ran in DEBUG mode")
