@@ -1,15 +1,22 @@
 import unittest
 import os
 from bci_essentials.sources.xdf_sources import XdfEegSource, XdfMarkerSource
+from bci_essentials.utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+logger = Logger()
+logger.debug("Running %s", __file__)
 
 
 class TestXdfSourceNonexistentFiles(unittest.TestCase):
     def test_xdf_marker_source_raises_exception_on_bad_filename(self):
         with self.assertRaises(Exception):
+            logger.critical("XDF Marker Source: File doesn't exist")
             XdfMarkerSource("./doesnt_exist.xdf")
 
     def test_xdf_eeg_source_raises_exception_on_bad_filename(self):
         with self.assertRaises(Exception):
+            logger.critical("XDF EEG Source: File doesn't exist")
             XdfEegSource("./doesnt_exist.xdf")
 
 

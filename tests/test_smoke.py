@@ -9,6 +9,11 @@ from bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
 from bci_essentials.classification.ssvep_riemannian_mdm_classifier import (
     SSVEP_riemannian_mdm_classifier,
 )
+from bci_essentials.utils.logger import Logger  # Logger wrapper
+
+# Instantiate a logger for the module at the default level of logging.INFO
+logger = Logger()
+logger.debug("Running %s", __file__)
 
 data_folder_path = os.path.join("examples", "data")
 
@@ -36,11 +41,6 @@ class TestSmoke(unittest.TestCase):
             pp_low=5,
             pp_high=50,
             pp_order=5,
-            print_markers=False,
-            print_training=False,
-            print_fit=False,
-            print_performance=False,
-            print_predict=False,
         )
 
         # Check that a model was trained
@@ -55,7 +55,7 @@ class TestSmoke(unittest.TestCase):
         # Check that the list of class predictions exists
         self.assertIsNotNone(classifier.predictions)
 
-        print("MI test complete")
+        logger.info("MI test complete")
 
     def test_p300_offline(self):
         # Get the P300 example data from ./examples/data
@@ -89,11 +89,6 @@ class TestSmoke(unittest.TestCase):
             max_num_options=9,
             max_windows_per_option=16,
             max_decisions=20,
-            print_markers=False,
-            print_training=False,
-            print_fit=False,
-            print_performance=False,
-            print_predict=False,
         )
 
         # Check that a model was trained
@@ -108,7 +103,7 @@ class TestSmoke(unittest.TestCase):
         # Check that the list of class predictions exists
         self.assertIsNotNone(classifier.predictions)
 
-        print("P300 test complete")
+        logger.info("P300 test complete")
 
     def test_ssvep_offline(self):
         # Get the SSVEP example data from ./examples/data
@@ -137,11 +132,6 @@ class TestSmoke(unittest.TestCase):
             pp_low=3,
             pp_high=50,
             pp_order=5,
-            print_markers=False,
-            print_training=False,
-            print_fit=False,
-            print_performance=False,
-            print_predict=False,
         )
 
         # Check that a model was trained
@@ -156,7 +146,7 @@ class TestSmoke(unittest.TestCase):
         # Check that the list of class predictions exists
         self.assertIsNotNone(classifier.predictions)
 
-        print("SSVEP test complete")
+        logger.info("SSVEP test complete")
 
 
 if __name__ == "__main__":
