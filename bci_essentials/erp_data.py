@@ -22,11 +22,9 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
-from pylsl import StreamOutlet, StreamInfo
-from pylsl.pylsl import IRREGULAR_RATE
-
 from .eeg_data import EEG_data
-from .utils.logger import Logger  # Logger wrapper
+from .io.lsl_messenger import LslMessenger
+from .utils.logger import Logger
 
 # Instantiate a logger for the module at the default level of logging.INFO
 # Logs to bci_essentials.__module__) where __module__ is the name of the module
@@ -361,26 +359,10 @@ class ERP_data(EEG_data):
                 # Time sync if not synced
 
                 # Create a stream to send markers back to Unity, but only create the stream once
-                if self.stream_outlet is False:
-                    # define the stream information
-                    info = StreamInfo(
-                        name="PythonResponse",
-                        type="BCI",
-                        channel_count=1,
-                        nominal_srate=IRREGULAR_RATE,
-                        channel_format="string",
-                        source_id="pyp30042",
-                    )
-                    logger.debug("Stream info: %s", info)
-                    # create the outlet
-                    self.outlet = StreamOutlet(info)
-
-                    # next make an outlet
-                    logger.info("The outlet exists")
-                    self.stream_outlet = True
-
-                    # Push the data
-                    self.outlet.push_sample(["This is the python response stream"])
+                if self._messenger is None:
+                    logger.info("the outlet exists")
+                    self._messenger = LslMessenger()
+                    self._messenger.started()
 
             # check if there is an available marker, if not, break and wait for more data
             while len(self.marker_timestamps) > self.marker_count:
@@ -558,7 +540,7 @@ class ERP_data(EEG_data):
                                     logger.info(
                                         "Sending prediction %s to Unity", prediction
                                     )
-                                    self.outlet.push_sample(["{}".format(prediction)])
+                                    self._messenger.prediction(prediction)
 
                         # TODO: Code is currently unreachable
                         else:
@@ -592,13 +574,7 @@ class ERP_data(EEG_data):
                     break
 
                 if online:
-                    self.outlet.push_sample(
-                        [
-                            "python got marker: {}".format(
-                                self.marker_data[self.marker_count][0]
-                            )
-                        ]
-                    )
+                    self._messenger.marker_received(self.marker_data[self.marker_count][0])
 
                 # If the whole EEG is available then add it to the erp window and the decision block
 
