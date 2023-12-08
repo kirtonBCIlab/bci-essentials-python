@@ -27,7 +27,7 @@ class LslMarkerSource(MarkerSource):
             self.__inlet = StreamInlet(marker_stream[0], processing_flags=0)
             self.__info = self.__inlet.info()
         except Exception:
-            raise Exception("LslMarkerSource: could not create stream")
+            raise Exception("LslMarkerSource: could not create inlet")
 
     @property
     def name(self) -> str:
@@ -57,7 +57,7 @@ class LslEegSource(EegSource):
             self.__inlet = StreamInlet(eeg_stream[0], processing_flags=0)
             self.__info = self.__inlet.info()
         except Exception:
-            raise Exception("LslEegSource: could not create stream")
+            raise Exception("LslEegSource: could not create inlet")
 
     @property
     def name(self) -> str:
