@@ -522,9 +522,7 @@ class ERP_data(EEG_data):
                                 )
 
                                 if self._messenger is not None:
-                                    logger.info(
-                                        "Sending prediction %s", prediction
-                                    )
+                                    logger.info("Sending prediction %s", prediction)
                                     self._messenger.prediction(prediction)
 
                         # TODO: Code is currently unreachable
