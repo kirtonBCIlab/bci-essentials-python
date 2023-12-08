@@ -24,7 +24,7 @@ import numpy as np
 from .signal_processing import notch, bandpass
 from .classification.generic_classifier import Generic_classifier
 from .io.sources import EegSource, MarkerSource
-from .io.lsl_messenger import LslMessenger
+from .io.messenger import Messenger
 from .utils.logger import Logger
 
 # Instantiate a logger for the module at the default level of logging.INFO
@@ -44,6 +44,7 @@ class EEG_data:
         classifier: Generic_classifier,
         eeg_source: EegSource,
         marker_source: MarkerSource | None = None,
+        messenger: Messenger | None = None,
         subset: list[str] = [],
     ):
         """Initializes `EEG_data` class.
@@ -61,20 +62,17 @@ class EEG_data:
             The list of EEG channel names to process, default is `[]`, meaning all channels.
         """
 
-        # # Check the types of incoming dependencies
-        assert isinstance(classifier, Generic_classifier), "classifier type error"
-        assert isinstance(eeg_source, EegSource), "eeg_source type error"
-        assert isinstance(
-            marker_source, MarkerSource | None
-        ), "marker_source type error"
+        # Ensure the incoming dependencies are the right type
+        assert isinstance(classifier, Generic_classifier)
+        assert isinstance(eeg_source, EegSource)
+        assert isinstance(marker_source, MarkerSource | None)
+        assert isinstance(messenger, Messenger | None)
 
         self._classifier = classifier
         self.__eeg_source = eeg_source
         self.__marker_source = marker_source
+        self._messenger = messenger
         self.__subset = subset
-
-        # TODO - replace with injected messenger (might be None if they don't want it)
-        self._messenger = None
 
         self.headset_string = self.__eeg_source.name
         self.fsample = self.__eeg_source.fsample
@@ -125,6 +123,7 @@ class EEG_data:
         self.ping_count = 0
         self.ping_interval = 5
         self.nsamples = 0
+        self.time_units = ""
 
     def edit_settings(
         self,
@@ -805,15 +804,6 @@ class EEG_data:
             # read from sources to get new data
             self._pull_data_from_source()
 
-            # if online, then pull new data with each iteration
-            if online:
-                # Create a stream to send markers back to Unity, but only create the stream once
-                if self._messenger is None:
-                    # create the outlet
-                    logger.info("the outlet exists")
-                    self._messenger = LslMessenger()
-                    self._messenger.started()
-
             # check if there is an available marker, if not, break and wait for more data
             while len(self.marker_timestamps) > self.marker_count:
                 loops = 0
@@ -826,9 +816,9 @@ class EEG_data:
                     # send feedback to unity if there is an available outlet
                     if self._messenger is not None:
                         # send feedback for each marker that you receive
-                        self._messenger.marker_received(self.marker_data[self.marker_count][0])
+                        marker = self.marker_data[self.marker_count][0]
+                        self._messenger.marker_received(marker)
 
-                    ############
                     logger.info("Marker: %s", self.marker_data[self.marker_count][0])
 
                     # once all resting state data is collected then go and compile it
@@ -1026,7 +1016,8 @@ class EEG_data:
                 if self._messenger is not None:
                     logger.info("sending feedback to Unity")
                     # send feedback for each marker that you receive
-                    self._messenger.marker_received(self.marker_data[self.marker_count][0])
+                    marker = self.marker_data[self.marker_count][0]
+                    self._messenger.marker_received(marker)
 
                 # Find the start time for the window based on the marker timestamp
                 start_time = self.marker_timestamps[self.marker_count]

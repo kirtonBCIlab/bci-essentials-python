@@ -23,7 +23,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from .eeg_data import EEG_data
-from .io.lsl_messenger import LslMessenger
 from .utils.logger import Logger
 
 # Instantiate a logger for the module at the default level of logging.INFO
@@ -355,15 +354,6 @@ class ERP_data(EEG_data):
             # read from sources to get new data
             self._pull_data_from_source()
 
-            if online:
-                # Time sync if not synced
-
-                # Create a stream to send markers back to Unity, but only create the stream once
-                if self._messenger is None:
-                    logger.info("the outlet exists")
-                    self._messenger = LslMessenger()
-                    self._messenger.started()
-
             # check if there is an available marker, if not, break and wait for more data
             while len(self.marker_timestamps) > self.marker_count:
                 loops = 0
@@ -574,13 +564,10 @@ class ERP_data(EEG_data):
                     break
 
                 if online:
-                    self._messenger.marker_received(self.marker_data[self.marker_count][0])
-
-                # If the whole EEG is available then add it to the erp window and the decision block
+                    marker = self.marker_data[self.marker_count][0]
+                    self._messenger.marker_received(marker)
 
                 # Markers are in the format [p300, single (s) or multi (m),num_selections, train_target_index, flash_index_1, flash_index_2, ... ,flash_index_n]
-
-                # Get marker info
                 marker_info = self.marker_data[self.marker_count][0].split(",")
 
                 # unity_flash_indexes
@@ -610,7 +597,6 @@ class ERP_data(EEG_data):
                 # for flash_index in flash_indices:
                 if training:
                     # Get target info
-
                     # current_target = target_order[self.decision_count]
                     if unity_train:
                         logger.info("Marker information: %s", marker_info)

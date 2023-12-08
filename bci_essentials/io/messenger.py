@@ -11,10 +11,6 @@ class Messenger(ABC):
     """
 
     @abstractmethod
-    def started(self):
-        pass
-
-    @abstractmethod
     def ping(self):
         pass
 

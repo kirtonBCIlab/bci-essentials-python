@@ -2,6 +2,8 @@ from pylsl import StreamInfo, StreamOutlet, IRREGULAR_RATE
 
 from .messenger import Messenger
 
+__all__ = ["LslMessenger"]
+
 
 class LslMessenger(Messenger):
     """A Messenger object that sends EEG_data events to an LSL outlet."""
@@ -16,8 +18,6 @@ class LslMessenger(Messenger):
             source_id="pyp30042",
         )
         self.__outlet = StreamOutlet(info)
-
-    def started(self):
         self.__outlet.push_sample(["This is the python response stream"])
 
     def ping(self):
