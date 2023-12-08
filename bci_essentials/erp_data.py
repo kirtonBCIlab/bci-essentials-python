@@ -517,18 +517,13 @@ class ERP_data(EEG_data):
                                     ],
                                 )
 
-                                # save the selection indices
-
-                                # Send the prediction to Unity
                                 logger.info(
                                     "%s was selected by the classifier", prediction
                                 )
-                                # pick a sample to send an wait for a bit
 
-                                # if online, send the packet to Unity
-                                if online:
+                                if self._messenger is not None:
                                     logger.info(
-                                        "Sending prediction %s to Unity", prediction
+                                        "Sending prediction %s", prediction
                                     )
                                     self._messenger.prediction(prediction)
 
@@ -563,7 +558,7 @@ class ERP_data(EEG_data):
                     # UPDATE THE SEARCH START LOC
                     break
 
-                if online:
+                if self._messenger is not None:
                     marker = self.marker_data[self.marker_count][0]
                     self._messenger.marker_received(marker)
 

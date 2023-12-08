@@ -56,8 +56,11 @@ class EEG_data:
         eeg_source : EegSource
             Source of EEG data and timestamps, this could be from a file or headset via LSL, etc.
         marker_source : EegSource
-            Source of Marker/Control data and timestamps, this could be from a file or unity via
+            Source of Marker/Control data and timestamps, this could be from a file or Unity via
             LSL, etc.  The default value is None.
+        messenger: Messenger
+            Messenger object to handle events from EEG_data, ex: acknowledging markers and
+            predictions.  The default value is None.
         subset : list of `int`, *optional*
             The list of EEG channel names to process, default is `[]`, meaning all channels.
         """
@@ -813,7 +816,6 @@ class EEG_data:
                     len(self.marker_data[self.marker_count][0].split(",")) == 1
                     and self.marker_data[self.marker_count][0][0].isalpha()
                 ):
-                    # send feedback to unity if there is an available outlet
                     if self._messenger is not None:
                         # send feedback for each marker that you receive
                         marker = self.marker_data[self.marker_count][0]
@@ -872,16 +874,14 @@ class EEG_data:
                                     current_processed_eeg_windows
                                 )
 
-                                # Log the prediction
                                 logger.info(
                                     "%s was selected by the iterative classifier",
                                     prediction,
                                 )
 
-                                # If online, send the prediction packet to Unity
-                                if online:
+                                if self._messenger is not None:
                                     logger.info(
-                                        "Sending prediction %s from iterative classifier to Unity",
+                                        "Sending prediction %s from iterative classifier",
                                         prediction,
                                     )
                                     self._messenger.prediction(prediction)
@@ -910,13 +910,12 @@ class EEG_data:
                                     current_processed_eeg_windows
                                 )
                                 self.online_selections.append(prediction)
-                                # Log the prediction
+
                                 logger.info("%s was selected by classifier", prediction)
 
-                                # if online, send the packet to Unity
-                                if online:
+                                if self._messenger is not None:
                                     logger.info(
-                                        "Sending prediction %s from classifier to Unity",
+                                        "Sending prediction %s from classifier",
                                         prediction,
                                     )
                                     self._messenger.prediction(prediction)
@@ -1012,9 +1011,9 @@ class EEG_data:
 
                 logger.info("Marker information: %s", marker_info)
 
-                # send feedback to unity if there is an available outlet
+                # send message if there is an available outlet
                 if self._messenger is not None:
-                    logger.info("sending feedback to Unity")
+                    logger.info("sending marker ack")
                     # send feedback for each marker that you receive
                     marker = self.marker_data[self.marker_count][0]
                     self._messenger.marker_received(marker)
