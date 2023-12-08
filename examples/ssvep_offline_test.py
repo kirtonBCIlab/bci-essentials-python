@@ -3,7 +3,7 @@
 
 import os
 
-from bci_essentials.sources.xdf_sources import XdfEegSource, XdfMarkerSource
+from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
 from bci_essentials.eeg_data import EEG_data
 from bci_essentials.classification.ssvep_riemannian_mdm_classifier import (
     SSVEP_riemannian_mdm_classifier,

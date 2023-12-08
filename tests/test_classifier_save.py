@@ -2,7 +2,7 @@ import unittest
 import os
 import numpy as np
 
-from bci_essentials.sources.xdf_sources import XdfEegSource, XdfMarkerSource
+from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
 from bci_essentials.eeg_data import EEG_data
 from bci_essentials.erp_data import ERP_data
 from bci_essentials.classification.mi_classifier import MI_classifier

@@ -2,7 +2,7 @@ import unittest
 
 from pylsl import StreamInfo, StreamOutlet, IRREGULAR_RATE
 
-from bci_essentials.sources.lsl_sources import LslMarkerSource, LslEegSource
+from bci_essentials.io.lsl_sources import LslMarkerSource, LslEegSource
 
 
 class TestLslSourceTimeouts(unittest.TestCase):

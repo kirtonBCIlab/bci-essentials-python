@@ -1,6 +1,6 @@
 import unittest
 import os.path
-from bci_essentials.sources.xdf_sources import XdfEegSource, XdfMarkerSource
+from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
 
 
 class TestXdfSourceNonexistentFiles(unittest.TestCase):

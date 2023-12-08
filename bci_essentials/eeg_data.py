@@ -26,7 +26,7 @@ from pylsl.pylsl import IRREGULAR_RATE
 
 from .signal_processing import notch, bandpass
 from .classification.generic_classifier import Generic_classifier
-from .sources.sources import EegSource, MarkerSource
+from .io.sources import EegSource, MarkerSource
 from .utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO

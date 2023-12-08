@@ -1,4 +1,4 @@
-from bci_essentials.sources.lsl_sources import LslEegSource, LslMarkerSource
+from bci_essentials.io.lsl_sources import LslEegSource, LslMarkerSource
 from bci_essentials.erp_data import ERP_data
 from bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
 from bci_essentials.utils.logger import Logger  # Logger wrapper

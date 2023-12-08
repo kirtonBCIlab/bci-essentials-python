@@ -5,7 +5,7 @@ Test P300 offline using data from an existing stream
 
 import os
 
-from bci_essentials.sources.xdf_sources import XdfEegSource, XdfMarkerSource
+from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
 from bci_essentials.erp_data import ERP_data
 from bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
 from bci_essentials.utils.logger import Logger  # Logger wrapper
