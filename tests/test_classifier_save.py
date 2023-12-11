@@ -13,13 +13,10 @@ from bci_essentials.utils.logger import Logger  # Logger wrapper
 # Instantiate a logger for the module at the default level of logging.INFO
 logger = Logger()
 
-data_folder_path = os.path.join("examples", "data")
-
 
 class TestClassifierSave(unittest.TestCase):
     def test_mi_manual_classifier_save(self):
-        # Get the MI example data from ./examples/data
-        xdf_path = os.path.join(data_folder_path, "mi_example.xdf")
+        xdf_path = os.path.join(os.path.dirname(__file__), "data", "mi_smoke.xdf")
         eeg_source1 = XdfEegSource(xdf_path)
         marker_source1 = XdfMarkerSource(xdf_path)
 
@@ -78,7 +75,7 @@ class TestClassifierSave(unittest.TestCase):
         self.assertTrue(np.array_equal(classifier1.X, classifier2.X))
         self.assertTrue(np.array_equal(classifier1.y, classifier2.y))
 
-        # Check that the last predictions are the same for the mi_example given, the last 78 predictions should be the same
+        # Check that the last predictions are the same (the last 78 predictions should be the same)
         self.assertTrue(
             np.array_equal(
                 classifier1.predictions[-78:],
@@ -89,8 +86,7 @@ class TestClassifierSave(unittest.TestCase):
         logger.info("MI classifier save/load test passed")
 
     def test_p300_manual_classifier_save(self):
-        # Get the P300 example data from ./examples/data
-        xdf_path = os.path.join(data_folder_path, "p300_example.xdf")
+        xdf_path = os.path.join(os.path.dirname(__file__), "data", "p300_smoke.xdf")
         eeg_source1 = XdfEegSource(xdf_path)
         marker_source1 = XdfMarkerSource(xdf_path)
 

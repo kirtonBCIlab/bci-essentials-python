@@ -14,13 +14,11 @@ from bci_essentials.utils.logger import Logger  # Logger wrapper
 # Instantiate a logger for the module at the default level of logging.INFO
 logger = Logger()
 
-data_folder_path = os.path.join("examples", "data")
-
 
 class TestSmoke(unittest.TestCase):
     def test_mi_offline(self):
         # Get the MI example data from ./examples/data
-        xdf_path = os.path.join(data_folder_path, "mi_example.xdf")
+        xdf_path = os.path.join(os.path.dirname(__file__), "data", "mi_smoke.xdf")
         eeg_source = XdfEegSource(xdf_path)
         marker_source = XdfMarkerSource(xdf_path)
 
@@ -58,7 +56,7 @@ class TestSmoke(unittest.TestCase):
 
     def test_p300_offline(self):
         # Get the P300 example data from ./examples/data
-        xdf_path = os.path.join(data_folder_path, "p300_example.xdf")
+        xdf_path = os.path.join(os.path.dirname(__file__), "data", "p300_smoke.xdf")
         eeg_source = XdfEegSource(xdf_path)
         marker_source = XdfMarkerSource(xdf_path)
 
@@ -106,7 +104,7 @@ class TestSmoke(unittest.TestCase):
 
     def test_ssvep_offline(self):
         # Get the SSVEP example data from ./examples/data
-        xdf_path = os.path.join(data_folder_path, "ssvep_example.xdf")
+        xdf_path = os.path.join(os.path.dirname(__file__), "data", "ssvep_smoke.xdf")
         eeg_source = XdfEegSource(xdf_path)
         marker_source = XdfMarkerSource(xdf_path)
 
