@@ -124,7 +124,6 @@ class EEG_data:
         self.eeg_timestamps = np.array([])
 
         self.ping_count = 0
-        self.ping_interval = 5
         self.nsamples = 0
         self.time_units = ""
 
@@ -248,8 +247,7 @@ class EEG_data:
         # If the outlet exists send a ping
         if self._messenger is not None:
             self.ping_count += 1
-            if self.ping_count % self.ping_interval:
-                self._messenger.ping()
+            self._messenger.ping()
 
     def save_data(self, directory_name):
         """Save the data from different stages.
