@@ -9,7 +9,7 @@ The classifier always predicts 0.
 # Stock libraries
 
 # Import bci_essentials modules and methods
-from ..classification.generic_classifier import Generic_classifier
+from ..classification.generic_classifier import GenericClassifier
 from ..utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
@@ -17,8 +17,8 @@ from ..utils.logger import Logger  # Logger wrapper
 logger = Logger(name=__name__)
 
 
-class Null_classifier(Generic_classifier):
-    """Null Classifier class (*inherits from Generic_classifier*)."""
+class Null_classifier(GenericClassifier):
+    """NullClassifier class (*inherits from GenericClassifier*)."""
 
     def fit(self):
         """Fit the classifier to the data.

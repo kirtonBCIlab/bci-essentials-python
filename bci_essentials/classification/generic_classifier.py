@@ -14,11 +14,11 @@ from ..utils.logger import Logger  # Logger wrapper
 logger = Logger(name=__name__)
 
 
-class Generic_classifier:
+class GenericClassifier:
     """The base generic classifier class for other classifiers."""
 
     def __init__(self, training_selection=0, subset=[]):
-        """Initializes `Generic_classifier` class.
+        """Initializes `GenericClassifier` class.
 
         Parameters
         ----------
