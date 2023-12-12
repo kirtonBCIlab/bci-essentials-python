@@ -13,7 +13,7 @@ and classified (using one of the `classification` sub-modules).
 
 Classes
 -------
-- `EEG_data` : For processing continuous data in windows of a defined
+- `EegData` : For processing continuous data in windows of a defined
 length.
 
 """
@@ -22,7 +22,7 @@ import time
 import numpy as np
 
 from .signal_processing import notch, bandpass
-from .classification.generic_classifier import Generic_classifier
+from .classification.generic_classifier import GenericClassifier
 from .io.sources import EegSource, MarkerSource
 from .io.messenger import Messenger
 from .utils.logger import Logger
@@ -33,7 +33,7 @@ logger = Logger(name=__name__)
 
 
 # EEG data
-class EEG_data:
+class EegData:
     """
     Class that holds, windows, processes, and classifies EEG data.
     This class is used for processing of continuous EEG data in windows of a defined length.
@@ -41,32 +41,32 @@ class EEG_data:
 
     def __init__(
         self,
-        classifier: Generic_classifier,
+        classifier: GenericClassifier,
         eeg_source: EegSource,
         marker_source: MarkerSource | None = None,
         messenger: Messenger | None = None,
         subset: list[str] = [],
     ):
-        """Initializes `EEG_data` class.
+        """Initializes `EegData` class.
 
         Parameters
         ----------
-        classifier : Generic_classifier
-            The classifier used by EEG_data.
+        classifier : GenericClassifier
+            The classifier used by EegData.
         eeg_source : EegSource
             Source of EEG data and timestamps, this could be from a file or headset via LSL, etc.
         marker_source : EegSource
             Source of Marker/Control data and timestamps, this could be from a file or Unity via
             LSL, etc.  The default value is None.
         messenger: Messenger
-            Messenger object to handle events from EEG_data, ex: acknowledging markers and
+            Messenger object to handle events from EegData, ex: acknowledging markers and
             predictions.  The default value is None.
         subset : list of `int`, *optional*
             The list of EEG channel names to process, default is `[]`, meaning all channels.
         """
 
         # Ensure the incoming dependencies are the right type
-        assert isinstance(classifier, Generic_classifier)
+        assert isinstance(classifier, GenericClassifier)
         assert isinstance(eeg_source, EegSource)
         assert isinstance(marker_source, MarkerSource | None)
         assert isinstance(messenger, Messenger | None)
@@ -692,12 +692,12 @@ class EEG_data:
         pp_high=40,  # bandpass upper cutoff
         pp_order=5,  # bandpass order
     ):
-        """Main function of `EEG_data` class.
+        """Main function of `EegData` class.
 
-        Runs a while loop that reads in EEG data from the `EEG_data` object
+        Runs a while loop that reads in EEG data from the `EegData` object
         and processes it. Can be used in `online` or `offline` mode.
         - If in `online` mode, then the loop will continuously try to read
-        in data from the `EEG_data` object and process it. The loop will
+        in data from the `EegData` object and process it. The loop will
         terminate when `max_loops` is reached, or when manually terminated.
         - If in `offline` mode, then the loop will read in all of the data
         at once, process it, and then terminate.

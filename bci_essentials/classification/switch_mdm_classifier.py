@@ -20,7 +20,7 @@ from sklearn import preprocessing
 from pyriemann.classification import MDM
 
 # Import bci_essentials modules and methods
-from ..classification.generic_classifier import Generic_classifier
+from ..classification.generic_classifier import GenericClassifier
 from ..utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
@@ -29,8 +29,8 @@ logger = Logger(name=__name__)
 
 
 # TODO: Missing correct implementation of this classifier
-class Switch_mdm_classifier(Generic_classifier):
-    """Switch MDM Classifier class (*inherits from Generic_classifier*)."""
+class SwitchMdmClassifier(GenericClassifier):
+    """Switch MDM Classifier class (*inherits from GenericClassifier*)."""
 
     def set_switch_classifier_mdm_settings(
         self,

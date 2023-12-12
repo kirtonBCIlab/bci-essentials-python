@@ -1,7 +1,7 @@
 from bci_essentials.io.lsl_sources import LslEegSource, LslMarkerSource
 from bci_essentials.io.lsl_messenger import LslMessenger
-from bci_essentials.erp_data import ERP_data
-from bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
+from bci_essentials.erp_data import ErpData
+from bci_essentials.classification.erp_rg_classifier import ErpRgClassifier
 from bci_essentials.utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
@@ -13,7 +13,7 @@ marker_source = LslMarkerSource()
 messenger = LslMessenger()
 
 # Set classifier settings ()
-classifier = ERP_rg_classifier()  # you can add a subset here
+classifier = ErpRgClassifier()  # you can add a subset here
 
 # Set some settings
 classifier.set_p300_clf_settings(
@@ -25,7 +25,7 @@ classifier.set_p300_clf_settings(
 )
 
 # Initialize the ERP
-test_erp = ERP_data(classifier, eeg_source, marker_source, messenger)
+test_erp = ErpData(classifier, eeg_source, marker_source, messenger)
 
 # Run main
 test_erp.main(

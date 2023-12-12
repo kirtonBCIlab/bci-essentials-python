@@ -15,7 +15,7 @@ from pyriemann.classification import MDM
 from pyriemann.estimation import Covariances
 
 # Import bci_essentials modules and methods
-from ..classification.generic_classifier import Generic_classifier
+from ..classification.generic_classifier import GenericClassifier
 from ..signal_processing import bandpass
 from ..channel_selection import channel_selection_by_method
 from ..utils.logger import Logger  # Logger wrapper
@@ -25,9 +25,9 @@ from ..utils.logger import Logger  # Logger wrapper
 logger = Logger(name=__name__)
 
 
-class SSVEP_riemannian_mdm_classifier(Generic_classifier):
+class SsvepRiemannianMdmClassifier(GenericClassifier):
     """SSVEP Riemannian MDM Classifier class
-    (*inherits from Generic_classifier*)
+    (*inherits from GenericClassifier*)
 
     """
 
