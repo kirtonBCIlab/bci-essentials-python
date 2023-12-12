@@ -15,7 +15,7 @@ class TestXdfSourceNonexistentFiles(unittest.TestCase):
 
 class TestXdfMarkerSource(unittest.TestCase):
     def setUp(self) -> None:
-        filepath = os.path.join(os.path.dirname(__file__), "data", "test_data.xdf")
+        filepath = os.path.join(os.path.dirname(__file__), "data", "xdf_test_data.xdf")
         self.source = XdfMarkerSource(filepath)
 
     def test_marker_name(self):
@@ -39,7 +39,7 @@ class TestXdfMarkerSource(unittest.TestCase):
 
 class TestXdfEegSource(unittest.TestCase):
     def setUp(self) -> None:
-        filepath = os.path.join(os.path.dirname(__file__), "data", "test_data.xdf")
+        filepath = os.path.join(os.path.dirname(__file__), "data", "xdf_test_data.xdf")
         self.source = XdfEegSource(filepath)
 
     def test_eeg_name(self):
