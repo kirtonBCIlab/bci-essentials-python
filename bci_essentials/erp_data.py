@@ -13,7 +13,7 @@ and classified (using one of the `classification` sub-modules).
 
 Classes
 -------
-- `ERP_data` : For processing P300 or other Event Related Potentials
+- `ErpData` : For processing P300 or other Event Related Potentials
 (ERP).
 
 """
@@ -22,7 +22,7 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
-from .eeg_data import EEG_data
+from .eeg_data import EegData
 from .utils.logger import Logger
 
 # Instantiate a logger for the module at the default level of logging.INFO
@@ -31,7 +31,7 @@ logger = Logger(name=__name__)
 
 
 # ERP Data
-class ERP_data(EEG_data):
+class ErpData(EegData):
     """
     Class that holds, windows, processes and classifies ERP data.
     """
@@ -186,15 +186,15 @@ class ERP_data(EEG_data):
         pp_order=5,  # Preprocessing: bandpass order
         plot_erp=False,
     ):
-        """Main function of `ERP_data` class.
+        """Main function of `ErpData` class.
 
         Formats the ERP data. Call this every time that a new chunk arrives.
 
-        Runs a while loop that reads in ERP windows from the `ERP_data`
+        Runs a while loop that reads in ERP windows from the `ErpData`
         object and processes decision blocks. Can be used in `online` or
         offline mode.
         - If in `online` mode, then the loop will continuously try to read
-        in data from the `EEG_data` object and process it. The loop will
+        in data from the `EegData` object and process it. The loop will
         terminate when `max_loops` is reached, or when manually terminated.
         - If in `offline` mode, then the loop will read in all of the data
         at once, process it, and then terminate.
