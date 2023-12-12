@@ -18,7 +18,7 @@ from pyriemann.classification import MDM, TSclassifier
 from pyriemann.channelselection import FlatChannelRemover, ElectrodeSelection
 
 # Import bci_essentials modules and methods
-from ..classification.generic_classifier import Generic_classifier
+from ..classification.generic_classifier import GenericClassifier
 from ..channel_selection import channel_selection_by_method
 from ..utils.logger import Logger  # Logger wrapper
 
@@ -27,8 +27,8 @@ from ..utils.logger import Logger  # Logger wrapper
 logger = Logger(name=__name__)
 
 
-class MI_classifier(Generic_classifier):
-    """MI Classifier class (*inherits from `Generic_classifier`*)."""
+class MiClassifier(GenericClassifier):
+    """MI Classifier class (*inherits from `GenericClassifier`*)."""
 
     def set_mi_classifier_settings(
         self,

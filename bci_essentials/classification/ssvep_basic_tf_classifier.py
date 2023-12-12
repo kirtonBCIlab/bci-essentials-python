@@ -9,7 +9,7 @@ import numpy as np
 from scipy import signal
 
 # Import bci_essentials modules and methods
-from ..classification.generic_classifier import Generic_classifier
+from ..classification.generic_classifier import GenericClassifier
 from ..utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
@@ -17,9 +17,9 @@ from ..utils.logger import Logger  # Logger wrapper
 logger = Logger(name=__name__)
 
 
-class SSVEP_basic_tf_classifier(Generic_classifier):
+class SsvepBasicTrainFreeClassifier(GenericClassifier):
     """SSVEP Basic Training-Free Classifier class
-    (*inherits from Generic_classifier*).
+    (*inherits from GenericClassifier*).
 
     """
 

@@ -20,7 +20,7 @@ from sklearn import preprocessing
 import tensorflow as tf
 
 # Import bci_essentials modules and methods
-from ..classification.generic_classifier import Generic_classifier
+from ..classification.generic_classifier import GenericClassifier
 from ..utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
@@ -28,9 +28,9 @@ from ..utils.logger import Logger  # Logger wrapper
 logger = Logger(name=__name__)
 
 
-class Switch_deep_classifier(Generic_classifier):
+class SwitchDeepClassifier(GenericClassifier):
     """Switch Deep Classifier class
-    (*inherits from Generic_classifier*).
+    (*inherits from GenericClassifier*).
 
     """
 

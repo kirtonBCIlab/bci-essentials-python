@@ -1,7 +1,7 @@
 from bci_essentials.io.lsl_sources import LslEegSource, LslMarkerSource
 from bci_essentials.io.lsl_messenger import LslMessenger
-from bci_essentials.eeg_data import EEG_data
-from bci_essentials.classification.mi_classifier import MI_classifier
+from bci_essentials.eeg_data import EegData
+from bci_essentials.classification.mi_classifier import MiClassifier
 from bci_essentials.utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
@@ -13,13 +13,13 @@ marker_source = LslMarkerSource()
 messenger = LslMessenger()
 
 # Select a classifier
-classifier = MI_classifier()  # you can add a subset here
+classifier = MiClassifier()  # you can add a subset here
 
 # Set settings
 classifier.set_mi_classifier_settings(n_splits=3, type="TS", random_seed=35)
 
 # Define the MI data object
-mi_data = EEG_data(classifier, eeg_source, marker_source, messenger)
+mi_data = EegData(classifier, eeg_source, marker_source, messenger)
 
 # Run
 mi_data.main(online=True, training=True)

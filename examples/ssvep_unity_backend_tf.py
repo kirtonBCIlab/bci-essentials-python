@@ -1,8 +1,8 @@
 from bci_essentials.io.lsl_sources import LslEegSource, LslMarkerSource
 from bci_essentials.io.lsl_messenger import LslMessenger
-from bci_essentials.eeg_data import EEG_data
+from bci_essentials.eeg_data import EegData
 from bci_essentials.classification.ssvep_basic_tf_classifier import (
-    SSVEP_basic_tf_classifier,
+    SsvepBasicTrainFreeClassifier,
 )
 from bci_essentials.utils.logger import Logger  # Logger wrapper
 
@@ -15,10 +15,10 @@ marker_source = LslMarkerSource()
 messenger = LslMessenger()
 
 # Define the classifier
-classifier = SSVEP_basic_tf_classifier()
+classifier = SsvepBasicTrainFreeClassifier()
 
 # Initialize the EEG Data
-test_ssvep = EEG_data(classifier, eeg_source, marker_source, messenger)
+test_ssvep = EegData(classifier, eeg_source, marker_source, messenger)
 
 # set train complete to true so that predictions will be allowed
 test_ssvep.train_complete = True

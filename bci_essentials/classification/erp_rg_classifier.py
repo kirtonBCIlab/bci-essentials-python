@@ -22,7 +22,7 @@ from pyriemann.estimation import XdawnCovariances
 from pyriemann.tangentspace import TangentSpace
 
 # Import bci_essentials modules and methods
-from ..classification.generic_classifier import Generic_classifier
+from ..classification.generic_classifier import GenericClassifier
 from ..signal_processing import lico
 from ..channel_selection import channel_selection_by_method
 from ..utils.logger import Logger  # Logger wrapper
@@ -32,8 +32,8 @@ from ..utils.logger import Logger  # Logger wrapper
 logger = Logger(name=__name__)
 
 
-class ERP_rg_classifier(Generic_classifier):
-    """ERP RG Classifier class (*inherits from `Generic_classifier`*)."""
+class ErpRgClassifier(GenericClassifier):
+    """ERP RG Classifier class (*inherits from `GenericClassifier`*)."""
 
     def set_p300_clf_settings(
         self,
@@ -42,7 +42,7 @@ class ERP_rg_classifier(Generic_classifier):
         oversample_ratio=0,
         undersample_ratio=0,
         random_seed=42,
-        covariance_estimator="scm",  # Covarianc estimator, see pyriemann Covariances
+        covariance_estimator="scm",  # Covariance estimator, see pyriemann Covariances
     ):
         """Set P300 Classifier Settings.
 
