@@ -2,7 +2,7 @@ import unittest
 
 from bci_essentials.io.sources import MarkerSource, EegSource
 from bci_essentials.io.messenger import Messenger
-from bci_essentials.eeg_data import EEG_data
+from bci_essentials.eeg_data import EegData
 from bci_essentials.classification.null_classifier import Null_classifier
 from bci_essentials.utils.logger import Logger  # Logger wrapper
 
@@ -17,7 +17,7 @@ class TestEegData(unittest.TestCase):
         markers = _MockMarkerSource()
 
         eeg.channel_types = ["eeg", "trg", "eeg", "stim"]
-        data = EEG_data(classifier, eeg, markers)
+        data = EegData(classifier, eeg, markers)
 
         self.assertEqual(data.ch_type, ["eeg", "stim", "eeg", "stim"])
 
@@ -29,7 +29,7 @@ class TestEegData(unittest.TestCase):
         eeg.name = "DSI7"
         eeg.channel_labels = ["foo"] * 8
         eeg.nchannels = 8
-        data = EEG_data(classifier, eeg, markers)
+        data = EegData(classifier, eeg, markers)
 
         self.assertEqual(data.nchannels, 7)
         self.assertEqual(len(data.channel_labels), 7)
@@ -42,7 +42,7 @@ class TestEegData(unittest.TestCase):
         eeg.name = "DSI24"
         eeg.channel_labels = ["foo"] * 24
         eeg.nchannels = 24
-        data = EEG_data(classifier, eeg, markers)
+        data = EegData(classifier, eeg, markers)
 
         self.assertEqual(data.nchannels, 23)
         self.assertEqual(len(data.channel_labels), 23)
@@ -53,13 +53,13 @@ class TestEegData(unittest.TestCase):
         markers = _MockMarkerSource()
         messenger = _MockMessenger()
 
-        data = EEG_data(classifier, eeg, markers, messenger)
+        data = EegData(classifier, eeg, markers, messenger)
         data.main(online=True, max_loops=3)
 
         self.assertEqual(messenger.ping_count, 3)
 
 
-# Placeholder to make EEG_data happy
+# Placeholder to make EegData happy
 class _MockMarkerSource(MarkerSource):
     name = "MockMarker"
 
@@ -70,7 +70,7 @@ class _MockMarkerSource(MarkerSource):
         return 0.0
 
 
-# Placeholder to make EEG_data happy
+# Placeholder to make EegData happy
 class _MockEegSource(EegSource):
     name = "MockEeg"
     fsample = 0.0
@@ -86,7 +86,7 @@ class _MockEegSource(EegSource):
         return 0.0
 
 
-# Count how often these methods are called to check that EEG_data
+# Count how often these methods are called to check that EegData
 # would have sent a message, not checking content.
 class _MockMessenger(Messenger):
     ping_count = 0
