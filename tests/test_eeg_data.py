@@ -3,7 +3,7 @@ import unittest
 from bci_essentials.io.sources import MarkerSource, EegSource
 from bci_essentials.io.messenger import Messenger
 from bci_essentials.eeg_data import EegData
-from bci_essentials.classification.null_classifier import Null_classifier
+from bci_essentials.classification.null_classifier import NullClassifier
 from bci_essentials.utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
@@ -12,7 +12,7 @@ logger = Logger()
 
 class TestEegData(unittest.TestCase):
     def test_trg_channel_types_changed_to_stim(self):
-        classifier = Null_classifier()
+        classifier = NullClassifier()
         eeg = _MockEegSource()
         markers = _MockMarkerSource()
 
@@ -22,7 +22,7 @@ class TestEegData(unittest.TestCase):
         self.assertEqual(data.ch_type, ["eeg", "stim", "eeg", "stim"])
 
     def test_dsi7_mods(self):
-        classifier = Null_classifier()
+        classifier = NullClassifier()
         eeg = _MockEegSource()
         markers = _MockMarkerSource()
 
@@ -35,7 +35,7 @@ class TestEegData(unittest.TestCase):
         self.assertEqual(len(data.channel_labels), 7)
 
     def test_dsi24_mods(self):
-        classifier = Null_classifier()
+        classifier = NullClassifier()
         eeg = _MockEegSource()
         markers = _MockMarkerSource()
 
@@ -48,7 +48,7 @@ class TestEegData(unittest.TestCase):
         self.assertEqual(len(data.channel_labels), 23)
 
     def test_ping_sent_with_each_loop(self):
-        classifier = Null_classifier()
+        classifier = NullClassifier()
         eeg = _MockEegSource()
         markers = _MockMarkerSource()
         messenger = _MockMessenger()

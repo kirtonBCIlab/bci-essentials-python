@@ -17,7 +17,7 @@ from ..utils.logger import Logger  # Logger wrapper
 logger = Logger(name=__name__)
 
 
-class Null_classifier(GenericClassifier):
+class NullClassifier(GenericClassifier):
     """NullClassifier class (*inherits from GenericClassifier*)."""
 
     def fit(self):
