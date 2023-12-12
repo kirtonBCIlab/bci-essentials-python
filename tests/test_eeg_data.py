@@ -20,7 +20,6 @@ class TestEegData(unittest.TestCase):
     def test_trg_channel_types_changed_to_stim(self):
         self.eeg.channel_types = ["eeg", "trg", "eeg", "stim"]
         data = EEG_data(self.classifier, self.eeg, self.markers)
-
         self.assertEqual(data.ch_type, ["eeg", "stim", "eeg", "stim"])
 
     def test_dsi7_mods(self):
@@ -41,43 +40,43 @@ class TestEegData(unittest.TestCase):
         self.assertEqual(data.nchannels, 23)
         self.assertEqual(len(data.channel_labels), 23)
 
-    def test_ping_sent_with_each_loop(self):
+    def test_when_offline_and_no_more_data_then_loop_stops(self):
+        data = EEG_data(self.classifier, self.eeg, self.markers, self.messenger)
+        data.main(online=False, max_loops=200)
+        self.assertEqual(self.messenger.ping_count, 1)
+
+    def test_when_online_and_no_more_data_then_loop_continues(self):
         data = EEG_data(self.classifier, self.eeg, self.markers, self.messenger)
         data.main(online=True, max_loops=10)
-
         self.assertEqual(self.messenger.ping_count, 10)
 
-    # def test_when_online_and_invalid_markers_then_loop_continues(self):
-    #     data = EEG_data(self.classifier, self.eeg, self.markers, self.messenger)
+    def test_when_online_and_invalid_markers_then_loop_continues(self):
+        data = EEG_data(self.classifier, self.eeg, self.markers, self.messenger)
 
-    #     self.markers.marker_data = None
-    #     self.markers.marker_timestamps = []
-    #     data.main(online=True, max_loops=2)
-    #     self.assertEqual(self.messenger.ping_count, 2)
+        # provide garbage data (None is invalid, length of data and timestamps doesn't match)
+        self.markers.marker_data = None
+        self.markers.marker_timestamps = [1.0]
+        data.main(online=True, max_loops=2)
 
-    #     self.markers.marker_data = []
-    #     self.markers.marker_timestamps = []
-    #     data.main(online=True, max_loops=2)
-    #     self.assertEqual(self.messenger.ping_count, 4)
+        # if we didn't crash, sanity check that loops did happen
+        self.assertEqual(self.messenger.ping_count, 2)
 
-    # def test_when_online_and_invalid_eeg_then_loop_continues(self):
-    #     data = EEG_data(self.classifier, self.eeg, self.markers, self.messenger)
+    def test_when_online_and_invalid_eeg_then_loop_continues(self):
+        data = EEG_data(self.classifier, self.eeg, self.markers, self.messenger)
 
-    #     self.eeg.eeg_data = None
-    #     self.eeg.eeg_timestamps = []
-    #     data.main(online=True, max_loops=2)
-    #     self.assertEqual(self.messenger.ping_count, 2)
+        # provide garbage data (None is invalid, length of data and timestamps doesn't match)
+        self.eeg.eeg_data = None
+        self.eeg.eeg_timestamps = [1.0]
+        data.main(online=True, max_loops=2)
 
-    #     self.eeg.eeg_data = []
-    #     self.eeg.eeg_timestamps = []
-    #     data.main(online=True, max_loops=2)
-    #     self.assertEqual(self.messenger.ping_count, 4)
+        # if we didn't crash, sanity check that loops did happen
+        self.assertEqual(self.messenger.ping_count, 2)
 
 
 # Placeholder to make EEG_data happy
 class _MockMarkerSource(MarkerSource):
     name = "MockMarker"
-    marker_data = [[], []]
+    marker_data = []
     marker_timestamps = []
 
     def get_markers(self) -> tuple[list, list]:
@@ -95,7 +94,7 @@ class _MockEegSource(EegSource):
     channel_types = []
     channel_units = []
     channel_labels = []
-    eeg_data = [[], []]
+    eeg_data = []
     eeg_timestamps = []
 
     def get_samples(self) -> tuple[list, list]:

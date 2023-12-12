@@ -173,81 +173,84 @@ class EEG_data:
     # Get new data from source, whatever it is
     def _pull_data_from_source(self):
         """Get pull data from EEG and optionally, the marker source.
-
         This method will fill up the marker_data, eeg_data and corresponding timestamp arrays.
         """
-        # pull from marker source if present
-        if self.__marker_source is not None:
-            new_marker_data, new_marker_timestamps = self.__marker_source.get_markers()
-            self.marker_time_correction = self.__marker_source.time_correction()
-
-            # apply time correction
-            new_marker_timestamps = [
-                new_marker_timestamps[i] + self.marker_time_correction
-                for i in range(len(new_marker_timestamps))
-            ]
-
-            # save the marker data to the data object
-            self.marker_data = np.array(list(self.marker_data) + new_marker_data)
-            self.marker_timestamps = np.array(
-                list(self.marker_timestamps) + new_marker_timestamps
-            )
-
-        # pull from EEG source
-        new_eeg_data, new_eeg_timestamps = self.__eeg_source.get_samples()
-        new_eeg_data = np.array(new_eeg_data)
-
-        # Handle the case when you are using subsets
-        if self.__subset != []:
-            new_eeg_data = new_eeg_data[:, self.subset_indices]
-
-        # if time is in milliseconds, divide by 1000, works for sampling rates above 10Hz
-        try:
-            if self.time_units == "milliseconds":
-                new_eeg_timestamps = [
-                    (new_eeg_timestamps[i] / 1000)
-                    for i in range(len(new_eeg_timestamps))
-                ]
-
-        # If time units are not defined then define them
-        except Exception:
-            dif_low = -2
-            dif_high = -1
-            while new_eeg_timestamps[dif_high] - new_eeg_timestamps[dif_low] == 0:
-                dif_low -= 1
-                dif_high -= 1
-
-            if new_eeg_timestamps[dif_high] - new_eeg_timestamps[dif_low] > 0.1:
-                new_eeg_timestamps = [
-                    (new_eeg_timestamps[i] / 1000)
-                    for i in range(len(new_eeg_timestamps))
-                ]
-                self.time_units = "milliseconds"
-            else:
-                self.time_units = "seconds"
-
-        # apply time correction, this is essential for headsets like neurosity which have their own clock
-        self.eeg_time_correction = self.__eeg_source.time_correction()
-
-        # MAYBE DONT NEED THIS WITH NEW PROC SETTINGS
-        new_eeg_timestamps = [
-            new_eeg_timestamps[i] + self.eeg_time_correction
-            for i in range(len(new_eeg_timestamps))
-        ]
-
-        # save the EEG data to the data object
-        try:
-            self.eeg_data = np.concatenate((self.eeg_data, new_eeg_data))
-        except Exception:
-            self.eeg_data = new_eeg_data
-
-        # save the marker data to the data object
-        self.eeg_timestamps = np.array(list(self.eeg_timestamps) + new_eeg_timestamps)
+        self.__pull_marker_data_from_source()
+        self.__pull_eeg_data_from_source()
 
         # If the outlet exists send a ping
         if self._messenger is not None:
             self.ping_count += 1
             self._messenger.ping()
+
+    def __pull_marker_data_from_source(self):
+        # if we have a marker source, then we'll read from it
+        if self.__marker_source is None:
+            return
+
+        markers, timestamps = self.__marker_source.get_markers()
+        time_correction = self.__marker_source.time_correction()
+
+        # sanity check what was read from source
+        if markers is None or len(markers) != len(timestamps):
+            logger.warning("discarded invalid marker data")
+            return
+
+        # apply time correction
+        timestamps = [timestamps[i] + time_correction for i in range(len(timestamps))]
+
+        # save the marker data to the data object
+        self.marker_data = np.array(list(self.marker_data) + markers)
+        self.marker_timestamps = np.array(list(self.marker_timestamps) + timestamps)
+
+    def __pull_eeg_data_from_source(self):
+        eeg, timestamps = self.__eeg_source.get_samples()
+
+        # sanity check what was read from source
+        if eeg is None or len(eeg) != len(timestamps):
+            logger.warning("discarded invalid eeg data")
+            print(eeg)
+            return
+
+        # Convert eeg to a ndarray and handle subsets if needed
+        eeg = np.array(eeg)
+        if self.__subset != []:
+            eeg = eeg[:, self.subset_indices]
+
+        # if time is in milliseconds, divide by 1000, works for sampling rates above 10Hz
+        try:
+            if self.time_units == "milliseconds":
+                timestamps = [(timestamps[i] / 1000) for i in range(len(timestamps))]
+
+        # If time units are not defined then define them
+        except Exception:
+            dif_low = -2
+            dif_high = -1
+            while timestamps[dif_high] - timestamps[dif_low] == 0:
+                dif_low -= 1
+                dif_high -= 1
+
+            if timestamps[dif_high] - timestamps[dif_low] > 0.1:
+                timestamps = [(timestamps[i] / 1000) for i in range(len(timestamps))]
+                self.time_units = "milliseconds"
+            else:
+                self.time_units = "seconds"
+
+        # apply time correction, this is essential for headsets like neurosity which have their own clock
+        time_correction = self.__eeg_source.time_correction()
+
+        # MAYBE DONT NEED THIS WITH NEW PROC SETTINGS
+        timestamps = [timestamps[i] + time_correction for i in range(len(timestamps))]
+
+        # Accumulate data, if this is the first read, the concatenate will fail
+        # because dimensions don't match.  In that case, just take new eeg.
+        try:
+            self.eeg_data = np.concatenate((self.eeg_data, eeg))
+        except Exception:
+            self.eeg_data = eeg
+
+        # save the marker data to the data object
+        self.eeg_timestamps = np.array(list(self.eeg_timestamps) + timestamps)
 
     def save_data(self, directory_name):
         """Save the data from different stages.
