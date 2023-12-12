@@ -101,7 +101,7 @@ def lowpass(data, f_critical, order, fsample):
 
         shape = (P, N, M) or (N, M)
     """
-    Wn = [f_critical / (fsample / 2)]
+    Wn = f_critical / (fsample / 2)
     b, a = signal.butter(order, Wn, btype="lowpass")
 
     try:
@@ -152,7 +152,7 @@ def highpass(data, f_critical, order, fsample):
 
         shape = (P, N, M) or (N, M)
     """
-    Wn = [f_critical / (fsample / 2)]
+    Wn = f_critical / (fsample / 2)
     b, a = signal.butter(order, Wn, btype="highpass")
 
     try:
