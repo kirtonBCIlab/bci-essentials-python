@@ -23,7 +23,7 @@ import datetime
 from pylsl import StreamInfo, StreamOutlet
 
 # Import local bci_essentials
-from bci_essentials.sources.xdf_sources import XdfEegSource, XdfMarkerSource
+from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
 from bci_essentials.utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO

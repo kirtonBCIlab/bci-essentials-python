@@ -1,4 +1,5 @@
-from bci_essentials.sources.lsl_sources import LslEegSource, LslMarkerSource
+from bci_essentials.io.lsl_sources import LslEegSource, LslMarkerSource
+from bci_essentials.io.lsl_messenger import LslMessenger
 from bci_essentials.eeg_data import EEG_data
 from bci_essentials.classification.ssvep_riemannian_mdm_classifier import (
     SSVEP_riemannian_mdm_classifier,
@@ -11,6 +12,7 @@ logger = Logger()
 # create LSL sources, these will block until the outlets are present
 eeg_source = LslEegSource()
 marker_source = LslMarkerSource()
+messenger = LslMessenger()
 
 # Define the classifier
 classifier = SSVEP_riemannian_mdm_classifier()
@@ -19,7 +21,7 @@ classifier.set_ssvep_settings(
 )
 
 # Initialize the data class
-test_ssvep = EEG_data(classifier, eeg_source, marker_source)
+test_ssvep = EEG_data(classifier, eeg_source, marker_source, messenger)
 
 # # Channel Selection
 # initial_subset=[]

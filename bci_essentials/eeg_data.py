@@ -21,13 +21,11 @@ length.
 import time
 import numpy as np
 
-from pylsl import StreamOutlet, StreamInfo
-from pylsl.pylsl import IRREGULAR_RATE
-
 from .signal_processing import notch, bandpass
 from .classification.generic_classifier import Generic_classifier
-from .sources.sources import EegSource, MarkerSource
-from .utils.logger import Logger  # Logger wrapper
+from .io.sources import EegSource, MarkerSource
+from .io.messenger import Messenger
+from .utils.logger import Logger
 
 # Instantiate a logger for the module at the default level of logging.INFO
 # Logs to bci_essentials.__module__) where __module__ is the name of the module
@@ -46,6 +44,7 @@ class EEG_data:
         classifier: Generic_classifier,
         eeg_source: EegSource,
         marker_source: MarkerSource | None = None,
+        messenger: Messenger | None = None,
         subset: list[str] = [],
     ):
         """Initializes `EEG_data` class.
@@ -57,22 +56,25 @@ class EEG_data:
         eeg_source : EegSource
             Source of EEG data and timestamps, this could be from a file or headset via LSL, etc.
         marker_source : EegSource
-            Source of Marker/Control data and timestamps, this could be from a file or unity via
+            Source of Marker/Control data and timestamps, this could be from a file or Unity via
             LSL, etc.  The default value is None.
+        messenger: Messenger
+            Messenger object to handle events from EEG_data, ex: acknowledging markers and
+            predictions.  The default value is None.
         subset : list of `int`, *optional*
             The list of EEG channel names to process, default is `[]`, meaning all channels.
         """
 
-        # # Check the types of incoming dependencies
-        assert isinstance(classifier, Generic_classifier), "classifier type error"
-        assert isinstance(eeg_source, EegSource), "eeg_source type error"
-        assert isinstance(
-            marker_source, MarkerSource | None
-        ), "marker_source type error"
+        # Ensure the incoming dependencies are the right type
+        assert isinstance(classifier, Generic_classifier)
+        assert isinstance(eeg_source, EegSource)
+        assert isinstance(marker_source, MarkerSource | None)
+        assert isinstance(messenger, Messenger | None)
 
         self._classifier = classifier
         self.__eeg_source = eeg_source
         self.__marker_source = marker_source
+        self._messenger = messenger
         self.__subset = subset
 
         self.headset_string = self.__eeg_source.name
@@ -121,10 +123,10 @@ class EEG_data:
         self.eeg_data = np.array([])
         self.eeg_timestamps = np.array([])
 
-        self.stream_outlet = False
         self.ping_count = 0
         self.ping_interval = 5
         self.nsamples = 0
+        self.time_units = ""
 
     def edit_settings(
         self,
@@ -244,10 +246,10 @@ class EEG_data:
         self.eeg_timestamps = np.array(list(self.eeg_timestamps) + new_eeg_timestamps)
 
         # If the outlet exists send a ping
-        if self.stream_outlet:
+        if self._messenger is not None:
             self.ping_count += 1
             if self.ping_count % self.ping_interval:
-                self.outlet.push_sample(["ping"])
+                self._messenger.ping()
 
     def save_data(self, directory_name):
         """Save the data from different stages.
@@ -805,30 +807,6 @@ class EEG_data:
             # read from sources to get new data
             self._pull_data_from_source()
 
-            # if online, then pull new data with each iteration
-            if online:
-                # Create a stream to send markers back to Unity, but only create the stream once
-                if self.stream_outlet is False:
-                    # define the stream information
-                    info = StreamInfo(
-                        name="PythonResponse",
-                        type="BCI",
-                        channel_count=1,
-                        nominal_srate=IRREGULAR_RATE,
-                        channel_format="string",
-                        source_id="pyp30042",
-                    )
-                    logger.debug("Marker Info: %s", info)
-                    # create the outlet
-                    self.outlet = StreamOutlet(info)
-
-                    # next make an outlet
-                    logger.info("the outlet exists")
-                    self.stream_outlet = True
-
-                    # Push the data
-                    self.outlet.push_sample(["This is the python response stream"])
-
             # check if there is an available marker, if not, break and wait for more data
             while len(self.marker_timestamps) > self.marker_count:
                 loops = 0
@@ -838,18 +816,11 @@ class EEG_data:
                     len(self.marker_data[self.marker_count][0].split(",")) == 1
                     and self.marker_data[self.marker_count][0][0].isalpha()
                 ):
-                    # send feedback to unity if there is an available outlet
-                    if self.stream_outlet:
+                    if self._messenger is not None:
                         # send feedback for each marker that you receive
-                        self.outlet.push_sample(
-                            [
-                                "marker received : {}".format(
-                                    self.marker_data[self.marker_count][0]
-                                )
-                            ]
-                        )
+                        marker = self.marker_data[self.marker_count][0]
+                        self._messenger.marker_received(marker)
 
-                    ############
                     logger.info("Marker: %s", self.marker_data[self.marker_count][0])
 
                     # once all resting state data is collected then go and compile it
@@ -903,19 +874,17 @@ class EEG_data:
                                     current_processed_eeg_windows
                                 )
 
-                                # Log the prediction
                                 logger.info(
                                     "%s was selected by the iterative classifier",
                                     prediction,
                                 )
 
-                                # If online, send the prediction packet to Unity
-                                if online:
+                                if self._messenger is not None:
                                     logger.info(
-                                        "Sending prediction %s from iterative classifier to Unity",
+                                        "Sending prediction %s from iterative classifier",
                                         prediction,
                                     )
-                                    self.outlet.push_sample(["{}".format(prediction)])
+                                    self._messenger.prediction(prediction)
 
                         # PREDICT
                         elif train_complete and current_nwindows != 0:
@@ -941,16 +910,15 @@ class EEG_data:
                                     current_processed_eeg_windows
                                 )
                                 self.online_selections.append(prediction)
-                                # Log the prediction
+
                                 logger.info("%s was selected by classifier", prediction)
 
-                                # if online, send the packet to Unity
-                                if online:
+                                if self._messenger is not None:
                                     logger.info(
-                                        "Sending prediction %s from classifier to Unity",
+                                        "Sending prediction %s from classifier",
                                         prediction,
                                     )
-                                    self.outlet.push_sample(["{}".format(prediction)])
+                                    self._messenger.prediction(prediction)
 
                             except Exception:
                                 logger.warning("This classification failed...")
@@ -1043,17 +1011,12 @@ class EEG_data:
 
                 logger.info("Marker information: %s", marker_info)
 
-                # send feedback to unity if there is an available outlet
-                if self.stream_outlet:
-                    logger.info("sending feedback to Unity")
+                # send message if there is an available outlet
+                if self._messenger is not None:
+                    logger.info("sending marker ack")
                     # send feedback for each marker that you receive
-                    self.outlet.push_sample(
-                        [
-                            "marker received : {}".format(
-                                self.marker_data[self.marker_count][0]
-                            )
-                        ]
-                    )
+                    marker = self.marker_data[self.marker_count][0]
+                    self._messenger.marker_received(marker)
 
                 # Find the start time for the window based on the marker timestamp
                 start_time = self.marker_timestamps[self.marker_count]
@@ -1147,7 +1110,7 @@ class EEG_data:
                                     0 : self.nsamples,
                                 ]
                             )
-                            self.outlet.push_sample(["{}".format(int(pred[0]))])
+                            self._messenger.prediction(int(pred[0]))
                     except Exception:
                         logger.error("Unable to classify this window")
 

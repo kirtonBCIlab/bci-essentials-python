@@ -22,11 +22,8 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
-from pylsl import StreamOutlet, StreamInfo
-from pylsl.pylsl import IRREGULAR_RATE
-
 from .eeg_data import EEG_data
-from .utils.logger import Logger  # Logger wrapper
+from .utils.logger import Logger
 
 # Instantiate a logger for the module at the default level of logging.INFO
 # Logs to bci_essentials.__module__) where __module__ is the name of the module
@@ -357,31 +354,6 @@ class ERP_data(EEG_data):
             # read from sources to get new data
             self._pull_data_from_source()
 
-            if online:
-                # Time sync if not synced
-
-                # Create a stream to send markers back to Unity, but only create the stream once
-                if self.stream_outlet is False:
-                    # define the stream information
-                    info = StreamInfo(
-                        name="PythonResponse",
-                        type="BCI",
-                        channel_count=1,
-                        nominal_srate=IRREGULAR_RATE,
-                        channel_format="string",
-                        source_id="pyp30042",
-                    )
-                    logger.debug("Stream info: %s", info)
-                    # create the outlet
-                    self.outlet = StreamOutlet(info)
-
-                    # next make an outlet
-                    logger.info("The outlet exists")
-                    self.stream_outlet = True
-
-                    # Push the data
-                    self.outlet.push_sample(["This is the python response stream"])
-
             # check if there is an available marker, if not, break and wait for more data
             while len(self.marker_timestamps) > self.marker_count:
                 loops = 0
@@ -545,20 +517,13 @@ class ERP_data(EEG_data):
                                     ],
                                 )
 
-                                # save the selection indices
-
-                                # Send the prediction to Unity
                                 logger.info(
                                     "%s was selected by the classifier", prediction
                                 )
-                                # pick a sample to send an wait for a bit
 
-                                # if online, send the packet to Unity
-                                if online:
-                                    logger.info(
-                                        "Sending prediction %s to Unity", prediction
-                                    )
-                                    self.outlet.push_sample(["{}".format(prediction)])
+                                if self._messenger is not None:
+                                    logger.info("Sending prediction %s", prediction)
+                                    self._messenger.prediction(prediction)
 
                         # TODO: Code is currently unreachable
                         else:
@@ -591,20 +556,11 @@ class ERP_data(EEG_data):
                     # UPDATE THE SEARCH START LOC
                     break
 
-                if online:
-                    self.outlet.push_sample(
-                        [
-                            "python got marker: {}".format(
-                                self.marker_data[self.marker_count][0]
-                            )
-                        ]
-                    )
-
-                # If the whole EEG is available then add it to the erp window and the decision block
+                if self._messenger is not None:
+                    marker = self.marker_data[self.marker_count][0]
+                    self._messenger.marker_received(marker)
 
                 # Markers are in the format [p300, single (s) or multi (m),num_selections, train_target_index, flash_index_1, flash_index_2, ... ,flash_index_n]
-
-                # Get marker info
                 marker_info = self.marker_data[self.marker_count][0].split(",")
 
                 # unity_flash_indexes
@@ -634,7 +590,6 @@ class ERP_data(EEG_data):
                 # for flash_index in flash_indices:
                 if training:
                     # Get target info
-
                     # current_target = target_order[self.decision_count]
                     if unity_train:
                         logger.info("Marker information: %s", marker_info)

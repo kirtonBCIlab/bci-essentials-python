@@ -1,6 +1,6 @@
 import os
 
-from bci_essentials.sources.xdf_sources import XdfEegSource, XdfMarkerSource
+from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
 from bci_essentials.eeg_data import EEG_data
 from bci_essentials.classification.switch_mdm_classifier import Switch_mdm_classifier
 from bci_essentials.utils.logger import Logger  # Logger wrapper
