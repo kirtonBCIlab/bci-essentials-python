@@ -6,8 +6,8 @@ Test Motor Imagery (MI) classification offline using data from an existing strea
 import os
 
 from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
-from bci_essentials.eeg_data import EEG_data
-from bci_essentials.classification.mi_classifier import MI_classifier
+from bci_essentials.eeg_data import EegData
+from bci_essentials.classification.mi_classifier import MiClassifier
 from bci_essentials.utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
@@ -21,7 +21,7 @@ eeg_source = XdfEegSource(filename)
 marker_source = XdfMarkerSource(filename)
 
 # Select a classifier
-classifier = MI_classifier()  # you can add a subset here
+classifier = MiClassifier()  # you can add a subset here
 
 # Define the classifier settings
 classifier.set_mi_classifier_settings(
@@ -33,7 +33,7 @@ classifier.set_mi_classifier_settings(
 )
 
 # Initialize data object
-test_mi = EEG_data(classifier, eeg_source, marker_source)
+test_mi = EegData(classifier, eeg_source, marker_source)
 
 # Run main loop, this will do all of the classification for online or offline
 test_mi.main(

@@ -1,11 +1,11 @@
 import os
 
 from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
-from bci_essentials.eeg_data import EEG_data
-from bci_essentials.erp_data import ERP_data
+from bci_essentials.eeg_data import EegData
+from bci_essentials.erp_data import ErpData
 from bci_essentials.resting_state import get_alpha_peak, get_bandpower_features
-from bci_essentials.classification.mi_classifier import MI_classifier
-from bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
+from bci_essentials.classification.mi_classifier import MiClassifier
+from bci_essentials.classification.erp_rg_classifier import ErpRgClassifier
 from bci_essentials.utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
@@ -22,7 +22,7 @@ try:
     marker_source = XdfMarkerSource(filename)
 
     # Select a classifier
-    classifier = MI_classifier()  # you can add a subset here
+    classifier = MiClassifier()  # you can add a subset here
 
     # Define the classifier settings
     classifier.set_mi_classifier_settings(
@@ -30,7 +30,7 @@ try:
     )
 
     # Initialize data object
-    test_rs = EEG_data(classifier, eeg_source, marker_source)
+    test_rs = EegData(classifier, eeg_source, marker_source)
 
     # Run main loop, this will do all of the classification for online or offline
     test_rs.main(
@@ -49,7 +49,7 @@ except Exception:
         marker_source = XdfMarkerSource(filename)
 
         # Choose a classifier
-        classifier = ERP_rg_classifier()  # you can add a subset here
+        classifier = ErpRgClassifier()  # you can add a subset here
 
         # Set classifier settings
         classifier.set_p300_clf_settings(
@@ -57,7 +57,7 @@ except Exception:
         )
 
         # Load the xdf
-        test_rs = ERP_data(classifier, eeg_source, marker_source)
+        test_rs = ErpData(classifier, eeg_source, marker_source)
 
         # Run main loop, this will do all of the classification for online or offline
         test_rs.main(

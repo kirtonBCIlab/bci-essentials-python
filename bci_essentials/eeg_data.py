@@ -22,7 +22,7 @@ import time
 import numpy as np
 
 from .signal_processing import notch, bandpass
-from .classification.generic_classifier import Generic_classifier
+from .classification.generic_classifier import GenericClassifier
 from .io.sources import EegSource, MarkerSource
 from .io.messenger import Messenger
 from .utils.logger import Logger
@@ -41,7 +41,7 @@ class EEG_data:
 
     def __init__(
         self,
-        classifier: Generic_classifier,
+        classifier: GenericClassifier,
         eeg_source: EegSource,
         marker_source: MarkerSource | None = None,
         messenger: Messenger | None = None,
@@ -51,7 +51,7 @@ class EEG_data:
 
         Parameters
         ----------
-        classifier : Generic_classifier
+        classifier : GenericClassifier
             The classifier used by EEG_data.
         eeg_source : EegSource
             Source of EEG data and timestamps, this could be from a file or headset via LSL, etc.
@@ -66,7 +66,7 @@ class EEG_data:
         """
 
         # Ensure the incoming dependencies are the right type
-        assert isinstance(classifier, Generic_classifier)
+        assert isinstance(classifier, GenericClassifier)
         assert isinstance(eeg_source, EegSource)
         assert isinstance(marker_source, MarkerSource | None)
         assert isinstance(messenger, Messenger | None)
