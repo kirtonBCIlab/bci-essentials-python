@@ -272,133 +272,6 @@ class EegData:
 
         """
 
-    def mne_export_as_raw(self):
-        """MNE export EEG as RawArray.
-
-        Exports the EEG data as a MNE RawArray object.
-
-        **Requires MNE**
-
-        Returns
-        -------
-        raw_array : mne.io.RawArray
-            MNE RawArray object.
-
-        """
-        logger.error("mne_export_as_raw has not been implemented yet")
-        # Check for mne
-        try:
-            import mne
-        except Exception:
-            logger.critical(
-                "Could not import mne, you may have to install (pip install mne)"
-            )
-
-        # create info from metadata
-        info = mne.create_info(
-            ch_names=self.channel_labels, sfreq=self.fsample, ch_types="eeg"
-        )
-
-        # create the MNE epochs, pass in the raw
-
-        # make sure that units match
-        raw_data = self.eeg_data.transpose()
-        raw_array = mne.io.RawArray(data=raw_data, info=info)
-
-        # change the last column of epochs array events to be the class labels
-        # raw_array.events[:, -1] = self.labels
-
-        return raw_array
-
-    def mne_export_as_epochs(self):
-        """MNE export EEG as EpochsArray.
-
-        Exports the EEG data as a MNE EpochsArray object.
-
-        **Requires MNE**
-
-        Returns
-        -------
-        epochs_array : mne.EpochsArray
-            MNE EpochsArray object.
-
-        """
-        # Check for mne
-        try:
-            import mne
-        except Exception:
-            logger.critical(
-                "Could not import mne, you may have to install (pip install mne)"
-            )
-
-        # create info from metadata
-        info = mne.create_info(
-            ch_names=self.channel_labels, sfreq=self.fsample, ch_types=self.ch_type
-        )
-
-        # create the MNE epochs, pass in the raw
-
-        # make sure that units match
-        epoch_data = self.raw_eeg_windows.copy()
-        for i, u in enumerate(self.ch_units):
-            if u == "microvolts":
-                # convert to volts
-                epoch_data[:, i, :] = epoch_data[:, i, :] / 1000000
-
-        epochs_array = mne.EpochsArray(data=epoch_data, info=info)
-
-        # change the last column of epochs array events to be the class labels
-        epochs_array.events[:, -1] = self.labels
-
-        return epochs_array
-
-    def mne_export_resting_state_as_raw(self):
-        """MNE export resting state EEG as RawArray.
-
-        Exports the resting state EEG data as a MNE RawArray object.
-
-        **Requires MNE**
-
-        Returns
-        -------
-        raw_array : mne.io.RawArray
-            MNE RawArray object.
-
-        """
-        logger.error("mne_export_as_raw has not been implemented yet")
-        # Check for mne
-        try:
-            import mne
-        except Exception:
-            logger.critical(
-                "Could not import mne, you may have to install (pip install mne)"
-            )
-
-        # create info from metadata
-        info = mne.create_info(
-            ch_names=self.channel_labels, sfreq=self.fsample, ch_types="eeg"
-        )
-
-        try:
-            # create the MNE epochs, pass in the raw
-
-            # make sure that units match
-            raw_data = self.rest_windows[0, :, :]
-            raw_array = mne.io.RawArray(data=raw_data, info=info)
-
-            # change the last column of epochs array events to be the class labels
-            # raw_array.events[:, -1] = self.labels
-
-        except Exception:
-            # could not find resting state data, sending the whole collection instead
-            logger.warning(
-                "NO PROPER RESTING STATE DATA FOUND, SENDING ALL OF THE EEG DATA INSTEAD"
-            )
-            raw_data = self.eeg_data.transpose()
-            raw_array = mne.io.RawArray(data=raw_data, info=info)
-
-        return raw_array
-
     # SIGNAL PROCESSING
     # Preprocessing goes here (windows are nchannels by nsamples)
     def _preprocessing(self, window, option=None, order=5, fc=60, fl=10, fh=50):
@@ -488,7 +361,7 @@ class EegData:
 
         # other preprocessing options go here\
 
-    def __package_resting_state_data(self):
+    def _package_resting_state_data(self):
         """Package resting state data.
 
         Returns
@@ -828,7 +701,7 @@ class EegData:
                         self.marker_data[self.marker_count][0]
                         == "Done with all RS collection"
                     ):
-                        self.__package_resting_state_data()
+                        self._package_resting_state_data()
                         self.marker_count += 1
 
                     elif self.marker_data[self.marker_count][0] == "Trial Started":
