@@ -12,7 +12,7 @@ logger = Logger()
 
 class TestEegData(unittest.TestCase):
     def setUp(self) -> None:
-        self.classifier = Null_classifier()
+        self.classifier = NullClassifier()
         self.eeg = _MockEegSource()
         self.markers = _MockMarkerSource()
         self.messenger = _MockMessenger()
