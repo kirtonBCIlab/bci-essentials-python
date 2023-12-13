@@ -9,7 +9,7 @@ from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
 from bci_essentials.erp_data import ErpData
 from bci_essentials.classification.erp_rg_classifier import ErpRgClassifier
 from bci_essentials.utils.logger import Logger  # Logger wrapper
-from saving import mne_export_as_raw, mne_export_erp_as_epochs
+from saving import mne_export_erp_as_epochs
 
 # Instantiate a logger for the module at the default level of logging.INFO
 logger = Logger()
