@@ -28,5 +28,3 @@ raw.filter(l_freq=0.1, h_freq=15)
 mne.set_eeg_reference(raw, ref_channels="average")
 
 logger.info("MNE information: %s", info)
-
-

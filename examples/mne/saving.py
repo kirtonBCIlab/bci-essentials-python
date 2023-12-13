@@ -21,7 +21,7 @@ def mne_export_as_raw(eeg_data_object):
         MNE RawArray object.
 
     """
-    
+
     logger.error("mne_export_as_raw has not been implemented yet")
 
     assert isinstance(eeg_data_object, EegData)
@@ -60,7 +60,7 @@ def mne_export_as_epochs(eeg_data_object):
     """
 
     logger.error("mne_export_as_raw has not been implemented yet")
-    
+
     assert isinstance(eeg_data_object, EegData)
 
     # create info from metadata
