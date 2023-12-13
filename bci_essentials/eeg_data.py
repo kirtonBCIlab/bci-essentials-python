@@ -361,7 +361,7 @@ class EegData:
 
         # other preprocessing options go here\
 
-    def __package_resting_state_data(self):
+    def _package_resting_state_data(self):
         """Package resting state data.
 
         Returns
@@ -701,7 +701,7 @@ class EegData:
                         self.marker_data[self.marker_count][0]
                         == "Done with all RS collection"
                     ):
-                        self.__package_resting_state_data()
+                        self._package_resting_state_data()
                         self.marker_count += 1
 
                     elif self.marker_data[self.marker_count][0] == "Trial Started":

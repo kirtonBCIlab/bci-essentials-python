@@ -3,20 +3,22 @@ Test P300 offline using data from an existing stream
 
 """
 
+import os
+
 from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
-from bci_essentials.erp_data import ERP_data
-from bci_essentials.classification.erp_rg_classifier import ERP_rg_classifier
+from bci_essentials.erp_data import ErpData
+from bci_essentials.classification.erp_rg_classifier import ErpRgClassifier
 from bci_essentials.utils.logger import Logger  # Logger wrapper
+from saving import mne_export_as_raw, mne_export_erp_as_epochs
 
 # Instantiate a logger for the module at the default level of logging.INFO
 logger = Logger()
 
 # Identify the file to simulate
-# This won't work on anyone else's computer
-filename = "C:\\Users\\brian\\OneDrive\\Documents\\BCI\\BCIEssentials\\fatigueDataAnalysis\\fatigueData\\participants\\sub-P06_p300\\ses-postRS_p300\\eeg\\sub-P06_p300_ses-postRS_p300_task-T1_run-001_eeg.xdf"
+filename = os.path.join("examples\\data", "p300_example.xdf")
 
 # Choose a classifier
-classifier = ERP_rg_classifier()  # you can add a subset here
+classifier = ErpRgClassifier()  # you can add a subset here
 eeg_source = XdfEegSource(filename)
 marker_source = XdfMarkerSource(filename)
 
@@ -30,7 +32,7 @@ classifier.set_p300_clf_settings(
 )
 
 # Initialize the ERP data object
-test_erp = ERP_data(classifier, eeg_source, marker_source)
+test_erp = ErpData(classifier, eeg_source, marker_source)
 
 # Run main loop, this will do all of the classification for online or offline
 test_erp.main(
@@ -45,12 +47,8 @@ test_erp.main(
     window_end=0.8,
 )
 
-
-logger.debug("test_erp.mne_export_resting_state_as_raw()")
-rs_mne = test_erp.mne_export_resting_state_as_raw()
-
-logger.debug("test_erp.mne_export_as_epochs()")
-mne_epochs = test_erp.mne_export_as_epochs()
+logger.debug("Testing mne_export_erp_as_epochs()")
+mne_epochs = mne_export_erp_as_epochs(test_erp)
 
 mne_epochs.plot(picks="eeg")
 

@@ -21,9 +21,10 @@ def mne_export_as_raw(eeg_data_object):
         MNE RawArray object.
 
     """
-    assert isinstance(eeg_data_object, EegData)
-
+    
     logger.error("mne_export_as_raw has not been implemented yet")
+
+    assert isinstance(eeg_data_object, EegData)
 
     # create info from metadata
     info = mne.create_info(
@@ -58,6 +59,8 @@ def mne_export_as_epochs(eeg_data_object):
 
     """
 
+    logger.error("mne_export_as_raw has not been implemented yet")
+    
     assert isinstance(eeg_data_object, EegData)
 
     # create info from metadata
@@ -138,50 +141,6 @@ def mne_export_resting_state_as_raw(eeg_data_object):
     return raw_array
 
 
-# ERP
-def mne_export_erp_as_raw(erp_data_object):
-    """MNE export EEG as RawArray
-
-    Exports the EEG data as a MNE RawArray object (or an epoch object?).
-
-    **Requires MNE**
-
-    **HAS NOT BEEN IMPLEMENTED YET.**
-
-    Returns
-    -------
-    epochs_array : mne.io.RawArray
-        MNE RawArray object.
-
-        **NOTE: NOT ACTUALLY THE CASE AT THE MOMENT**.
-        This is what the code will return once it has been implemented.
-
-    """
-    logger.error("mne_export_as_raw has not been implemented yet")
-
-    assert isinstance(erp_data_object, ErpData)
-    # # Check for mne
-    # try:
-    #     import mne
-    # except Exception:
-    #    logger.critical(
-    #         "Could not import mne, you may have to install (pip install mne)"
-    #     )
-
-    # # create info from metadata
-    # info = mne.create_info(ch_names=erp_data_object.channel_labels, sfreq=erp_data_object.fsample, ch_types='eeg')
-
-    # # create the MNE epochs, pass in the raw
-
-    # # make sure that units match
-    # epochs_array = mne.EpochsArray(data=erp_data_object.raw_eeg_windows, info=info)
-
-    # # change the last column of epochs array events to be the class labels
-    # epochs_array.events[:, -1] = erp_data_object.labels
-
-    # return epochs_array
-
-
 def mne_export_erp_as_epochs(erp_data_object):
     """MNE export EEG as EpochsArray.
 
@@ -195,7 +154,6 @@ def mne_export_erp_as_epochs(erp_data_object):
         MNE EpochsArray object.
 
     """
-    logger.error("mne_export_erp_as_epochs has not been implemented yet")
 
     assert isinstance(erp_data_object, ErpData)
 
@@ -209,6 +167,7 @@ def mne_export_erp_as_epochs(erp_data_object):
     # create the MNE epochs, pass in the raw
 
     # make sure that units match
+    # This only works because ErpData.erp_windows_processed is not private, like it probable should be
     epoch_data = erp_data_object.erp_windows_processed[
         : len(erp_data_object.target_index), :, :
     ].copy()

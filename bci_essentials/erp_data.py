@@ -249,7 +249,7 @@ class ErpData(EegData):
                         self.marker_data[self.marker_count][0]
                         == "Done with all RS collection"
                     ):
-                        self.package_resting_state_data()
+                        self._package_resting_state_data()
                         self.marker_count += 1
 
                     # If training completed then train the classifier
