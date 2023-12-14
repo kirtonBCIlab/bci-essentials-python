@@ -223,7 +223,7 @@ class ErpData(EegData):
                 loops = max_loops
 
             # read from sources to get new data
-            self._pull_data_from_source()
+            self._pull_data_from_sources()
 
             # check if there is an available marker, if not, break and wait for more data
             while len(self.marker_timestamps) > self.marker_count:

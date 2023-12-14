@@ -17,18 +17,20 @@ class MarkerSource(ABC):
         pass
 
     @abstractmethod
-    def get_markers(self) -> tuple[list, list]:
+    def get_markers(self) -> tuple[list[list], list]:
         """Get marker/command data and timestamps since last call
 
         Returns
         -------
             A tuple of (markers, timestamps):
 
-            markers - A list of marker/command strings, each corresponding to a timestamp.
-            For commands, the format is an arbitrary string, ex: "Trial Started".
-            For markers, the format is: "paradigm, num options, label number, window length"
+            markers - A list of samples, where each sample corresponds to a timestamp.
+            Each sample is a list with a single string element that represents a command or
+            a marker.  The string is formatted as follows:
+            command = an arbitrary string, ex: "Trial Started".
+            marker = "paradigm, num options, label number, window length"
 
-            timestamps - A list timestamps (float, seconds) corresponding to the markers
+            timestamps - A list timestamps (float in seconds) corresponding to the markers
         """
         pass
 
@@ -89,7 +91,7 @@ class EegSource(ABC):
         pass
 
     @abstractmethod
-    def get_samples(self) -> tuple[list, list]:
+    def get_samples(self) -> tuple[list[list], list]:
         """Get EEG samples and timestamps since last call
 
         Returns
@@ -99,7 +101,7 @@ class EegSource(ABC):
             samples - A list of samples, where each sample corresponds to a timestamp.
             Each sample is a list of floats representing the value for each channel of EEG.
 
-            timestamps - A list timestamps (float, seconds) corresponding to the samples
+            timestamps - A list timestamps (float in seconds) corresponding to the samples
         """
         pass
 

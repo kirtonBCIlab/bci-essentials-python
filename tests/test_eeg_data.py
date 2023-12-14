@@ -11,60 +11,76 @@ logger = Logger()
 
 
 class TestEegData(unittest.TestCase):
+    def setUp(self) -> None:
+        self.classifier = NullClassifier()
+        self.eeg = _MockEegSource()
+        self.markers = _MockMarkerSource()
+        self.messenger = _MockMessenger()
+
     def test_trg_channel_types_changed_to_stim(self):
-        classifier = NullClassifier()
-        eeg = _MockEegSource()
-        markers = _MockMarkerSource()
-
-        eeg.channel_types = ["eeg", "trg", "eeg", "stim"]
-        data = EegData(classifier, eeg, markers)
-
+        self.eeg.channel_types = ["eeg", "trg", "eeg", "stim"]
+        data = EegData(self.classifier, self.eeg, self.markers)
         self.assertEqual(data.ch_type, ["eeg", "stim", "eeg", "stim"])
 
     def test_dsi7_mods(self):
-        classifier = NullClassifier()
-        eeg = _MockEegSource()
-        markers = _MockMarkerSource()
-
-        eeg.name = "DSI7"
-        eeg.channel_labels = ["foo"] * 8
-        eeg.nchannels = 8
-        data = EegData(classifier, eeg, markers)
+        self.eeg.name = "DSI7"
+        self.eeg.channel_labels = ["foo"] * 8
+        self.eeg.nchannels = 8
+        data = EegData(self.classifier, self.eeg, self.markers)
 
         self.assertEqual(data.nchannels, 7)
         self.assertEqual(len(data.channel_labels), 7)
 
     def test_dsi24_mods(self):
-        classifier = NullClassifier()
-        eeg = _MockEegSource()
-        markers = _MockMarkerSource()
-
-        eeg.name = "DSI24"
-        eeg.channel_labels = ["foo"] * 24
-        eeg.nchannels = 24
-        data = EegData(classifier, eeg, markers)
+        self.eeg.name = "DSI24"
+        self.eeg.channel_labels = ["foo"] * 24
+        self.eeg.nchannels = 24
+        data = EegData(self.classifier, self.eeg, self.markers)
 
         self.assertEqual(data.nchannels, 23)
         self.assertEqual(len(data.channel_labels), 23)
 
-    def test_ping_sent_with_each_loop(self):
-        classifier = NullClassifier()
-        eeg = _MockEegSource()
-        markers = _MockMarkerSource()
-        messenger = _MockMessenger()
+    def test_when_offline_and_no_more_data_then_loop_stops(self):
+        data = EegData(self.classifier, self.eeg, self.markers, self.messenger)
+        data.main(online=False, max_loops=200)
+        self.assertEqual(self.messenger.ping_count, 1)
 
-        data = EegData(classifier, eeg, markers, messenger)
-        data.main(online=True, max_loops=3)
+    def test_when_online_and_no_more_data_then_loop_continues(self):
+        data = EegData(self.classifier, self.eeg, self.markers, self.messenger)
+        data.main(online=True, max_loops=10)
+        self.assertEqual(self.messenger.ping_count, 10)
 
-        self.assertEqual(messenger.ping_count, 3)
+    def test_when_online_and_invalid_markers_then_loop_continues(self):
+        data = EegData(self.classifier, self.eeg, self.markers, self.messenger)
+
+        # provide garbage data (None is invalid, length of data and timestamps doesn't match)
+        self.markers.marker_data = [1.0]
+        self.markers.marker_timestamps = [1.0]
+        data.main(online=True, max_loops=2)
+
+        # if we didn't crash, sanity check that loops did happen
+        self.assertEqual(self.messenger.ping_count, 2)
+
+    def test_when_online_and_invalid_eeg_then_loop_continues(self):
+        data = EegData(self.classifier, self.eeg, self.markers, self.messenger)
+
+        # provide garbage data (None is invalid, length of data and timestamps doesn't match)
+        self.eeg.eeg_data = [1.0]
+        self.eeg.eeg_timestamps = [1.0]
+        data.main(online=True, max_loops=2)
+
+        # if we didn't crash, sanity check that loops did happen
+        self.assertEqual(self.messenger.ping_count, 2)
 
 
 # Placeholder to make EegData happy
 class _MockMarkerSource(MarkerSource):
     name = "MockMarker"
+    marker_data = [[]]
+    marker_timestamps = []
 
-    def get_markers(self) -> tuple[list, list]:
-        return [[], []]
+    def get_markers(self) -> tuple[list[list], list]:
+        return [self.marker_data, self.marker_timestamps]
 
     def time_correction(self) -> float:
         return 0.0
@@ -78,9 +94,11 @@ class _MockEegSource(EegSource):
     channel_types = []
     channel_units = []
     channel_labels = []
+    eeg_data = [[]]
+    eeg_timestamps = []
 
-    def get_samples(self) -> tuple[list, list]:
-        return [[], []]
+    def get_samples(self) -> tuple[list[list], list]:
+        return [self.eeg_data, self.eeg_timestamps]
 
     def time_correction(self) -> float:
         return 0.0

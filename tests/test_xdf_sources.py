@@ -22,15 +22,16 @@ class TestXdfMarkerSource(unittest.TestCase):
         self.assertEqual(self.source.name, "UnityMarkerStream")
 
     def test_marker_get_samples_provides_all_samples_in_one_go(self):
-        # first get is all the samples
+        # first get is all the samples, ensure shape of array is: [n samples, 1]
         samples, timestamps = self.source.get_markers()
         self.assertIsNotNone(samples)
-        self.assertGreater(len(samples), 0)
-        self.assertGreater(len(timestamps), 0)
+        self.assertEqual(len(samples), 36)
+        self.assertEqual(len(timestamps), 36)
+        self.assertEqual(len(samples[0]), 1)
 
         # second get is empty
         samples, timestamps = self.source.get_markers()
-        self.assertEqual(samples, [])
+        self.assertEqual(samples, [[]])
         self.assertEqual(len(timestamps), 0)
 
     def test_marker_time_correction_is_zero_for_xdf(self):
@@ -64,16 +65,16 @@ class TestXdfEegSource(unittest.TestCase):
         self.assertEqual(self.source.channel_labels[0], "FP1")
 
     def test_eeg_get_samples_provides_all_samples_in_one_go(self):
-        # first get is all the samples
+        # first get is all the samples, ensure shape of array is: [n samples, nchannels]
         samples, timestamps = self.source.get_samples()
         self.assertIsNotNone(samples)
-        self.assertGreater(len(samples), 0)
-        self.assertGreater(len(timestamps), 0)
-        self.assertGreater(samples.shape[0], 0)
+        self.assertEqual(len(samples), 116992)
+        self.assertEqual(len(timestamps), 116992)
+        self.assertEqual(len(samples[0]), 16)
 
         # second get is empty
         samples, timestamps = self.source.get_samples()
-        self.assertEqual(samples, [])
+        self.assertEqual(samples, [[]])
         self.assertEqual(len(timestamps), 0)
 
     def test_eeg_time_correction_is_zero_for_xdf(self):
