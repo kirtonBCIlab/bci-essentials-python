@@ -28,7 +28,7 @@ class XdfMarkerSource(MarkerSource):
     def name(self) -> str:
         return self.__info["name"][0]
 
-    def get_markers(self) -> tuple[list, list]:
+    def get_markers(self) -> tuple[list[list], list]:
         """Read markers and related timestamps from the XDF file.  Returns the contents
         of the file on the first call to get_markers(), returns empty lists thereafter.
         """
@@ -37,7 +37,7 @@ class XdfMarkerSource(MarkerSource):
         timestamps = self.__timestamps
 
         # reset to empty for next get
-        self.__samples = []
+        self.__samples = [[]]
         self.__timestamps = []
 
         return [samples, timestamps]
@@ -105,7 +105,7 @@ class XdfEegSource(EegSource):
             pass
         return labels
 
-    def get_samples(self) -> tuple[list, list]:
+    def get_samples(self) -> tuple[list[list], list]:
         """Read markers and related timestamps from the XDF file.  Returns the contents of the file
         on the first call to get_markers(), returns empty lists thereafter.
         """
@@ -114,7 +114,7 @@ class XdfEegSource(EegSource):
         timestamps = self.__timestamps
 
         # reset to empty for next get
-        self.__samples = []
+        self.__samples = [[]]
         self.__timestamps = []
 
         return [samples, timestamps]

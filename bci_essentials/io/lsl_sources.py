@@ -33,10 +33,8 @@ class LslMarkerSource(MarkerSource):
     def name(self) -> str:
         return self.__info.name()
 
-    def get_markers(self) -> tuple[list, list]:
-        # TODO - pull_chunk can return None, which blows up Bessy
-        samples, timestamps = self.__inlet.pull_chunk(timeout=0.1)
-        return [samples, timestamps]
+    def get_markers(self) -> tuple[list[list], list]:
+        return pull_from_lsl_inlet(self.__inlet)
 
     def time_correction(self) -> float:
         return self.__inlet.time_correction()
@@ -83,10 +81,8 @@ class LslEegSource(EegSource):
     def channel_labels(self) -> list[str]:
         return self.__get_channel_properties("name")
 
-    def get_samples(self) -> tuple[list, list]:
-        # TODO - pull_chunk can return None, which blows up Bessy
-        samples, timestamps = self.__inlet.pull_chunk(timeout=0.1)
-        return [samples, timestamps]
+    def get_samples(self) -> tuple[list[list], list]:
+        return pull_from_lsl_inlet(self.__inlet)
 
     def time_correction(self) -> float:
         return self.__inlet.time_correction()
@@ -99,3 +95,21 @@ class LslEegSource(EegSource):
             properties.append(value)
             descriptions = descriptions.next_sibling()
         return properties
+
+
+def pull_from_lsl_inlet(inlet: StreamInlet) -> tuple[list[list], list]:
+    """StreamInlet.pull_chunk() may return None for samples.  This helper prevents None
+    from propagating by converting it into [[]].  If None is detected, the timestamps list
+    is also forced to [].
+    """
+
+    # read from inlet
+    samples, timestamps = inlet.pull_chunk(timeout=0.1)
+
+    # convert None into empty lists
+    if samples is None:
+        samples = [[]]
+        timestamps = []
+
+    # return tuple[list[list], list]
+    return [samples, timestamps]
