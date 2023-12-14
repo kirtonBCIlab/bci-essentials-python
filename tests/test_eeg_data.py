@@ -54,7 +54,7 @@ class TestEegData(unittest.TestCase):
         data = EegData(self.classifier, self.eeg, self.markers, self.messenger)
 
         # provide garbage data (None is invalid, length of data and timestamps doesn't match)
-        self.markers.marker_data = None
+        self.markers.marker_data = [1.0]
         self.markers.marker_timestamps = [1.0]
         data.main(online=True, max_loops=2)
 
@@ -65,7 +65,7 @@ class TestEegData(unittest.TestCase):
         data = EegData(self.classifier, self.eeg, self.markers, self.messenger)
 
         # provide garbage data (None is invalid, length of data and timestamps doesn't match)
-        self.eeg.eeg_data = None
+        self.eeg.eeg_data = [1.0]
         self.eeg.eeg_timestamps = [1.0]
         data.main(online=True, max_loops=2)
 
@@ -76,10 +76,10 @@ class TestEegData(unittest.TestCase):
 # Placeholder to make EegData happy
 class _MockMarkerSource(MarkerSource):
     name = "MockMarker"
-    marker_data = []
+    marker_data = [[]]
     marker_timestamps = []
 
-    def get_markers(self) -> tuple[list, list]:
+    def get_markers(self) -> tuple[list[list], list]:
         return [self.marker_data, self.marker_timestamps]
 
     def time_correction(self) -> float:
@@ -94,10 +94,10 @@ class _MockEegSource(EegSource):
     channel_types = []
     channel_units = []
     channel_labels = []
-    eeg_data = []
+    eeg_data = [[]]
     eeg_timestamps = []
 
-    def get_samples(self) -> tuple[list, list]:
+    def get_samples(self) -> tuple[list[list], list]:
         return [self.eeg_data, self.eeg_timestamps]
 
     def time_correction(self) -> float:
