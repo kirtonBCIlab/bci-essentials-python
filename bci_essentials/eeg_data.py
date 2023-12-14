@@ -255,7 +255,7 @@ class EegData:
         # add the fresh data to the buffers
         self.eeg_data = np.concatenate((self.eeg_data, eeg))
         self.eeg_timestamps = np.concatenate((self.eeg_timestamps, timestamps))
-    
+
     def save_data(self, directory_name):
         """Save the data from different stages.
 
