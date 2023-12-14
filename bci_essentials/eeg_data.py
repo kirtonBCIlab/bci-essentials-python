@@ -213,7 +213,7 @@ class EegData:
     def __pull_eeg_data_from_source(self):
         """Pulls eeg samples from source, sanity checks and appends to buffer"""
 
-        # read in the datat
+        # read in the data
         eeg, timestamps = self.__eeg_source.get_samples()
         eeg = np.array(eeg)
         timestamps = np.array(timestamps)
@@ -255,7 +255,7 @@ class EegData:
         # add the fresh data to the buffers
         self.eeg_data = np.concatenate((self.eeg_data, eeg))
         self.eeg_timestamps = np.concatenate((self.eeg_timestamps, timestamps))
-
+    
     def save_data(self, directory_name):
         """Save the data from different stages.
 
