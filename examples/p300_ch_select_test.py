@@ -11,7 +11,7 @@ from bci_essentials.classification.erp_rg_classifier import ErpRgClassifier
 from bci_essentials.utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
-logger = Logger()
+logger = Logger(name="p300_ch_select_test")
 
 # Identify the file to simulate
 # Filename assumes the data is within a subfolder called "data" located
@@ -62,5 +62,3 @@ test_erp.main(
 )
 
 logger.info("Classifier results:\n%s", classifier.results_df)
-
-logger.debug("Ran in DEBUG mode")

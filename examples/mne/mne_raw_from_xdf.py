@@ -5,8 +5,8 @@ import mne
 from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
 from bci_essentials.utils.logger import Logger  # Logger wrapper
 
-# Instantiate a logger for the module at the default level of logging.INFO
-logger = Logger()
+# Instantiate a logger for the script
+logger = Logger(name="mne_raw_from_xdf")
 
 # Identify the file to simulate
 filename = os.path.join("examples\\data", "mi_example.xdf")

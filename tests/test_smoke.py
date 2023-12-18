@@ -12,7 +12,7 @@ from bci_essentials.classification.ssvep_riemannian_mdm_classifier import (
 from bci_essentials.utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
-logger = Logger()
+logger = Logger(name="test_smoke")
 
 
 class TestSmoke(unittest.TestCase):
