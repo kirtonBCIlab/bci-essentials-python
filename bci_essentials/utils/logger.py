@@ -210,6 +210,7 @@ class Logger:
             # Create a console handler that logs to standard output
             console_handler = logging.StreamHandler()
             console_handler.setFormatter(logging_format)
+            console_handler.setLevel(level)
 
             # Add the console handler to the logger
             self.logger.addHandler(console_handler)
