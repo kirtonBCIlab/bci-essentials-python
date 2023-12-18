@@ -51,7 +51,7 @@ classifier.setup_channel_selection(
 test_erp = ErpData(classifier, eeg_source, marker_source)
 
 # Run main loop, this will do all of the classification for online or offline
-test_erp.main(
+test_erp.run(
     training=True,
     pp_low=0.1,
     pp_high=10,

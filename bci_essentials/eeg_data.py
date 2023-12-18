@@ -133,7 +133,6 @@ class EegData:
         nchannels=8,
         channel_labels=["?", "?", "?", "?", "?", "?", "?", "?"],
         fsample=256,
-        max_size=10000,
     ):
         """Override settings obtained from eeg_source on init
 
@@ -151,9 +150,6 @@ class EegData:
         fsample : int, *optional*
             The sampling rate.
             - Default is `256`.
-        max_size : int, *optional*
-            Description of parameter `max_size`.
-            - Default is `10000`.
 
         Returns
         -------
@@ -164,7 +160,6 @@ class EegData:
         self.nchannels = nchannels  # number of channels
         self.channel_labels = channel_labels  # EEG electrode placements
         self.fsample = fsample  # sampling rate
-        self.max_size = max_size  # maximum size of eeg
 
         if len(channel_labels) != self.nchannels:
             logger.warning("Channel locations do not fit number of channels!!!")
@@ -549,17 +544,12 @@ class EegData:
         except Exception:
             logger.warning("Failed to package resting state data")
 
-    # main
-    # add pp_low, pp_high, pp_order, subset
-
-    def main(
+    def setup(
         self,
-        buffer=0.01,
-        eeg_start=0,
+        buffer_time=0.01,
         max_channels=64,
         max_samples=2560,
         max_windows=1000,
-        max_loops=1000000,
         training=True,
         online=True,
         train_complete=False,
@@ -570,10 +560,11 @@ class EegData:
         pp_high=40,  # bandpass upper cutoff
         pp_order=5,  # bandpass order
     ):
-        """Main function of `EegData` class.
+        """Configure processing loop.  This should be called before starting
+        the loop with run() or step().  Calling after will reset the loop state.
 
-        Runs a while loop that reads in EEG data from the `EegData` object
-        and processes it. Can be used in `online` or `offline` mode.
+        The processing loop reads in EEG and marker data and processes it.
+        The loop can be run in "offline" or "online" modes:
         - If in `online` mode, then the loop will continuously try to read
         in data from the `EegData` object and process it. The loop will
         terminate when `max_loops` is reached, or when manually terminated.
@@ -582,12 +573,9 @@ class EegData:
 
         Parameters
         ----------
-        buffer : float, *optional*
+        buffer_time : float, *optional*
             Buffer time for EEG sampling in `online` mode (seconds).
             - Default is `0.01`.
-        eeg_start : int, *optional*
-            Start time for EEG sampling (seconds).
-            - Default is `0`.
         max_channels : int, *optional*
             Maximum number of EEG channels to read in.
             - Default is `64`.
@@ -640,368 +628,86 @@ class EegData:
         `None`
 
         """
+        self.online = online
+        self.training = training
+        self.live_update = live_update
+        self.iterative_training = iterative_training
+        self.train_complete = train_complete
 
-        # if this is the first time this function is being called for a given dataset then run some initialization
-        if eeg_start == 0:
-            self.window_end_buffer = buffer
-            search_index = 0
+        self.max_channels = max_channels
+        self.max_samples = max_samples
+        self.max_windows = max_windows
 
-            # initialize windows and labels
-            current_raw_eeg_windows = np.zeros((max_windows, max_channels, max_samples))
-            current_processed_eeg_windows = current_raw_eeg_windows
-            current_labels = np.zeros((max_windows))
+        self.pp_type = pp_type
+        self.pp_low = pp_low
+        self.pp_high = pp_high
+        self.pp_order = pp_order
 
-            self.raw_eeg_windows = np.zeros((max_windows, max_channels, max_samples))
-            self.processed_eeg_windows = self.raw_eeg_windows
-            self.labels = np.zeros((max_windows))  # temporary labels
-            self.training_labels = np.zeros((max_windows))  # permanent training labels
+        self.buffer_time = buffer_time
+        self.window_end_buffer = buffer_time
+        self.search_index = 0
 
-            # initialize the numbers of markers and windows to zero
-            self.marker_count = 0
-            current_nwindows = 0
-            self.nwindows = 0
+        # initialize windows and labels
+        self.current_raw_eeg_windows = np.zeros(
+            (self.max_windows, self.max_channels, self.max_samples)
+        )
+        self.current_processed_eeg_windows = self.current_raw_eeg_windows
+        self.current_labels = np.zeros((self.max_windows))
 
-            #
-            self.num_online_selections = 0
-            self.online_selection_indices = []
-            self.online_selections = []
+        self.raw_eeg_windows = np.zeros(
+            (self.max_windows, self.max_channels, self.max_samples)
+        )
+        self.processed_eeg_windows = self.raw_eeg_windows
+        self.labels = np.zeros((self.max_windows))  # temporary labels
+        self.training_labels = np.zeros((self.max_windows))  # permanent training labels
 
-            # initialize loop count
-            loops = 0
+        # initialize the numbers of markers and windows to zero
+        self.marker_count = 0
+        self.current_nwindows = 0
+        self.nwindows = 0
+
+        self.num_online_selections = 0
+        self.online_selection_indices = []
+        self.online_selections = []
+
+        # initialize loop count, TODO - why do this here?
+        self.loops = 0
+
+    def run(self, max_loops: int = 1000000):
+        """Runs EegData processing in a loop unitil no more data (offline) or
+        See setup() for configuration of processing.
+
+        Parameters
+        ----------
+        max_loops : int, *optional*
+            Maximum number of loops to run, default is `1000000`.
+
+        Returns
+        ------
+            None
+
+        """
+        # if offline, then all data is already loaded, only need to loop once
+        if self.online is False:
+            self.loops = max_loops - 1
 
         # start the main loop, stops after pulling new data, max_loops times
-        while loops < max_loops:
-            #
-            if loops % 100 == 0:
-                logger.debug(loops)
+        while self.loops < max_loops:
+            # print out loop status
+            if self.loops % 100 == 0:
+                logger.debug(self.loops)
 
-            if loops == max_loops - 1:
+            if self.loops == max_loops - 1:
                 logger.debug("last loop")
 
-            # if offline, then all data is already loaded, no need to iterate
-            if online is False:
-                loops = max_loops
-
-            # read from sources to get new data
-            self._pull_data_from_sources()
-
-            # check if there is an available marker, if not, break and wait for more data
-            while len(self.marker_timestamps) > self.marker_count:
-                loops = 0
-
-                # If the marker contains a single string, not including ',' and begining with a alpha character, then it is an event message
-                if (
-                    len(self.marker_data[self.marker_count][0].split(",")) == 1
-                    and self.marker_data[self.marker_count][0][0].isalpha()
-                ):
-                    if self._messenger is not None:
-                        # send feedback for each marker that you receive
-                        marker = self.marker_data[self.marker_count][0]
-                        self._messenger.marker_received(marker)
-
-                    logger.info("Marker: %s", self.marker_data[self.marker_count][0])
-
-                    # once all resting state data is collected then go and compile it
-                    if (
-                        self.marker_data[self.marker_count][0]
-                        == "Done with all RS collection"
-                    ):
-                        self._package_resting_state_data()
-                        self.marker_count += 1
-
-                    elif self.marker_data[self.marker_count][0] == "Trial Started":
-                        logger.debug(
-                            "Trial started, incrementing marker count and continuing"
-                        )
-                        # Note that a marker occured, but do nothing else
-                        self.marker_count += 1
-
-                    elif self.marker_data[self.marker_count][0] == "Trial Ends":
-                        logger.debug(
-                            "Trial ended, trim the unused ends of numpy arrays"
-                        )
-                        # Trim the unused ends of numpy arrays
-                        current_raw_eeg_windows = current_raw_eeg_windows[
-                            0:current_nwindows, 0 : self.nchannels, 0 : self.nsamples
-                        ]
-                        current_processed_eeg_windows = current_processed_eeg_windows[
-                            0:current_nwindows, 0 : self.nchannels, 0 : self.nsamples
-                        ]
-                        current_labels = current_labels[0:current_nwindows]
-
-                        # TRAIN
-                        if training:
-                            self._classifier.add_to_train(
-                                current_processed_eeg_windows, current_labels
-                            )
-
-                            logger.debug(
-                                "%s windows and labels added to training set",
-                                current_nwindows,
-                            )
-
-                            # if iterative training is on and active then also make a prediction
-                            if iterative_training:
-                                logger.info(
-                                    "Added current samples to training set, "
-                                    + "now making a prediction"
-                                )
-
-                                # Make a prediction
-                                prediction = self._classifier.predict(
-                                    current_processed_eeg_windows
-                                )
-
-                                logger.info(
-                                    "%s was selected by the iterative classifier",
-                                    prediction,
-                                )
-
-                                if self._messenger is not None:
-                                    logger.info(
-                                        "Sending prediction %s from iterative classifier",
-                                        prediction,
-                                    )
-                                    self._messenger.prediction(prediction)
-
-                        # PREDICT
-                        elif train_complete and current_nwindows != 0:
-                            logger.info(
-                                "Making a prediction based on %s windows",
-                                current_nwindows,
-                            )
-
-                            if current_nwindows == 0:
-                                logger.error("No windows to make a decision")
-                                self.marker_count += 1
-                                break
-
-                            # save the online selection indices
-                            selection_inds = list(
-                                range(self.nwindows - current_nwindows, self.nwindows)
-                            )
-                            self.online_selection_indices.append(selection_inds)
-
-                            # make the prediciton
-                            try:
-                                prediction = self._classifier.predict(
-                                    current_processed_eeg_windows
-                                )
-                                self.online_selections.append(prediction)
-
-                                logger.info("%s was selected by classifier", prediction)
-
-                                if self._messenger is not None:
-                                    logger.info(
-                                        "Sending prediction %s from classifier",
-                                        prediction,
-                                    )
-                                    self._messenger.prediction(prediction)
-
-                            except Exception:
-                                logger.warning("This classification failed...")
-
-                        # OH DEAR
-                        else:
-                            logger.error("Unable to classify... womp womp")
-
-                        # Reset windows and labels
-                        self.marker_count += 1
-                        current_nwindows = 0
-                        current_raw_eeg_windows = np.zeros(
-                            (max_windows, max_channels, max_samples)
-                        )
-                        current_processed_eeg_windows = current_raw_eeg_windows
-                        current_labels = np.zeros((max_windows))
-
-                    # If training completed then train the classifier
-                    # This is confusing.
-                    elif (
-                        self.marker_data[self.marker_count][0] == "Training Complete"
-                        and train_complete is False
-                    ):
-                        logger.debug("Training the classifier")
-
-                        self._classifier.fit()
-                        train_complete = True
-                        training = False
-                        self.marker_count += 1
-
-                    elif self.marker_data[self.marker_count][0] == "Update Classifier":
-                        logger.debug("Retraining the classifier")
-
-                        self._classifier.fit()
-
-                        iterative_training = True
-                        if online:
-                            live_update = True
-
-                        self.marker_count += 1
-
-                    else:
-                        self.marker_count += 1
-
-                    if online:
-                        time.sleep(0.01)
-                    loops += 1
-                    continue
-
-                # Get marker info
-                marker_info = self.marker_data[self.marker_count][0].split(",")
-
-                self.paradigm_string = marker_info[0]
-                self.num_options = int(marker_info[1])
-                label = int(marker_info[2])
-                self.window_length = float(marker_info[3])  # window length
-                if (
-                    len(marker_info) > 4
-                ):  # if longer, collect this info and maybe it can be used by the classifier
-                    self.meta = []
-                    for i in range(4, len(marker_info)):
-                        self.meta.__add__([marker_info[i]])
-
-                    # Load the correct SSVEP freqs
-                    if marker_info[0] == "ssvep":
-                        self._classifier.target_freqs = [1] * (len(marker_info) - 4)
-                        self._classifier.sampling_freq = self.fsample
-                        for i in range(4, len(marker_info)):
-                            self._classifier.target_freqs[i - 4] = float(marker_info[i])
-                            logger.debug(
-                                "Changed %s target frequency to %s",
-                                i - 4,
-                                marker_info[i],
-                            )
-
-                # Check if the whole EEG window corresponding to the marker is available
-                end_time_plus_buffer = (
-                    self.marker_timestamps[self.marker_count]
-                    + self.window_length
-                    + buffer
-                )
-
-                # If we don't have the full window then pull more data, only do this online
-                if self.eeg_timestamps[-1] <= end_time_plus_buffer:
-                    if online:
-                        break
-                    if online is False:
-                        self.marker_count += 1
-                        break
-
-                logger.info("Marker information: %s", marker_info)
-
-                # send message if there is an available outlet
-                if self._messenger is not None:
-                    logger.info("sending marker ack")
-                    # send feedback for each marker that you receive
-                    marker = self.marker_data[self.marker_count][0]
-                    self._messenger.marker_received(marker)
-
-                # Find the start time for the window based on the marker timestamp
-                start_time = self.marker_timestamps[self.marker_count]
-
-                # Find the number of samples per window
-                self.nsamples = int(self.window_length * self.fsample)
-
-                # set the window timestamps at exactly the sampling frequency
-                self.window_timestamps = np.arange(self.nsamples) / self.fsample
-
-                # locate the indices of the window in the eeg data
-                for i, s in enumerate(self.eeg_timestamps[search_index:-1]):
-                    if s > start_time:
-                        start_loc = search_index + i - 1
-                        break
-
-                # Get the end location for the window
-                end_loc = int(start_loc + self.nsamples + 1)
-
-                # For each channel of the EEG, interpolate to uniform sampling rate
-                for c in range(self.nchannels):
-                    # First, adjust the EEG timestamps to start from zero
-                    eeg_timestamps_adjusted = (
-                        self.eeg_timestamps[start_loc:end_loc]
-                        - self.eeg_timestamps[start_loc]
-                    )
-
-                    # Second, interpolate to timestamps at a uniform sampling rate
-                    channel_data = np.interp(
-                        self.window_timestamps,
-                        eeg_timestamps_adjusted,
-                        self.eeg_data[start_loc:end_loc, c],
-                    )
-
-                    # Third, sdd to the EEG window
-                    current_raw_eeg_windows[
-                        current_nwindows, c, 0 : self.nsamples
-                    ] = channel_data
-
-                # This is where to do preprocessing
-                current_processed_eeg_windows[
-                    current_nwindows, : self.nchannels, : self.nsamples
-                ] = self._preprocessing(
-                    window=current_raw_eeg_windows[
-                        current_nwindows, : self.nchannels, : self.nsamples
-                    ],
-                    option=pp_type,
-                    order=pp_order,
-                    fl=pp_low,
-                    fh=pp_high,
-                )
-
-                # This is where to do artefact rejection
-                current_processed_eeg_windows[
-                    current_nwindows, : self.nchannels, : self.nsamples
-                ] = self._artefact_rejection(
-                    window=current_processed_eeg_windows[
-                        current_nwindows, : self.nchannels, : self.nsamples
-                    ],
-                    option=None,
-                )
-
-                # Add the label if it exists, otherwise set a flag of -1 to denote that there is no label
-                # if training:
-                #     current_labels[current_nwindows] = label
-                # else:
-                #     current_labels[current_nwindows] = -1
-                current_labels[current_nwindows] = label
-
-                # copy to the eeg_data object
-                self.raw_eeg_windows[
-                    self.nwindows, 0 : self.nchannels, 0 : self.nsamples
-                ] = current_raw_eeg_windows[
-                    current_nwindows, 0 : self.nchannels, 0 : self.nsamples
-                ]
-                self.processed_eeg_windows[
-                    self.nwindows, 0 : self.nchannels, 0 : self.nsamples
-                ] = current_processed_eeg_windows[
-                    current_nwindows, 0 : self.nchannels, 0 : self.nsamples
-                ]
-                self.labels[self.nwindows] = current_labels[current_nwindows]
-
-                # Send live updates
-                if live_update:
-                    try:
-                        if self.nsamples != 0:
-                            pred = self._classifier.predict(
-                                current_processed_eeg_windows[
-                                    current_nwindows,
-                                    0 : self.nchannels,
-                                    0 : self.nsamples,
-                                ]
-                            )
-                            self._messenger.prediction(int(pred[0]))
-                    except Exception:
-                        logger.error("Unable to classify this window")
-
-                # iterate to next window
-                self.marker_count += 1
-                current_nwindows += 1
-                self.nwindows += 1
-                search_index = start_loc
+            # read from sources and process
+            self.step()
 
             # Wait a short period of time and then try to pull more data
-            if online:
+            if self.online:
                 time.sleep(0.00001)
-            loops += 1
+
+            self.loops += 1
 
         # Trim all the data
         self.raw_eeg_windows = self.raw_eeg_windows[
@@ -1011,3 +717,337 @@ class EegData:
             0 : self.nwindows, 0 : self.nchannels, 0 : self.nsamples
         ]
         self.labels = self.labels[0 : self.nwindows]
+
+    def step(self):
+        """Runs a single EegData processing step.
+        See setup() for configuration of processing.
+
+        Parameters
+        ----------
+        max_loops : int, *optional*
+            Maximum number of loops to run, default is `1000000`.
+
+        Returns
+        ------
+            None
+
+        """
+        # read from sources to get new data and process
+        self._pull_data_from_sources()
+
+        # check if there is an available marker, if not, break and wait for more data
+        while len(self.marker_timestamps) > self.marker_count:
+            self.loops = 0
+
+            # If the marker contains a single string, not including ',' and begining with a alpha character, then it is an event message
+            if (
+                len(self.marker_data[self.marker_count][0].split(",")) == 1
+                and self.marker_data[self.marker_count][0][0].isalpha()
+            ):
+                if self._messenger is not None:
+                    # send feedback for each marker that you receive
+                    marker = self.marker_data[self.marker_count][0]
+                    self._messenger.marker_received(marker)
+
+                logger.info("Marker: %s", self.marker_data[self.marker_count][0])
+
+                # once all resting state data is collected then go and compile it
+                if (
+                    self.marker_data[self.marker_count][0]
+                    == "Done with all RS collection"
+                ):
+                    self._package_resting_state_data()
+                    self.marker_count += 1
+
+                elif self.marker_data[self.marker_count][0] == "Trial Started":
+                    logger.debug(
+                        "Trial started, incrementing marker count and continuing"
+                    )
+                    # Note that a marker occured, but do nothing else
+                    self.marker_count += 1
+
+                elif self.marker_data[self.marker_count][0] == "Trial Ends":
+                    logger.debug("Trial ended, trim the unused ends of numpy arrays")
+                    # Trim the unused ends of numpy arrays
+                    self.current_raw_eeg_windows = self.current_raw_eeg_windows[
+                        0 : self.current_nwindows,
+                        0 : self.nchannels,
+                        0 : self.nsamples,
+                    ]
+                    self.current_processed_eeg_windows = (
+                        self.current_processed_eeg_windows[
+                            0 : self.current_nwindows,
+                            0 : self.nchannels,
+                            0 : self.nsamples,
+                        ]
+                    )
+                    self.current_labels = self.current_labels[0 : self.current_nwindows]
+
+                    # TRAIN
+                    if self.training:
+                        self._classifier.add_to_train(
+                            self.current_processed_eeg_windows, self.current_labels
+                        )
+
+                        logger.debug(
+                            "%s windows and labels added to training set",
+                            self.current_nwindows,
+                        )
+
+                        # if iterative training is on and active then also make a prediction
+                        if self.iterative_training:
+                            logger.info(
+                                "Added current samples to training set, "
+                                + "now making a prediction"
+                            )
+
+                            # Make a prediction
+                            prediction = self._classifier.predict(
+                                self.current_processed_eeg_windows
+                            )
+
+                            logger.info(
+                                "%s was selected by the iterative classifier",
+                                prediction,
+                            )
+
+                            if self._messenger is not None:
+                                logger.info(
+                                    "Sending prediction %s from iterative classifier",
+                                    prediction,
+                                )
+                                self._messenger.prediction(prediction)
+
+                    # PREDICT
+                    elif self.train_complete and self.current_nwindows != 0:
+                        logger.info(
+                            "Making a prediction based on %s windows",
+                            self.current_nwindows,
+                        )
+
+                        if self.current_nwindows == 0:
+                            logger.error("No windows to make a decision")
+                            self.marker_count += 1
+                            break
+
+                        # save the online selection indices
+                        selection_inds = list(
+                            range(self.nwindows - self.current_nwindows, self.nwindows)
+                        )
+                        self.online_selection_indices.append(selection_inds)
+
+                        # make the prediciton
+                        try:
+                            prediction = self._classifier.predict(
+                                self.current_processed_eeg_windows
+                            )
+                            self.online_selections.append(prediction)
+
+                            logger.info("%s was selected by classifier", prediction)
+
+                            if self._messenger is not None:
+                                logger.info(
+                                    "Sending prediction %s from classifier",
+                                    prediction,
+                                )
+                                self._messenger.prediction(prediction)
+
+                        except Exception:
+                            logger.warning("This classification failed...")
+
+                    # OH DEAR
+                    else:
+                        logger.error("Unable to classify... womp womp")
+
+                    # Reset windows and labels
+                    self.marker_count += 1
+                    self.current_nwindows = 0
+                    self.current_raw_eeg_windows = np.zeros(
+                        (self.max_windows, self.max_channels, self.max_samples)
+                    )
+                    self.current_processed_eeg_windows = self.current_raw_eeg_windows
+                    self.current_labels = np.zeros((self.max_windows))
+
+                # If training completed then train the classifier
+                # This is confusing.
+                elif (
+                    self.marker_data[self.marker_count][0] == "Training Complete"
+                    and self.train_complete is False
+                ):
+                    logger.debug("Training the classifier")
+
+                    self._classifier.fit()
+                    self.train_complete = True
+                    self.training = False
+                    self.marker_count += 1
+
+                elif self.marker_data[self.marker_count][0] == "Update Classifier":
+                    logger.debug("Retraining the classifier")
+
+                    self._classifier.fit()
+
+                    self.iterative_training = True
+                    if self.online:
+                        self.live_update = True
+
+                    self.marker_count += 1
+
+                else:
+                    self.marker_count += 1
+
+                if self.online:
+                    time.sleep(0.01)
+                self.loops += 1
+                continue
+
+            # Get marker info
+            marker_info = self.marker_data[self.marker_count][0].split(",")
+
+            self.paradigm_string = marker_info[0]
+            self.num_options = int(marker_info[1])
+            label = int(marker_info[2])
+            self.window_length = float(marker_info[3])  # window length
+            if (
+                len(marker_info) > 4
+            ):  # if longer, collect this info and maybe it can be used by the classifier
+                self.meta = []
+                for i in range(4, len(marker_info)):
+                    self.meta.__add__([marker_info[i]])
+
+                # Load the correct SSVEP freqs
+                if marker_info[0] == "ssvep":
+                    self._classifier.target_freqs = [1] * (len(marker_info) - 4)
+                    self._classifier.sampling_freq = self.fsample
+                    for i in range(4, len(marker_info)):
+                        self._classifier.target_freqs[i - 4] = float(marker_info[i])
+                        logger.debug(
+                            "Changed %s target frequency to %s",
+                            i - 4,
+                            marker_info[i],
+                        )
+
+            # Check if the whole EEG window corresponding to the marker is available
+            end_time_plus_buffer = (
+                self.marker_timestamps[self.marker_count]
+                + self.window_length
+                + self.buffer_time
+            )
+
+            # If we don't have the full window then pull more data, only do this online
+            if self.eeg_timestamps[-1] <= end_time_plus_buffer:
+                if self.online is True:
+                    break
+                if self.online is False:
+                    self.marker_count += 1
+                break
+
+            logger.info("Marker information: %s", marker_info)
+
+            # send message if there is an available outlet
+            if self._messenger is not None:
+                logger.info("sending marker ack")
+                # send feedback for each marker that you receive
+                marker = self.marker_data[self.marker_count][0]
+                self._messenger.marker_received(marker)
+
+            # Find the start time for the window based on the marker timestamp
+            start_time = self.marker_timestamps[self.marker_count]
+
+            # Find the number of samples per window
+            self.nsamples = int(self.window_length * self.fsample)
+
+            # set the window timestamps at exactly the sampling frequency
+            self.window_timestamps = np.arange(self.nsamples) / self.fsample
+
+            # locate the indices of the window in the eeg data
+            for i, s in enumerate(self.eeg_timestamps[self.search_index : -1]):
+                if s > start_time:
+                    start_loc = self.search_index + i - 1
+                    break
+
+            # Get the end location for the window
+            end_loc = int(start_loc + self.nsamples + 1)
+
+            # For each channel of the EEG, interpolate to uniform sampling rate
+            for c in range(self.nchannels):
+                # First, adjust the EEG timestamps to start from zero
+                eeg_timestamps_adjusted = (
+                    self.eeg_timestamps[start_loc:end_loc]
+                    - self.eeg_timestamps[start_loc]
+                )
+
+                # Second, interpolate to timestamps at a uniform sampling rate
+                channel_data = np.interp(
+                    self.window_timestamps,
+                    eeg_timestamps_adjusted,
+                    self.eeg_data[start_loc:end_loc, c],
+                )
+
+                # Third, sdd to the EEG window
+                self.current_raw_eeg_windows[
+                    self.current_nwindows, c, 0 : self.nsamples
+                ] = channel_data
+
+            # This is where to do preprocessing
+            self.current_processed_eeg_windows[
+                self.current_nwindows, : self.nchannels, : self.nsamples
+            ] = self._preprocessing(
+                window=self.current_raw_eeg_windows[
+                    self.current_nwindows, : self.nchannels, : self.nsamples
+                ],
+                option=self.pp_type,
+                order=self.pp_order,
+                fl=self.pp_low,
+                fh=self.pp_high,
+            )
+
+            # This is where to do artefact rejection
+            self.current_processed_eeg_windows[
+                self.current_nwindows, : self.nchannels, : self.nsamples
+            ] = self._artefact_rejection(
+                window=self.current_processed_eeg_windows[
+                    self.current_nwindows, : self.nchannels, : self.nsamples
+                ],
+                option=None,
+            )
+
+            # Add the label if it exists, otherwise set a flag of -1 to denote that there is no label
+            # if self.training:
+            #     self.current_labels[self.current_nwindows] = label
+            # else:
+            #     self.current_labels[self.current_nwindows] = -1
+            self.current_labels[self.current_nwindows] = label
+
+            # copy to the eeg_data object
+            self.raw_eeg_windows[
+                self.nwindows, 0 : self.nchannels, 0 : self.nsamples
+            ] = self.current_raw_eeg_windows[
+                self.current_nwindows, 0 : self.nchannels, 0 : self.nsamples
+            ]
+            self.processed_eeg_windows[
+                self.nwindows, 0 : self.nchannels, 0 : self.nsamples
+            ] = self.current_processed_eeg_windows[
+                self.current_nwindows, 0 : self.nchannels, 0 : self.nsamples
+            ]
+            self.labels[self.nwindows] = self.current_labels[self.current_nwindows]
+
+            # Send live updates
+            if self.live_update:
+                try:
+                    if self.nsamples != 0:
+                        pred = self._classifier.predict(
+                            self.current_processed_eeg_windows[
+                                self.current_nwindows,
+                                0 : self.nchannels,
+                                0 : self.nsamples,
+                            ]
+                        )
+                        self._messenger.prediction(int(pred[0]))
+                except Exception:
+                    logger.error("Unable to classify this window")
+
+            # iterate to next window
+            self.marker_count += 1
+            self.current_nwindows += 1
+            self.nwindows += 1
+            self.search_index = start_loc

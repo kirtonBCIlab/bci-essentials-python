@@ -26,4 +26,5 @@ test_ssvep.train_complete = True
 target_freqs = [9, 9.6, 10.28, 11.07, 12, 13.09, 14.4]
 
 # Run
-test_ssvep.main(online=True, training=False, train_complete=True)
+test_ssvep.setup(online=True, training=False, train_complete=True)
+test_ssvep.run()

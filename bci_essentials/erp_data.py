@@ -37,7 +37,7 @@ class ErpData(EegData):
     """
 
     # Formats the ERP data, call this every time that a new chunk arrives
-    def main(
+    def run(
         self,
         window_start=0.0,
         window_end=0.8,
@@ -57,13 +57,12 @@ class ErpData(EegData):
         pp_order=5,  # Preprocessing: bandpass order
         plot_erp=False,
     ):
-        """Main function of `ErpData` class.
+        """Runs ErpData processing in a loop.
 
         Formats the ERP data. Call this every time that a new chunk arrives.
 
-        Runs a while loop that reads in ERP windows from the `ErpData`
-        object and processes decision blocks. Can be used in `online` or
-        offline mode.
+        Runs a while loop that reads in ERP windows. The loop can be run in
+        "offline" or "online" modes:
         - If in `online` mode, then the loop will continuously try to read
         in data from the `EegData` object and process it. The loop will
         terminate when `max_loops` is reached, or when manually terminated.

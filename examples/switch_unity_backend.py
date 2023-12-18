@@ -20,4 +20,5 @@ classifier.set_switch_classifier_settings(n_splits=3, rebuild=True, random_seed=
 switch_data = EegData(classifier, eeg_source, marker_source, messenger)
 
 # Run
-switch_data.main(online=True, training=True)
+switch_data.setup(online=True, training=True)
+switch_data.run()

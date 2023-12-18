@@ -28,7 +28,7 @@ classifier.set_p300_clf_settings(
 test_erp = ErpData(classifier, eeg_source, marker_source, messenger)
 
 # Run main
-test_erp.main(
+test_erp.run(
     online=True,
     training=True,
     pp_low=0.1,
