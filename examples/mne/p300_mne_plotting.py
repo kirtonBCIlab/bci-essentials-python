@@ -12,7 +12,7 @@ from bci_essentials.utils.logger import Logger  # Logger wrapper
 from saving import mne_export_erp_as_epochs
 
 # Instantiate a logger for the module at the default level of logging.INFO
-logger = Logger()
+logger = Logger(name="p300_mne_plotting")
 
 # Identify the file to simulate
 filename = os.path.join("examples\\data", "p300_example.xdf")

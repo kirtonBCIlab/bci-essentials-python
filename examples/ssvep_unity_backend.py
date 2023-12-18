@@ -4,10 +4,6 @@ from bci_essentials.eeg_data import EegData
 from bci_essentials.classification.ssvep_riemannian_mdm_classifier import (
     SsvepRiemannianMdmClassifier,
 )
-from bci_essentials.utils.logger import Logger  # Logger wrapper
-
-# Instantiate a logger for the module at the default level of logging.INFO
-logger = Logger()
 
 # create LSL sources, these will block until the outlets are present
 eeg_source = LslEegSource()
@@ -38,5 +34,3 @@ test_ssvep.setup(
     pp_high=50,
 )
 test_ssvep.run()
-
-logger.debug("Ran in DEBUG mode")

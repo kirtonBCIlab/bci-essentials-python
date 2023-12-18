@@ -5,7 +5,7 @@ from bci_essentials.signal_processing import lowpass, highpass, bandpass, notch
 from bci_essentials.utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
-logger = Logger()
+logger = Logger(name="test_signal_processing")
 
 
 class TestLoadData(unittest.TestCase):

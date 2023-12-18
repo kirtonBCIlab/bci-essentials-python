@@ -11,7 +11,7 @@ from bci_essentials.session_saving import save_classifier, load_classifier
 from bci_essentials.utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
-logger = Logger()
+logger = Logger(name="test_classifier_save")
 
 
 class TestClassifierSave(unittest.TestCase):
