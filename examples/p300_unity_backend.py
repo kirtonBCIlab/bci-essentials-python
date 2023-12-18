@@ -2,10 +2,6 @@ from bci_essentials.io.lsl_sources import LslEegSource, LslMarkerSource
 from bci_essentials.io.lsl_messenger import LslMessenger
 from bci_essentials.erp_data import ErpData
 from bci_essentials.classification.erp_rg_classifier import ErpRgClassifier
-from bci_essentials.utils.logger import Logger  # Logger wrapper
-
-# Instantiate a logger for the module at the default level of logging.INFO
-logger = Logger()
 
 # create LSL sources, these will block until the outlets are present
 eeg_source = LslEegSource()

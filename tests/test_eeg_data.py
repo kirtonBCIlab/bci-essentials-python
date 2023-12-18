@@ -4,10 +4,6 @@ from bci_essentials.io.sources import MarkerSource, EegSource
 from bci_essentials.io.messenger import Messenger
 from bci_essentials.eeg_data import EegData
 from bci_essentials.classification.null_classifier import NullClassifier
-from bci_essentials.utils.logger import Logger  # Logger wrapper
-
-# Instantiate a logger for the module at the default level of logging.INFO
-logger = Logger()
 
 
 class TestEegData(unittest.TestCase):

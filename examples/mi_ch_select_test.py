@@ -12,7 +12,7 @@ from bci_essentials.classification.mi_classifier import MiClassifier
 from bci_essentials.utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger at the default level of logging.INFO
-logger = Logger()
+logger = Logger(name="mi_ch_select_test")
 
 # Identify the file to simulate
 # Filename assumes the data is within a subfolder called "data" located
@@ -55,5 +55,3 @@ test_mi.main(
 )
 
 logger.info("%s", classifier.results_df)
-
-logger.debug("Finished running in DEBUG mode")

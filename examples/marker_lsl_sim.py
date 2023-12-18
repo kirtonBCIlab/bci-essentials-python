@@ -26,7 +26,7 @@ from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
 from bci_essentials.utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
-logger = Logger()
+logger = Logger(name="marker_lsl_sim")
 
 # Identify the file to simulate
 # Filename assumes the data is within a subfolder called "data" located
