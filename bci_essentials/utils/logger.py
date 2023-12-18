@@ -37,37 +37,51 @@ CRITICAL :
 Examples
 --------
 
-Example 1A: Creating a Logger object within the 'bci_essentials' package
----------------------------------------------------------------------
+Example 1: Creating a Logger object within the 'bci_essentials' package
+-----------------------------------------------------------------------
 The following example shows how to use the `Logger` class within the
-'bci_essentials' package, i.e. within package modules. After importing
-the `Logger` class, a logger instance is created at the package default
-log level of `Logger.INFO`. The name of the logger is set to the name
-the module it is being used in (e.g. 'bci_essentials.utils.logger') so
-that log messages can be traced back to the module they originated from.
+'bci_essentials' package, i.e. within package modules. Modules use
+module-specific child loggers to log messages. The child loggers inherit
+from the package logger `bci_essentials` which is configured in the
+package __init__.py file.
+
+After importing the `Logger` class, a child logger is created and inherits
+the package default log level of `Logger.INFO`. The name of the logger is
+set to the name the module it is being used in (e.g. 'bci_essentials.utils.logger')
+so that log messages can be traced back to the module they originated from.
     >>> from bci_essentials.utils.logger import Logger
     >>> logger = Logger(name=__name__)
 
-Example 1B: Creating the Logger object outside of the 'bci_essentials' package
-------------------------------------------------------------------------------
-The following example shows how to use the `Logger` class to log messages
-from bci_essentials in a **User** script. After importing the `Logger` class,
-the User can create a logger instance with the default logging level of INFO.
 
-**NOTE**: It is important to **NOT** change the default name of the
-logger instance in User scripts. The default name is set to 'bci_essentials'
-and is used by other modules to set module-specific loggers.
-
-Here is an example of creating a logger instance at the default logging
-level of INFO:
+Example 2: Creating the Logger object outside of the 'bci_essentials' package
+-----------------------------------------------------------------------------
+The following example shows how to use the `Logger` class to create a logger
+within a **User** script. After importing the `Logger` class, the User can
+create a logger for their script with the default logging level of INFO.
     >>> from bci_essentials.utils.logger import Logger
-    >>> logger = Logger()
+    >>> user_logger = Logger(name="my_script")
 
-Here is an example of creating a logger instance at the DEBUG logging level:
+If the user wishes to set a different log level for logs within their script,
+they can use the `setLevel()` method.
     >>> from bci_essentials.utils.logger import Logger
-    >>> logger = Logger(Logger.DEBUG)
+    >>> logger = Logger(name="my_script")  # A logger for the user script
+    >>> logger.setLevel(Logger.DEBUG)
 
-Example 2: Logging messages
+
+Example 3: Modifying the logging level of the 'bci_essentials' package in a User script
+---------------------------------------------------------------------------------------
+If a User wishes to modify the logging behaviour of the bci_essentials package in their
+user script, they can retrieve the package logger and modify its logging level.
+    >>> from bci_essentials.utils.logger import Logger
+    >>> bessy_logger = Logger(name='bci_essentials')  # bci_essentials logger
+    >>> bessy_logger.setLevel(Logger.DEBUG)
+
+A User can still use the `Logger` class to create an indepenent logger for their script,
+as shown in Example 2 above, and control the logging behaviour of their user script
+separately from the logging behaviour of the bci_essentials package.
+
+
+Example 4: Logging messages
 ---------------------------
 After creating the logger instance, log messages can be recorded in the
 same way as the `logging` module, calling methods for debug(), info(),
@@ -83,22 +97,27 @@ the logging level and the message.
 This is an example of including a variable in the output at the INFO level:
     >>> logger.info("The number of channels is %s", num_channels)
 
-Example 3: Changing the logging level after Logger instantiation
+
+Example 5: Changing the logging level after Logger instantiation
 ----------------------------------------------------------------
-The logging level can be changed after instantiation using the `set_level()`
+The logging level can be changed after instantiation using the `setLevel()`
 method. All messages of that level and higher will be logged going forward
 (i.e. after the logging level is changed).
 
+Note: See example 3 above for an example of changing the logging level of
+bci_essentials package in a User script.
+
 Here is an example of changing the logging level to DEBUG:
-    >>> logger.set_level(Logger.DEBUG)
+    >>> logger.setLevel(Logger.DEBUG)
 
 Here is an example of changing the logging level to ERROR:
-    >>> logger.set_level(Logger.ERROR)
+    >>> logger.setLevel(Logger.ERROR)
 
 The logger level can be reset to the default level using:
-    >>> logger.set_level()
+    >>> logger.setLevel()
 
-Example 4: Saving logs to a file
+
+Example 6: Saving logs to a file
 --------------------------------
 The logger can be configured to simultaneously save logs to a file using
 the `start_saving()` method. This will save all logs **AFTER** this
@@ -112,6 +131,12 @@ Here is an example of saving logs to a file with the default filename:
 
 Here is an example of saving logs to a file with a specified filename:
     >>> logger.start_saving(filename="my_log_file.log")
+
+Note: The file saving behaviour is for the logger instance only. If the user
+wish to save logs from the bci_essentials package, they must retrieve the
+bci_essentials logger and configure it to save logs to a file. E.g.
+    >>> bessy_logger = Logger(name='bci_essentials')  # bci_essentials logger
+    >>> bessy_logger.start_saving()
 
 """
 
@@ -151,7 +176,7 @@ class Logger:
     CRITICAL = logging.CRITICAL
 
     # Setting the default logging level to INFO
-    # Update docstrings on __init__ and set_level() if this is changed
+    # Update docstrings on __init__ and setLevel() if this is changed
     __default_level = INFO
     # Mapping of logging levels to their string representations
     __level_names = {
@@ -162,65 +187,52 @@ class Logger:
         logging.CRITICAL: "CRITICAL",
     }
 
-    def __init__(self, level=__default_level, name="bci_essentials"):
-        """Initializes and configures the logger.
+    def __init__(self, name='bci_essentials'):
+        """
+        Initializes and configures the logger.
 
         Parameters
         ----------
-        level : logging.Level
-            Logging level as per python `logging` module. This can be set using
-            the class properties `Logger.DEBUG`, `Logger.INFO`,
-            `Logger.WARNING`, `Logger.ERROR`, and `Logger.CRITICAL`.
-            - Default is `Logger.INFO`.
         name : str, *optional*
-            Name of the logger. **IMPORTANT**: When Logger() is instantiated
-            outside of 'bci_essentials' package (e.g. in a user script),
-            **DO NOT** change the default value of this parameter. It is set to
-            'bci_essentials' by default, and is used by other modules to set
-            set module-specific loggers by inputting `name=__name__`.
-            Changing the default name in User files will break behaviour in
-            other modules, which will effectively cause log messages to be lost.
-            - Default is "bci_essentials".
-
+            Name of the logger.
+            – Default is 'bci_essentials'.
         """
+        # if name is None:
+        #     name = 'bci_essentials'
+
         self.logger = logging.getLogger(name)
-        self.__configure(level)
-
-    def __configure(self, level):
-        """Configures the logger with the specified level and format.
-
-        Parameters
-        ----------
-        level : logging.Level
-            Logging level to be set for the logger.
-
-        """
-        # Set the format for log messages
-        logging_format = logging.Formatter(
-            fmt="%(asctime)s - %(levelname)s - %(name)s : %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
 
         # Check if this logger already has handlers set up
         if not self.logger.hasHandlers():
-            # The logger does not have any handlers set up yet
-            # Set the logging level
-            self.set_level(level)
+            # Determine the logging level
+            # if level is None:
+            #     level_to_set = self.__default_level
+            # else:
+            #     level_to_set = level
 
-            # Create a console handler that logs to standard output
-            console_handler = logging.StreamHandler()
-            console_handler.setFormatter(logging_format)
-            console_handler.setLevel(level)
+            # Configure the logger
+            # self.__configure(level_to_set
+            # self.__configure(self.__default_level)
+            self.__configure()
 
-            # Add the console handler to the logger
-            self.logger.addHandler(console_handler)
-        else:
-            # The logger already has handlers set up
-            # Only update the formatter of existing handlers
-            for handler in self.logger.handlers:
-                handler.setFormatter(logging_format)
+    def __configure(self):
+        """Configures the logger with the default level and format."""
+        # Set log message format
+        formatter = logging.Formatter(
+            fmt="%(asctime)s - %(levelname)s - %(name)s : %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S"
+        )
 
-    def set_level(self, level=__default_level):
+        # Set the logging level to the default level
+        self.logger.setLevel(self.__default_level)
+
+        # Create and add a console handler at the default log level
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(formatter)
+        console_handler.setLevel(self.__default_level)
+        self.logger.addHandler(console_handler)
+
+    def setLevel(self, level=__default_level):
         """Sets the logging level for the logger.
 
         Parameters
