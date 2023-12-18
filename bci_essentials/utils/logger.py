@@ -187,7 +187,7 @@ class Logger:
         logging.CRITICAL: "CRITICAL",
     }
 
-    def __init__(self, name='bci_essentials'):
+    def __init__(self, name="bci_essentials"):
         """
         Initializes and configures the logger.
 
@@ -220,7 +220,7 @@ class Logger:
         # Set log message format
         formatter = logging.Formatter(
             fmt="%(asctime)s - %(levelname)s - %(name)s : %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S"
+            datefmt="%Y-%m-%d %H:%M:%S",
         )
 
         # Set the logging level to the default level
