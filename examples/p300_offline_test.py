@@ -33,7 +33,7 @@ classifier.set_p300_clf_settings(
 test_erp = ErpData(classifier, eeg_source, marker_source)
 
 # Run main loop, this will do all of the classification for online or offline
-test_erp.run(
+test_erp.setup(
     training=True,
     pp_low=0.1,
     pp_high=10,
@@ -42,3 +42,4 @@ test_erp.run(
     window_start=0.0,
     window_end=0.8,
 )
+test_erp.run()

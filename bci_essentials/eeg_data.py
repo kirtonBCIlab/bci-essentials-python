@@ -732,7 +732,7 @@ class EegData:
             None
 
         """
-        # read from sources to get new data and process
+        # read from sources to get new data
         self._pull_data_from_sources()
 
         # check if there is an available marker, if not, break and wait for more data

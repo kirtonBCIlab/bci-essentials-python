@@ -75,7 +75,7 @@ class TestSmoke(unittest.TestCase):
         data = ErpData(classifier, eeg_source, marker_source)
 
         # Run main loop, this will do all of the classification for online or offline
-        data.run(
+        data.setup(
             online=False,
             training=True,
             pp_low=0.1,
@@ -88,6 +88,7 @@ class TestSmoke(unittest.TestCase):
             max_windows_per_option=16,
             max_decisions=20,
         )
+        data.run()
 
         # Check that a model was trained
         self.assertIsNotNone(classifier.clf)

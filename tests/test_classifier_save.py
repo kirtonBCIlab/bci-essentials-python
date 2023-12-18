@@ -106,7 +106,7 @@ class TestClassifierSave(unittest.TestCase):
         data1 = ErpData(classifier1, eeg_source1, marker_source1)
 
         # Run main loop, this will do all of the classification for online or offline
-        data1.run(
+        data1.setup(
             online=False,
             training=True,
             pp_low=0.1,
@@ -119,6 +119,7 @@ class TestClassifierSave(unittest.TestCase):
             max_windows_per_option=16,
             max_decisions=20,
         )
+        data1.run()
 
         # Save the classifier model
         save_classifier(classifier1, "test_p300_classifier.pkl")
@@ -140,7 +141,7 @@ class TestClassifierSave(unittest.TestCase):
         classifier2.predictions = []
 
         # Run the main loop
-        data2.run(
+        data2.setup(
             online=False,
             training=False,
             train_complete=True,
@@ -154,6 +155,7 @@ class TestClassifierSave(unittest.TestCase):
             max_windows_per_option=16,
             max_decisions=20,
         )
+        data2.run()
 
         # Check that X and y are the same
         self.assertTrue(np.array_equal(classifier1.X, classifier2.X))
