@@ -144,8 +144,11 @@ def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
     alpha_peaks = np.zeros(W)
 
     for win in range(W):
+        # Get the current window
+        current_window = data[win, :, :]
+
         # Calculate PSD using Welch's method, nfft = nsamples
-        f, Pxx = scipy.signal.welch(data[win, :, :], fs=fs, nperseg=S)
+        f, Pxx = scipy.signal.welch(current_window, fs=fs, nperseg=S)
 
         # Limit f, Pxx to the band of interest
         ind_min = scipy.argmax(f > alpha_min) - 1
@@ -227,8 +230,11 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
 
     # for each window
     for win in range(W):
+        # Get the current window
+        current_window = data[win, :, :]
+
         # Calculate PSD using Welch's method
-        f, Pxx = scipy.signal.welch(data[win, :, :], fs=fs)
+        f, Pxx = scipy.signal.welch(current_window, fs=fs)
 
         # Limit f, Pxx to the band of interest
         ind_global_min = scipy.argmax(f > min(transition_freqs)) - 1

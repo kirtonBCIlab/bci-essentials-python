@@ -10,6 +10,12 @@ from .utils.logger import Logger  # Logger wrapper
 # Logs to bci_essentials.__module__) where __module__ is the name of the module
 logger = Logger(name=__name__)
 
+# Define a module-level variable for the session save path
+# This is the local path to the session_saves directory in the package root
+session_save_path = os.path.join(
+    os.path.dirname(os.path.dirname(__file__)), "session_saves"
+)
+
 
 def save_classifier(classifier, filename):
     """
@@ -24,13 +30,11 @@ def save_classifier(classifier, filename):
     """
 
     # Join filename to session_saves directory in package root
-    filename = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)), "session_saves", filename
-    )
+    filepath = os.path.join(session_save_path, filename)
 
-    with open(filename, "wb") as f:
+    with open(filepath, "wb") as f:
         pickle.dump(classifier, f)
-    logger.debug("Saved classifier to %s", filename)
+    logger.debug("Saved classifier to %s", filepath)
 
 
 def load_classifier(filename):
@@ -49,11 +53,9 @@ def load_classifier(filename):
     """
 
     # Join filename to session_saves directory in package root
-    filename = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)), "session_saves", filename
-    )
+    filepath = os.path.join(session_save_path, filename)
 
-    with open(filename, "rb") as f:
+    with open(filepath, "rb") as f:
         classifier = pickle.load(f)
-    logger.debug("Loaded classifier from %s", filename)
+    logger.debug("Loaded classifier from %s", filepath)
     return classifier
