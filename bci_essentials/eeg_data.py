@@ -752,11 +752,15 @@ class EegData:
 
             if is_event_marker:
                 if self._messenger is not None:
+                    # Get the current marker
+                    current_step_marker = self.marker_data[self.marker_count][0]
                     # send feedback for each marker that you receive
                     self._messenger.marker_received(current_step_marker)
 
                 logger.info("Marker: %s", current_step_marker)
 
+                # Get the current marker
+                current_step_marker = self.marker_data[self.marker_count]
                 # once all resting state data is collected then go and compile it
                 if current_step_marker == "Done with all RS collection":
                     self._package_resting_state_data()
@@ -902,6 +906,8 @@ class EegData:
                 self.loops += 1
                 continue
 
+            # Get the current marker
+            current_step_marker = self.marker_data[self.marker_count]
             # Get marker info
             current_marker_info = current_step_marker.split(",")
 
@@ -950,6 +956,8 @@ class EegData:
             # send message if there is an available outlet
             if self._messenger is not None:
                 logger.info("sending marker back")
+                # Get the current marker
+                current_step_marker = self.marker_data[self.marker_count][0]
                 # send feedback for each marker that you receive
                 self._messenger.marker_received(current_step_marker)
 

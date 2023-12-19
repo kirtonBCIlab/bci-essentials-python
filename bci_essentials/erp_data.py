@@ -291,14 +291,15 @@ class ErpData(EegData):
         # read from sources to get new data
         self._pull_data_from_sources()
 
-        # Get the current marker
-        current_step_marker = self.marker_data[self.marker_count][0]
-
         # check if there is an available marker, if not, break and wait for more data
         while len(self.marker_timestamps) > self.marker_count:
             self.loops = 0
+
+            # Get the current marker
+            current_step_marker = self.marker_data[self.marker_count][0]
             if len(current_step_marker.split(",")) == 1:
-                # if current_step_marker == 'P300 SingleFlash Begins' or 'P300 SingleFlash Started':
+                # Get the current marker
+                current_step_marker = self.marker_data[self.marker_count][0]
                 if (
                     current_step_marker == "P300 SingleFlash Started"
                     or current_step_marker == "P300 SingleFlash Begins"
@@ -383,6 +384,8 @@ class ErpData(EegData):
                         self.fig1.show()
                         self.fig2.show()
 
+                    # Get the current marker
+                    current_step_marker = self.marker_data[self.marker_count][0]
                     logger.info("Marker: %s", current_step_marker)
 
                     self.marker_count += 1
@@ -487,8 +490,12 @@ class ErpData(EegData):
                 break
 
             if self._messenger is not None:
+                # Get the current marker
+                current_step_marker = self.marker_data[self.marker_count][0]
                 self._messenger.marker_received(current_step_marker)
 
+            # Get the current marker
+            current_step_marker = self.marker_data[self.marker_count][0]
             # Markers are in the format [p300, single (s) or multi (m),num_selections, train_target_index, flash_index_1, flash_index_2, ... ,flash_index_n]
             current_marker_info = current_step_marker.split(",")
 
