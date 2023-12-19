@@ -674,7 +674,7 @@ class EegData:
         self.loops = 0
 
     def run(self, max_loops: int = 1000000):
-        """Runs EegData processing in a loop unitil no more data (offline) or
+        """Runs EegData processing in a loop.
         See setup() for configuration of processing.
 
         Parameters
