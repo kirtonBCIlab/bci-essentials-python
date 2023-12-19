@@ -32,13 +32,14 @@ class TestSmoke(unittest.TestCase):
         data = EegData(classifier, eeg_source, marker_source)
 
         # Run main loop, this will do all of the classification for online or offline
-        data.main(
+        data.setup(
             online=False,
             training=True,
             pp_low=5,
             pp_high=50,
             pp_order=5,
         )
+        data.run()
 
         # Check that a model was trained
         self.assertIsNotNone(classifier.clf)
@@ -74,7 +75,7 @@ class TestSmoke(unittest.TestCase):
         data = ErpData(classifier, eeg_source, marker_source)
 
         # Run main loop, this will do all of the classification for online or offline
-        data.main(
+        data.setup(
             online=False,
             training=True,
             pp_low=0.1,
@@ -87,6 +88,7 @@ class TestSmoke(unittest.TestCase):
             max_windows_per_option=16,
             max_decisions=20,
         )
+        data.run()
 
         # Check that a model was trained
         self.assertIsNotNone(classifier.clf)
@@ -122,7 +124,7 @@ class TestSmoke(unittest.TestCase):
         data = EegData(classifier, eeg_source, marker_source)
 
         # Run main loop, this will do all of the classification for online or offline
-        data.main(
+        data.setup(
             online=False,
             training=True,
             pp_type="bandpass",
@@ -130,6 +132,7 @@ class TestSmoke(unittest.TestCase):
             pp_high=50,
             pp_order=5,
         )
+        data.run()
 
         # Check that a model was trained
         self.assertIsNotNone(classifier.clf)

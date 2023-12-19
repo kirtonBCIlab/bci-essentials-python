@@ -18,4 +18,5 @@ classifier.set_mi_classifier_settings(n_splits=3, type="TS", random_seed=35)
 mi_data = EegData(classifier, eeg_source, marker_source, messenger)
 
 # Run
-mi_data.main(online=True, training=True)
+mi_data.setup(online=True, training=True)
+mi_data.run()

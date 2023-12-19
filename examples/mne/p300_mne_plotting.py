@@ -35,7 +35,7 @@ classifier.set_p300_clf_settings(
 test_erp = ErpData(classifier, eeg_source, marker_source)
 
 # Run main loop, this will do all of the classification for online or offline
-test_erp.main(
+test_erp.setup(
     training=True,
     max_num_options=10,
     max_decisions=50,
@@ -46,6 +46,7 @@ test_erp.main(
     window_start=0.0,
     window_end=0.8,
 )
+test_erp.run()
 
 logger.debug("Testing mne_export_erp_as_epochs()")
 mne_epochs = mne_export_erp_as_epochs(test_erp)

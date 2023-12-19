@@ -25,7 +25,7 @@ test_ssvep = EegData(classifier, eeg_source, marker_source, messenger)
 #                                 max_time= 999, min_channels=2, max_channels=14, performance_delta=0,      # stopping criterion
 #                                 n_jobs=-1)
 
-test_ssvep.main(
+test_ssvep.setup(
     online=True,
     training=True,
     max_samples=5120,
@@ -33,3 +33,4 @@ test_ssvep.main(
     pp_low=3,
     pp_high=50,
 )
+test_ssvep.run()

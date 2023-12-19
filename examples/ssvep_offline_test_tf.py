@@ -40,7 +40,7 @@ classifier.set_ssvep_settings(
 # should try to automate the reading of some of this stuff from the file header
 test_ssvep = EegData(classifier, eeg_source, marker_source)
 
-test_ssvep.main(
+test_ssvep.setup(
     online=False,
     training=False,
     max_samples=5120,
@@ -48,6 +48,7 @@ test_ssvep.main(
     pp_low=3,
     pp_high=50,
 )
+test_ssvep.run()
 
 # Some optional plotting
 # # plot a spectrogram of the session

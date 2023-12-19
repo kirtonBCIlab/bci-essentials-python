@@ -19,7 +19,8 @@ classifier.set_switch_classifier_settings(n_splits=2, rebuild=True, random_seed=
 test_switch = EegData(classifier, eeg_source, marker_source)
 
 # Run it, brrr brrr
-test_switch.main(online=False, training=True)
+test_switch.setup(online=False, training=True)
+test_switch.run()
 
 """
 Results for switch example:

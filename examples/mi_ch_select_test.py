@@ -46,12 +46,13 @@ classifier.setup_channel_selection(
 test_mi = EegData(classifier, eeg_source, marker_source)
 
 # Run main loop, this will do all of the classification for online or offline
-test_mi.main(
+test_mi.setup(
     online=False,
     training=True,
     pp_low=5,
     pp_high=30,
     pp_order=5,
 )
+test_mi.run()
 
 logger.info("%s", classifier.results_df)

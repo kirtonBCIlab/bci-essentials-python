@@ -33,13 +33,14 @@ try:
     test_rs = EegData(classifier, eeg_source, marker_source)
 
     # Run main loop, this will do all of the classification for online or offline
-    test_rs.main(
+    test_rs.setup(
         online=False,
         training=True,
         pp_low=5,
         pp_high=30,
         pp_order=5,
     )
+    test_rs.run()
 
 except Exception:
     try:
@@ -60,7 +61,7 @@ except Exception:
         test_rs = ErpData(classifier, eeg_source, marker_source)
 
         # Run main loop, this will do all of the classification for online or offline
-        test_rs.main(
+        test_rs.setup(
             training=True,
             online=False,
             max_num_options=9,
@@ -72,6 +73,7 @@ except Exception:
             window_start=0.0,
             window_end=0.6,
         )
+        test_rs.run()
 
     except Exception:
         logger.error("Couldn't find resting state data")
