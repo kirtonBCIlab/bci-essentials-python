@@ -219,7 +219,7 @@ class ErpData(EegData):
         self.loops = 0
 
     def run(self, max_loops=1000000000):
-        """Runs ErpData processing in a loop unitil no more data (offline) or
+        """Runs ErpData processing in a loop.
         See setup() for configuration of processing.
 
         Parameters
@@ -275,7 +275,7 @@ class ErpData(EegData):
         ]
 
     def step(self):
-        """Runs a single EegData processing step.
+        """Runs a single ErpData processing step.
         See setup() for configuration of processing.
 
         Parameters
