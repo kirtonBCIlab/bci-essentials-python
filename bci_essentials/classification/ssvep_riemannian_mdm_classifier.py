@@ -335,18 +335,12 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
         Parameters
         ----------
         X : numpy.ndarray
-            Description of parameter `X`.
-            If array, state size and type. E.g.
-            3D array containing data with `float` type.
-
-            shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
+            3D array where shape = (windows, channels, samples)
 
         Returns
         -------
         pred : numpy.ndarray
             The predicted class labels.
-
-            shape = (`1st_dimension`,)
 
         """
         # if X is 2D, make it 3D with one as first dimension

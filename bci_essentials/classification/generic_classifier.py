@@ -360,14 +360,9 @@ class GenericClassifier:
 
         return prediction
 
-    def fit(self, **kwargs):
+    def fit(self):
         """Abstract method to fit classifier
 
-        Parameters
-        ----------
-        \*\*kwargs : dict, *optional*
-            Description of extra arguments to pass to the method.
-
         Returns
         -------
         `None`
@@ -375,17 +370,16 @@ class GenericClassifier:
         """
         return None
 
-    def predict(self, **kwargs):
+    def predict(self, X: np.ndarray) -> np.ndarray:
         """Abstract method to predict with classifier
 
-        Parameters
-        ----------
-        \*\*kwargs : dict, *optional*
-            Description of extra arguments to pass to the method.
+        X : numpy.ndarray
+            3D array where shape = (windows, channels, samples)
 
         Returns
         -------
-        `None`
+        prediction : numpy.ndarray
+            1D array containing the predicted class labels.
 
         """
-        return None
+        return np.ndarray([])

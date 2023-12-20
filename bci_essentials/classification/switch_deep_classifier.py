@@ -268,8 +268,7 @@ class SwitchDeepClassifier(GenericClassifier):
         Parameters
         ----------
         X : np.ndarray
-            An array that will be predicted upon by previously trained
-            models.
+            3D array where shape = (windows, channels, samples)
 
         Returns
         -------

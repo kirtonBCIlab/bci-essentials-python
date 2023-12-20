@@ -38,15 +38,13 @@ class NullClassifier(GenericClassifier):
         Parameters
         ----------
         X : numpy.ndarray
-            Description of parameter `X`.
-            If array, state size and type. E.g.
-            3D array containing data with `float` type.
+            3D array where shape = (windows, channels, samples)
 
-            shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
 
         Returns
         -------
-        `0`
+        pred : numpy.ndarray
+            The predicted class labels.
 
         """
         logger.warning("This is a null classifier, there is no return value")
