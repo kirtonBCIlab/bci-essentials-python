@@ -157,8 +157,9 @@ class SwitchDeepClassifier(GenericClassifier):
 
             # Changing the x array and y array so that their indicies match up and appropriate features are trained with appropraite labels
             # This is so training can be done on 0 vs 1 dataset and 0 vs 2 dataset
-            X_class = X[np.logical_or(y == 0, y == (i + 1)), :, :]
-            y_class = y[np.logical_or(y == 0, y == (i + 1))]
+            class_condition = np.logical_or(y == 0, y == (i + 1))
+            X_class = X[class_condition, :, :]
+            y_class = y[class_condition]
 
             X_class_train, X_class_test, y_class_train, y_class_test = train_test_split(
                 X_class, y_class, test_size=0.15, random_state=self.random_seed
@@ -290,8 +291,9 @@ class SwitchDeepClassifier(GenericClassifier):
         logger.info("The shape of X is: %s", X.shape)
 
         # Reshaping data and preprocessing the same way as done in fit
-        z_dim, y_dim, x_dim = X.shape
-        X_predict = X.reshape(z_dim, x_dim * y_dim)
+        # Need to review this labelling
+        num_samples, num_channels, num_data_points = X.shape
+        X_predict = X.reshape(num_samples, num_channels * num_data_points)
         scaler_train = preprocessing.StandardScaler().fit(X_predict)
         X_predict_scaled = scaler_train.transform(X_predict)
 

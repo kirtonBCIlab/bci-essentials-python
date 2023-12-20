@@ -392,45 +392,47 @@ class EegData:
             current_timestamp_loc = 0
 
             for i in range(len(self.marker_data)):
+                # Get current resting state data marker and time stamp
+                current_rs_data_marker = self.marker_data[i][0]
+                current_rs_timestamp = self.marker_timestamps[i]
+
                 # Increment the EEG until just past the marker timestamp
-                while current_time < self.marker_timestamps[i]:
+                while current_time < current_rs_timestamp:
                     current_timestamp_loc += 1
                     current_time = self.eeg_timestamps[current_timestamp_loc]
 
-                current_rs_data_marker = self.marker_data[i][0]
-
                 # get eyes open start times
                 if current_rs_data_marker == "Start Eyes Open RS: 1":
-                    eyes_open_start_time.append(self.marker_timestamps[i])
+                    eyes_open_start_time.append(current_rs_timestamp)
                     eyes_open_start_loc.append(current_timestamp_loc - 1)
                     logger.debug("received eyes open start")
 
                 # get eyes open end times
                 if current_rs_data_marker == "End Eyes Open RS: 1":
-                    eyes_open_end_time.append(self.marker_timestamps[i])
+                    eyes_open_end_time.append(current_rs_timestamp)
                     eyes_open_end_loc.append(current_timestamp_loc)
                     logger.debug("received eyes open end")
 
                 # get eyes closed start times
                 if current_rs_data_marker == "Start Eyes Closed RS: 2":
-                    eyes_closed_start_time.append(self.marker_timestamps[i])
+                    eyes_closed_start_time.append(current_rs_timestamp)
                     eyes_closed_start_loc.append(current_timestamp_loc - 1)
                     logger.debug("received eyes closed start")
 
                 # get eyes closed end times
                 if current_rs_data_marker == "End Eyes Closed RS: 2":
-                    eyes_closed_end_time.append(self.marker_timestamps[i])
+                    eyes_closed_end_time.append(current_rs_timestamp)
                     eyes_closed_end_loc.append(current_timestamp_loc)
                     logger.debug("received eyes closed end")
 
                 # get rest start times
                 if current_rs_data_marker == "Start Rest for RS: 0":
-                    rest_start_time.append(self.marker_timestamps[i])
+                    rest_start_time.append(current_rs_timestamp)
                     rest_start_loc.append(current_timestamp_loc - 1)
                     logger.debug("received rest start")
                 # get rest end times
                 if current_rs_data_marker == "End Rest for RS: 0":
-                    rest_end_time.append(self.marker_timestamps[i])
+                    rest_end_time.append(current_rs_timestamp)
                     rest_end_loc.append(current_timestamp_loc)
                     logger.debug("received rest end")
 
@@ -447,14 +449,18 @@ class EegData:
                 )
                 # Now copy EEG for these windows
                 for i in range(len(eyes_open_start_time)):
+                    # Get current eyes open start and end locations
+                    current_eyes_open_start = eyes_open_start_loc[i]
+                    current_eyes_open_end = eyes_open_end_loc[i]
+
                     # For each channel of the EEG, interpolate to uniform sampling rate
                     for c in range(self.nchannels):
                         # First, adjust the EEG timestamps to start from zero
                         eeg_timestamps_adjusted = (
                             self.eeg_timestamps[
-                                eyes_open_start_loc[i] : eyes_open_end_loc[i]
+                                current_eyes_open_start:current_eyes_open_end
                             ]
-                            - self.eeg_timestamps[eyes_open_start_loc[i]]
+                            - self.eeg_timestamps[current_eyes_open_start]
                         )
 
                         # Second, interpolate to timestamps at a uniform sampling rate
@@ -462,7 +468,7 @@ class EegData:
                             self.eyes_open_timestamps,
                             eeg_timestamps_adjusted,
                             self.eeg_data[
-                                eyes_open_start_loc[i] : eyes_open_end_loc[i], c
+                                current_eyes_open_start:current_eyes_open_end, c
                             ],
                         )
 
@@ -485,14 +491,18 @@ class EegData:
                 )
                 # Now copy EEG for these windows
                 for i in range(len(eyes_closed_start_time)):
+                    # Get current eyes closed start and end locations
+                    current_eyes_closed_start = eyes_closed_start_loc[i]
+                    current_eyes_closed_end = eyes_closed_end_loc[i]
+
                     # For each channel of the EEG, interpolate to uniform sampling rate
                     for c in range(self.nchannels):
                         # First, adjust the EEG timestamps to start from zero
                         eeg_timestamps_adjusted = (
                             self.eeg_timestamps[
-                                eyes_closed_start_loc[i] : eyes_closed_end_loc[i]
+                                current_eyes_closed_start:current_eyes_closed_end
                             ]
-                            - self.eeg_timestamps[eyes_closed_start_loc[i]]
+                            - self.eeg_timestamps[current_eyes_closed_start]
                         )
 
                         # Second, interpolate to timestamps at a uniform sampling rate
@@ -500,7 +510,7 @@ class EegData:
                             self.eyes_closed_timestamps,
                             eeg_timestamps_adjusted,
                             self.eeg_data[
-                                eyes_closed_start_loc[i] : eyes_closed_end_loc[i], c
+                                current_eyes_closed_start:current_eyes_closed_end, c
                             ],
                         )
 
@@ -525,19 +535,23 @@ class EegData:
                 )
                 # Now copy EEG for these windows
                 for i in range(len(rest_start_time)):
+                    # Get current rest start and end locations
+                    current_rest_start = rest_start_loc[i]
+                    current_rest_end = rest_end_loc[i]
+
                     # For each channel of the EEG, interpolate to uniform sampling rate
                     for c in range(self.nchannels):
                         # First, adjust the EEG timestamps to start from zero
                         eeg_timestamps_adjusted = (
-                            self.eeg_timestamps[rest_start_loc[i] : rest_end_loc[i]]
-                            - self.eeg_timestamps[rest_start_loc[i]]
+                            self.eeg_timestamps[current_rest_start:current_rest_end]
+                            - self.eeg_timestamps[current_rest_start]
                         )
 
                         # Second, interpolate to timestamps at a uniform sampling rate
                         channel_data = np.interp(
                             self.rest_timestamps,
                             eeg_timestamps_adjusted,
-                            self.eeg_data[rest_start_loc[i] : rest_end_loc[i], c],
+                            self.eeg_data[current_rest_start:current_rest_end, c],
                         )
 
                         # Third, add to the EEG window

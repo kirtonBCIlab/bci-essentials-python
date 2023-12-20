@@ -87,22 +87,21 @@ class SsvepBasicTrainFreeClassifier(GenericClassifier):
             self.setup = True
 
         # Build one augmented channel, here by just adding them all together
-        X = np.mean(X, axis=1)
+        augmented_X = np.mean(X, axis=1)
 
         # Get the PSD estimate using Welch's method
-        f, Pxx = signal.welch(X, fs=self.sampling_freq, nperseg=nsamples)
+        f, Pxx = signal.welch(augmented_X, fs=self.sampling_freq, nperseg=nsamples)
 
         # Get a vote for each window
         prediction = np.zeros(nwindows)
         for w in range(nwindows):
             # Get the frequency with the greatest PSD
-            f_bins = np.zeros(len(self.target_freqs))
             Pxx_of_f_bins = np.zeros(len(self.target_freqs))
             for i, tf in enumerate(self.target_freqs):
                 # Get the closest frequency bin
-                f_bins[i] = np.argmin(np.abs(f - tf))
+                closest_freq_bin = np.argmin(np.abs(f - tf))
 
-                Pxx_of_f_bins[i] = Pxx[w][int(f_bins[i])]
+                Pxx_of_f_bins[i] = Pxx[w][int(closest_freq_bin)]
 
             prediction[w] = np.argmax(Pxx_of_f_bins)
 
