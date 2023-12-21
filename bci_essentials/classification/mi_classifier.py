@@ -326,14 +326,16 @@ class MiClassifier(GenericClassifier):
         if len(X.shape) < 3:
             X = X[np.newaxis, ...]
 
-        X = self.get_subset(X, self.subset, self.channel_labels)
+        subset_X = self.get_subset(X, self.subset, self.channel_labels)
 
-        logger.info("The shape of X is %s", X.shape)
+        logger.info("The shape of X is %s", subset_X.shape)
 
-        X_cov = Covariances(estimator=self.covariance_estimator).transform(X)
+        cov_subset_X = Covariances(estimator=self.covariance_estimator).transform(
+            subset_X
+        )
 
-        pred = self.clf.predict(X_cov)
-        pred_proba = self.clf.predict_proba(X_cov)
+        pred = self.clf.predict(cov_subset_X)
+        pred_proba = self.clf.predict_proba(cov_subset_X)
 
         logger.info("Prediction: %s", pred)
         logger.info("Prediction probabilities: %s", pred_proba)

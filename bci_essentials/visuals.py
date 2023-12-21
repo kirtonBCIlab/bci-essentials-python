@@ -55,8 +55,7 @@ def decision_vis(decision_block, f_sample, label, channel_labels=[], ylims=(-100
 
     # If no channel label then assign one based on its position
     if channel_labels == []:
-        for n in range(N):
-            channel_labels.append(n)
+        channel_labels = [str(n) for n in range(N)]
 
     # Make time vector
     t = np.ndarray((M))
@@ -78,8 +77,10 @@ def decision_vis(decision_block, f_sample, label, channel_labels=[], ylims=(-100
     # Plot non ERP in the subsequent subplots
     for p in range(P):
         if p == label:
+            decision_slice = decision_block[p, :, :]
             for n in range(N):
-                ax[ind].plot(t, decision_block[label, n, :], label=channel_labels[n])
+                channel_data = decision_slice[n, :]
+                ax[ind].plot(t, channel_data, label=channel_labels[n])
 
             ax[ind].legend()
             ax[ind].set_ylim(ylims)
@@ -88,8 +89,10 @@ def decision_vis(decision_block, f_sample, label, channel_labels=[], ylims=(-100
             ind += 1
 
         else:
+            decision_slice = decision_block[ind, :, :]
             for n in range(N):
-                ax[ind].plot(t, decision_block[ind, n, :], label=channel_labels[n])
+                channel_data = decision_slice[n, :]
+                ax[ind].plot(t, channel_data, label=channel_labels[n])
 
             ax[ind].set_ylim(ylims)
             ax[ind].legend()
@@ -140,8 +143,7 @@ def plot_big_decision_block(
 
     # Give default channel names if none are given
     if channel_labels == []:
-        for n in range(N):
-            channel_labels.append(n)
+        channel_labels = [str(n) for n in range(N)]
 
     # Make time vector
     t = np.ndarray((M))
@@ -257,8 +259,7 @@ def plot_window(window, f_sample, channel_labels=[]):
 
     # If no channel label then assign one based on its position
     if channel_labels == []:
-        for n in range(N):
-            channel_labels.append(n)
+        channel_labels = [str(n) for n in range(N)]
 
     # Make time vector
     t = np.ndarray((M))
@@ -268,7 +269,8 @@ def plot_window(window, f_sample, channel_labels=[]):
     fig, axs = plt.subplots(N)
 
     for n in range(N):
-        axs[n].plot(t, window[n, :])
+        channel_data = window[n, :]
+        axs[n].plot(t, channel_data)
         axs[n].ylabel = channel_labels[n]
 
     fig.show()

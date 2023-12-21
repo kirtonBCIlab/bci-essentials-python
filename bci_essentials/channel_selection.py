@@ -406,19 +406,20 @@ def __sfs(
     while stop_criterion is False:
         sets_to_try = []
         X_to_try = []
-        for c in range(nchannels):
-            if c not in sfs_subset:
+        for channel in range(nchannels):
+            if channel not in sfs_subset:
                 set_to_try = sfs_subset.copy()
                 set_to_try.append(c)
                 sets_to_try.append(set_to_try)
 
-                # get the new X
-                new_X = np.zeros((nwindows, len(set_to_try), nsamples))
-                for i, j in enumerate(set_to_try):
-                    new_X[:, i, :] = X[:, j, :]
+                # Get the new subset of data
+                new_subset_data = np.zeros((nwindows, len(set_to_try), nsamples))
+                for subset_idx, channel_number in enumerate(set_to_try):
+                    channel_data = X[:, channel_number, :]
+                    new_subset_data[:, subset_idx, :] = channel_data
 
-                # make a list f all subsets of X to try
-                X_to_try.append(new_X)
+                # Add to list of all subsets of X to try
+                X_to_try.append(new_subset_data)
 
         # This handles the multiprocessing to check multiple channel combinations at once if n_jobs > 1
         outputs = Parallel(n_jobs=n_jobs)(
@@ -687,12 +688,14 @@ def __sbs(
             else:
                 continue
 
-            # get the new X
-            new_X = np.zeros((nwindows, len(set_to_try), nsamples))
-            for i, j in enumerate(set_to_try):
-                new_X[:, i, :] = X[:, j, :]
+            # Get the new subset of data
+            new_subset_data = np.zeros((nwindows, len(set_to_try), nsamples))
+            for subset_idx, channel_number in enumerate(set_to_try):
+                channel_data = X[:, channel_number, :]
+                new_subset_data[:, subset_idx, :] = channel_data
 
-            X_to_try.append(new_X)
+            # Add to list of all subsets of X to try
+            X_to_try.append(new_subset_data)
 
         # run the kernel function on all cores
         outputs = Parallel(n_jobs=n_jobs)(
@@ -980,12 +983,14 @@ def __sbfs(
             else:
                 continue
 
-            # get the new X
-            new_X = np.zeros((nwindows, len(set_to_try), nsamples))
-            for i, j in enumerate(set_to_try):
-                new_X[:, i, :] = X[:, j, :]
+            # Get the new subset of data
+            new_subset_data = np.zeros((nwindows, len(set_to_try), nsamples))
+            for subset_idx, channel_number in enumerate(set_to_try):
+                channel_data = X[:, channel_number, :]
+                new_subset_data[:, subset_idx, :] = channel_data
 
-            X_to_try.append(new_X)
+            # Add to list of all subsets of X to try
+            X_to_try.append(new_subset_data)
 
         # run the kernel function on all cores
         outputs = Parallel(n_jobs=n_jobs)(
@@ -1109,12 +1114,14 @@ def __sbfs(
                 else:
                     continue
 
-                # get the new X
-                new_X = np.zeros((nwindows, len(set_to_try), nsamples))
-                for i, j in enumerate(set_to_try):
-                    new_X[:, i, :] = X[:, j, :]
+                # Get the new subset of data
+                new_subset_data = np.zeros((nwindows, len(set_to_try), nsamples))
+                for subset_idx, channel_number in enumerate(set_to_try):
+                    channel_data = X[:, channel_number, :]
+                    new_subset_data[:, subset_idx, :] = channel_data
 
-                X_to_try.append(new_X)
+                # Add to list of all subsets of X to try
+                X_to_try.append(new_subset_data)
 
             if X_to_try == []:
                 break
@@ -1425,13 +1432,14 @@ def __sffs(
                 set_to_try.append(c)
                 sets_to_try.append(set_to_try)
 
-                # get the new X
-                new_X = np.zeros((nwindows, len(set_to_try), nsamples))
-                for i, j in enumerate(set_to_try):
-                    new_X[:, i, :] = X[:, j, :]
+                # Get the new subset of data
+                new_subset_data = np.zeros((nwindows, len(set_to_try), nsamples))
+                for subset_idx, channel_number in enumerate(set_to_try):
+                    channel_data = X[:, channel_number, :]
+                    new_subset_data[:, subset_idx, :] = channel_data
 
-                # make a list f all subsets of X to try
-                X_to_try.append(new_X)
+                # Add to list of all subsets of X to try
+                X_to_try.append(new_subset_data)
 
         # This handles the multiprocessing to check multiple channel combinations at once if n_jobs > 1
         outputs = Parallel(n_jobs=n_jobs)(
@@ -1553,12 +1561,14 @@ def __sffs(
                 else:
                     continue
 
-                # get the new X
-                new_X = np.zeros((nwindows, len(set_to_try), nsamples))
-                for i, j in enumerate(set_to_try):
-                    new_X[:, i, :] = X[:, j, :]
+                # Get the new subset of data
+                new_subset_data = np.zeros((nwindows, len(set_to_try), nsamples))
+                for subset_idx, channel_number in enumerate(set_to_try):
+                    channel_data = X[:, channel_number, :]
+                    new_subset_data[:, subset_idx, :] = channel_data
 
-                X_to_try.append(new_X)
+                # Add to list of all subsets of X to try
+                X_to_try.append(new_subset_data)
 
             if X_to_try == []:
                 break

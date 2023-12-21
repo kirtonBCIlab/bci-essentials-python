@@ -392,43 +392,47 @@ class EegData:
             current_timestamp_loc = 0
 
             for i in range(len(self.marker_data)):
+                # Get current resting state data marker and time stamp
+                current_rs_data_marker = self.marker_data[i][0]
+                current_rs_timestamp = self.marker_timestamps[i]
+
                 # Increment the EEG until just past the marker timestamp
-                while current_time < self.marker_timestamps[i]:
+                while current_time < current_rs_timestamp:
                     current_timestamp_loc += 1
                     current_time = self.eeg_timestamps[current_timestamp_loc]
 
                 # get eyes open start times
-                if self.marker_data[i][0] == "Start Eyes Open RS: 1":
-                    eyes_open_start_time.append(self.marker_timestamps[i])
+                if current_rs_data_marker == "Start Eyes Open RS: 1":
+                    eyes_open_start_time.append(current_rs_timestamp)
                     eyes_open_start_loc.append(current_timestamp_loc - 1)
                     logger.debug("received eyes open start")
 
                 # get eyes open end times
-                if self.marker_data[i][0] == "End Eyes Open RS: 1":
-                    eyes_open_end_time.append(self.marker_timestamps[i])
+                if current_rs_data_marker == "End Eyes Open RS: 1":
+                    eyes_open_end_time.append(current_rs_timestamp)
                     eyes_open_end_loc.append(current_timestamp_loc)
                     logger.debug("received eyes open end")
 
                 # get eyes closed start times
-                if self.marker_data[i][0] == "Start Eyes Closed RS: 2":
-                    eyes_closed_start_time.append(self.marker_timestamps[i])
+                if current_rs_data_marker == "Start Eyes Closed RS: 2":
+                    eyes_closed_start_time.append(current_rs_timestamp)
                     eyes_closed_start_loc.append(current_timestamp_loc - 1)
                     logger.debug("received eyes closed start")
 
                 # get eyes closed end times
-                if self.marker_data[i][0] == "End Eyes Closed RS: 2":
-                    eyes_closed_end_time.append(self.marker_timestamps[i])
+                if current_rs_data_marker == "End Eyes Closed RS: 2":
+                    eyes_closed_end_time.append(current_rs_timestamp)
                     eyes_closed_end_loc.append(current_timestamp_loc)
                     logger.debug("received eyes closed end")
 
                 # get rest start times
-                if self.marker_data[i][0] == "Start Rest for RS: 0":
-                    rest_start_time.append(self.marker_timestamps[i])
+                if current_rs_data_marker == "Start Rest for RS: 0":
+                    rest_start_time.append(current_rs_timestamp)
                     rest_start_loc.append(current_timestamp_loc - 1)
                     logger.debug("received rest start")
                 # get rest end times
-                if self.marker_data[i][0] == "End Rest for RS: 0":
-                    rest_end_time.append(self.marker_timestamps[i])
+                if current_rs_data_marker == "End Rest for RS: 0":
+                    rest_end_time.append(current_rs_timestamp)
                     rest_end_loc.append(current_timestamp_loc)
                     logger.debug("received rest end")
 
@@ -445,14 +449,18 @@ class EegData:
                 )
                 # Now copy EEG for these windows
                 for i in range(len(eyes_open_start_time)):
+                    # Get current eyes open start and end locations
+                    current_eyes_open_start = eyes_open_start_loc[i]
+                    current_eyes_open_end = eyes_open_end_loc[i]
+
                     # For each channel of the EEG, interpolate to uniform sampling rate
                     for c in range(self.nchannels):
                         # First, adjust the EEG timestamps to start from zero
                         eeg_timestamps_adjusted = (
                             self.eeg_timestamps[
-                                eyes_open_start_loc[i] : eyes_open_end_loc[i]
+                                current_eyes_open_start:current_eyes_open_end
                             ]
-                            - self.eeg_timestamps[eyes_open_start_loc[i]]
+                            - self.eeg_timestamps[current_eyes_open_start]
                         )
 
                         # Second, interpolate to timestamps at a uniform sampling rate
@@ -460,7 +468,7 @@ class EegData:
                             self.eyes_open_timestamps,
                             eeg_timestamps_adjusted,
                             self.eeg_data[
-                                eyes_open_start_loc[i] : eyes_open_end_loc[i], c
+                                current_eyes_open_start:current_eyes_open_end, c
                             ],
                         )
 
@@ -483,14 +491,18 @@ class EegData:
                 )
                 # Now copy EEG for these windows
                 for i in range(len(eyes_closed_start_time)):
+                    # Get current eyes closed start and end locations
+                    current_eyes_closed_start = eyes_closed_start_loc[i]
+                    current_eyes_closed_end = eyes_closed_end_loc[i]
+
                     # For each channel of the EEG, interpolate to uniform sampling rate
                     for c in range(self.nchannels):
                         # First, adjust the EEG timestamps to start from zero
                         eeg_timestamps_adjusted = (
                             self.eeg_timestamps[
-                                eyes_closed_start_loc[i] : eyes_closed_end_loc[i]
+                                current_eyes_closed_start:current_eyes_closed_end
                             ]
-                            - self.eeg_timestamps[eyes_closed_start_loc[i]]
+                            - self.eeg_timestamps[current_eyes_closed_start]
                         )
 
                         # Second, interpolate to timestamps at a uniform sampling rate
@@ -498,7 +510,7 @@ class EegData:
                             self.eyes_closed_timestamps,
                             eeg_timestamps_adjusted,
                             self.eeg_data[
-                                eyes_closed_start_loc[i] : eyes_closed_end_loc[i], c
+                                current_eyes_closed_start:current_eyes_closed_end, c
                             ],
                         )
 
@@ -523,19 +535,23 @@ class EegData:
                 )
                 # Now copy EEG for these windows
                 for i in range(len(rest_start_time)):
+                    # Get current rest start and end locations
+                    current_rest_start = rest_start_loc[i]
+                    current_rest_end = rest_end_loc[i]
+
                     # For each channel of the EEG, interpolate to uniform sampling rate
                     for c in range(self.nchannels):
                         # First, adjust the EEG timestamps to start from zero
                         eeg_timestamps_adjusted = (
-                            self.eeg_timestamps[rest_start_loc[i] : rest_end_loc[i]]
-                            - self.eeg_timestamps[rest_start_loc[i]]
+                            self.eeg_timestamps[current_rest_start:current_rest_end]
+                            - self.eeg_timestamps[current_rest_start]
                         )
 
                         # Second, interpolate to timestamps at a uniform sampling rate
                         channel_data = np.interp(
                             self.rest_timestamps,
                             eeg_timestamps_adjusted,
-                            self.eeg_data[rest_start_loc[i] : rest_end_loc[i], c],
+                            self.eeg_data[current_rest_start:current_rest_end, c],
                         )
 
                         # Third, add to the EEG window
@@ -739,34 +755,35 @@ class EegData:
         while len(self.marker_timestamps) > self.marker_count:
             self.loops = 0
 
-            # If the marker contains a single string, not including ',' and begining with a alpha character, then it is an event message
-            if (
-                len(self.marker_data[self.marker_count][0].split(",")) == 1
-                and self.marker_data[self.marker_count][0][0].isalpha()
-            ):
+            # Get the current marker
+            current_step_marker = self.marker_data[self.marker_count][0]
+
+            # If the marker contains a single string, not including ',' and
+            # begining with a alpha character, then it is an event message
+            marker_is_single_string = len(current_step_marker.split(",")) == 1
+            marker_begins_with_alpha = current_step_marker[0].isalpha()
+            is_event_marker = marker_is_single_string and marker_begins_with_alpha
+
+            if is_event_marker:
                 if self._messenger is not None:
                     # send feedback for each marker that you receive
-                    marker = self.marker_data[self.marker_count][0]
-                    self._messenger.marker_received(marker)
+                    self._messenger.marker_received(current_step_marker)
 
-                logger.info("Marker: %s", self.marker_data[self.marker_count][0])
+                logger.info("Marker: %s", current_step_marker)
 
                 # once all resting state data is collected then go and compile it
-                if (
-                    self.marker_data[self.marker_count][0]
-                    == "Done with all RS collection"
-                ):
+                if current_step_marker == "Done with all RS collection":
                     self._package_resting_state_data()
                     self.marker_count += 1
 
-                elif self.marker_data[self.marker_count][0] == "Trial Started":
+                elif current_step_marker == "Trial Started":
                     logger.debug(
                         "Trial started, incrementing marker count and continuing"
                     )
                     # Note that a marker occured, but do nothing else
                     self.marker_count += 1
 
-                elif self.marker_data[self.marker_count][0] == "Trial Ends":
+                elif current_step_marker == "Trial Ends":
                     logger.debug("Trial ended, trim the unused ends of numpy arrays")
                     # Trim the unused ends of numpy arrays
                     self.current_raw_eeg_windows = self.current_raw_eeg_windows[
@@ -868,10 +885,9 @@ class EegData:
                     self.current_processed_eeg_windows = self.current_raw_eeg_windows
                     self.current_labels = np.zeros((self.max_windows))
 
-                # If training completed then train the classifier
-                # This is confusing.
+                # If human training completed then train the classifier
                 elif (
-                    self.marker_data[self.marker_count][0] == "Training Complete"
+                    current_step_marker == "Training Complete"
                     and self.train_complete is False
                 ):
                     logger.debug("Training the classifier")
@@ -881,7 +897,7 @@ class EegData:
                     self.training = False
                     self.marker_count += 1
 
-                elif self.marker_data[self.marker_count][0] == "Update Classifier":
+                elif current_step_marker == "Update Classifier":
                     logger.debug("Retraining the classifier")
 
                     self._classifier.fit()
@@ -901,29 +917,31 @@ class EegData:
                 continue
 
             # Get marker info
-            marker_info = self.marker_data[self.marker_count][0].split(",")
+            current_marker_info = current_step_marker.split(",")
 
-            self.paradigm_string = marker_info[0]
-            self.num_options = int(marker_info[1])
-            label = int(marker_info[2])
-            self.window_length = float(marker_info[3])  # window length
+            self.paradigm_string = current_marker_info[0]
+            self.num_options = int(current_marker_info[1])
+            label = int(current_marker_info[2])
+            self.window_length = float(current_marker_info[3])  # window length
             if (
-                len(marker_info) > 4
+                len(current_marker_info) > 4
             ):  # if longer, collect this info and maybe it can be used by the classifier
                 self.meta = []
-                for i in range(4, len(marker_info)):
-                    self.meta.__add__([marker_info[i]])
+                for i in range(4, len(current_marker_info)):
+                    self.meta.__add__([current_marker_info[i]])
 
                 # Load the correct SSVEP freqs
-                if marker_info[0] == "ssvep":
-                    self._classifier.target_freqs = [1] * (len(marker_info) - 4)
+                if current_marker_info[0] == "ssvep":
+                    self._classifier.target_freqs = [1] * (len(current_marker_info) - 4)
                     self._classifier.sampling_freq = self.fsample
-                    for i in range(4, len(marker_info)):
-                        self._classifier.target_freqs[i - 4] = float(marker_info[i])
+                    for i in range(4, len(current_marker_info)):
+                        self._classifier.target_freqs[i - 4] = float(
+                            current_marker_info[i]
+                        )
                         logger.debug(
                             "Changed %s target frequency to %s",
                             i - 4,
-                            marker_info[i],
+                            current_marker_info[i],
                         )
 
             # Check if the whole EEG window corresponding to the marker is available
@@ -941,14 +959,13 @@ class EegData:
                     self.marker_count += 1
                 break
 
-            logger.info("Marker information: %s", marker_info)
+            logger.info("Marker information: %s", current_marker_info)
 
             # send message if there is an available outlet
             if self._messenger is not None:
-                logger.info("sending marker ack")
+                logger.info("sending marker back")
                 # send feedback for each marker that you receive
-                marker = self.marker_data[self.marker_count][0]
-                self._messenger.marker_received(marker)
+                self._messenger.marker_received(current_step_marker)
 
             # Find the start time for the window based on the marker timestamp
             start_time = self.marker_timestamps[self.marker_count]

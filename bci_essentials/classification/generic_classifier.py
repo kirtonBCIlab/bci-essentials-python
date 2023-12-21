@@ -334,14 +334,14 @@ class GenericClassifier:
             Description of returned object.
 
         """
-        decision_block = self.get_subset(
+        decision_block_subset = self.get_subset(
             decision_block, self.subset, self.channel_labels
         )
 
         logger.info("Making a prediction")
 
         # get prediction probabilities for all
-        proba_mat = self.clf.predict_proba(decision_block)
+        proba_mat = self.clf.predict_proba(decision_block_subset)
 
         proba = proba_mat[:, 1]
 

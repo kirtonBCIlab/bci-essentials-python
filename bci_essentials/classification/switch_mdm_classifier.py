@@ -110,8 +110,9 @@ class SwitchMdmClassifier(GenericClassifier):
             # take a subset / do spatial filtering
             X = X[:, :, :]  # Does nothing for now
 
-            X_class = X[np.logical_or(y == 0, y == (i + 1)), :, :]
-            y_class = y[np.logical_or(y == 0, y == (i + 1))]
+            class_indices = np.logical_or(y == 0, y == (i + 1))
+            X_class = X[class_indices, :, :]
+            y_class = y[class_indices]
 
             # Try rebuilding the classifier each time
             if self.rebuild:
