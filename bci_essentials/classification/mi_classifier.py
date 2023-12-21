@@ -330,7 +330,9 @@ class MiClassifier(GenericClassifier):
 
         logger.info("The shape of X is %s", subset_X.shape)
 
-        cov_subset_X = Covariances(estimator=self.covariance_estimator).transform(subset_X)
+        cov_subset_X = Covariances(estimator=self.covariance_estimator).transform(
+            subset_X
+        )
 
         pred = self.clf.predict(cov_subset_X)
         pred_proba = self.clf.predict_proba(cov_subset_X)
