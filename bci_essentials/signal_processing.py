@@ -111,7 +111,7 @@ def lowpass(data, f_critical, order, fsample):
         new_data = np.ndarray(shape=(P, N, M), dtype=float)
         for p in range(0, P):
             for n in range(0, N):
-                current_window = data[p, :, :]
+                current_window = data[p, n, :]
                 new_data[p, n, :] = signal.filtfilt(b, a, current_window, padlen=0)
 
         return new_data
