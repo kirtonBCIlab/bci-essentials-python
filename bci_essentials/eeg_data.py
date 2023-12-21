@@ -812,7 +812,7 @@ class EegData:
                             )
 
                             if self._messenger is not None:
-                                self._messenger.prediction(prediction.labels)
+                                self._messenger.prediction(prediction)
 
                     # PREDICT
                     elif self.train_complete and self.current_nwindows != 0:
@@ -844,7 +844,7 @@ class EegData:
                             )
 
                             if self._messenger is not None:
-                                self._messenger.prediction(prediction.labels)
+                                self._messenger.prediction(prediction)
 
                         except Exception:
                             logger.warning("This classification failed...")
@@ -1029,14 +1029,14 @@ class EegData:
             if self.live_update:
                 try:
                     if self.nsamples != 0:
-                        pred = self._classifier.predict(
+                        prediction = self._classifier.predict(
                             self.current_processed_eeg_windows[
                                 self.current_nwindows,
                                 0 : self.nchannels,
                                 0 : self.nsamples,
                             ]
                         )
-                        self._messenger.prediction(int(pred.labels[0]))
+                        self._messenger.prediction(prediction)
                 except Exception:
                     logger.error("Unable to classify this window")
 

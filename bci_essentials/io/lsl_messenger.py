@@ -1,6 +1,7 @@
 from pylsl import StreamInfo, StreamOutlet, IRREGULAR_RATE
 
 from .messenger import Messenger
+from ..classification.generic_classifier import Prediction
 
 __all__ = ["LslMessenger"]
 
@@ -32,5 +33,6 @@ class LslMessenger(Messenger):
     def marker_received(self, marker):
         self.__outlet.push_sample(["marker received : {}".format(marker)])
 
-    def prediction(self, prediction):
-        self.__outlet.push_sample(["{}".format(prediction)])
+    def prediction(self, prediction: Prediction):
+        # probability isn't used by Unity at this time
+        self.__outlet.push_sample(["{}".format(prediction.labels)])

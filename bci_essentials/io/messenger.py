@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+from ..classification.generic_classifier import Prediction
+
 
 class Messenger(ABC):
     """A Messenger object is used by EEG_data to send event messages.  For example,
@@ -17,6 +19,6 @@ class Messenger(ABC):
         pass
 
     @abstractmethod
-    def prediction(self, prediction):
+    def prediction(self, prediction: Prediction):
         """Send latest prediction"""
         pass
