@@ -21,11 +21,12 @@ logger = Logger(name=__name__)
 class Prediction:
     """Prediction data returned by GenericClassifer.predict()
 
-    prediction : list
+    labels : list
         list of the predicted class labels, defaluts to []
 
-    probability : list
-        list of the predicted class label, defaults to []
+    probabilities : list
+        list of probabilities for each class label, defaults to [], which
+        can be used if the clasifier can't provide probabilities.
 
     """
 
