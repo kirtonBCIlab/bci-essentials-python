@@ -20,7 +20,7 @@ from sklearn import preprocessing
 import tensorflow as tf
 
 # Import bci_essentials modules and methods
-from ..classification.generic_classifier import GenericClassifier
+from ..classification.generic_classifier import GenericClassifier, Prediction
 from ..utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
@@ -272,11 +272,9 @@ class SwitchDeepClassifier(GenericClassifier):
 
         Returns
         -------
-        prediction : numpy.ndarray
-            1D array containing the predicted class labels.
-
-        probability : numpy.ndarray
-            1D array containing probability of the predicted class label
+        prediction : Prediction
+            Results of predict call containing the predicted class labels.  Probabilities
+            are not available (empty list).
 
         """
 
@@ -345,4 +343,4 @@ class SwitchDeepClassifier(GenericClassifier):
                 + "(three) to complete predictions on"
             )
 
-        return [np.array([final_string]), np.array([])]
+        return Prediction(labels=np.array([final_string]))

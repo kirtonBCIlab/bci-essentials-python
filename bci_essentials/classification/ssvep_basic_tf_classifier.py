@@ -9,7 +9,7 @@ import numpy as np
 from scipy import signal
 
 # Import bci_essentials modules and methods
-from ..classification.generic_classifier import GenericClassifier
+from ..classification.generic_classifier import GenericClassifier, Prediction
 from ..utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
@@ -68,11 +68,9 @@ class SsvepBasicTrainFreeClassifier(GenericClassifier):
 
         Returns
         -------
-        prediction : numpy.ndarray
-            1D array containing the predicted class labels.
-
-        probability : numpy.ndarray
-            1D array containing probability of the predicted class label
+        prediction : Prediction
+            Results of predict call containing the predicted class labels.  Probabilities
+            are not available (empty list).
 
         """
         # get the shape
@@ -103,4 +101,4 @@ class SsvepBasicTrainFreeClassifier(GenericClassifier):
 
             prediction[w] = np.argmax(Pxx_of_f_bins)
 
-        return [prediction, np.array([])]
+        return Prediction(labels=prediction)

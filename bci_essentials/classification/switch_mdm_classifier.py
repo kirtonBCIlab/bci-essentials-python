@@ -20,7 +20,7 @@ from sklearn import preprocessing
 from pyriemann.classification import MDM
 
 # Import bci_essentials modules and methods
-from ..classification.generic_classifier import GenericClassifier
+from ..classification.generic_classifier import GenericClassifier, Prediction
 from ..utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
@@ -211,11 +211,9 @@ class SwitchMdmClassifier(GenericClassifier):
 
         Returns
         -------
-        final_predictions : numpy.ndarray
-            1D array containing the predicted class labels.
-
-        probability : numpy.ndarray
-            1D array containing probability of the predicted class label
+        prediction : Prediction
+            Results of predict call containing the predicted class labels.  Probabilities
+            are not available (empty list).
 
         """
         # if X is 2D, make it 3D with one as first dimension
@@ -265,4 +263,4 @@ class SwitchMdmClassifier(GenericClassifier):
                 else:
                     np.append(final_predictions, 2)
 
-        return [final_predictions, np.array([])]
+        return Prediction(labels=final_predictions)

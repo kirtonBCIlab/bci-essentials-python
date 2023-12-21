@@ -5,14 +5,32 @@ Used as Parent classifier class for other classifiers.
 """
 
 # Stock libraries
-import numpy as np
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+
+import numpy as np
 
 from ..utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
 # Logs to bci_essentials.__module__) where __module__ is the name of the module
 logger = Logger(name=__name__)
+
+
+@dataclass
+class Prediction:
+    """Prediction data returned by GenericClassifer.predict()
+
+    prediction : list
+        list of the predicted class labels, defaluts to []
+
+    probability : list
+        list of the predicted class label, defaults to []
+
+    """
+
+    labels: list = field(default_factory=list)
+    probabilities: list = field(default_factory=list)
 
 
 class GenericClassifier(ABC):
@@ -367,7 +385,7 @@ class GenericClassifier(ABC):
         pass
 
     @abstractmethod
-    def predict(self, X: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    def predict(self, X: np.ndarray) -> Prediction:
         """Abstract method to predict with classifier
 
         X : numpy.ndarray
@@ -375,11 +393,9 @@ class GenericClassifier(ABC):
 
         Returns
         -------
-        prediction : numpy.ndarray
-            1D array containing the predicted class labels.
-
-        probability : numpy.ndarray
-            1D array containing probability of the predicted class label
+        prediction : Prediction
+            Results of predict call containing the predicted class labels, and
+            optionally the probabilities of the labels (empty list if not possible).
 
         """
         pass

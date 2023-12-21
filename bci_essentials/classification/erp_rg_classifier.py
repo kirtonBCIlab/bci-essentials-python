@@ -22,7 +22,7 @@ from pyriemann.estimation import XdawnCovariances
 from pyriemann.tangentspace import TangentSpace
 
 # Import bci_essentials modules and methods
-from ..classification.generic_classifier import GenericClassifier
+from ..classification.generic_classifier import GenericClassifier, Prediction
 from ..signal_processing import lico
 from ..channel_selection import channel_selection_by_method
 from ..utils.logger import Logger  # Logger wrapper
@@ -395,11 +395,8 @@ class ErpRgClassifier(GenericClassifier):
 
         Returns
         -------
-        prediction : numpy.ndarray
-            1D array containing the predicted class labels.
-
-        probability : numpy.ndarray
-            1D array containing probability of the predicted class label
+        prediction : Prediction
+            Empty Predict object
 
         """
-        return [np.ndarray([]), np.ndarray([])]
+        return Prediction()

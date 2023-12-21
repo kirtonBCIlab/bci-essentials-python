@@ -802,21 +802,17 @@ class EegData:
                             )
 
                             # Make a prediction
-                            prediction, _ = self._classifier.predict(
+                            prediction = self._classifier.predict(
                                 self.current_processed_eeg_windows
                             )
 
                             logger.info(
                                 "%s was selected by the iterative classifier",
-                                prediction,
+                                prediction.labels,
                             )
 
                             if self._messenger is not None:
-                                logger.info(
-                                    "Sending prediction %s from iterative classifier",
-                                    prediction,
-                                )
-                                self._messenger.prediction(prediction)
+                                self._messenger.prediction(prediction.labels)
 
                     # PREDICT
                     elif self.train_complete and self.current_nwindows != 0:
@@ -838,19 +834,17 @@ class EegData:
 
                         # make the prediciton
                         try:
-                            prediction, _ = self._classifier.predict(
+                            prediction = self._classifier.predict(
                                 self.current_processed_eeg_windows
                             )
-                            self.online_selections.append(prediction)
+                            self.online_selections.append(prediction.labels)
 
-                            logger.info("%s was selected by classifier", prediction)
+                            logger.info(
+                                "%s was selected by classifier", prediction.labels
+                            )
 
                             if self._messenger is not None:
-                                logger.info(
-                                    "Sending prediction %s from classifier",
-                                    prediction,
-                                )
-                                self._messenger.prediction(prediction)
+                                self._messenger.prediction(prediction.labels)
 
                         except Exception:
                             logger.warning("This classification failed...")
@@ -1035,14 +1029,14 @@ class EegData:
             if self.live_update:
                 try:
                     if self.nsamples != 0:
-                        pred, _ = self._classifier.predict(
+                        pred = self._classifier.predict(
                             self.current_processed_eeg_windows[
                                 self.current_nwindows,
                                 0 : self.nchannels,
                                 0 : self.nsamples,
                             ]
                         )
-                        self._messenger.prediction(int(pred[0]))
+                        self._messenger.prediction(int(pred.labels[0]))
                 except Exception:
                     logger.error("Unable to classify this window")
 
