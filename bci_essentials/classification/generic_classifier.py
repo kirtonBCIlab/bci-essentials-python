@@ -354,12 +354,13 @@ class GenericClassifier(ABC):
             Description of returned object.
 
         """
-        decision_block = self.get_subset(
+        decision_block_subset = self.get_subset(
             decision_block, self.subset, self.channel_labels
         )
 
         # get prediction probabilities for all
-        proba_mat = self.clf.predict_proba(decision_block)
+        proba_mat = self.clf.predict_proba(decision_block_subset)
+
         proba = proba_mat[:, 1]
         relative_proba = proba / np.amax(proba)
 

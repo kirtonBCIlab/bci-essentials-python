@@ -294,13 +294,14 @@ class ErpData(EegData):
         # check if there is an available marker, if not, break and wait for more data
         while len(self.marker_timestamps) > self.marker_count:
             self.loops = 0
-            if len(self.marker_data[self.marker_count][0].split(",")) == 1:
-                # if self.marker_data[self.marker_count][0] == 'P300 SingleFlash Begins' or 'P300 SingleFlash Started':
+
+            # Get the current marker
+            current_step_marker = self.marker_data[self.marker_count][0]
+            if len(current_step_marker.split(",")) == 1:
                 if (
-                    self.marker_data[self.marker_count][0] == "P300 SingleFlash Started"
-                    or self.marker_data[self.marker_count][0]
-                    == "P300 SingleFlash Begins"
-                    or self.marker_data[self.marker_count][0] == "Trial Started"
+                    current_step_marker == "P300 SingleFlash Started"
+                    or current_step_marker == "P300 SingleFlash Begins"
+                    or current_step_marker == "Trial Started"
                 ):
                     # Note that a marker occured, but do nothing else
                     logger.info("Trial Started")
@@ -308,16 +309,13 @@ class ErpData(EegData):
                     logger.debug("Increased marker count by 1 to %s", self.marker_count)
 
                 # once all resting state data is collected then go and compile it
-                elif (
-                    self.marker_data[self.marker_count][0]
-                    == "Done with all RS collection"
-                ):
+                elif current_step_marker == "Done with all RS collection":
                     self._package_resting_state_data()
                     self.marker_count += 1
 
                 # If training completed then train the classifier
                 elif (
-                    self.marker_data[self.marker_count][0] == "Training Complete"
+                    current_step_marker == "Training Complete"
                     and self.train_complete is False
                 ):
                     if self.train_complete is False:
@@ -330,8 +328,8 @@ class ErpData(EegData):
 
                 # if there is a P300 end flag increment the decision_index by one
                 elif (
-                    self.marker_data[self.marker_count][0] == "P300 SingleFlash Ends"
-                    or self.marker_data[self.marker_count][0] == "Trial Ends"
+                    current_step_marker == "P300 SingleFlash Ends"
+                    or current_step_marker == "Trial Ends"
                 ):
                     # get the smallest number of windows per decision in the case the are not the same
                     num_ensemble_windows = int(np.min(self.windows_per_decision))
@@ -384,7 +382,7 @@ class ErpData(EegData):
                         self.fig1.show()
                         self.fig2.show()
 
-                    logger.info("Marker: %s", self.marker_data[self.marker_count][0])
+                    logger.info("Marker: %s", current_step_marker)
 
                     self.marker_count += 1
 
@@ -488,16 +486,15 @@ class ErpData(EegData):
                 break
 
             if self._messenger is not None:
-                marker = self.marker_data[self.marker_count][0]
-                self._messenger.marker_received(marker)
+                self._messenger.marker_received(current_step_marker)
 
-            # Markers are in the format [p300, single (s) or multi (m),num_selections, train_target_index, flash_index_1, flash_index_2, ... ,flash_index_n]
-            marker_info = self.marker_data[self.marker_count][0].split(",")
+            # Get marker info
+            current_marker_info = current_step_marker.split(",")
 
             # unity_flash_indexes
             flash_indices = list()
 
-            for i, info in enumerate(marker_info):
+            for i, info in enumerate(current_marker_info):
                 # if i == 0:
                 #     bci_string = info
                 if i == 1:
@@ -523,7 +520,7 @@ class ErpData(EegData):
                 # Get target info
                 # current_target = target_order[self.decision_count]
                 if self.unity_train:
-                    logger.info("Marker information: %s", marker_info)
+                    logger.info("Marker information: %s", current_marker_info)
                     current_target = self.unity_label
 
                 self.training_labels[self.nwindows] = current_target

@@ -212,8 +212,7 @@ class ErpRgClassifier(GenericClassifier):
             for train_idx, test_idx in cv.split(X, y):
                 y_train, y_test = y[train_idx], y[test_idx]
 
-                X_train = X[train_idx]
-                X_test = X[test_idx]
+                X_train, X_test = X[train_idx], X[test_idx]
 
                 # LICO
                 logger.debug(

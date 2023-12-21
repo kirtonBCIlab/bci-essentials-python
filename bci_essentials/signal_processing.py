@@ -59,7 +59,8 @@ def bandpass(data, f_low, f_high, order, fsample):
 
         new_data = np.ndarray(shape=(P, N, M), dtype=float)
         for p in range(0, P):
-            new_data[p, :, :] = signal.filtfilt(b, a, data[p, :, :], padlen=0)
+            current_window = data[p, :, :]
+            new_data[p, :, :] = signal.filtfilt(b, a, current_window, padlen=0)
 
         return new_data
 
@@ -110,7 +111,8 @@ def lowpass(data, f_critical, order, fsample):
         new_data = np.ndarray(shape=(P, N, M), dtype=float)
         for p in range(0, P):
             for n in range(0, N):
-                new_data[p, n, :] = signal.filtfilt(b, a, data[p, n, :], padlen=0)
+                current_window = data[p, n, :]
+                new_data[p, n, :] = signal.filtfilt(b, a, current_window, padlen=0)
 
         return new_data
 
@@ -160,7 +162,8 @@ def highpass(data, f_critical, order, fsample):
 
         new_data = np.ndarray(shape=(P, N, M), dtype=float)
         for p in range(0, P):
-            new_data[p, :, :] = signal.filtfilt(b, a, data[p, :, :], padlen=0)
+            current_window = data[p, :, :]
+            new_data[p, :, :] = signal.filtfilt(b, a, current_window, padlen=0)
 
         return new_data
 
@@ -210,7 +213,8 @@ def notch(data, f_notch, Q, fsample):
         P, N, M = np.shape(data)
         new_data = np.ndarray(shape=(P, N, M), dtype=float)
         for p in range(0, P):
-            new_data[p, :, :] = signal.filtfilt(b, a, data[p, :, :], padlen=0)
+            current_window = data[p, :, :]
+            new_data[p, :, :] = signal.filtfilt(b, a, current_window, padlen=0)
         return new_data
 
     except Exception:
@@ -259,7 +263,8 @@ def lico(X, y, expansion_factor=3, sum_num=2, shuffle=False):
     new_X = np.zeros([new_n, m, p])
     for i in range(n):
         for j in range(sum_num):
-            new_X[i, :, :] += true_X[random.choice(range(n)), :, :] / sum_num
+            random_epoch = true_X[random.choice(range(n)), :, :]
+            new_X[i, :, :] += random_epoch / sum_num
 
     over_X = np.append(X, new_X, axis=0)
     over_y = np.append(y, np.ones([new_n]))
