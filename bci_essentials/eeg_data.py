@@ -774,7 +774,7 @@ class EegData:
                 logger.info("Marker: %s", current_step_marker)
 
                 # Get the current marker
-                current_step_marker = self.marker_data[self.marker_count]
+                current_step_marker = self.marker_data[self.marker_count][0]
                 # once all resting state data is collected then go and compile it
                 if current_step_marker == "Done with all RS collection":
                     self._package_resting_state_data()
@@ -921,7 +921,7 @@ class EegData:
                 continue
 
             # Get the current marker
-            current_step_marker = self.marker_data[self.marker_count]
+            current_step_marker = self.marker_data[self.marker_count][0]
             # Get marker info
             current_marker_info = current_step_marker.split(",")
 
