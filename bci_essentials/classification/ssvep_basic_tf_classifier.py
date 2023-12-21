@@ -69,9 +69,10 @@ class SsvepBasicTrainFreeClassifier(GenericClassifier):
         Returns
         -------
         prediction : numpy.ndarray
-            The predicted class labels.
+            1D array containing the predicted class labels.
 
-            shape = (`1st_dimension`,)
+        probability : numpy.ndarray
+            1D array containing probability of the predicted class label
 
         """
         # get the shape
@@ -102,4 +103,4 @@ class SsvepBasicTrainFreeClassifier(GenericClassifier):
 
             prediction[w] = np.argmax(Pxx_of_f_bins)
 
-        return prediction
+        return [prediction, np.array([])]

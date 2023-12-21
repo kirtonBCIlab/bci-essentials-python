@@ -7,6 +7,7 @@ The classifier always predicts 0.
 """
 
 # Stock libraries
+import numpy as np
 
 # Import bci_essentials modules and methods
 from ..classification.generic_classifier import GenericClassifier
@@ -43,10 +44,13 @@ class NullClassifier(GenericClassifier):
 
         Returns
         -------
-        pred : numpy.ndarray
-            The predicted class labels.
+        prediction : numpy.ndarray
+            1D array containing the predicted class labels.
+
+        probability : numpy.ndarray
+            1D array containing probability of the predicted class label
 
         """
         logger.warning("This is a null classifier, there is no return value")
         logger.warning("Returning 0")
-        return 0
+        return [np.ndarray([]), np.ndarray([])]

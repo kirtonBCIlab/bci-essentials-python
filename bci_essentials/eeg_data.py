@@ -802,7 +802,7 @@ class EegData:
                             )
 
                             # Make a prediction
-                            prediction = self._classifier.predict(
+                            prediction, _ = self._classifier.predict(
                                 self.current_processed_eeg_windows
                             )
 
@@ -838,7 +838,7 @@ class EegData:
 
                         # make the prediciton
                         try:
-                            prediction = self._classifier.predict(
+                            prediction, _ = self._classifier.predict(
                                 self.current_processed_eeg_windows
                             )
                             self.online_selections.append(prediction)
@@ -1035,7 +1035,7 @@ class EegData:
             if self.live_update:
                 try:
                     if self.nsamples != 0:
-                        pred = self._classifier.predict(
+                        pred, _ = self._classifier.predict(
                             self.current_processed_eeg_windows[
                                 self.current_nwindows,
                                 0 : self.nchannels,

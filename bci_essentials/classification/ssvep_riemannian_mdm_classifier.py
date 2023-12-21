@@ -339,8 +339,11 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
 
         Returns
         -------
-        pred : numpy.ndarray
-            The predicted class labels.
+        prediction : numpy.ndarray
+            1D array containing the predicted class labels.
+
+        probability : numpy.ndarray
+            1D array containing probability of the predicted class label
 
         """
         # if X is 2D, make it 3D with one as first dimension
@@ -369,4 +372,4 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
             self.predictions.append(pred[i])
             self.pred_probas.append(pred_proba[i])
 
-        return pred
+        return [pred, pred_proba]

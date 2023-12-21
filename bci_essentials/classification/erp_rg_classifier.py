@@ -384,3 +384,22 @@ class ErpRgClassifier(GenericClassifier):
         if plot_roc:
             logger.info("Plotting the ROC...")
             logger.error("Just kidding ROC has not been implemented")
+
+    def predict(self, X):
+        """Predict the class of the data (Unused in this classifier)
+
+        Parameters
+        ----------
+        X : numpy.ndarray
+            3D array where shape = (windows, channels, samples)
+
+        Returns
+        -------
+        prediction : numpy.ndarray
+            1D array containing the predicted class labels.
+
+        probability : numpy.ndarray
+            1D array containing probability of the predicted class label
+
+        """
+        return [np.ndarray([]), np.ndarray([])]

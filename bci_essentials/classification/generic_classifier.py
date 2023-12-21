@@ -6,6 +6,7 @@ Used as Parent classifier class for other classifiers.
 
 # Stock libraries
 import numpy as np
+from abc import ABC, abstractmethod
 
 from ..utils.logger import Logger  # Logger wrapper
 
@@ -14,7 +15,7 @@ from ..utils.logger import Logger  # Logger wrapper
 logger = Logger(name=__name__)
 
 
-class GenericClassifier:
+class GenericClassifier(ABC):
     """The base generic classifier class for other classifiers."""
 
     def __init__(self, training_selection=0, subset=[]):
@@ -338,21 +339,15 @@ class GenericClassifier:
             decision_block, self.subset, self.channel_labels
         )
 
-        logger.info("Making a prediction")
-
         # get prediction probabilities for all
         proba_mat = self.clf.predict_proba(decision_block)
-
         proba = proba_mat[:, 1]
-
         relative_proba = proba / np.amax(proba)
 
         log_proba = np.log(relative_proba)
-
         logger.info("log relative probabilities:\n%s", log_proba)
 
         # the selection is the highest probability
-
         prediction = int(np.where(proba == np.amax(proba))[0][0])
 
         self.predictions.append(prediction)
@@ -360,6 +355,7 @@ class GenericClassifier:
 
         return prediction
 
+    @abstractmethod
     def fit(self):
         """Abstract method to fit classifier
 
@@ -368,9 +364,10 @@ class GenericClassifier:
         `None`
 
         """
-        return None
+        pass
 
-    def predict(self, X: np.ndarray) -> np.ndarray:
+    @abstractmethod
+    def predict(self, X: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """Abstract method to predict with classifier
 
         X : numpy.ndarray
@@ -381,5 +378,8 @@ class GenericClassifier:
         prediction : numpy.ndarray
             1D array containing the predicted class labels.
 
+        probability : numpy.ndarray
+            1D array containing probability of the predicted class label
+
         """
-        return np.ndarray([])
+        pass

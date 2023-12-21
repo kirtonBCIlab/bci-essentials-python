@@ -212,9 +212,10 @@ class SwitchMdmClassifier(GenericClassifier):
         Returns
         -------
         final_predictions : numpy.ndarray
-            The predicted class labels.
+            1D array containing the predicted class labels.
 
-            shape = (`1st_dimension`,)
+        probability : numpy.ndarray
+            1D array containing probability of the predicted class label
 
         """
         # if X is 2D, make it 3D with one as first dimension
@@ -264,4 +265,4 @@ class SwitchMdmClassifier(GenericClassifier):
                 else:
                     np.append(final_predictions, 2)
 
-        return final_predictions
+        return [final_predictions, np.array([])]

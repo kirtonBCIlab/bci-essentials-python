@@ -272,13 +272,11 @@ class SwitchDeepClassifier(GenericClassifier):
 
         Returns
         -------
-        final_string
-            Predictions formatted as strings for Unity to process it.
+        prediction : numpy.ndarray
+            1D array containing the predicted class labels.
 
-        Raises
-        ------
-        `None`
-            Error if there are not an appropriate amount of labels (three) to complete predictions on.
+        probability : numpy.ndarray
+            1D array containing probability of the predicted class label
 
         """
 
@@ -319,7 +317,7 @@ class SwitchDeepClassifier(GenericClassifier):
 
         """This will format predictions so that unity can understand them.
         However, it only works with two objects right now because of the x and y in zip"""
-
+        final_string = ""
         try:
             temp_list_new = []
             formatted_preds = []
@@ -341,10 +339,10 @@ class SwitchDeepClassifier(GenericClassifier):
             logger.info("Final predictions are: %s", final_predictions)
             logger.info("String predictions (string_peds) are: %s", final_string)
 
-            return final_string
         except Exception:
             logger.error(
                 "Error - there are not an appropriate amount of labels "
                 + "(three) to complete predictions on"
             )
-            return None
+
+        return [np.array([final_string]), np.array([])]
