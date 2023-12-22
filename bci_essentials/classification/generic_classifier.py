@@ -22,11 +22,13 @@ class Prediction:
     """Prediction data returned by GenericClassifer.predict()
 
     labels : list
-        list of the predicted class labels, defaluts to []
+        List of the predicted class labels.
+        - Default is `[]`.
 
     probabilities : list
-        list of probabilities for each class label, defaults to [], which
-        can be used if the clasifier can't provide probabilities.
+        List of probabilities for each class label. If the classifier can't
+        provide probabilities, this will be an empty list `[]`.
+        - Default is `[]`
 
     """
 
