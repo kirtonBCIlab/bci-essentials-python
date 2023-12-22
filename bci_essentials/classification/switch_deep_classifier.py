@@ -275,7 +275,7 @@ class SwitchDeepClassifier(GenericClassifier):
         -------
         prediction : Prediction
             Results of predict call containing the predicted class labels.  Probabilities
-            are not available (empty list).
+            are not returned (empty list).
 
         """
 
