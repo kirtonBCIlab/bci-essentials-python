@@ -42,9 +42,9 @@ class NullClassifier(GenericClassifier):
         Returns
         -------
         prediction : Prediction
-            Empty prediction object
+            Prediction object with labels = [0]
 
         """
         logger.warning("This is a null classifier, there is no return value")
         logger.warning("Returning 0")
-        return Prediction()
+        return Prediction(labels=[0])
