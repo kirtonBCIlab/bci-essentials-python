@@ -20,7 +20,7 @@ from sklearn import preprocessing
 from pyriemann.classification import MDM
 
 # Import bci_essentials modules and methods
-from ..classification.generic_classifier import GenericClassifier
+from ..classification.generic_classifier import GenericClassifier, Prediction
 from ..utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
@@ -80,9 +80,7 @@ class SwitchMdmClassifier(GenericClassifier):
         self.clf = Pipeline([("MDM", mdm)])
         # self.clf0and1 = MDM()
 
-    def fit(
-        self,
-    ):
+    def fit(self):
         """Fit the model.
 
         Returns
@@ -210,18 +208,13 @@ class SwitchMdmClassifier(GenericClassifier):
         Parameters
         ----------
         X : numpy.ndarray
-            Description of parameter `X`.
-            If array, state size and type. E.g.
-            3D array containing data with `float` type.
-
-            shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
+            3D array where shape = (windows, channels, samples)
 
         Returns
         -------
-        final_predictions : numpy.ndarray
-            The predicted class labels.
-
-            shape = (`1st_dimension`,)
+        prediction : Prediction
+            Results of predict call containing the predicted class labels.  Probabilities
+            are not available (empty list).
 
         """
         # if X is 2D, make it 3D with one as first dimension
@@ -271,4 +264,4 @@ class SwitchMdmClassifier(GenericClassifier):
                 else:
                     np.append(final_predictions, 2)
 
-        return final_predictions
+        return Prediction(labels=final_predictions)

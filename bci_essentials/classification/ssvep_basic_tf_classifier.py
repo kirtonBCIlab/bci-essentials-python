@@ -9,7 +9,7 @@ import numpy as np
 from scipy import signal
 
 # Import bci_essentials modules and methods
-from ..classification.generic_classifier import GenericClassifier
+from ..classification.generic_classifier import GenericClassifier, Prediction
 from ..utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
@@ -64,18 +64,13 @@ class SsvepBasicTrainFreeClassifier(GenericClassifier):
         Parameters
         ----------
         X : numpy.ndarray
-            Description of parameter `X`.
-            If array, state size and type. E.g.
-            3D array containing data with `float` type.
-
-            shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
+            3D array where shape = (windows, channels, samples)
 
         Returns
         -------
-        prediction : numpy.ndarray
-            The predicted class labels.
-
-            shape = (`1st_dimension`,)
+        prediction : Prediction
+            Results of predict call containing the predicted class labels.  Probabilities
+            are not available (empty list).
 
         """
         # get the shape
@@ -105,4 +100,4 @@ class SsvepBasicTrainFreeClassifier(GenericClassifier):
 
             prediction[w] = np.argmax(Pxx_of_f_bins)
 
-        return prediction
+        return Prediction(labels=prediction)

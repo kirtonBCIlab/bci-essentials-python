@@ -20,7 +20,7 @@ from sklearn import preprocessing
 import tensorflow as tf
 
 # Import bci_essentials modules and methods
-from ..classification.generic_classifier import GenericClassifier
+from ..classification.generic_classifier import GenericClassifier, Prediction
 from ..utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
@@ -269,18 +269,13 @@ class SwitchDeepClassifier(GenericClassifier):
         Parameters
         ----------
         X : np.ndarray
-            An array that will be predicted upon by previously trained
-            models.
+            3D array where shape = (windows, channels, samples)
 
         Returns
         -------
-        final_string
-            Predictions formatted as strings for Unity to process it.
-
-        Raises
-        ------
-        `None`
-            Error if there are not an appropriate amount of labels (three) to complete predictions on.
+        prediction : Prediction
+            Results of predict call containing the predicted class labels.  Probabilities
+            are not returned (empty list).
 
         """
 
@@ -322,7 +317,7 @@ class SwitchDeepClassifier(GenericClassifier):
 
         """This will format predictions so that unity can understand them.
         However, it only works with two objects right now because of the x and y in zip"""
-
+        final_string = ""
         try:
             temp_list_new = []
             formatted_preds = []
@@ -344,10 +339,10 @@ class SwitchDeepClassifier(GenericClassifier):
             logger.info("Final predictions are: %s", final_predictions)
             logger.info("String predictions (string_peds) are: %s", final_string)
 
-            return final_string
         except Exception:
             logger.error(
                 "Error - there are not an appropriate amount of labels "
                 + "(three) to complete predictions on"
             )
-            return None
+
+        return Prediction(labels=np.array([final_string]))

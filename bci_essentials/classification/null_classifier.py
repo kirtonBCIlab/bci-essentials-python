@@ -6,10 +6,8 @@ The classifier always predicts 0.
 
 """
 
-# Stock libraries
-
 # Import bci_essentials modules and methods
-from ..classification.generic_classifier import GenericClassifier
+from ..classification.generic_classifier import GenericClassifier, Prediction
 from ..utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
@@ -38,17 +36,15 @@ class NullClassifier(GenericClassifier):
         Parameters
         ----------
         X : numpy.ndarray
-            Description of parameter `X`.
-            If array, state size and type. E.g.
-            3D array containing data with `float` type.
+            3D array where shape = (windows, channels, samples)
 
-            shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
 
         Returns
         -------
-        `0`
+        prediction : Prediction
+            Prediction object with labels = [0]
 
         """
         logger.warning("This is a null classifier, there is no return value")
         logger.warning("Returning 0")
-        return 0
+        return Prediction(labels=[0])

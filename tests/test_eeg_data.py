@@ -3,6 +3,7 @@ import unittest
 from bci_essentials.io.sources import MarkerSource, EegSource
 from bci_essentials.io.messenger import Messenger
 from bci_essentials.eeg_data import EegData
+from bci_essentials.classification.generic_classifier import Prediction
 from bci_essentials.classification.null_classifier import NullClassifier
 
 
@@ -137,5 +138,5 @@ class _MockMessenger(Messenger):
     def marker_received(self, marker):
         self.marker_received_count += 1
 
-    def prediction(self, prediction):
+    def prediction(self, prediction: Prediction):
         self.prediction_count += 1

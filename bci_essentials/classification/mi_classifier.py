@@ -18,7 +18,7 @@ from pyriemann.classification import MDM, TSclassifier
 from pyriemann.channelselection import FlatChannelRemover, ElectrodeSelection
 
 # Import bci_essentials modules and methods
-from ..classification.generic_classifier import GenericClassifier
+from ..classification.generic_classifier import GenericClassifier, Prediction
 from ..channel_selection import channel_selection_by_method
 from ..utils.logger import Logger  # Logger wrapper
 
@@ -308,18 +308,13 @@ class MiClassifier(GenericClassifier):
         Parameters
         ----------
         X : numpy.ndarray
-            Description of parameter `X`.
-            If array, state size and type. E.g.
-            3D array containing data with `float` type.
-
-            shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
+            3D array where shape = (windows, channels, samples)
 
         Returns
         -------
-        pred : numpy.ndarray
-            The predicted class labels.
-
-            shape = (`1st_dimension`,)
+        prediction : Prediction
+            Results of predict call containing the predicted class labels, and
+            the probabilities of the labels.
 
         """
         # if X is 2D, make it 3D with one as first dimension
@@ -344,4 +339,4 @@ class MiClassifier(GenericClassifier):
             self.predictions.append(pred[i])
             self.pred_probas.append(pred_proba[i])
 
-        return pred
+        return Prediction(labels=pred, probabilities=pred_proba)

@@ -5,6 +5,9 @@ Used as Parent classifier class for other classifiers.
 """
 
 # Stock libraries
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+
 import numpy as np
 
 from ..utils.logger import Logger  # Logger wrapper
@@ -14,7 +17,26 @@ from ..utils.logger import Logger  # Logger wrapper
 logger = Logger(name=__name__)
 
 
-class GenericClassifier:
+@dataclass
+class Prediction:
+    """Prediction data returned by GenericClassifer.predict()
+
+    labels : list
+        List of the predicted class labels.
+        - Default is `[]`.
+
+    probabilities : list
+        List of probabilities for each class label. If the classifier can't
+        provide probabilities, this will be an empty list `[]`.
+        - Default is `[]`
+
+    """
+
+    labels: list = field(default_factory=list)
+    probabilities: list = field(default_factory=list)
+
+
+class GenericClassifier(ABC):
     """The base generic classifier class for other classifiers."""
 
     def __init__(self, training_selection=0, subset=[]):
@@ -338,21 +360,16 @@ class GenericClassifier:
             decision_block, self.subset, self.channel_labels
         )
 
-        logger.info("Making a prediction")
-
         # get prediction probabilities for all
         proba_mat = self.clf.predict_proba(decision_block_subset)
 
         proba = proba_mat[:, 1]
-
         relative_proba = proba / np.amax(proba)
 
         log_proba = np.log(relative_proba)
-
         logger.info("log relative probabilities:\n%s", log_proba)
 
         # the selection is the highest probability
-
         prediction = int(np.where(proba == np.amax(proba))[0][0])
 
         self.predictions.append(prediction)
@@ -360,32 +377,29 @@ class GenericClassifier:
 
         return prediction
 
-    def fit(self, **kwargs):
+    @abstractmethod
+    def fit(self):
         """Abstract method to fit classifier
 
-        Parameters
-        ----------
-        \*\*kwargs : dict, *optional*
-            Description of extra arguments to pass to the method.
-
         Returns
         -------
         `None`
 
         """
-        return None
+        pass
 
-    def predict(self, **kwargs):
+    @abstractmethod
+    def predict(self, X: np.ndarray) -> Prediction:
         """Abstract method to predict with classifier
 
-        Parameters
-        ----------
-        \*\*kwargs : dict, *optional*
-            Description of extra arguments to pass to the method.
+        X : numpy.ndarray
+            3D array where shape = (windows, channels, samples)
 
         Returns
         -------
-        `None`
+        prediction : Prediction
+            Results of predict call containing the predicted class labels, and
+            optionally the probabilities of the labels (empty list if not possible).
 
         """
-        return None
+        pass

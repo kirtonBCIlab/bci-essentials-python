@@ -22,7 +22,7 @@ from pyriemann.estimation import XdawnCovariances
 from pyriemann.tangentspace import TangentSpace
 
 # Import bci_essentials modules and methods
-from ..classification.generic_classifier import GenericClassifier
+from ..classification.generic_classifier import GenericClassifier, Prediction
 from ..signal_processing import lico
 from ..channel_selection import channel_selection_by_method
 from ..utils.logger import Logger  # Logger wrapper
@@ -383,3 +383,19 @@ class ErpRgClassifier(GenericClassifier):
         if plot_roc:
             logger.info("Plotting the ROC...")
             logger.error("Just kidding ROC has not been implemented")
+
+    def predict(self, X):
+        """Predict the class of the data (Unused in this classifier)
+
+        Parameters
+        ----------
+        X : numpy.ndarray
+            3D array where shape = (windows, channels, samples)
+
+        Returns
+        -------
+        prediction : Prediction
+            Empty Predict object
+
+        """
+        return Prediction()

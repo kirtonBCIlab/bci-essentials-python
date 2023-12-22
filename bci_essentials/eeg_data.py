@@ -825,14 +825,10 @@ class EegData:
 
                             logger.info(
                                 "%s was selected by the iterative classifier",
-                                prediction,
+                                prediction.labels,
                             )
 
                             if self._messenger is not None:
-                                logger.info(
-                                    "Sending prediction %s from iterative classifier",
-                                    prediction,
-                                )
                                 self._messenger.prediction(prediction)
 
                     # PREDICT
@@ -858,15 +854,13 @@ class EegData:
                             prediction = self._classifier.predict(
                                 self.current_processed_eeg_windows
                             )
-                            self.online_selections.append(prediction)
+                            self.online_selections.append(prediction.labels)
 
-                            logger.info("%s was selected by classifier", prediction)
+                            logger.info(
+                                "%s was selected by classifier", prediction.labels
+                            )
 
                             if self._messenger is not None:
-                                logger.info(
-                                    "Sending prediction %s from classifier",
-                                    prediction,
-                                )
                                 self._messenger.prediction(prediction)
 
                         except Exception:
@@ -1052,14 +1046,14 @@ class EegData:
             if self.live_update:
                 try:
                     if self.nsamples != 0:
-                        pred = self._classifier.predict(
+                        prediction = self._classifier.predict(
                             self.current_processed_eeg_windows[
                                 self.current_nwindows,
                                 0 : self.nchannels,
                                 0 : self.nsamples,
                             ]
                         )
-                        self._messenger.prediction(int(pred[0]))
+                        self._messenger.prediction(prediction)
                 except Exception:
                     logger.error("Unable to classify this window")
 
