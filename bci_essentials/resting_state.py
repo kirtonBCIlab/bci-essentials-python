@@ -226,7 +226,9 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
     # Initialize
     abs_bandpower = np.zeros((len(transition_freqs), W_windows))
     rel_bandpower = np.zeros((len(transition_freqs), W_windows))
-    rel_bandpower_mat = np.zeros((len(transition_freqs), len(transition_freqs), W_windows))
+    rel_bandpower_mat = np.zeros(
+        (len(transition_freqs), len(transition_freqs), W_windows)
+    )
 
     # for each window
     for win in range(W_windows):
