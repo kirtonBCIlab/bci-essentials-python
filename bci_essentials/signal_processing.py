@@ -1,7 +1,7 @@
 """
 Signal processing tools for processing windows of EEG data.
 
-The EEG data inputs can be 2D or 3D arrays. 
+The EEG data inputs can be 2D or 3D arrays.
 - For single windows, inputs are of the shape `C_channels x S_samples`, where:
     - C_channels = number of channels
     - S_samples = number of samples
