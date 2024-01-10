@@ -68,7 +68,7 @@ class EegSource(ABC):
 
     @property
     @abstractmethod
-    def nchannels(self) -> int:
+    def num_channels(self) -> int:
         """Number of EEG channels per sample"""
         pass
 

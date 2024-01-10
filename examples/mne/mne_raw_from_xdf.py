@@ -21,7 +21,7 @@ eeg_data, eeg_timestamps = eeg_source.get_samples()
 
 # Parse EEG to MNE
 info = mne.create_info(
-    eeg_source.channel_labels, eeg_source.fsample, ["eeg"] * eeg_source.nchannels
+    eeg_source.channel_labels, eeg_source.fsample, ["eeg"] * eeg_source.num_channels
 )
 raw = mne.io.RawArray(np.transpose(eeg_data[:, :16]), info)
 raw.filter(l_freq=0.1, h_freq=15)

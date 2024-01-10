@@ -102,7 +102,7 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
             Windows of EEG data.
             3D array containing data with `float` type.
 
-            shape = (`nwindows`,`nchannels`,`nsamples`)
+            shape = (`num_windows`,`num_channels`,`num_samples`)
         target_freqs : numpy.ndarray
             Target frequencies for the SSVEP.
         fsample : float
@@ -124,24 +124,24 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
             Supertrials of X.
             3D array containing data with `float` type.
 
-            shape = (`nwindows`,`nchannels*number of target_freqs`,
-            `nchannels*number of target_freqs`)
+            shape = (`num_windows`,`num_channels*number of target_freqs`,
+            `num_channels*number of target_freqs`)
 
         """
-        nwindows, nchannels, nsamples = X.shape
+        num_windows, num_channels, num_samples = X.shape
         n_target_freqs = len(target_freqs)
 
         super_X = np.zeros(
-            [nwindows, nchannels * n_target_freqs, nchannels * n_target_freqs]
+            [num_windows, num_channels * n_target_freqs, num_channels * n_target_freqs]
         )
 
         # Create super trial of all trials filtered at all bands
-        for w in range(nwindows):
+        for window in range(num_windows):
             for tf, target_freq in enumerate(target_freqs):
-                lower_bound = int((nchannels * tf))
-                upper_bound = int((nchannels * tf) + nchannels)
+                lower_bound = int((num_channels * tf))
+                upper_bound = int((num_channels * tf) + num_channels)
 
-                signal = X[w, :, :]
+                signal = X[window, :, :]
                 for f in range(n_harmonics):
                     if f == 0:
                         filt_signal = bandpass(
@@ -167,7 +167,7 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
                 cov_mat_diag = np.diag(np.diag(cov_mat[0, :, :]))
 
                 super_X[
-                    w, lower_bound:upper_bound, lower_bound:upper_bound
+                    window, lower_bound:upper_bound, lower_bound:upper_bound
                 ] = cov_mat_diag
 
         return super_X
@@ -184,8 +184,8 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
         # get dimensions
         # X = self.X
 
-        # Convert each window of X into a SPD of dimensions [nwindows, nchannels*nfreqs, nchannels*nfreqs]
-        nwindows, nchannels, nsamples = self.X.shape
+        # Convert each window of X into a SPD of dimensions [num_windows, num_channels*nfreqs, num_channels*nfreqs]
+        num_windows, num_channels, num_samples = self.X.shape
 
         #################
         # Try rebuilding the classifier each time
@@ -196,10 +196,10 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
         # get temporal subset
         subX = self.X[self.next_fit_window :, :, :]
         suby = self.y[self.next_fit_window :]
-        self.next_fit_window = nwindows
+        self.next_fit_window = num_windows
 
         # Init predictions to all false
-        preds = np.zeros(nwindows)
+        preds = np.zeros(num_windows)
 
         def __ssvep_kernel(subX, suby):
             """SSVEP kernel.
@@ -306,7 +306,7 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
 
         # Log performance stats
 
-        self.offline_window_count = nwindows
+        self.offline_window_count = num_windows
         self.offline_window_counts.append(self.offline_window_count)
 
         # accuracy

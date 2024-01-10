@@ -133,7 +133,7 @@ class SwitchDeepClassifier(GenericClassifier):
             self.X = np.array(self.X)
 
         # get dimensions
-        nwindows, nchannels, nsamples = self.X.shape
+        num_windows, num_channels, num_samples = self.X.shape
 
         # do the rest of the training if train_free is false
         X = np.array(self.X)
@@ -171,10 +171,10 @@ class SwitchDeepClassifier(GenericClassifier):
 
             subX = X_class_train[self.next_fit_window :, :, :]
             suby = y_class_train[self.next_fit_window :]
-            self.next_fit_window = nwindows
+            self.next_fit_window = num_windows
 
-            preds = np.zeros((nwindows, self.num_classes))
-            # preds_multiclass = np.zeros(nwindows)
+            preds = np.zeros((num_windows, self.num_classes))
+            # preds_multiclass = np.zeros(num_windows)
 
             for train_idx, test_idx in self.cv.split(subX, suby):
                 X_train, X_test = subX[train_idx], subX[test_idx]
@@ -218,7 +218,7 @@ class SwitchDeepClassifier(GenericClassifier):
 
             logger.info("\nFinished model %s", i + 1)
 
-            self.offline_window_count = nwindows
+            self.offline_window_count = num_windows
             self.offline_window_counts.append(self.offline_window_count)
 
             # accuracy

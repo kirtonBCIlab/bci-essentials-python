@@ -50,7 +50,7 @@ class TestXdfEegSource(unittest.TestCase):
         self.assertEqual(self.source.fsample, 256.0)
 
     def test_eeg_nchannel(self):
-        self.assertEqual(self.source.nchannels, 16)
+        self.assertEqual(self.source.num_channels, 16)
 
     def test_eeg_channel(self):
         self.assertEqual(len(self.source.channel_types), 16)
@@ -65,7 +65,7 @@ class TestXdfEegSource(unittest.TestCase):
         self.assertEqual(self.source.channel_labels[0], "FP1")
 
     def test_eeg_get_samples_provides_all_samples_in_one_go(self):
-        # first get is all the samples, ensure shape of array is: [n samples, nchannels]
+        # first get is all the samples, ensure shape of array is: [n samples, num_channels]
         samples, timestamps = self.source.get_samples()
         self.assertIsNotNone(samples)
         self.assertEqual(len(samples), 116992)
