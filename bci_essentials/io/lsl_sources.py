@@ -1,4 +1,4 @@
-from pylsl import StreamInlet, resolve_byprop, FOREVER
+from pylsl import StreamInlet, StreamInfo, resolve_byprop, FOREVER
 
 from .sources import MarkerSource, EegSource
 from ..utils.logger import Logger  # Logger wrapper
@@ -11,20 +11,22 @@ __all__ = ["LslMarkerSource", "LslEegSource"]
 
 
 class LslMarkerSource(MarkerSource):
-    def __init__(self, timeout: float = FOREVER):
+    def __init__(self, stream: StreamInfo = None, timeout: float = FOREVER):
         """Create a MarkerSource object that obtains markers from an LSL outlet
 
         Parameters
         ----------
+        stream : StreamInfo, *optional*
+            Provide stream to use for Markers, if not provided, stream will be discovered.
+
         timeout : float, *optional*
             How long to wait for marker outlet stream to be discovered.  If no stream
             is discovered, an Exception is raised.  By default init will wait forever.
         """
         try:
-            marker_stream = resolve_byprop(
-                "type", "LSL_Marker_Strings", timeout=timeout
-            )
-            self.__inlet = StreamInlet(marker_stream[0], processing_flags=0)
+            if stream is None:
+                stream = discover_first_stream("LSL_Marker_Strings", timeout=timeout)
+            self.__inlet = StreamInlet(stream, processing_flags=0)
             self.__info = self.__inlet.info()
         except Exception:
             raise Exception("LslMarkerSource: could not create inlet")
@@ -41,18 +43,22 @@ class LslMarkerSource(MarkerSource):
 
 
 class LslEegSource(EegSource):
-    def __init__(self, timeout: float = FOREVER):
+    def __init__(self, stream: StreamInfo = None, timeout: float = FOREVER):
         """Create a MarkerSource object that obtains EEG from an LSL outlet
 
         Parameters
         ----------
+        stream : StreamInfo, *optional*
+            Provide stream to use for EEG, if not provided, stream will be discovered.
+
         timeout : float, *optional*
-            How long to wait for marker outlet stream to be discovered.  If no stream
-            is discovered, an Exception is raised.  By defalut init will wait forever.
+            How long to wait for marker stream to be discovered.  If no stream is
+            discovered, an Exception is raised.  By defalut init will wait forever.
         """
         try:
-            eeg_stream = resolve_byprop("type", "EEG", timeout=timeout)
-            self.__inlet = StreamInlet(eeg_stream[0], processing_flags=0)
+            if stream is None:
+                stream = discover_first_stream("EEG", timeout=timeout)
+            self.__inlet = StreamInlet(stream, processing_flags=0)
             self.__info = self.__inlet.info()
         except Exception:
             raise Exception("LslEegSource: could not create inlet")
@@ -95,6 +101,13 @@ class LslEegSource(EegSource):
             properties.append(value)
             descriptions = descriptions.next_sibling()
         return properties
+
+
+def discover_first_stream(type: str, timeout: float = FOREVER) -> StreamInfo:
+    """This helper returns the first stream of the specified type.  If no stream
+    is found, an exception is raised."""
+    streams = resolve_byprop("type", type, timeout=timeout)
+    return streams[0]
 
 
 def pull_from_lsl_inlet(inlet: StreamInlet) -> tuple[list[list], list]:
