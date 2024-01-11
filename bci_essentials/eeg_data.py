@@ -485,7 +485,9 @@ class EegData:
                 duration = np.floor(eyes_closed_end_time[0] - eyes_closed_start_time[0])
                 num_samples = int(duration * self.fsample)
 
-                self.eyes_closed_timestamps = np.array(range(num_samples)) / self.fsample
+                self.eyes_closed_timestamps = (
+                    np.array(range(num_samples)) / self.fsample
+                )
                 self.eyes_closed_windows = np.ndarray(
                     (len(eyes_closed_start_time), self.num_channels, num_samples)
                 )
@@ -798,7 +800,9 @@ class EegData:
                             0 : self.num_samples,
                         ]
                     )
-                    self.current_labels = self.current_labels[0 : self.current_num_windows]
+                    self.current_labels = self.current_labels[
+                        0 : self.current_num_windows
+                    ]
 
                     # TRAIN
                     if self.training:
@@ -845,7 +849,10 @@ class EegData:
 
                         # save the online selection indices
                         selection_inds = list(
-                            range(self.num_windows - self.current_num_windows, self.num_windows)
+                            range(
+                                self.num_windows - self.current_num_windows,
+                                self.num_windows,
+                            )
                         )
                         self.online_selection_indices.append(selection_inds)
 
@@ -1040,7 +1047,9 @@ class EegData:
             ] = self.current_processed_eeg_windows[
                 self.current_num_windows, 0 : self.num_channels, 0 : self.num_samples
             ]
-            self.labels[self.num_windows] = self.current_labels[self.current_num_windows]
+            self.labels[self.num_windows] = self.current_labels[
+                self.current_num_windows
+            ]
 
             # Send live updates
             if self.live_update:
