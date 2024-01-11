@@ -77,15 +77,15 @@ class LslEegSource(EegSource):
 
     @property
     def channel_types(self) -> list[str]:
-        return self.__get_channel_properties("type")
+        return self.get_channel_properties("type")
 
     @property
     def channel_units(self) -> list[str]:
-        return self.__get_channel_properties("unit")
+        return self.get_channel_properties("unit")
 
     @property
     def channel_labels(self) -> list[str]:
-        return self.__get_channel_properties("name")
+        return self.get_channel_properties("name")
 
     def get_samples(self) -> tuple[list[list], list]:
         return pull_from_lsl_inlet(self.__inlet)
@@ -93,7 +93,7 @@ class LslEegSource(EegSource):
     def time_correction(self) -> float:
         return self.__inlet.time_correction()
 
-    def __get_channel_properties(self, property: str) -> list[str]:
+    def get_channel_properties(self, property: str) -> list[str]:
         properties = []
         descriptions = self.__info.desc().child("channels").child("channel")
         for i in range(self.nchannels):
