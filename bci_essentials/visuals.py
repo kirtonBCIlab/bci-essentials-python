@@ -7,8 +7,8 @@ decision blocks.
     - n_trials = number of trials (for a single trial `n_trials = 1`)
     - n_channels = number of channels
     - n_samples = number of samples
-- For decision blocks, inputs are of the shape `num_decisions x n_channels x n_samples`, where:
-    - num_decisions = number of possible decisions to select from
+- For decision blocks, inputs are of the shape `n_decisions x n_channels x n_samples`, where:
+    - n_decisions = number of possible decisions to select from
     - n_channels = number of channels
     - n_samples = number of samples
 
@@ -34,7 +34,7 @@ def decision_vis(decision_block, f_sample, label, channel_labels=[], ylims=(-100
         A decision block of EEG data.
         3D array containing data with `float` type.
 
-        shape = (`num_decisions`,`n_channels`,`n_samples`)
+        shape = (`n_decisions`,`n_channels`,`n_samples`)
     f_sample : float
         Sampling rate of the signal.
     label : int
@@ -51,7 +51,7 @@ def decision_vis(decision_block, f_sample, label, channel_labels=[], ylims=(-100
     `None`
 
     """
-    num_decisions, n_channels, n_samples = decision_block.shape
+    n_decisions, n_channels, n_samples = decision_block.shape
 
     # If no channel label then assign one based on its position
     if channel_labels == []:
@@ -63,9 +63,9 @@ def decision_vis(decision_block, f_sample, label, channel_labels=[], ylims=(-100
         t[sample] = sample / f_sample
 
     # Initialize subplot
-    ax = [0] * num_decisions
-    for decision in range(num_decisions):
-        ax[decision] = plt.subplot(num_decisions + 1, 1, decision + 1)
+    ax = [0] * n_decisions
+    for decision in range(n_decisions):
+        ax[decision] = plt.subplot(n_decisions + 1, 1, decision + 1)
 
     # Plot the ERP in the first subplot
     # for channel in range(n_channels):
@@ -75,7 +75,7 @@ def decision_vis(decision_block, f_sample, label, channel_labels=[], ylims=(-100
 
     ind = 0
     # Plot non ERP in the subsequent subplots
-    for decision in range(num_decisions):
+    for decision in range(n_decisions):
         if decision == label:
             decision_slice = decision_block[decision, :, :]
             for channel in range(n_channels):
@@ -137,9 +137,9 @@ def plot_big_decision_block(
     `None`
 
     """
-    num_decisions, O, n_trials, n_channels, n_samples = big_decision_block.shape
+    n_decisions, O, n_trials, n_channels, n_samples = big_decision_block.shape
 
-    num_decisions = 9
+    n_decisions = 9
 
     # Give default channel names if none are given
     if channel_labels == []:
@@ -150,9 +150,9 @@ def plot_big_decision_block(
     for sample in range(n_samples):
         t[sample] = sample / f_sample
 
-    fig = [None] * num_decisions
-    # for decision in num_decisions create a figure
-    for decision in range(num_decisions):
+    fig = [None] * n_decisions
+    # for decision in n_decisions create a figure
+    for decision in range(n_decisions):
         fig[decision], ax = plt.subplots(nrows=2, ncols=1)
 
         # for ERP in O and one non ERP in O, each in own subplot

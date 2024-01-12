@@ -93,7 +93,7 @@ class ErpRgClassifier(GenericClassifier):
             If array, state size and type. E.g.
             3D array containing data with `float` type.
 
-            shape = (`num_decisions`,`n_channels`,`n_samples`)
+            shape = (`n_decisions`,`n_channels`,`n_samples`)
         label_idx : type
             Description of parameter `label_idx`.
 
@@ -103,16 +103,16 @@ class ErpRgClassifier(GenericClassifier):
 
         """
         logger.debug("Adding to training set")
-        # num_decisions = number of epochs/decisions
+        # n_decisions = number of epochs/decisions
         # n_channels = number of channels
         # n_samples = number of samples
-        num_decisions, n_channels, n_samples = decision_block.shape
+        n_decisions, n_channels, n_samples = decision_block.shape
 
         # get a subset
         decision_block = self.get_subset(decision_block)
 
         # get labels from label_idx
-        labels = np.zeros([num_decisions])
+        labels = np.zeros([n_decisions])
         labels[label_idx] = 1
         logger.debug("Labels: %s", labels)
 
