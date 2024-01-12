@@ -151,7 +151,7 @@ class GenericClassifier(ABC):
         X : numpy.ndarray, *optional*
             3D array containing data with `float` type.
 
-            shape = (`N_trials`,`M_channels`,`P_samples`)
+            shape = (`n_trials`,`n_channels`,`n_samples`)
             - Default is `[]`.
         subset : list of `int` or `str`, *optional*
             List of indices (int) or labels (str) of the desired channels.
@@ -166,7 +166,7 @@ class GenericClassifier(ABC):
             Subset of input `X` according to labels or indices.
             3D array containing data with `float` type.
 
-            shape = (`N_trials`,`M_channels`,`P_samples`)
+            shape = (`n_trials`,`n_channels`,`n_samples`)
 
         """
 

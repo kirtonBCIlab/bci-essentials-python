@@ -209,7 +209,7 @@ def notch(data, f_notch, Q, fsample):
         Trials of filtered EEG data.
         3D array containing data with `float` type.
 
-        shape = (`N_trials`,`M_channels`,`P_samples`)
+        shape = (`n_trials`,`n_channels`,`n_samples`)
 
     """
 
