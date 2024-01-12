@@ -72,7 +72,7 @@ class LslEegSource(EegSource):
         return self.__info.nominal_srate()
 
     @property
-    def nchannels(self) -> int:
+    def n_channels(self) -> int:
         return self.__info.channel_count()
 
     @property
@@ -96,7 +96,7 @@ class LslEegSource(EegSource):
     def get_channel_properties(self, property: str) -> list[str]:
         properties = []
         descriptions = self.__info.desc().child("channels").child("channel")
-        for i in range(self.nchannels):
+        for i in range(self.n_channels):
             value = descriptions.child_value(property)
             properties.append(value)
             descriptions = descriptions.next_sibling()

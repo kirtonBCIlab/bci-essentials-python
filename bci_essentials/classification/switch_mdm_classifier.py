@@ -90,7 +90,7 @@ class SwitchMdmClassifier(GenericClassifier):
 
         """
         # get dimensions
-        nwindows, nchannels, nsamples = self.X.shape
+        n_trials, n_channels, n_samples = self.X.shape
 
         # do the rest of the training if train_free is false
         X = np.array(self.X)
@@ -114,12 +114,12 @@ class SwitchMdmClassifier(GenericClassifier):
 
             # Try rebuilding the classifier each time
             if self.rebuild:
-                self.next_fit_window = 0
+                self.next_fit_trial = 0
                 # tf.keras.backend.clear_session()
 
-            subX = X_class[self.next_fit_window :, :, :]
-            suby = y_class[self.next_fit_window :]
-            self.next_fit_window = nwindows
+            subX = X_class[self.next_fit_trial :, :, :]
+            suby = y_class[self.next_fit_trial :]
+            self.next_fit_trial = n_trials
 
             for train_idx, test_idx in self.cv.split(subX, suby):
                 X_train, X_test = subX[train_idx], subX[test_idx]
@@ -182,8 +182,8 @@ class SwitchMdmClassifier(GenericClassifier):
 
             # COMMENTED OUT DUE TO INCOMPLETE IMPLEMENTATION
             """
-            self.offline_window_count = nwindows
-            self.offline_window_counts.append(self.offline_window_count)
+            self.offline_trial_count = n_trials
+            self.offline_trial_counts.append(self.offline_trial_count)
             # accuracy
             accuracy = sum(preds == self.y) / len(preds)
             self.offline_accuracy.append(accuracy)
@@ -208,7 +208,7 @@ class SwitchMdmClassifier(GenericClassifier):
         Parameters
         ----------
         X : numpy.ndarray
-            3D array where shape = (windows, channels, samples)
+            3D array where shape = (trials, channels, samples)
 
         Returns
         -------

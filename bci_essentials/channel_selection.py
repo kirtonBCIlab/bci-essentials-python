@@ -2,11 +2,11 @@
 This module includes functions for selecting channels in order to
 improve BCI performance.
 
-The EEG data input for each function is a set of windows. The data must
-be of the shape `W x C x S`, where:
-- W = number of windows
-- C = number of channels
-- S = number of samples
+The EEG data input for each function is a set of trials. The data must
+be of the shape `n_trials x n_channels x n_samples`, where:
+- n_trials = number of trials
+- n_channels = number of channels
+- n_samples = number of samples
 
 """
 from joblib import Parallel, delayed
@@ -44,18 +44,18 @@ def channel_selection_by_method(
         and classification.
         Different functions  are used for MI, P300, SSVEP, etc.
     X : numpy.ndarray
-        Training data for the classifier as windows of EEG data.
+        Training data for the classifier as trials of EEG data.
         3D array containing data with `float` type.
 
-        shape = (`W_windows`,`C_channels`,`S_samples`)
+        shape = (`n_trials`,`n_channels`,`n_samples`)
     y : numpy.ndarray
         Training labels for the classifier.
         1D array.
 
-        shape = (`nwindows`)
+        shape = (`n_trials`)
     channel_labels : list of `str`
-        The set of channel labels corresponding to `C_channels`.
-        A list of strings with length = `C_channels`.
+        The set of channel labels corresponding to `n_channels`.
+        A list of strings with length = `n_channels`.
     method = str, *optional*
         The wrapper method. Options are `"SBS"` or `"SBFS"`.
         - Default is `"SBS"`.
@@ -97,7 +97,7 @@ def channel_selection_by_method(
         The predictions from the model.
         1D array with the same shape as `y`.
 
-        shape = (`nwindows`)
+        shape = (`n_trials`)
     accuracy : float
         The accuracy of the trained classification model.
     precision : float
@@ -206,7 +206,7 @@ def channel_selection_by_method(
 
 def __check_stopping_criterion(
     current_time,
-    nchannels,
+    n_channels,
     current_performance_delta,
     max_time,
     min_channels,
@@ -219,7 +219,7 @@ def __check_stopping_criterion(
     ----------
     current_time : float
         The time elapsed since the start of the channel selection method.
-    nchannels : int
+    n_channels : int
         The number of channels in the current iteration of the new best channel
         subset (`len(new_channel_subset)`).
     current_performance_delta : float
@@ -245,11 +245,11 @@ def __check_stopping_criterion(
         logger.debug("Stopping based on time")
         return True
 
-    elif nchannels <= min_channels:
+    elif n_channels <= min_channels:
         logger.debug("Stopping because minimum number of channels reached")
         return True
 
-    elif nchannels >= max_channels:
+    elif n_channels >= max_channels:
         logger.debug("Stopping because maximum number of channels reached")
         return True
 
@@ -284,18 +284,18 @@ def __sfs(
         and classification.
         Different functions  are used for MI, P300, SSVEP, etc.
     X : numpy.ndarray
-        Training data for the classifier as windows of EEG data.
+        Training data for the classifier as trials of EEG data.
         3D array containing data with `float` type.
 
-        shape = (`W_windows`,`C_channels`,`S_samples`)
+        shape = (`n_trials`,`n_channels`,`n_samples`)
     y : numpy.ndarray
         Training labels for the classifier.
         1D array.
 
-        shape = (`nwindows`)
+        shape = (`n_trials`)
     channel_labels: list of `str`
-        The set of channel labels corresponding to `C_channels`.
-        A list of strings with length = `C_channels`.
+        The set of channel labels corresponding to `n_channels`.
+        A list of strings with length = `n_channels`.
     metric : str
         The metric used to measure the "goodness" of the trained classifier.
     initial_channels : list of `str`
@@ -326,7 +326,7 @@ def __sfs(
         The predictions from the model.
         1D array with the same shape as `y`.
 
-        shape = (`nwindows`)
+        shape = (`n_trials`)
     accuracy : float
         The accuracy of the trained classification model.
     precision : float
@@ -352,7 +352,7 @@ def __sfs(
 
     start_time = time.time()
 
-    nwindows, nchannels, nsamples = X.shape
+    n_trials, n_channels, n_samples = X.shape
     sfs_subset = []
 
     for i, c in enumerate(channel_labels):
@@ -406,14 +406,14 @@ def __sfs(
     while stop_criterion is False:
         sets_to_try = []
         X_to_try = []
-        for channel in range(nchannels):
+        for channel in range(n_channels):
             if channel not in sfs_subset:
                 set_to_try = sfs_subset.copy()
                 set_to_try.append(c)
                 sets_to_try.append(set_to_try)
 
                 # Get the new subset of data
-                new_subset_data = np.zeros((nwindows, len(set_to_try), nsamples))
+                new_subset_data = np.zeros((n_trials, len(set_to_try), n_samples))
                 for subset_idx, channel_number in enumerate(set_to_try):
                     channel_data = X[:, channel_number, :]
                     new_subset_data[:, subset_idx, :] = channel_data
@@ -558,18 +558,18 @@ def __sbs(
         and classification.
         Different functions  are used for MI, P300, SSVEP, etc.
     X : numpy.ndarray
-        Training data for the classifier as windows of EEG data.
+        Training data for the classifier as trials of EEG data.
         3D array containing data with `float` type.
 
-        shape = (`W_windows`,`C_channels`,`S_samples`)
+        shape = (`n_trials`,`n_channels`,`n_samples`)
     y : numpy.ndarray
         Training labels for the classifier.
         1D array.
 
-        shape = (`nwindows`)
+        shape = (`n_trials`)
     channel_labels: list of `str`
-        The set of channel labels corresponding to `C_channels`.
-        A list of strings with length = `C_channels`.
+        The set of channel labels corresponding to `n_channels`.
+        A list of strings with length = `n_channels`.
     metric : str
         The metric used to measure the "goodness" of the trained classifier.
     initial_channels : list of `str`
@@ -599,7 +599,7 @@ def __sbs(
         The predictions from the model.
         1D array with the same shape as `y`.
 
-        shape = (`nwindows`)
+        shape = (`n_trials`)
     accuracy : float
         The accuracy of the trained classification model.
     precision : float
@@ -631,7 +631,7 @@ def __sbs(
 
     start_time = time.time()
 
-    nwindows, nchannels, nsamples = X.shape
+    n_trials, n_channels, n_samples = X.shape
     sbs_subset = []
     all_sets_tried = []  # set of all channels that have been tried
 
@@ -689,7 +689,7 @@ def __sbs(
                 continue
 
             # Get the new subset of data
-            new_subset_data = np.zeros((nwindows, len(set_to_try), nsamples))
+            new_subset_data = np.zeros((n_trials, len(set_to_try), n_samples))
             for subset_idx, channel_number in enumerate(set_to_try):
                 channel_data = X[:, channel_number, :]
                 new_subset_data[:, subset_idx, :] = channel_data
@@ -837,18 +837,18 @@ def __sbfs(
         and classification.
         Different functions  are used for MI, P300, SSVEP, etc.
     X : numpy.ndarray
-        Training data for the classifier as windows of EEG data.
+        Training data for the classifier as trials of EEG data.
         3D array containing data with `float` type.
 
-        shape = (`W_windows`,`C_channels`,`S_samples`)
+        shape = (`n_trials`,`n_channels`,`n_samples`)
     y : numpy.ndarray
         Training labels for the classifier.
         1D array.
 
-        shape = (`nwindows`)
+        shape = (`n_trials`)
     channel_labels: list of `str`
-        The set of channel labels corresponding to `C_channels`.
-        A list of strings with length = `C_channels`.
+        The set of channel labels corresponding to `n_channels`.
+        A list of strings with length = `n_channels`.
     metric : str
         The metric used to measure the "goodness" of the trained classifier.
     initial_channels : list of `str`
@@ -878,7 +878,7 @@ def __sbfs(
         The predictions from the model.
         1D array with the same shape as `y`.
 
-        shape = (`nwindows`)
+        shape = (`n_trials`)
     accuracy : float
         The accuracy of the trained classification model.
     precision : float
@@ -909,7 +909,7 @@ def __sbfs(
 
     start_time = time.time()
 
-    nwindows, nchannels, nsamples = X.shape
+    n_trials, n_channels, n_samples = X.shape
     sbfs_subset = []
     all_sets_tried = []  # set of all channels that have been tried
 
@@ -984,7 +984,7 @@ def __sbfs(
                 continue
 
             # Get the new subset of data
-            new_subset_data = np.zeros((nwindows, len(set_to_try), nsamples))
+            new_subset_data = np.zeros((n_trials, len(set_to_try), n_samples))
             for subset_idx, channel_number in enumerate(set_to_try):
                 channel_data = X[:, channel_number, :]
                 new_subset_data[:, subset_idx, :] = channel_data
@@ -1042,7 +1042,7 @@ def __sbfs(
 
         current_performance = best_round_performance
 
-        # If this is the best perfomance at nchannels
+        # If this is the best perfomance at n_channels
         if performance_at_nchannels[len(sbfs_subset) - 1] < current_performance:
             performance_at_nchannels[len(sbfs_subset) - 1] = current_performance
             best_subset_at_nchannels[len(sbfs_subset) - 1] = sbfs_subset
@@ -1115,7 +1115,7 @@ def __sbfs(
                     continue
 
                 # Get the new subset of data
-                new_subset_data = np.zeros((nwindows, len(set_to_try), nsamples))
+                new_subset_data = np.zeros((n_trials, len(set_to_try), n_samples))
                 for subset_idx, channel_number in enumerate(set_to_try):
                     channel_data = X[:, channel_number, :]
                     new_subset_data[:, subset_idx, :] = channel_data
@@ -1160,7 +1160,7 @@ def __sbfs(
             best_round_performance = np.max(performances)
             best_set_index = accuracies.index(best_round_performance)
 
-            # if performance is better the best performance at nchannels
+            # if performance is better the best performance at n_channels
             if (
                 performance_at_nchannels[length_of_resultant_set - 1]
                 < best_round_performance
@@ -1291,18 +1291,18 @@ def __sffs(
         and classification.
         Different functions  are used for MI, P300, SSVEP, etc.
     X : numpy.ndarray
-        Training data for the classifier as windows of EEG data.
+        Training data for the classifier as trials of EEG data.
         3D array containing data with `float` type.
 
-        shape = (`W_windows`,`C_channels`,`S_samples`)
+        shape = (`n_trials`,`n_channels`,`n_samples`)
     y : numpy.ndarray
         Training labels for the classifier.
         1D array.
 
-        shape = (`nwindows`)
+        shape = (`n_trials`)
     channel_labels: list of `str`
-        The set of channel labels corresponding to `C_channels`.
-        A list of strings with length = `C_channels`.
+        The set of channel labels corresponding to `n_channels`.
+        A list of strings with length = `n_channels`.
     metric : str
         The metric used to measure the "goodness" of the trained classifier.
     initial_channels : list of `str`
@@ -1332,7 +1332,7 @@ def __sffs(
         The predictions from the model.
         1D array with the same shape as `y`.
 
-        shape = (`nwindows`)
+        shape = (`n_trials`)
     accuracy : float
         The accuracy of the trained classification model.
     precision : float
@@ -1360,7 +1360,7 @@ def __sffs(
 
     start_time = time.time()
 
-    nwindows, nchannels, nsamples = X.shape
+    n_trials, n_channels, n_samples = X.shape
     sffs_subset = []
     all_sets_tried = []  # set of all channels that have been tried
 
@@ -1426,14 +1426,14 @@ def __sffs(
     while stop_criterion is False:
         sets_to_try = []
         X_to_try = []
-        for c in range(nchannels):
+        for c in range(n_channels):
             if c not in sffs_subset:
                 set_to_try = sffs_subset.copy()
                 set_to_try.append(c)
                 sets_to_try.append(set_to_try)
 
                 # Get the new subset of data
-                new_subset_data = np.zeros((nwindows, len(set_to_try), nsamples))
+                new_subset_data = np.zeros((n_trials, len(set_to_try), n_samples))
                 for subset_idx, channel_number in enumerate(set_to_try):
                     channel_data = X[:, channel_number, :]
                     new_subset_data[:, subset_idx, :] = channel_data
@@ -1489,7 +1489,7 @@ def __sffs(
         logger.debug("Accuracy: %s", accuracy)
         logger.debug("Accuracies: %s", accuracies)
 
-        # If this is the best perfomance at nchannels
+        # If this is the best perfomance at n_channels
         if performance_at_nchannels[len(sffs_subset) - 1] < current_performance:
             performance_at_nchannels[len(sffs_subset) - 1] = current_performance
             best_subset_at_nchannels[len(sffs_subset) - 1] = sffs_subset
@@ -1562,7 +1562,7 @@ def __sffs(
                     continue
 
                 # Get the new subset of data
-                new_subset_data = np.zeros((nwindows, len(set_to_try), nsamples))
+                new_subset_data = np.zeros((n_trials, len(set_to_try), n_samples))
                 for subset_idx, channel_number in enumerate(set_to_try):
                     channel_data = X[:, channel_number, :]
                     new_subset_data[:, subset_idx, :] = channel_data

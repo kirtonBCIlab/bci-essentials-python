@@ -28,7 +28,7 @@ class MarkerSource(ABC):
             Each sample is a list with a single string element that represents a command or
             a marker.  The string is formatted as follows:
             command = an arbitrary string, ex: "Trial Started".
-            marker = "paradigm, num options, label number, window length"
+            marker = "paradigm, num options, label number, trial length"
 
             timestamps - A list timestamps (float in seconds) corresponding to the markers
         """
@@ -68,7 +68,7 @@ class EegSource(ABC):
 
     @property
     @abstractmethod
-    def nchannels(self) -> int:
+    def n_channels(self) -> int:
         """Number of EEG channels per sample"""
         pass
 

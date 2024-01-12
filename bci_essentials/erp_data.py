@@ -8,7 +8,7 @@ or the live streaming of LSL data.
 The loaded/streamed data is added to a buffer such that offline and
 online processing pipelines are identical.
 
-Data is pre-processed (using the `signal_processing` module), windowed,
+Data is pre-processed (using the `signal_processing` module), separated into trials,
 and classified (using one of the `classification` sub-modules).
 
 Classes
@@ -33,18 +33,18 @@ logger = Logger(name=__name__)
 # ERP Data
 class ErpData(EegData):
     """
-    Class that holds, windows, processes and classifies ERP data.
+    Class that holds, trials, processes and classifies ERP data.
     """
 
     # Formats the ERP data, call this every time that a new chunk arrives
     def setup(
         self,
-        window_start=0.0,
-        window_end=0.8,
+        trial_start=0.0,
+        trial_end=0.8,
         buffer_time=0.01,
         max_num_options=64,
-        max_windows_per_option=50,
-        max_windows=10000,
+        max_trials_per_option=50,
+        max_trials=10000,
         max_decisions=500,
         training=False,
         train_complete=False,
@@ -59,7 +59,7 @@ class ErpData(EegData):
 
         Formats the ERP data. Call this every time that a new chunk arrives.
 
-        Runs a while loop that reads in ERP windows. The loop can be run in
+        Runs a while loop that reads in ERP trials. The loop can be run in
         "offline" or "online" modes:
         - If in `online` mode, then the loop will continuously try to read
         in data from the `EegData` object and process it. The loop will
@@ -69,11 +69,11 @@ class ErpData(EegData):
 
         Parameters
         ----------
-        window_start : float, *optional*
-            Start time for ERP sampling window relative to marker (seconds).
+        trial_start : float, *optional*
+            Start time for ERP sampling trial relative to marker (seconds).
             - Default is `0.0`.
-        window_end : float, *optional*
-            End time for ERP sampling window relative to marker (seconds).
+        trial_end : float, *optional*
+            End time for ERP sampling trial relative to marker (seconds).
             - Default is `0.8`.
         buffer : float, *optional*
             Buffer time for EEG sampling in `online` mode (seconds).
@@ -81,11 +81,11 @@ class ErpData(EegData):
         max_num_options : int, *optional*
             Maximum number of stimulus options (?).
             - Default is `64`.
-        max_windows_per_option : int, *optional*
-            Maximum number of windows to read in per stimulus option (?).
+        max_trials_per_option : int, *optional*
+            Maximum number of trials to read in per stimulus option (?).
             - Default is `50`.
-        max_windows : int, *optional*
-            Maximum number of windows to read in per loop (?).
+        max_trials : int, *optional*
+            Maximum number of trials to read in per loop (?).
             - Default is `1000`.
         max_decisions : int, *optional*
             Maximum number of ERP decision blocks to store per loop (?).
@@ -129,8 +129,8 @@ class ErpData(EegData):
 
         """
 
-        self.window_start = window_start
-        self.window_end = window_end
+        self.trial_start = trial_start
+        self.trial_end = trial_end
         self.buffer_time = buffer_time
 
         self.training = training
@@ -148,69 +148,69 @@ class ErpData(EegData):
         # plot settings
         self.plot_erp = plot_erp
         if self.plot_erp:
-            self.fig1, self.axs1 = plt.subplots(self.nchannels)
-            self.fig2, self.axs2 = plt.subplots(self.nchannels)
+            self.fig1, self.axs1 = plt.subplots(self.n_channels)
+            self.fig2, self.axs2 = plt.subplots(self.n_channels)
             self.non_target_plot = 99
 
         # iff this is the first time this function is being called for a given dataset
-        self.window_size = self.window_end - self.window_start
-        self.nsamples = int(np.ceil(self.window_size * self.fsample) + 1)
-        self.window_end_buffer = self.buffer_time
+        self.trial_size = self.trial_end - self.trial_start
+        self.n_samples = int(np.ceil(self.trial_size * self.fsample) + 1)
+        self.trial_end_buffer = self.buffer_time
         self.num_options = max_num_options
-        self.max_windows = max_windows
-        self.max_windows_per_option = max_windows_per_option
+        self.max_trials = max_trials
+        self.max_trials_per_option = max_trials_per_option
         self.max_decisions = max_decisions
 
         self.search_index = 0
 
-        self.window_timestamps = np.arange(self.nsamples) / self.fsample
+        self.trial_timestamps = np.arange(self.n_samples) / self.fsample
 
-        # initialize the numbers of markers, windows, and decision blocks to zero
+        # initialize the numbers of markers, trials, and decision blocks to zero
         self.marker_count = 0
-        self.nwindows = 0
+        self.n_trials = 0
         self.decision_count = 0
 
-        self.training_labels = np.zeros((self.max_windows), dtype=int)
-        self.stim_labels = np.zeros((self.max_windows, self.num_options), dtype=bool)
-        self.target_index = np.ndarray((self.max_windows), bool)
+        self.training_labels = np.zeros((self.max_trials), dtype=int)
+        self.stim_labels = np.zeros((self.max_trials, self.num_options), dtype=bool)
+        self.target_index = np.ndarray((self.max_trials), bool)
 
         # initialize the data structures in numpy arrays
-        # ERP windows
-        self.erp_windows_raw = np.zeros(
-            (self.max_windows, self.nchannels, self.nsamples)
+        # ERP trials
+        self.erp_trials_raw = np.zeros(
+            (self.max_trials, self.n_channels, self.n_samples)
         )
-        self.erp_windows_processed = np.zeros(
-            (self.max_windows, self.nchannels, self.nsamples)
+        self.erp_trials_processed = np.zeros(
+            (self.max_trials, self.n_channels, self.n_samples)
         )
 
-        # Windows per decision, ie. the number of times each stimulus has flashed
-        self.windows_per_decision = np.zeros((self.num_options))
+        # Trials per decision, ie. the number of times each stimulus has flashed
+        self.trials_per_decision = np.zeros((self.num_options))
 
-        # Decision blocks are the ensemble averages of all windows collected for each stimulus object
+        # Decision blocks are the ensemble averages of all trials collected for each stimulus object
         self.decision_blocks_raw = np.ndarray(
-            (self.max_decisions, self.num_options, self.nchannels, self.nsamples)
+            (self.max_decisions, self.num_options, self.n_channels, self.n_samples)
         )
         self.decision_blocks_processed = np.ndarray(
-            (self.max_decisions, self.num_options, self.nchannels, self.nsamples)
+            (self.max_decisions, self.num_options, self.n_channels, self.n_samples)
         )
 
-        # Big decision blocks contain all decisions, all stimulus objects, all windows, all channels, and all samples (they are BIG)
+        # Big decision blocks contain all decisions, all stimulus objects, all trials, all channels, and all samples (they are BIG)
         self.big_decision_blocks_raw = np.ndarray(
             (
                 self.max_decisions,
                 self.num_options,
-                self.max_windows_per_option,
-                self.nchannels,
-                self.nsamples,
+                self.max_trials_per_option,
+                self.n_channels,
+                self.n_samples,
             )
         )
         self.big_decision_blocks_processed = np.ndarray(
             (
                 self.max_decisions,
                 self.num_options,
-                self.max_windows_per_option,
-                self.nchannels,
-                self.nsamples,
+                self.max_trials_per_option,
+                self.n_channels,
+                self.n_samples,
             )
         )
 
@@ -248,30 +248,30 @@ class ErpData(EegData):
 
         # Trim the unused ends of numpy arrays
         if self.training:
-            self.training_labels = self.training_labels[0 : self.nwindows - 1]
-            self.target_index = self.target_index[0 : self.nwindows - 1]
+            self.training_labels = self.training_labels[0 : self.n_trials - 1]
+            self.target_index = self.target_index[0 : self.n_trials - 1]
 
-        # self.erp_windows = self.erp_windows[0:self.nwindows, 0:self.nchannels, 0:self.nsamples]
-        self.erp_windows_raw = self.erp_windows_raw[
-            0 : self.nwindows, 0 : self.nchannels, 0 : self.nsamples
+        # self.erp_trials = self.erp_trials[0:self.n_trials, 0:self.n_channels, 0:self.n_samples]
+        self.erp_trials_raw = self.erp_trials_raw[
+            0 : self.n_trials, 0 : self.n_channels, 0 : self.n_samples
         ]
-        self.target_index = self.target_index[0 : self.nwindows]
-        self.training_labels = self.training_labels[0 : self.nwindows]
-        self.stim_labels = self.stim_labels[0 : self.nwindows, :]
+        self.target_index = self.target_index[0 : self.n_trials]
+        self.training_labels = self.training_labels[0 : self.n_trials]
+        self.stim_labels = self.stim_labels[0 : self.n_trials, :]
         self.num_options_per_decision = self.num_options_per_decision[
             0 : self.decision_count
         ]
         self.decision_blocks_raw = self.decision_blocks_raw[
-            0 : self.decision_count, :, 0 : self.nchannels, 0 : self.nsamples
+            0 : self.decision_count, :, 0 : self.n_channels, 0 : self.n_samples
         ]
         self.decision_blocks_processed = self.decision_blocks_processed[
-            0 : self.decision_count, :, 0 : self.nchannels, 0 : self.nsamples
+            0 : self.decision_count, :, 0 : self.n_channels, 0 : self.n_samples
         ]
         self.big_decision_blocks_raw = self.big_decision_blocks_raw[
-            0 : self.decision_count, :, :, 0 : self.nchannels, 0 : self.nsamples
+            0 : self.decision_count, :, :, 0 : self.n_channels, 0 : self.n_samples
         ]
         self.big_decision_blocks_processed = self.big_decision_blocks_processed[
-            0 : self.decision_count, :, :, 0 : self.nchannels, 0 : self.nsamples
+            0 : self.decision_count, :, :, 0 : self.n_channels, 0 : self.n_samples
         ]
 
     def step(self):
@@ -331,8 +331,8 @@ class ErpData(EegData):
                     current_step_marker == "P300 SingleFlash Ends"
                     or current_step_marker == "Trial Ends"
                 ):
-                    # get the smallest number of windows per decision in the case the are not the same
-                    num_ensemble_windows = int(np.min(self.windows_per_decision))
+                    # get the smallest number of trials per decision in the case the are not the same
+                    num_ensemble_trials = int(np.min(self.trials_per_decision))
 
                     # save the number of options
                     self.num_options_per_decision[self.decision_count] = int(
@@ -344,17 +344,17 @@ class ErpData(EegData):
                         self.big_decision_blocks_raw[
                             self.decision_count,
                             0 : self.num_options,
-                            0:num_ensemble_windows,
-                            0 : self.nchannels,
-                            0 : self.nsamples,
+                            0:num_ensemble_trials,
+                            0 : self.n_channels,
+                            0 : self.n_samples,
                         ],
                         axis=1,
                     )
                     self.decision_blocks_raw[
                         self.decision_count,
                         0 : self.num_options,
-                        0 : self.nchannels,
-                        0 : self.nsamples,
+                        0 : self.n_channels,
+                        0 : self.n_samples,
                     ] = ensemble_average_block
 
                     # Processed ensemble average
@@ -362,21 +362,21 @@ class ErpData(EegData):
                         self.big_decision_blocks_processed[
                             self.decision_count,
                             0 : self.num_options,
-                            0:num_ensemble_windows,
-                            0 : self.nchannels,
-                            0 : self.nsamples,
+                            0:num_ensemble_trials,
+                            0 : self.n_channels,
+                            0 : self.n_samples,
                         ],
                         axis=1,
                     )
                     self.decision_blocks_processed[
                         self.decision_count,
                         0 : self.num_options,
-                        0 : self.nchannels,
-                        0 : self.nsamples,
+                        0 : self.n_channels,
+                        0 : self.n_samples,
                     ] = ensemble_average_block
 
-                    # Reset windows per decision
-                    self.windows_per_decision = np.zeros((self.num_options))
+                    # Reset trials per decision
+                    self.trials_per_decision = np.zeros((self.num_options))
 
                     if self.plot_erp:
                         self.fig1.show()
@@ -454,15 +454,15 @@ class ErpData(EegData):
 
                     # TODO: Code is currently unreachable
                     else:
-                        logger.error("Insufficient windows to make a decision")
+                        logger.error("Insufficient trials to make a decision")
                         self.decision_count -= 1
                         # logger.info(
-                        #     "Windows per decision: %s",
-                        #     self.windows_per_decision
+                        #     "Trials per decision: %s",
+                        #     self.trials_per_decision
                         # )
 
                     self.decision_count += 1
-                    self.windows_per_decision = np.zeros((self.num_options))
+                    self.trials_per_decision = np.zeros((self.num_options))
 
                     # UPDATE THE SEARCH START LOC
                     # continue
@@ -474,10 +474,10 @@ class ErpData(EegData):
                 self.loops += 1
                 continue
 
-            # Check if the whole EEG window corresponding to the marker is available
+            # Check if the whole EEG trial corresponding to the marker is available
             end_time_plus_buffer = (
                 self.marker_timestamps[self.marker_count]
-                + self.window_end
+                + self.trial_end
                 + self.buffer_time
             )
 
@@ -505,13 +505,13 @@ class ErpData(EegData):
                         self.num_options = int(info)
 
                         # Resize on the first marker
-                        self.windows_per_decision = np.zeros((self.num_options))
+                        self.trials_per_decision = np.zeros((self.num_options))
                 elif i == 3:
                     self.unity_label = int(info)
                 elif i >= 4:
                     flash_indices.append(int(info))
 
-            self.windows_per_decision[flash_indices] += 1
+            self.trials_per_decision[flash_indices] += 1
 
             # During training,
             # should this be repeated for multiple flash indices
@@ -523,24 +523,24 @@ class ErpData(EegData):
                     logger.info("Marker information: %s", current_marker_info)
                     current_target = self.unity_label
 
-                self.training_labels[self.nwindows] = current_target
+                self.training_labels[self.n_trials] = current_target
 
                 for fi in flash_indices:
-                    self.stim_labels[self.nwindows, fi] = True
+                    self.stim_labels[self.n_trials, fi] = True
 
                 if current_target in flash_indices:
-                    self.target_index[self.nwindows] = True
+                    self.target_index[self.n_trials] = True
                 else:
-                    self.target_index[self.nwindows] = False
+                    self.target_index[self.n_trials] = False
 
-            # Find the start time and end time for the window based on the marker timestamp
-            start_time = self.marker_timestamps[self.marker_count] + self.window_start
-            # end_time = self.marker_timestamps[self.marker_count] + self.window_end
+            # Find the start time and end time for the trial based on the marker timestamp
+            start_time = self.marker_timestamps[self.marker_count] + self.trial_start
+            # end_time = self.marker_timestamps[self.marker_count] + self.trial_end
 
-            # locate the indices of the window in the eeg data
+            # locate the indices of the trial in the eeg data
             for i, s in enumerate(self.eeg_timestamps[self.search_index : -1]):
                 logger.debug(
-                    "Indices (i,s) of the window in the eeg data: (%s,%s)", i, s
+                    "Indices (i,s) of the trial in the eeg data: (%s,%s)", i, s
                 )
                 if s > start_time:
                     start_loc = self.search_index + i - 1
@@ -548,62 +548,62 @@ class ErpData(EegData):
                     #     start_loc = 0
 
                     break
-            end_loc = start_loc + self.nsamples + 1
+            end_loc = start_loc + self.n_samples + 1
 
-            # Adjust windows per option
-            # self.windows_per_option = np.zeros(self.num_options, dtype=int)
+            # Adjust trials per option
+            # self.trials_per_option = np.zeros(self.num_options, dtype=int)
 
-            logger.debug("Window (start_loc, end_loc): (%s, %s)", start_loc, end_loc)
+            logger.debug("Trial (start_loc, end_loc): (%s, %s)", start_loc, end_loc)
             # linear interpolation and add to numpy array
             for flash_index in flash_indices:
-                for c in range(self.nchannels):
+                for c in range(self.n_channels):
                     eeg_timestamps_adjusted = (
                         self.eeg_timestamps[start_loc:end_loc]
                         - self.eeg_timestamps[start_loc]
                     )
 
                     channel_data = np.interp(
-                        self.window_timestamps,
+                        self.trial_timestamps,
                         eeg_timestamps_adjusted,
                         self.eeg_data[start_loc:end_loc, c],
                     )
 
-                    # add to raw ERP windows
-                    self.erp_windows_raw[
-                        self.nwindows, c, 0 : self.nsamples
+                    # add to raw ERP trials
+                    self.erp_trials_raw[
+                        self.n_trials, c, 0 : self.n_samples
                     ] = channel_data
-                    # self.decision_blocks_raw[self.decision_count, self.nwindows, c, 0:self.nsamples]
+                    # self.decision_blocks_raw[self.decision_count, self.n_trials, c, 0:self.n_samples]
 
                     # if self.pp_type == "bandpass":
                     #     channel_data_2 = bandpass(channel_data[np.newaxis,:], self.pp_low, self.pp_high, self.pp_order, self.fsample)
                     #     channel_data = channel_data_2[0,:]
 
                     # # Add to the instance count
-                    # self.windows_per_decision[flash_index] += 1
+                    # self.trials_per_decision[flash_index] += 1
 
                     if self.plot_erp:
                         if flash_index == current_target:
-                            self.axs1[c].plot(range(self.nsamples), channel_data)
+                            self.axs1[c].plot(range(self.n_samples), channel_data)
 
                         elif (
                             self.non_target_plot == 99
                             or self.non_target_plot == flash_index
                         ):
-                            self.axs2[c].plot(range(self.nsamples), channel_data)
+                            self.axs2[c].plot(range(self.n_samples), channel_data)
                             self.non_target_plot = flash_index
 
-                    # # add to processed ERP windows
-                    # self.erp_windows[self.nwindows, c, 0:self.nsamples] = channel_data
+                    # # add to processed ERP trials
+                    # self.erp_trials[self.n_trials, c, 0:self.n_samples] = channel_data
 
                     # # Does the ensemble avearging
-                    # self.decision_blocks[self.decision_count, flash_index, c, 0:self.nsamples] += channel_data
+                    # self.decision_blocks[self.decision_count, flash_index, c, 0:self.n_samples] += channel_data
 
                 # This is where to do preprocessing
-                self.erp_windows_processed[
-                    self.nwindows, : self.nchannels, : self.nsamples
+                self.erp_trials_processed[
+                    self.n_trials, : self.n_channels, : self.n_samples
                 ] = self._preprocessing(
-                    window=self.erp_windows_raw[
-                        self.nwindows, : self.nchannels, : self.nsamples
+                    trial=self.erp_trials_raw[
+                        self.n_trials, : self.n_channels, : self.n_samples
                     ],
                     option=self.pp_type,
                     order=self.pp_order,
@@ -612,43 +612,43 @@ class ErpData(EegData):
                 )
 
                 # This is where to do artefact rejection
-                self.erp_windows_processed[
-                    self.nwindows, : self.nchannels, : self.nsamples
+                self.erp_trials_processed[
+                    self.n_trials, : self.n_channels, : self.n_samples
                 ] = self._artefact_rejection(
-                    window=self.erp_windows_processed[
-                        self.nwindows, : self.nchannels, : self.nsamples
+                    trial=self.erp_trials_processed[
+                        self.n_trials, : self.n_channels, : self.n_samples
                     ],
                     option=None,
                 )
 
-                # Add the raw window to the raw decision blocks
-                # self.decision_blocks_raw[self.decision_count, flash_index, 0:self.nchannels, 0:self.nsamples] +=  self.erp_windows_processed
+                # Add the raw trial to the raw decision blocks
+                # self.decision_blocks_raw[self.decision_count, flash_index, 0:self.n_channels, 0:self.n_samples] +=  self.erp_trials_processed
                 self.big_decision_blocks_raw[
                     self.decision_count,
                     flash_index,
-                    int(self.windows_per_decision[flash_index] - 1),
-                    0 : self.nchannels,
-                    0 : self.nsamples,
-                ] = self.erp_windows_raw[
-                    self.nwindows, : self.nchannels, : self.nsamples
+                    int(self.trials_per_decision[flash_index] - 1),
+                    0 : self.n_channels,
+                    0 : self.n_samples,
+                ] = self.erp_trials_raw[
+                    self.n_trials, : self.n_channels, : self.n_samples
                 ]
 
                 self.big_decision_blocks_processed[
                     self.decision_count,
                     flash_index,
-                    int(self.windows_per_decision[flash_index] - 1),
-                    0 : self.nchannels,
-                    0 : self.nsamples,
-                ] = self.erp_windows_processed[
-                    self.nwindows, : self.nchannels, : self.nsamples
+                    int(self.trials_per_decision[flash_index] - 1),
+                    0 : self.n_channels,
+                    0 : self.n_samples,
+                ] = self.erp_trials_processed[
+                    self.n_trials, : self.n_channels, : self.n_samples
                 ]
 
-                # self.windows_per_decision[flash_index] += 1
+                # self.trials_per_decision[flash_index] += 1
             # Reset for the next decision
 
-            # iterate to next window
+            # iterate to next trial
             self.marker_count += 1
-            self.nwindows += 1
+            self.n_trials += 1
             self.search_index = start_loc
             if self.online:
                 time.sleep(0.000001)

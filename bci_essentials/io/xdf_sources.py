@@ -70,7 +70,7 @@ class XdfEegSource(EegSource):
         return float(self.__info["nominal_srate"][0])
 
     @property
-    def nchannels(self) -> int:
+    def n_channels(self) -> int:
         return int(self.__info["channel_count"][0])
 
     @property

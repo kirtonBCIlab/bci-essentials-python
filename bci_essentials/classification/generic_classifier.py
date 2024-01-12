@@ -88,14 +88,14 @@ class GenericClassifier(ABC):
         offline_recall : list of `float`
             Description of attribute `offline_recall`.
             - Initial value is `[]`.
-        offline_window_count : int
-            Description of attribute `offline_window_count`.
+        offline_trial_count : int
+            Description of attribute `offline_trial_count`.
             - Initial value is `0`.
-        offline_window_counts : list of `int`
-            Description of attribute `offline_window_counts`.
+        offline_trial_counts : list of `int`
+            Description of attribute `offline_trial_counts`.
             - Initial value is `[]`.
-        next_fit_window : int
-            Description of attribute `next_fit_window`.
+        next_fit_trial : int
+            Description of attribute `next_fit_trial`.
             - Initial value is `0`.
         predictions : list of `type`
             Description of attribute `predictions`.
@@ -128,13 +128,13 @@ class GenericClassifier(ABC):
         """@private (This is just for the API docs, to avoid double listing."""
         self.offline_recall = []
         """@private (This is just for the API docs, to avoid double listing."""
-        self.offline_window_count = 0
+        self.offline_trial_count = 0
         """@private (This is just for the API docs, to avoid double listing."""
-        self.offline_window_counts = []
+        self.offline_trial_counts = []
         """@private (This is just for the API docs, to avoid double listing."""
 
         # For iterative fitting,
-        self.next_fit_window = 0
+        self.next_fit_trial = 0
         """@private (This is just for the API docs, to avoid double listing."""
 
         # Keep track of predictions
@@ -151,7 +151,7 @@ class GenericClassifier(ABC):
         X : numpy.ndarray, *optional*
             3D array containing data with `float` type.
 
-            shape = (`N_windows`,`M_channels`,`P_samples`)
+            shape = (`n_trials`,`n_channels`,`n_samples`)
             - Default is `[]`.
         subset : list of `int` or `str`, *optional*
             List of indices (int) or labels (str) of the desired channels.
@@ -166,7 +166,7 @@ class GenericClassifier(ABC):
             Subset of input `X` according to labels or indices.
             3D array containing data with `float` type.
 
-            shape = (`N_windows`,`M_channels`,`P_samples`)
+            shape = (`n_trials`,`n_channels`,`n_samples`)
 
         """
 
@@ -196,7 +196,7 @@ class GenericClassifier(ABC):
 
             # Return for the given indices
             try:
-                # nwindows, nchannels, nsamples = self.X.shape
+                # n_trials, n_channels, n_samples = self.X.shape
 
                 if sum(X.shape) == 0:
                     new_X = self.X[:, subset_indices, :]
@@ -207,7 +207,7 @@ class GenericClassifier(ABC):
                     return X
 
             except Exception:
-                # nchannels, nsamples = self.X.shape
+                # n_channels, n_samples = self.X.shape
                 if sum(X.shape) == 0:
                     new_X = self.X[subset_indices, :]
                     self.X = new_X
@@ -393,7 +393,7 @@ class GenericClassifier(ABC):
         """Abstract method to predict with classifier
 
         X : numpy.ndarray
-            3D array where shape = (windows, channels, samples)
+            3D array where shape = (trials, channels, samples)
 
         Returns
         -------

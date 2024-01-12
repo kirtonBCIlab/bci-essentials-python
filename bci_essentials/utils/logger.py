@@ -95,7 +95,7 @@ the logging level and the message.
     >>> logger.logger.critical("This is a critical message")
 
 This is an example of including a variable in the output at the INFO level:
-    >>> logger.info("The number of channels is %s", num_channels)
+    >>> logger.info("The number of channels is %s", n_channels)
 
 
 Example 5: Changing the logging level after Logger instantiation

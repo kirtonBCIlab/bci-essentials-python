@@ -22,19 +22,19 @@ class TestEegData(unittest.TestCase):
     def test_dsi7_mods(self):
         self.eeg.name = "DSI7"
         self.eeg.channel_labels = ["foo"] * 8
-        self.eeg.nchannels = 8
+        self.eeg.n_channels = 8
         data = EegData(self.classifier, self.eeg, self.markers)
 
-        self.assertEqual(data.nchannels, 7)
+        self.assertEqual(data.n_channels, 7)
         self.assertEqual(len(data.channel_labels), 7)
 
     def test_dsi24_mods(self):
         self.eeg.name = "DSI24"
         self.eeg.channel_labels = ["foo"] * 24
-        self.eeg.nchannels = 24
+        self.eeg.n_channels = 24
         data = EegData(self.classifier, self.eeg, self.markers)
 
-        self.assertEqual(data.nchannels, 23)
+        self.assertEqual(data.n_channels, 23)
         self.assertEqual(len(data.channel_labels), 23)
 
     # offline
@@ -111,7 +111,7 @@ class _MockMarkerSource(MarkerSource):
 class _MockEegSource(EegSource):
     name = "MockEeg"
     fsample = 0.0
-    nchannels = 0
+    n_channels = 0
     channel_types = []
     channel_units = []
     channel_labels = []
