@@ -113,10 +113,10 @@ class TestClassifierSave(unittest.TestCase):
             pp_high=10,
             pp_order=5,
             plot_erp=False,
-            window_start=0.0,
-            window_end=0.8,
+            trial_start=0.0,
+            trial_end=0.8,
             max_num_options=9,
-            max_windows_per_option=16,
+            max_trials_per_option=16,
             max_decisions=20,
         )
         data1.run()
@@ -149,10 +149,10 @@ class TestClassifierSave(unittest.TestCase):
             pp_high=10,
             pp_order=5,
             plot_erp=False,
-            window_start=0.0,
-            window_end=0.8,
+            trial_start=0.0,
+            trial_end=0.8,
             max_num_options=9,
-            max_windows_per_option=16,
+            max_trials_per_option=16,
             max_decisions=20,
         )
         data2.run()

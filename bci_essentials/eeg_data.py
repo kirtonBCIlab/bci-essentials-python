@@ -8,12 +8,12 @@ or the live streaming of LSL data.
 The loaded/streamed data is added to a buffer such that offline and
 online processing pipelines are identical.
 
-Data is pre-processed (using the `signal_processing` module), windowed,
+Data is pre-processed (using the `signal_processing` module), divided into trials,
 and classified (using one of the `classification` sub-modules).
 
 Classes
 -------
-- `EegData` : For processing continuous data in windows of a defined
+- `EegData` : For processing continuous data in trials of a defined
 length.
 
 """
@@ -35,8 +35,8 @@ logger = Logger(name=__name__)
 # EEG data
 class EegData:
     """
-    Class that holds, windows, processes, and classifies EEG data.
-    This class is used for processing of continuous EEG data in windows of a defined length.
+    Class that holds, trials, processes, and classifies EEG data.
+    This class is used for processing of continuous EEG data in trials of a defined length.
     """
 
     def __init__(
@@ -273,8 +273,8 @@ class EegData:
         """
 
     # SIGNAL PROCESSING
-    # Preprocessing goes here (windows are n_channels by n_samples)
-    def _preprocessing(self, window, option=None, order=5, fc=60, fl=10, fh=50):
+    # Preprocessing goes here (trials are n_channels by n_samples)
+    def _preprocessing(self, trial, option=None, order=5, fc=60, fl=10, fh=50):
         """Signal preprocessing.
 
         Preprocesses the signal using one of the methods from the
@@ -282,8 +282,8 @@ class EegData:
 
         Parameters
         ----------
-        window : numpy.ndarray
-            Window of EEG data.
+        trial : numpy.ndarray
+            Trial of EEG data.
             2D array containing data with `float` type.
 
             shape = (`n_channels`,`n_samples`)
@@ -307,8 +307,8 @@ class EegData:
 
         Returns
         -------
-        new_window : numpy.ndarray
-            Preprocessed window of EEG data.
+        new_trial : numpy.ndarray
+            Preprocessed trial of EEG data.
             2D array containing data with `float` type.
 
             shape = (`n_channels`,`n_samples`)
@@ -316,27 +316,27 @@ class EegData:
         """
         # do nothing
         if option is None:
-            new_window = window
-            return new_window
+            new_trial = trial
+            return new_trial
 
         if option == "notch":
-            new_window = notch(window, fc=60, Q=30, fsample=self.fsample)
-            return new_window
+            new_trial = notch(trial, fc=60, Q=30, fsample=self.fsample)
+            return new_trial
 
         if option == "bandpass":
-            new_window = bandpass(window, fl, fh, order, self.fsample)
-            return new_window
+            new_trial = bandpass(trial, fl, fh, order, self.fsample)
+            return new_trial
 
         # other preprocessing options go here
 
-    # Artefact rejection goes here (windows are n_channels by n_samples)
-    def _artefact_rejection(self, window, option=None):
+    # Artefact rejection goes here (trials are n_channels by n_samples)
+    def _artefact_rejection(self, trial, option=None):
         """Artefact rejection.
 
         Parameters
         ----------
-        window : numpy.ndarray
-            Window of EEG data.
+        trial : numpy.ndarray
+            Trial of EEG data.
             2D array containing data with `float` type.
 
             shape = (`n_channels`,`n_samples`)
@@ -347,8 +347,8 @@ class EegData:
 
         Returns
         -------
-        new_window : numpy.ndarray
-            Artefact rejected window of EEG data.
+        new_trial : numpy.ndarray
+            Artefact rejected trial of EEG data.
             2D array containing data with `float` type.
 
             shape = (`n_channels`,`n_samples`)
@@ -356,8 +356,8 @@ class EegData:
         """
         # do nothing
         if option is None:
-            new_window = window
-            return new_window
+            new_trial = trial
+            return new_trial
 
         # other preprocessing options go here\
 
@@ -367,7 +367,7 @@ class EegData:
         Returns
         -------
         `None`
-            `self.rest_windows` is updated.
+            `self.rest_trials` is updated.
 
         """
         try:
@@ -444,10 +444,10 @@ class EegData:
                 n_samples = int(duration * self.fsample)
 
                 self.eyes_open_timestamps = np.array(range(n_samples)) / self.fsample
-                self.eyes_open_windows = np.ndarray(
+                self.eyes_open_trials = np.ndarray(
                     (len(eyes_open_start_time), self.n_channels, n_samples)
                 )
-                # Now copy EEG for these windows
+                # Now copy EEG for these trials
                 for i in range(len(eyes_open_start_time)):
                     # Get current eyes open start and end locations
                     current_eyes_open_start = eyes_open_start_loc[i]
@@ -472,8 +472,8 @@ class EegData:
                             ],
                         )
 
-                        # Third, add to the EEG window
-                        self.eyes_open_windows[i, c, :] = channel_data
+                        # Third, add to the EEG trial
+                        self.eyes_open_trials[i, c, :] = channel_data
                         self.eyes_open_timestamps
 
             logger.debug("Done packaging resting state data")
@@ -488,10 +488,10 @@ class EegData:
                 self.eyes_closed_timestamps = (
                     np.array(range(n_samples)) / self.fsample
                 )
-                self.eyes_closed_windows = np.ndarray(
+                self.eyes_closed_trials = np.ndarray(
                     (len(eyes_closed_start_time), self.n_channels, n_samples)
                 )
-                # Now copy EEG for these windows
+                # Now copy EEG for these trials
                 for i in range(len(eyes_closed_start_time)):
                     # Get current eyes closed start and end locations
                     current_eyes_closed_start = eyes_closed_start_loc[i]
@@ -516,8 +516,8 @@ class EegData:
                             ],
                         )
 
-                        # Third, add to the EEG window
-                        self.eyes_closed_windows[i, c, :] = channel_data
+                        # Third, add to the EEG trial
+                        self.eyes_closed_trials[i, c, :] = channel_data
                         self.eyes_closed_timestamps
 
             # Rest
@@ -532,10 +532,10 @@ class EegData:
                 n_samples = int(duration * self.fsample)
 
                 self.rest_timestamps = np.array(range(n_samples)) / self.fsample
-                self.rest_windows = np.ndarray(
+                self.rest_trials = np.ndarray(
                     (len(rest_start_time), self.n_channels, n_samples)
                 )
-                # Now copy EEG for these windows
+                # Now copy EEG for these trials
                 for i in range(len(rest_start_time)):
                     # Get current rest start and end locations
                     current_rest_start = rest_start_loc[i]
@@ -556,8 +556,8 @@ class EegData:
                             self.eeg_data[current_rest_start:current_rest_end, c],
                         )
 
-                        # Third, add to the EEG window
-                        self.rest_windows[i, c, :] = channel_data
+                        # Third, add to the EEG trial
+                        self.rest_trials[i, c, :] = channel_data
                         self.rest_timestamps
         except Exception:
             logger.warning("Failed to package resting state data")
@@ -567,7 +567,7 @@ class EegData:
         buffer_time=0.01,
         max_channels=64,
         max_samples=2560,
-        max_windows=1000,
+        max_trials=1000,
         training=True,
         online=True,
         train_complete=False,
@@ -598,10 +598,10 @@ class EegData:
             Maximum number of EEG channels to read in.
             - Default is `64`.
         max_samples : int, *optional*
-            Maximum number of EEG samples to read in per window.
+            Maximum number of EEG samples to read in per trial.
             - Default is `2560`.
-        max_windows : int, *optional*
-            Maximum number of windows to read in per loop (?).
+        max_trials : int, *optional*
+            Maximum number of trials to read in per loop (?).
             - Default is `1000`.
         max_loops : int, *optional*
             Maximum number of loops to run.
@@ -626,7 +626,7 @@ class EegData:
             - Default is `False`.
         live_update : bool, *optional*
             Flag to indicate if the classifier will be used to provide
-            live updates on window classification.
+            live updates on trial classification.
             - Default is `False`.
         pp_type : str, *optional*
             Preprocessing method to apply to the EEG data.
@@ -654,7 +654,7 @@ class EegData:
 
         self.max_channels = max_channels
         self.max_samples = max_samples
-        self.max_windows = max_windows
+        self.max_trials = max_trials
 
         self.pp_type = pp_type
         self.pp_low = pp_low
@@ -662,27 +662,27 @@ class EegData:
         self.pp_order = pp_order
 
         self.buffer_time = buffer_time
-        self.window_end_buffer = buffer_time
+        self.trial_end_buffer = buffer_time
         self.search_index = 0
 
-        # initialize windows and labels
-        self.current_raw_eeg_windows = np.zeros(
-            (self.max_windows, self.max_channels, self.max_samples)
+        # initialize trials and labels
+        self.current_raw_eeg_trials = np.zeros(
+            (self.max_trials, self.max_channels, self.max_samples)
         )
-        self.current_processed_eeg_windows = self.current_raw_eeg_windows
-        self.current_labels = np.zeros((self.max_windows))
+        self.current_processed_eeg_trials = self.current_raw_eeg_trials
+        self.current_labels = np.zeros((self.max_trials))
 
-        self.raw_eeg_windows = np.zeros(
-            (self.max_windows, self.max_channels, self.max_samples)
+        self.raw_eeg_trials = np.zeros(
+            (self.max_trials, self.max_channels, self.max_samples)
         )
-        self.processed_eeg_windows = self.raw_eeg_windows
-        self.labels = np.zeros((self.max_windows))  # temporary labels
-        self.training_labels = np.zeros((self.max_windows))  # permanent training labels
+        self.processed_eeg_trials = self.raw_eeg_trials
+        self.labels = np.zeros((self.max_trials))  # temporary labels
+        self.training_labels = np.zeros((self.max_trials))  # permanent training labels
 
-        # initialize the numbers of markers and windows to zero
+        # initialize the numbers of markers and trials to zero
         self.marker_count = 0
-        self.current_num_windows = 0
-        self.n_windows = 0
+        self.current_num_trials = 0
+        self.n_trials = 0
 
         self.num_online_selections = 0
         self.online_selection_indices = []
@@ -728,13 +728,13 @@ class EegData:
             self.loops += 1
 
         # Trim all the data
-        self.raw_eeg_windows = self.raw_eeg_windows[
-            0 : self.n_windows, 0 : self.n_channels, 0 : self.n_samples
+        self.raw_eeg_trials = self.raw_eeg_trials[
+            0 : self.n_trials, 0 : self.n_channels, 0 : self.n_samples
         ]
-        self.processed_eeg_windows = self.processed_eeg_windows[
-            0 : self.n_windows, 0 : self.n_channels, 0 : self.n_samples
+        self.processed_eeg_trials = self.processed_eeg_trials[
+            0 : self.n_trials, 0 : self.n_channels, 0 : self.n_samples
         ]
-        self.labels = self.labels[0 : self.n_windows]
+        self.labels = self.labels[0 : self.n_trials]
 
     def step(self):
         """Runs a single EegData processing step.
@@ -788,31 +788,31 @@ class EegData:
                 elif current_step_marker == "Trial Ends":
                     logger.debug("Trial ended, trim the unused ends of numpy arrays")
                     # Trim the unused ends of numpy arrays
-                    self.current_raw_eeg_windows = self.current_raw_eeg_windows[
-                        0 : self.current_num_windows,
+                    self.current_raw_eeg_trials = self.current_raw_eeg_trials[
+                        0 : self.current_num_trials,
                         0 : self.n_channels,
                         0 : self.n_samples,
                     ]
-                    self.current_processed_eeg_windows = (
-                        self.current_processed_eeg_windows[
-                            0 : self.current_num_windows,
+                    self.current_processed_eeg_trials = (
+                        self.current_processed_eeg_trials[
+                            0 : self.current_num_trials,
                             0 : self.n_channels,
                             0 : self.n_samples,
                         ]
                     )
                     self.current_labels = self.current_labels[
-                        0 : self.current_num_windows
+                        0 : self.current_num_trials
                     ]
 
                     # TRAIN
                     if self.training:
                         self._classifier.add_to_train(
-                            self.current_processed_eeg_windows, self.current_labels
+                            self.current_processed_eeg_trials, self.current_labels
                         )
 
                         logger.debug(
-                            "%s windows and labels added to training set",
-                            self.current_num_windows,
+                            "%s trials and labels added to training set",
+                            self.current_num_trials,
                         )
 
                         # if iterative training is on and active then also make a prediction
@@ -824,7 +824,7 @@ class EegData:
 
                             # Make a prediction
                             prediction = self._classifier.predict(
-                                self.current_processed_eeg_windows
+                                self.current_processed_eeg_trials
                             )
 
                             logger.info(
@@ -836,22 +836,22 @@ class EegData:
                                 self._messenger.prediction(prediction)
 
                     # PREDICT
-                    elif self.train_complete and self.current_num_windows != 0:
+                    elif self.train_complete and self.current_num_trials != 0:
                         logger.info(
-                            "Making a prediction based on %s windows",
-                            self.current_num_windows,
+                            "Making a prediction based on %s trials",
+                            self.current_num_trials,
                         )
 
-                        if self.current_num_windows == 0:
-                            logger.error("No windows to make a decision")
+                        if self.current_num_trials == 0:
+                            logger.error("No trials to make a decision")
                             self.marker_count += 1
                             break
 
                         # save the online selection indices
                         selection_inds = list(
                             range(
-                                self.n_windows - self.current_num_windows,
-                                self.n_windows,
+                                self.n_trials - self.current_num_trials,
+                                self.n_trials,
                             )
                         )
                         self.online_selection_indices.append(selection_inds)
@@ -859,7 +859,7 @@ class EegData:
                         # make the prediciton
                         try:
                             prediction = self._classifier.predict(
-                                self.current_processed_eeg_windows
+                                self.current_processed_eeg_trials
                             )
                             self.online_selections.append(prediction.labels)
 
@@ -877,14 +877,14 @@ class EegData:
                     else:
                         logger.error("Unable to classify... womp womp")
 
-                    # Reset windows and labels
+                    # Reset trials and labels
                     self.marker_count += 1
-                    self.current_num_windows = 0
-                    self.current_raw_eeg_windows = np.zeros(
-                        (self.max_windows, self.max_channels, self.max_samples)
+                    self.current_num_trials = 0
+                    self.current_raw_eeg_trials = np.zeros(
+                        (self.max_trials, self.max_channels, self.max_samples)
                     )
-                    self.current_processed_eeg_windows = self.current_raw_eeg_windows
-                    self.current_labels = np.zeros((self.max_windows))
+                    self.current_processed_eeg_trials = self.current_raw_eeg_trials
+                    self.current_labels = np.zeros((self.max_trials))
 
                 # If human training completed then train the classifier
                 elif (
@@ -923,7 +923,7 @@ class EegData:
             self.paradigm_string = current_marker_info[0]
             self.num_options = int(current_marker_info[1])
             label = int(current_marker_info[2])
-            self.window_length = float(current_marker_info[3])  # window length
+            self.trial_length = float(current_marker_info[3])  # trial length
             if (
                 len(current_marker_info) > 4
             ):  # if longer, collect this info and maybe it can be used by the classifier
@@ -945,14 +945,14 @@ class EegData:
                             current_marker_info[i],
                         )
 
-            # Check if the whole EEG window corresponding to the marker is available
+            # Check if the whole EEG trial corresponding to the marker is available
             end_time_plus_buffer = (
                 self.marker_timestamps[self.marker_count]
-                + self.window_length
+                + self.trial_length
                 + self.buffer_time
             )
 
-            # If we don't have the full window then pull more data, only do this online
+            # If we don't have the full trial then pull more data, only do this online
             if self.eeg_timestamps[-1] <= end_time_plus_buffer:
                 if self.online is True:
                     break
@@ -968,22 +968,22 @@ class EegData:
                 # send feedback for each marker that you receive
                 self._messenger.marker_received(current_step_marker)
 
-            # Find the start time for the window based on the marker timestamp
+            # Find the start time for the trial based on the marker timestamp
             start_time = self.marker_timestamps[self.marker_count]
 
-            # Find the number of samples per window
-            self.n_samples = int(self.window_length * self.fsample)
+            # Find the number of samples per trial
+            self.n_samples = int(self.trial_length * self.fsample)
 
-            # set the window timestamps at exactly the sampling frequency
-            self.window_timestamps = np.arange(self.n_samples) / self.fsample
+            # set the trial timestamps at exactly the sampling frequency
+            self.trial_timestamps = np.arange(self.n_samples) / self.fsample
 
-            # locate the indices of the window in the eeg data
+            # locate the indices of the trial in the eeg data
             for i, s in enumerate(self.eeg_timestamps[self.search_index : -1]):
                 if s > start_time:
                     start_loc = self.search_index + i - 1
                     break
 
-            # Get the end location for the window
+            # Get the end location for the trial
             end_loc = int(start_loc + self.n_samples + 1)
 
             # For each channel of the EEG, interpolate to uniform sampling rate
@@ -996,22 +996,22 @@ class EegData:
 
                 # Second, interpolate to timestamps at a uniform sampling rate
                 channel_data = np.interp(
-                    self.window_timestamps,
+                    self.trial_timestamps,
                     eeg_timestamps_adjusted,
                     self.eeg_data[start_loc:end_loc, c],
                 )
 
-                # Third, sdd to the EEG window
-                self.current_raw_eeg_windows[
-                    self.current_num_windows, c, 0 : self.n_samples
+                # Third, sdd to the EEG trial
+                self.current_raw_eeg_trials[
+                    self.current_num_trials, c, 0 : self.n_samples
                 ] = channel_data
 
             # This is where to do preprocessing
-            self.current_processed_eeg_windows[
-                self.current_num_windows, : self.n_channels, : self.n_samples
+            self.current_processed_eeg_trials[
+                self.current_num_trials, : self.n_channels, : self.n_samples
             ] = self._preprocessing(
-                window=self.current_raw_eeg_windows[
-                    self.current_num_windows, : self.n_channels, : self.n_samples
+                trial=self.current_raw_eeg_trials[
+                    self.current_num_trials, : self.n_channels, : self.n_samples
                 ],
                 option=self.pp_type,
                 order=self.pp_order,
@@ -1020,35 +1020,35 @@ class EegData:
             )
 
             # This is where to do artefact rejection
-            self.current_processed_eeg_windows[
-                self.current_num_windows, : self.n_channels, : self.n_samples
+            self.current_processed_eeg_trials[
+                self.current_num_trials, : self.n_channels, : self.n_samples
             ] = self._artefact_rejection(
-                window=self.current_processed_eeg_windows[
-                    self.current_num_windows, : self.n_channels, : self.n_samples
+                trial=self.current_processed_eeg_trials[
+                    self.current_num_trials, : self.n_channels, : self.n_samples
                 ],
                 option=None,
             )
 
             # Add the label if it exists, otherwise set a flag of -1 to denote that there is no label
             # if self.training:
-            #     self.current_labels[self.current_num_windows] = label
+            #     self.current_labels[self.current_num_trials] = label
             # else:
-            #     self.current_labels[self.current_num_windows] = -1
-            self.current_labels[self.current_num_windows] = label
+            #     self.current_labels[self.current_num_trials] = -1
+            self.current_labels[self.current_num_trials] = label
 
             # copy to the eeg_data object
-            self.raw_eeg_windows[
-                self.n_windows, 0 : self.n_channels, 0 : self.n_samples
-            ] = self.current_raw_eeg_windows[
-                self.current_num_windows, 0 : self.n_channels, 0 : self.n_samples
+            self.raw_eeg_trials[
+                self.n_trials, 0 : self.n_channels, 0 : self.n_samples
+            ] = self.current_raw_eeg_trials[
+                self.current_num_trials, 0 : self.n_channels, 0 : self.n_samples
             ]
-            self.processed_eeg_windows[
-                self.n_windows, 0 : self.n_channels, 0 : self.n_samples
-            ] = self.current_processed_eeg_windows[
-                self.current_num_windows, 0 : self.n_channels, 0 : self.n_samples
+            self.processed_eeg_trials[
+                self.n_trials, 0 : self.n_channels, 0 : self.n_samples
+            ] = self.current_processed_eeg_trials[
+                self.current_num_trials, 0 : self.n_channels, 0 : self.n_samples
             ]
-            self.labels[self.n_windows] = self.current_labels[
-                self.current_num_windows
+            self.labels[self.n_trials] = self.current_labels[
+                self.current_num_trials
             ]
 
             # Send live updates
@@ -1056,18 +1056,18 @@ class EegData:
                 try:
                     if self.n_samples != 0:
                         prediction = self._classifier.predict(
-                            self.current_processed_eeg_windows[
-                                self.current_num_windows,
+                            self.current_processed_eeg_trials[
+                                self.current_num_trials,
                                 0 : self.n_channels,
                                 0 : self.n_samples,
                             ]
                         )
                         self._messenger.prediction(prediction)
                 except Exception:
-                    logger.error("Unable to classify this window")
+                    logger.error("Unable to classify this trial")
 
-            # iterate to next window
+            # iterate to next trial
             self.marker_count += 1
-            self.current_num_windows += 1
-            self.n_windows += 1
+            self.current_num_trials += 1
+            self.n_trials += 1
             self.search_index = start_loc

@@ -133,7 +133,7 @@ class SwitchDeepClassifier(GenericClassifier):
             self.X = np.array(self.X)
 
         # get dimensions
-        n_windows, n_channels, n_samples = self.X.shape
+        n_trials, n_channels, n_samples = self.X.shape
 
         # do the rest of the training if train_free is false
         X = np.array(self.X)
@@ -167,14 +167,14 @@ class SwitchDeepClassifier(GenericClassifier):
 
             # Try rebuilding the classifier each time
             if self.rebuild:
-                self.next_fit_window = 0
+                self.next_fit_trial = 0
 
-            subX = X_class_train[self.next_fit_window :, :, :]
-            suby = y_class_train[self.next_fit_window :]
-            self.next_fit_window = n_windows
+            subX = X_class_train[self.next_fit_trial :, :, :]
+            suby = y_class_train[self.next_fit_trial :]
+            self.next_fit_trial = n_trials
 
-            preds = np.zeros((n_windows, self.num_classes))
-            # preds_multiclass = np.zeros(n_windows)
+            preds = np.zeros((n_trials, self.num_classes))
+            # preds_multiclass = np.zeros(n_trials)
 
             for train_idx, test_idx in self.cv.split(subX, suby):
                 X_train, X_test = subX[train_idx], subX[test_idx]
@@ -218,8 +218,8 @@ class SwitchDeepClassifier(GenericClassifier):
 
             logger.info("\nFinished model %s", i + 1)
 
-            self.offline_window_count = n_windows
-            self.offline_window_counts.append(self.offline_window_count)
+            self.offline_trial_count = n_trials
+            self.offline_trial_counts.append(self.offline_trial_count)
 
             # accuracy
             z_dim, y_dim, x_dim = X_class_test.shape
@@ -269,7 +269,7 @@ class SwitchDeepClassifier(GenericClassifier):
         Parameters
         ----------
         X : np.ndarray
-            3D array where shape = (windows, channels, samples)
+            3D array where shape = (trials, channels, samples)
 
         Returns
         -------

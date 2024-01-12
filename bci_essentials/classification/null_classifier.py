@@ -36,7 +36,7 @@ class NullClassifier(GenericClassifier):
         Parameters
         ----------
         X : numpy.ndarray
-            3D array where shape = (windows, channels, samples)
+            3D array where shape = (trials, channels, samples)
 
 
         Returns

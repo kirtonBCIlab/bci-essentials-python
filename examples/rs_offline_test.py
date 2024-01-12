@@ -65,13 +65,13 @@ except Exception:
             training=True,
             online=False,
             max_num_options=9,
-            max_windows_per_option=16,
+            max_trials_per_option=16,
             pp_low=0.1,
             pp_high=15,
             pp_order=5,
             plot_erp=False,
-            window_start=0.0,
-            window_end=0.6,
+            trial_start=0.0,
+            trial_end=0.6,
         )
         test_rs.run()
 
@@ -79,17 +79,17 @@ except Exception:
         logger.error("Couldn't find resting state data")
 
 try:
-    eyes_open_windows = test_rs.eyes_open_windows
+    eyes_open_trials = test_rs.eyes_open_trials
 except Exception:
     logger.error("Couldn't find eyes open data")
 
 try:
-    eyes_closed_windows = test_rs.eyes_closed_windows
+    eyes_closed_trials = test_rs.eyes_closed_trials
 except Exception:
     logger.error("Couldn't find eyes closed data")
 
 try:
-    rest_windows = test_rs.rest_windows
+    rest_trials = test_rs.rest_trials
 except Exception:
     logger.error("Couldn't find rest data")
 
@@ -97,11 +97,11 @@ fsample = test_rs.fsample
 channel_labels = test_rs.channel_labels
 
 # Get alpha peak from eyes closed?
-get_alpha_peak(eyes_closed_windows, alpha_min=8, alpha_max=12, plot_psd=False)
+get_alpha_peak(eyes_closed_trials, alpha_min=8, alpha_max=12, plot_psd=False)
 
 # Get bandpower features from eyes open
 abs_bandpower, rel_bandpower, rel_bandpower_mat = get_bandpower_features(
-    eyes_open_windows, fs=fsample, transition_freqs=[1, 4, 8, 12, 30]
+    eyes_open_trials, fs=fsample, transition_freqs=[1, 4, 8, 12, 30]
 )
 
 logger.info(

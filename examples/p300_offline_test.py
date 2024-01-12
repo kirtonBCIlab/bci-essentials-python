@@ -39,7 +39,7 @@ test_erp.setup(
     pp_high=10,
     pp_order=5,
     plot_erp=False,
-    window_start=0.0,
-    window_end=0.8,
+    trial_start=0.0,
+    trial_end=0.8,
 )
 test_erp.run()

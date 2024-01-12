@@ -73,7 +73,7 @@ def mne_export_as_epochs(eeg_data_object):
     # create the MNE epochs, pass in the raw
 
     # make sure that units match
-    epoch_data = eeg_data_object.raw_eeg_windows.copy()
+    epoch_data = eeg_data_object.raw_eeg_trials.copy()
     for i, u in enumerate(eeg_data_object.ch_units):
         if u == "microvolts":
             # convert to volts
@@ -124,7 +124,7 @@ def mne_export_resting_state_as_raw(eeg_data_object):
         # create the MNE epochs, pass in the raw
 
         # make sure that units match
-        raw_data = eeg_data_object.rest_windows[0, :, :]
+        raw_data = eeg_data_object.rest_trials[0, :, :]
         raw_array = mne.io.RawArray(data=raw_data, info=info)
 
         # change the last column of epochs array events to be the class labels
@@ -167,8 +167,8 @@ def mne_export_erp_as_epochs(erp_data_object):
     # create the MNE epochs, pass in the raw
 
     # make sure that units match
-    # This only works because ErpData.erp_windows_processed is not private, like it probable should be
-    epoch_data = erp_data_object.erp_windows_processed[
+    # This only works because ErpData.erp_trials_processed is not private, like it probable should be
+    epoch_data = erp_data_object.erp_trials_processed[
         : len(erp_data_object.target_index), :, :
     ].copy()
     for i, u in enumerate(erp_data_object.ch_units):
@@ -219,13 +219,13 @@ def mne_export_erp_as_evoked(erp_data_object):
     # # create the MNE epochs, pass in the raw
 
     # # make sure that units match
-    # evoked_data = erp_data_object.raw_eeg_windows.copy()
+    # evoked_data = erp_data_object.raw_eeg_trials.copy()
     # for i, u in enumerate(erp_data_object.ch_units):
     #     if u == "microvolts":
     #         # convert to volts
     #         evoked_data[:,i,:] = evoked_data[:,i,:] / 1000000
 
-    # evoked_array = mne.EpochsArray(data=evoked_data, info=info, tmin=erp_data_object.window_start)
+    # evoked_array = mne.EpochsArray(data=evoked_data, info=info, tmin=erp_data_object.trial_start)
 
     # # change the last column of epochs array events to be the class labels
     # evoked_array.events[:, -1] = erp_data_object.labels

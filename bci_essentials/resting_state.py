@@ -1,13 +1,13 @@
 """
 A module for processing resting state data.
 
-The EEG data inputs for each function are either a single windows or
-a set of windows.
-- For single windows, inputs are of the shape `n_channels x n_samples`, where:
+The EEG data inputs for each function are either a single trials or
+a set of trials.
+- For single trials, inputs are of the shape `n_channels x n_samples`, where:
     - n_channels = number of channels
     - n_samples = number of samples
-- For multiple windows, inputs are of the shape `n_windows x n_channels x n_samples`, where:
-    - n_windows = number of windows
+- For multiple trials, inputs are of the shape `n_trials x n_channels x n_samples`, where:
+    - n_trials = number of trials
     - n_channels = number of channels
     - n_samples = number of samples
 
@@ -31,16 +31,16 @@ def get_shape(data):
     Parameters
     ----------
     data : numpy.ndarray
-        Window(s) of resting state EEG data.
+        Trial(s) of resting state EEG data.
         2D or 3D array containing data with `float` type.
 
         shape = (`n_channels`,`n_samples`) OR
-        (`n_windows`,`n_channels`,`n_samples`)
+        (`n_trials`,`n_channels`,`n_samples`)
 
     Returns
     -------
-    n_windows : int
-        Number of windows.
+    n_trials : int
+        Number of trials.
     n_channels : int
         Number of channels.
     n_samples : int
@@ -48,22 +48,22 @@ def get_shape(data):
 
     """
     try:
-        n_windows, n_channels, n_samples = np.shape(data)
+        n_trials, n_channels, n_samples = np.shape(data)
     except Exception:
         n_channels, n_samples = np.shape(data)
-        n_windows = 1
+        n_trials = 1
 
-    return n_windows, n_channels, n_samples
+    return n_trials, n_channels, n_samples
 
 
 # This function is never used at the moment, anywhere in the code. Renaming to more clear convention on it being a public function.
 def get_bandpower(data, fs, fmin, fmax, normalization=None):
-    """Get the bandpower of a window of EEG.
+    """Get the bandpower of a trial of EEG.
 
     Parameters
     ----------
     data : numpy.ndarray
-        A single resting state EEG window
+        A single resting state EEG trial
         2D array containing data with `float` type.
 
         shape = (`n_channels`,`n_samples`)
@@ -116,10 +116,10 @@ def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
     Parameters
     ----------
     data : numpy.ndarray
-        Resting state EEG window with eyes closed.
+        Resting state EEG trial with eyes closed.
         3D array containing data with `float` type.
 
-        shape = (`n_windows`,`n_channels`,`n_samples`)
+        shape = (`n_trials`,`n_channels`,`n_samples`)
     alpha_min : float, *optional*
         Lowest possible value of alpha peak (Hz)
         - Default is `8`.
@@ -133,22 +133,22 @@ def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
     Returns
     -------
     alpha_peaks : numpy.ndarray
-        The peak alpha frequency (in Hz) for each window.
+        The peak alpha frequency (in Hz) for each trial.
     """
 
     fs = 256
 
-    n_windows, n_channels, n_samples = get_shape(data)
+    n_trials, n_channels, n_samples = get_shape(data)
 
-    # Create alpha_peaks of length n_windows
-    alpha_peaks = np.zeros(n_windows)
+    # Create alpha_peaks of length n_trials
+    alpha_peaks = np.zeros(n_trials)
 
-    for window in range(n_windows):
-        # Get the current window
-        current_window = data[window, :, :]
+    for trial in range(n_trials):
+        # Get the current trial
+        current_trial = data[trial, :, :]
 
         # Calculate PSD using Welch's method, nfft = n_samples
-        f, Pxx = scipy.signal.welch(current_window, fs=fs, nperseg=n_samples)
+        f, Pxx = scipy.signal.welch(current_trial, fs=fs, nperseg=n_samples)
 
         # Limit f, Pxx to the band of interest
         ind_min = scipy.argmax(f > alpha_min) - 1
@@ -157,8 +157,8 @@ def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
         f = f[ind_min:ind_max]
         Pxx = Pxx[:, ind_min:ind_max]
 
-        alpha_peaks[window] = f[np.argmax(np.median(Pxx, axis=0))]
-        logger.info("Alpha peak of window %s is %s", window, alpha_peaks[window])
+        alpha_peaks[trial] = f[np.argmax(np.median(Pxx, axis=0))]
+        logger.info("Alpha peak of trial %s is %s", trial, alpha_peaks[trial])
 
         if plot_psd:
             nrows = int(np.ceil(np.sqrt(n_channels)))
@@ -189,10 +189,10 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
     Parameters
     ----------
     data : numpy.ndarray
-        Windows of resting state EEG data.
+        Trials of resting state EEG data.
         3D array containing data with `float` type.
 
-        shape = (`n_windows`,`n_channels`,`n_samples`)
+        shape = (`n_trials`,`n_channels`,`n_samples`)
     fs : float
         Sampling frequency (Hz).
     transition_freqs : array-like, *optional*
@@ -221,22 +221,22 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
 
     """
     # Get Shape
-    n_windows, n_channels, n_samples = get_shape(data)
+    n_trials, n_channels, n_samples = get_shape(data)
 
     # Initialize
-    abs_bandpower = np.zeros((len(transition_freqs), n_windows))
-    rel_bandpower = np.zeros((len(transition_freqs), n_windows))
+    abs_bandpower = np.zeros((len(transition_freqs), n_trials))
+    rel_bandpower = np.zeros((len(transition_freqs), n_trials))
     rel_bandpower_mat = np.zeros(
-        (len(transition_freqs), len(transition_freqs), n_windows)
+        (len(transition_freqs), len(transition_freqs), n_trials)
     )
 
-    # for each window
-    for window in range(n_windows):
-        # Get the current window
-        current_window = data[window, :, :]
+    # for each trial
+    for trial in range(n_trials):
+        # Get the current trial
+        current_trial = data[trial, :, :]
 
         # Calculate PSD using Welch's method
-        f, Pxx = scipy.signal.welch(current_window, fs=fs)
+        f, Pxx = scipy.signal.welch(current_trial, fs=fs)
 
         # Limit f, Pxx to the band of interest
         ind_global_min = scipy.argmax(f > min(transition_freqs)) - 1
@@ -249,7 +249,7 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
         for tf in range(len(transition_freqs)):
             # The last item is the total
             if tf == len(transition_freqs) - 1:
-                abs_bandpower[tf, window] = np.sum(abs_bandpower[:tf, window])
+                abs_bandpower[tf, trial] = np.sum(abs_bandpower[:tf, trial])
                 continue
 
             fmin = transition_freqs[tf]
@@ -267,15 +267,15 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
                 )
 
             # Median across all channels
-            abs_bandpower[tf, window] = np.median(abs_power)
+            abs_bandpower[tf, trial] = np.median(abs_power)
 
-        rel_bandpower[:, window] = abs_bandpower[:, window] / abs_bandpower[-1, window]
+        rel_bandpower[:, trial] = abs_bandpower[:, trial] / abs_bandpower[-1, trial]
 
         # Calculate the relative power of each band
         for tf1 in range(len(transition_freqs)):
             for tf2 in range(len(transition_freqs)):
-                rel_bandpower_mat[tf1, tf2, window] = (
-                    abs_bandpower[tf1, window] / abs_bandpower[tf2, window]
+                rel_bandpower_mat[tf1, tf2, trial] = (
+                    abs_bandpower[tf1, trial] / abs_bandpower[tf2, trial]
                 )
 
     return abs_bandpower, rel_bandpower, rel_bandpower_mat

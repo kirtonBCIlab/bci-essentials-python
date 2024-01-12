@@ -1,10 +1,10 @@
 """
 Visualization toolbox for BCI Essentials
 
-The EEG data inputs for each function are either windows or
+The EEG data inputs for each function are either trials or
 decision blocks.
-- For windows, inputs are of the shape `n_windows x n_channels x n_samples`, where:
-    - n_windows = number of windows (for a single window `W_window = 1`)
+- For trials, inputs are of the shape `n_trials x n_channels x n_samples`, where:
+    - n_trials = number of trials (for a single trial `n_trials = 1`)
     - n_channels = number of channels
     - n_samples = number of samples
 - For decision blocks, inputs are of the shape `num_decisions x n_channels x n_samples`, where:
@@ -137,7 +137,7 @@ def plot_big_decision_block(
     `None`
 
     """
-    num_decisions, O, n_windows, n_channels, n_samples = big_decision_block.shape
+    num_decisions, O, n_trials, n_channels, n_samples = big_decision_block.shape
 
     num_decisions = 9
 
@@ -159,30 +159,30 @@ def plot_big_decision_block(
 
         # plot the ERP
         erp_label = erp_targets[decision]
-        # for window in n_windows plot the signal
-        for window in range(n_windows):
-            sum_range = big_decision_block[decision, erp_label, window, 0, 0:10].sum()
+        # for trial in n_trials plot the signal
+        for trial in range(n_trials):
+            sum_range = big_decision_block[decision, erp_label, trial, 0, 0:10].sum()
             if sum_range != 0:
                 for channel in range(n_channels):
                     color_string = "C{}".format(int(channel))
                     ax[0].plot(
                         t,
-                        big_decision_block[decision, erp_label, window, channel, :],
+                        big_decision_block[decision, erp_label, trial, channel, :],
                         label=channel_labels[channel],
                         color=color_string,
                     )
 
-                # plot the average of all n_windows in bold
+                # plot the average of all n_trials in bold
                 color_string = "C{}".format(int(channel))
             else:
                 break
 
-        win_mean_bdb = np.mean(big_decision_block[decision, erp_label, :, :, :], axis=0)
+        trial_mean_bdb = np.mean(big_decision_block[decision, erp_label, :, :, :], axis=0)
         for channel in range(n_channels):
             color_string = "C{}".format(int(channel))
             ax[0].plot(
                 t,
-                win_mean_bdb[channel, :],
+                trial_mean_bdb[channel, :],
                 label=channel_labels[channel],
                 color=color_string,
                 linewidth=1.0,
@@ -194,34 +194,34 @@ def plot_big_decision_block(
 
         # plot any non ERP
         non_erp_label = 0
-        # for window in n_windows plot the signal
-        for window in range(n_windows):
+        # for trial in n_trials plot the signal
+        for trial in range(n_trials):
             sum_range = big_decision_block[
-                decision, non_erp_label, window, 0, 0:10
+                decision, non_erp_label, trial, 0, 0:10
             ].sum()
             if sum_range != 0:
                 for channel in range(n_channels):
                     color_string = "C{}".format(int(channel))
                     ax[1].plot(
                         t,
-                        big_decision_block[decision, non_erp_label, window, channel, :],
+                        big_decision_block[decision, non_erp_label, trial, channel, :],
                         label=channel_labels[channel],
                         color=color_string,
                     )
 
-                # plot the average of all n_windows in bold
+                # plot the average of all n_trials in bold
                 color_string = "C{}".format(int(channel))
             else:
                 break
 
-        win_mean_bdb = np.mean(
+        trial_mean_bdb = np.mean(
             big_decision_block[decision, non_erp_label, :, :, :], axis=0
         )
         for channel in range(n_channels):
             color_string = "C{}".format(int(channel))
             ax[1].plot(
                 t,
-                win_mean_bdb[channel, :],
+                trial_mean_bdb[channel, :],
                 label=channel_labels[channel],
                 color=color_string,
                 linewidth=1.0,
@@ -230,21 +230,21 @@ def plot_big_decision_block(
         ax[1].set_title("Non-ERP on object{}".format(non_erp_label))
         ax[1].set_ylim(ylims)
         ax[1].legend()
-        # for window in n_windows plot the signal
+        # for trial in n_trials plot the signal
 
-        # plot the average of all n_windows in bold
+        # plot the average of all n_trials in bold
 
         fig[decision].show()
 
 
-# Plot window
-def plot_window(eeg_data_window, f_sample, channel_labels=[]):
-    """Plots a window of EEG data.
+# Plot trial
+def plot_trial(eeg_data_trial, f_sample, channel_labels=[]):
+    """Plots a trial of EEG data.
 
     Parameters
     ----------
-    eeg_data_windowa : numpy.ndarray
-        A window of EEG data.
+    eeg_data_triala : numpy.ndarray
+        A trial of EEG data.
         2D array containing data with `float` type.
 
         shape = (`n_channels`,`n_samples`)
@@ -259,7 +259,7 @@ def plot_window(eeg_data_window, f_sample, channel_labels=[]):
     `None`
 
     """
-    n_channels, n_samples = eeg_data_window.shape
+    n_channels, n_samples = eeg_data_trial.shape
 
     # If no channel label then assign one based on its position
     if channel_labels == []:
@@ -273,7 +273,7 @@ def plot_window(eeg_data_window, f_sample, channel_labels=[]):
     fig, axs = plt.subplots(n_channels)
 
     for channel in range(n_channels):
-        channel_data = eeg_data_window[channel, :]
+        channel_data = eeg_data_trial[channel, :]
         axs[channel].plot(t, channel_data)
         axs[channel].ylabel = channel_labels[channel]
 

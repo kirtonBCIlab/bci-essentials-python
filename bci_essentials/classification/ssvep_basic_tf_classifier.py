@@ -64,7 +64,7 @@ class SsvepBasicTrainFreeClassifier(GenericClassifier):
         Parameters
         ----------
         X : numpy.ndarray
-            3D array where shape = (windows, channels, samples)
+            3D array where shape = (trials, channels, samples)
 
         Returns
         -------
@@ -74,7 +74,7 @@ class SsvepBasicTrainFreeClassifier(GenericClassifier):
 
         """
         # get the shape
-        n_windows, n_channels, n_samples = X.shape
+        n_trials, n_channels, n_samples = X.shape
         # The first time it is called it must be set up
         if self.setup is False:
             logger.info("Setting up the training free classifier")
@@ -87,17 +87,17 @@ class SsvepBasicTrainFreeClassifier(GenericClassifier):
         # Get the PSD estimate using Welch's method
         f, Pxx = signal.welch(augmented_X, fs=self.sampling_freq, nperseg=n_samples)
 
-        # Get a vote for each window
-        prediction = np.zeros(n_windows)
-        for window in range(n_windows):
+        # Get a vote for each trial
+        prediction = np.zeros(n_trials)
+        for trial in range(n_trials):
             # Get the frequency with the greatest PSD
             Pxx_of_f_bins = np.zeros(len(self.target_freqs))
             for i, tf in enumerate(self.target_freqs):
                 # Get the closest frequency bin
                 closest_freq_bin = np.argmin(np.abs(f - tf))
 
-                Pxx_of_f_bins[i] = Pxx[window][int(closest_freq_bin)]
+                Pxx_of_f_bins[i] = Pxx[trial][int(closest_freq_bin)]
 
-            prediction[window] = np.argmax(Pxx_of_f_bins)
+            prediction[trial] = np.argmax(Pxx_of_f_bins)
 
         return Prediction(labels=prediction)
