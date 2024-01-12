@@ -177,7 +177,9 @@ def plot_big_decision_block(
             else:
                 break
 
-        trial_mean_bdb = np.mean(big_decision_block[decision, erp_label, :, :, :], axis=0)
+        trial_mean_bdb = np.mean(
+            big_decision_block[decision, erp_label, :, :, :], axis=0
+        )
         for channel in range(n_channels):
             color_string = "C{}".format(int(channel))
             ax[0].plot(

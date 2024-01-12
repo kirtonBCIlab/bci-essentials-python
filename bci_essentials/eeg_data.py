@@ -485,9 +485,7 @@ class EegData:
                 duration = np.floor(eyes_closed_end_time[0] - eyes_closed_start_time[0])
                 n_samples = int(duration * self.fsample)
 
-                self.eyes_closed_timestamps = (
-                    np.array(range(n_samples)) / self.fsample
-                )
+                self.eyes_closed_timestamps = np.array(range(n_samples)) / self.fsample
                 self.eyes_closed_trials = np.ndarray(
                     (len(eyes_closed_start_time), self.n_channels, n_samples)
                 )
@@ -1047,9 +1045,7 @@ class EegData:
             ] = self.current_processed_eeg_trials[
                 self.current_num_trials, 0 : self.n_channels, 0 : self.n_samples
             ]
-            self.labels[self.n_trials] = self.current_labels[
-                self.current_num_trials
-            ]
+            self.labels[self.n_trials] = self.current_labels[self.current_num_trials]
 
             # Send live updates
             if self.live_update:

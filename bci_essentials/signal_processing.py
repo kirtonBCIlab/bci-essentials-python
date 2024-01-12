@@ -61,9 +61,7 @@ def bandpass(data, f_low, f_high, order, fsample):
     try:
         n_trials, n_channels, n_samples = np.shape(data)
 
-        new_data = np.ndarray(
-            shape=(n_trials, n_channels, n_samples), dtype=float
-        )
+        new_data = np.ndarray(shape=(n_trials, n_channels, n_samples), dtype=float)
         for trial in range(0, n_trials):
             current_trial = data[trial, :, :]
             new_data[trial, :, :] = signal.filtfilt(b, a, current_trial, padlen=0)
@@ -114,9 +112,7 @@ def lowpass(data, f_critical, order, fsample):
     try:
         n_trials, n_channels, n_samples = np.shape(data)
 
-        new_data = np.ndarray(
-            shape=(n_trials, n_channels, n_samples), dtype=float
-        )
+        new_data = np.ndarray(shape=(n_trials, n_channels, n_samples), dtype=float)
         for trial in range(0, n_trials):
             for channel in range(0, n_channels):
                 current_trial = data[trial, channel, :]
@@ -170,9 +166,7 @@ def highpass(data, f_critical, order, fsample):
     try:
         n_trials, n_channels, n_samples = np.shape(data)
 
-        new_data = np.ndarray(
-            shape=(n_trials, n_channels, n_samples), dtype=float
-        )
+        new_data = np.ndarray(shape=(n_trials, n_channels, n_samples), dtype=float)
         for trial in range(0, n_trials):
             current_trial = data[trial, :, :]
             new_data[trial, :, :] = signal.filtfilt(b, a, current_trial, padlen=0)
@@ -223,9 +217,7 @@ def notch(data, f_notch, Q, fsample):
 
     try:
         n_trials, n_channels, n_samples = np.shape(data)
-        new_data = np.ndarray(
-            shape=(n_trials, n_channels, n_samples), dtype=float
-        )
+        new_data = np.ndarray(shape=(n_trials, n_channels, n_samples), dtype=float)
         for trial in range(0, n_trials):
             current_trial = data[trial, :, :]
             new_data[trial, :, :] = signal.filtfilt(b, a, current_trial, padlen=0)
