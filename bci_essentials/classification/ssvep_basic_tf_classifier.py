@@ -74,7 +74,7 @@ class SsvepBasicTrainFreeClassifier(GenericClassifier):
 
         """
         # get the shape
-        num_windows, num_channels, num_samples = X.shape
+        num_windows, n_channels, n_samples = X.shape
         # The first time it is called it must be set up
         if self.setup is False:
             logger.info("Setting up the training free classifier")
@@ -85,7 +85,7 @@ class SsvepBasicTrainFreeClassifier(GenericClassifier):
         augmented_X = np.mean(X, axis=1)
 
         # Get the PSD estimate using Welch's method
-        f, Pxx = signal.welch(augmented_X, fs=self.sampling_freq, nperseg=num_samples)
+        f, Pxx = signal.welch(augmented_X, fs=self.sampling_freq, nperseg=n_samples)
 
         # Get a vote for each window
         prediction = np.zeros(num_windows)

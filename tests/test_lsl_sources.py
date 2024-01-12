@@ -47,7 +47,7 @@ class TestLslEegSource(unittest.TestCase):
         self.assertEqual(self.source.fsample, 128.0)
 
     def test_eeg_nchannel(self):
-        self.assertEqual(self.source.num_channels, 8)
+        self.assertEqual(self.source.n_channels, 8)
 
     def test_eeg_channel(self):
         self.assertEqual(len(self.source.channel_types), 8)

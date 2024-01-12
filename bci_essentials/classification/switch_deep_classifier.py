@@ -133,7 +133,7 @@ class SwitchDeepClassifier(GenericClassifier):
             self.X = np.array(self.X)
 
         # get dimensions
-        num_windows, num_channels, num_samples = self.X.shape
+        num_windows, n_channels, n_samples = self.X.shape
 
         # do the rest of the training if train_free is false
         X = np.array(self.X)
@@ -287,8 +287,8 @@ class SwitchDeepClassifier(GenericClassifier):
 
         # Reshaping data and preprocessing the same way as done in fit
         # Need to review this labelling
-        num_samples, num_channels, num_data_points = X.shape
-        X_predict = X.reshape(num_samples, num_channels * num_data_points)
+        n_samples, n_channels, n_data_points = X.shape
+        X_predict = X.reshape(n_samples, n_channels * n_data_points)
         scaler_train = preprocessing.StandardScaler().fit(X_predict)
         X_predict_scaled = scaler_train.transform(X_predict)
 

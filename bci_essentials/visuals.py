@@ -3,14 +3,14 @@ Visualization toolbox for BCI Essentials
 
 The EEG data inputs for each function are either windows or
 decision blocks.
-- For windows, inputs are of the shape `num_windows x num_channels x num_samples`, where:
+- For windows, inputs are of the shape `num_windows x n_channels x n_samples`, where:
     - num_windows = number of windows (for a single window `W_window = 1`)
-    - num_channels = number of channels
-    - num_samples = number of samples
-- For decision blocks, inputs are of the shape `num_decisions x num_channels x num_samples`, where:
+    - n_channels = number of channels
+    - n_samples = number of samples
+- For decision blocks, inputs are of the shape `num_decisions x n_channels x n_samples`, where:
     - num_decisions = number of possible decisions to select from
-    - num_channels = number of channels
-    - num_samples = number of samples
+    - n_channels = number of channels
+    - n_samples = number of samples
 
 """
 import matplotlib.pyplot as plt
@@ -34,7 +34,7 @@ def decision_vis(decision_block, f_sample, label, channel_labels=[], ylims=(-100
         A decision block of EEG data.
         3D array containing data with `float` type.
 
-        shape = (`num_decisions`,`num_channels`,`num_samples`)
+        shape = (`num_decisions`,`n_channels`,`n_samples`)
     f_sample : float
         Sampling rate of the signal.
     label : int
@@ -51,15 +51,15 @@ def decision_vis(decision_block, f_sample, label, channel_labels=[], ylims=(-100
     `None`
 
     """
-    num_decisions, num_channels, num_samples = decision_block.shape
+    num_decisions, n_channels, n_samples = decision_block.shape
 
     # If no channel label then assign one based on its position
     if channel_labels == []:
-        channel_labels = [str(channel) for channel in range(num_channels)]
+        channel_labels = [str(channel) for channel in range(n_channels)]
 
     # Make time vector
-    t = np.ndarray((num_samples))
-    for sample in range(num_samples):
+    t = np.ndarray((n_samples))
+    for sample in range(n_samples):
         t[sample] = sample / f_sample
 
     # Initialize subplot
@@ -68,7 +68,7 @@ def decision_vis(decision_block, f_sample, label, channel_labels=[], ylims=(-100
         ax[decision] = plt.subplot(num_decisions + 1, 1, decision + 1)
 
     # Plot the ERP in the first subplot
-    # for channel in range(num_channels):
+    # for channel in range(n_channels):
     #     ax[0].plot(t, decision_block[label,channel,:], label=channel_labels[channel])
     #     ax[0].legend()
     #     ax[0].set_ylim(ylims)
@@ -78,7 +78,7 @@ def decision_vis(decision_block, f_sample, label, channel_labels=[], ylims=(-100
     for decision in range(num_decisions):
         if decision == label:
             decision_slice = decision_block[decision, :, :]
-            for channel in range(num_channels):
+            for channel in range(n_channels):
                 channel_data = decision_slice[channel, :]
                 ax[ind].plot(t, channel_data, label=channel_labels[channel])
 
@@ -90,7 +90,7 @@ def decision_vis(decision_block, f_sample, label, channel_labels=[], ylims=(-100
 
         else:
             decision_slice = decision_block[ind, :, :]
-            for channel in range(num_channels):
+            for channel in range(n_channels):
                 channel_data = decision_slice[channel, :]
                 ax[ind].plot(t, channel_data, label=channel_labels[channel])
 
@@ -117,7 +117,7 @@ def plot_big_decision_block(
         A decision block of EEG data.
         3D array containing data with `float` type.
 
-        shape = (`num_channels`,`num_samples`,`P_selections`)
+        shape = (`n_channels`,`n_samples`,`P_selections`)
     f_sample : float
         Sampling rate of the signal.
     label : int
@@ -137,17 +137,17 @@ def plot_big_decision_block(
     `None`
 
     """
-    num_decisions, O, num_windows, num_channels, num_samples = big_decision_block.shape
+    num_decisions, O, num_windows, n_channels, n_samples = big_decision_block.shape
 
     num_decisions = 9
 
     # Give default channel names if none are given
     if channel_labels == []:
-        channel_labels = [str(channel) for channel in range(num_channels)]
+        channel_labels = [str(channel) for channel in range(n_channels)]
 
     # Make time vector
-    t = np.ndarray((num_samples))
-    for sample in range(num_samples):
+    t = np.ndarray((n_samples))
+    for sample in range(n_samples):
         t[sample] = sample / f_sample
 
     fig = [None] * num_decisions
@@ -163,7 +163,7 @@ def plot_big_decision_block(
         for window in range(num_windows):
             sum_range = big_decision_block[decision, erp_label, window, 0, 0:10].sum()
             if sum_range != 0:
-                for channel in range(num_channels):
+                for channel in range(n_channels):
                     color_string = "C{}".format(int(channel))
                     ax[0].plot(
                         t,
@@ -178,7 +178,7 @@ def plot_big_decision_block(
                 break
 
         win_mean_bdb = np.mean(big_decision_block[decision, erp_label, :, :, :], axis=0)
-        for channel in range(num_channels):
+        for channel in range(n_channels):
             color_string = "C{}".format(int(channel))
             ax[0].plot(
                 t,
@@ -200,7 +200,7 @@ def plot_big_decision_block(
                 decision, non_erp_label, window, 0, 0:10
             ].sum()
             if sum_range != 0:
-                for channel in range(num_channels):
+                for channel in range(n_channels):
                     color_string = "C{}".format(int(channel))
                     ax[1].plot(
                         t,
@@ -217,7 +217,7 @@ def plot_big_decision_block(
         win_mean_bdb = np.mean(
             big_decision_block[decision, non_erp_label, :, :, :], axis=0
         )
-        for channel in range(num_channels):
+        for channel in range(n_channels):
             color_string = "C{}".format(int(channel))
             ax[1].plot(
                 t,
@@ -247,7 +247,7 @@ def plot_window(eeg_data_window, f_sample, channel_labels=[]):
         A window of EEG data.
         2D array containing data with `float` type.
 
-        shape = (`num_channels`,`num_samples`)
+        shape = (`n_channels`,`n_samples`)
     f_sample : float
         Sampling rate of the signal.
     channel_labels : list, *optional*
@@ -259,20 +259,20 @@ def plot_window(eeg_data_window, f_sample, channel_labels=[]):
     `None`
 
     """
-    num_channels, num_samples = eeg_data_window.shape
+    n_channels, n_samples = eeg_data_window.shape
 
     # If no channel label then assign one based on its position
     if channel_labels == []:
-        channel_labels = [str(channel) for channel in range(num_channels)]
+        channel_labels = [str(channel) for channel in range(n_channels)]
 
     # Make time vector
-    t = np.ndarray((num_samples))
-    for sample in range(num_samples):
+    t = np.ndarray((n_samples))
+    for sample in range(n_samples):
         t[sample] = sample / f_sample
 
-    fig, axs = plt.subplots(num_channels)
+    fig, axs = plt.subplots(n_channels)
 
-    for channel in range(num_channels):
+    for channel in range(n_channels):
         channel_data = eeg_data_window[channel, :]
         axs[channel].plot(t, channel_data)
         axs[channel].ylabel = channel_labels[channel]

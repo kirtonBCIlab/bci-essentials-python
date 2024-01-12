@@ -79,7 +79,7 @@ class EegData:
 
         self.headset_string = self.__eeg_source.name
         self.fsample = self.__eeg_source.fsample
-        self.num_channels = self.__eeg_source.num_channels
+        self.n_channels = self.__eeg_source.n_channels
         self.ch_type = self.__eeg_source.channel_types
         self.ch_units = self.__eeg_source.channel_units
         self.channel_labels = self.__eeg_source.channel_labels
@@ -90,18 +90,18 @@ class EegData:
         # if it is the DSI7 flex, relabel the channels, may want to make this more flexible in the future
         if self.headset_string == "DSI7":
             self.channel_labels.pop()
-            self.num_channels = 7
+            self.n_channels = 7
 
         if self.headset_string == "DSI24":
             self.channel_labels.pop()
-            self.num_channels = 23
+            self.n_channels = 23
 
-        # If a subset is to be used, define a new num_channels, channel labels, and eeg data
+        # If a subset is to be used, define a new n_channels, channel labels, and eeg data
         if self.__subset != []:
             logger.info("A subset was defined")
             logger.info("Original channels\n%s", self.channel_labels)
 
-            self.num_channels = len(self.__subset)
+            self.n_channels = len(self.__subset)
             self.subset_indices = []
             for s in self.__subset:
                 self.subset_indices.append(self.channel_labels.index(s))
@@ -110,7 +110,7 @@ class EegData:
             logger.info("Subset channels\n%s", self.channel_labels)
 
         else:
-            self.subset_indices = list(range(0, self.num_channels))
+            self.subset_indices = list(range(0, self.n_channels))
 
         self._classifier.channel_labels = self.channel_labels
 
@@ -120,17 +120,17 @@ class EegData:
         # Initialize data and timestamp arrays to the right dimensions, but zero elements
         self.marker_data = np.zeros((0, 1))
         self.marker_timestamps = np.zeros((0))
-        self.eeg_data = np.zeros((0, self.num_channels))
+        self.eeg_data = np.zeros((0, self.n_channels))
         self.eeg_timestamps = np.zeros((0))
 
         self.ping_count = 0
-        self.num_samples = 0
+        self.n_samples = 0
         self.time_units = ""
 
     def edit_settings(
         self,
         user_id="0000",
-        num_channels=8,
+        n_channels=8,
         channel_labels=["?", "?", "?", "?", "?", "?", "?", "?"],
         fsample=256,
     ):
@@ -141,7 +141,7 @@ class EegData:
         user_id : str, *optional*
             The user ID.
             - Default is `"0000"`.
-        num_channels : int, *optional*
+        n_channels : int, *optional*
             The number of channels.
             - Default is `8`.
         channel_labels : list of `str`, *optional*
@@ -157,13 +157,13 @@ class EegData:
 
         """
         self.user_id = user_id  # user id
-        self.num_channels = num_channels  # number of channels
+        self.n_channels = n_channels  # number of channels
         self.channel_labels = channel_labels  # EEG electrode placements
         self.fsample = fsample  # sampling rate
 
-        if len(channel_labels) != self.num_channels:
+        if len(channel_labels) != self.n_channels:
             logger.warning("Channel locations do not fit number of channels!!!")
-            self.channel_labels = ["?"] * self.num_channels
+            self.channel_labels = ["?"] * self.n_channels
 
     # Get new data from source, whatever it is
     def _pull_data_from_sources(self):
@@ -273,7 +273,7 @@ class EegData:
         """
 
     # SIGNAL PROCESSING
-    # Preprocessing goes here (windows are num_channels by num_samples)
+    # Preprocessing goes here (windows are n_channels by n_samples)
     def _preprocessing(self, window, option=None, order=5, fc=60, fl=10, fh=50):
         """Signal preprocessing.
 
@@ -286,7 +286,7 @@ class EegData:
             Window of EEG data.
             2D array containing data with `float` type.
 
-            shape = (`num_channels`,`num_samples`)
+            shape = (`n_channels`,`n_samples`)
         option : str, *optional*
             Preprocessing option. Options include:
             - `"notch"` : Notch filter
@@ -311,7 +311,7 @@ class EegData:
             Preprocessed window of EEG data.
             2D array containing data with `float` type.
 
-            shape = (`num_channels`,`num_samples`)
+            shape = (`n_channels`,`n_samples`)
 
         """
         # do nothing
@@ -329,7 +329,7 @@ class EegData:
 
         # other preprocessing options go here
 
-    # Artefact rejection goes here (windows are num_channels by num_samples)
+    # Artefact rejection goes here (windows are n_channels by n_samples)
     def _artefact_rejection(self, window, option=None):
         """Artefact rejection.
 
@@ -339,7 +339,7 @@ class EegData:
             Window of EEG data.
             2D array containing data with `float` type.
 
-            shape = (`num_channels`,`num_samples`)
+            shape = (`n_channels`,`n_samples`)
         option : str, *optional*
             Artefact rejection option. Options include:
             - Nothing has been implemented yet.
@@ -351,7 +351,7 @@ class EegData:
             Artefact rejected window of EEG data.
             2D array containing data with `float` type.
 
-            shape = (`num_channels`,`num_samples`)
+            shape = (`n_channels`,`n_samples`)
 
         """
         # do nothing
@@ -441,11 +441,11 @@ class EegData:
 
             if len(eyes_open_end_loc) > 0:
                 duration = np.floor(eyes_open_end_time[0] - eyes_open_start_time[0])
-                num_samples = int(duration * self.fsample)
+                n_samples = int(duration * self.fsample)
 
-                self.eyes_open_timestamps = np.array(range(num_samples)) / self.fsample
+                self.eyes_open_timestamps = np.array(range(n_samples)) / self.fsample
                 self.eyes_open_windows = np.ndarray(
-                    (len(eyes_open_start_time), self.num_channels, num_samples)
+                    (len(eyes_open_start_time), self.n_channels, n_samples)
                 )
                 # Now copy EEG for these windows
                 for i in range(len(eyes_open_start_time)):
@@ -454,7 +454,7 @@ class EegData:
                     current_eyes_open_end = eyes_open_end_loc[i]
 
                     # For each channel of the EEG, interpolate to uniform sampling rate
-                    for c in range(self.num_channels):
+                    for c in range(self.n_channels):
                         # First, adjust the EEG timestamps to start from zero
                         eeg_timestamps_adjusted = (
                             self.eeg_timestamps[
@@ -483,13 +483,13 @@ class EegData:
             if len(eyes_closed_end_loc) > 0:
                 # Get duration, nsmaples
                 duration = np.floor(eyes_closed_end_time[0] - eyes_closed_start_time[0])
-                num_samples = int(duration * self.fsample)
+                n_samples = int(duration * self.fsample)
 
                 self.eyes_closed_timestamps = (
-                    np.array(range(num_samples)) / self.fsample
+                    np.array(range(n_samples)) / self.fsample
                 )
                 self.eyes_closed_windows = np.ndarray(
-                    (len(eyes_closed_start_time), self.num_channels, num_samples)
+                    (len(eyes_closed_start_time), self.n_channels, n_samples)
                 )
                 # Now copy EEG for these windows
                 for i in range(len(eyes_closed_start_time)):
@@ -498,7 +498,7 @@ class EegData:
                     current_eyes_closed_end = eyes_closed_end_loc[i]
 
                     # For each channel of the EEG, interpolate to uniform sampling rate
-                    for c in range(self.num_channels):
+                    for c in range(self.n_channels):
                         # First, adjust the EEG timestamps to start from zero
                         eeg_timestamps_adjusted = (
                             self.eeg_timestamps[
@@ -529,11 +529,11 @@ class EegData:
 
                 duration = np.floor(rest_end_time[0] - rest_start_time[0])
 
-                num_samples = int(duration * self.fsample)
+                n_samples = int(duration * self.fsample)
 
-                self.rest_timestamps = np.array(range(num_samples)) / self.fsample
+                self.rest_timestamps = np.array(range(n_samples)) / self.fsample
                 self.rest_windows = np.ndarray(
-                    (len(rest_start_time), self.num_channels, num_samples)
+                    (len(rest_start_time), self.n_channels, n_samples)
                 )
                 # Now copy EEG for these windows
                 for i in range(len(rest_start_time)):
@@ -542,7 +542,7 @@ class EegData:
                     current_rest_end = rest_end_loc[i]
 
                     # For each channel of the EEG, interpolate to uniform sampling rate
-                    for c in range(self.num_channels):
+                    for c in range(self.n_channels):
                         # First, adjust the EEG timestamps to start from zero
                         eeg_timestamps_adjusted = (
                             self.eeg_timestamps[current_rest_start:current_rest_end]
@@ -729,10 +729,10 @@ class EegData:
 
         # Trim all the data
         self.raw_eeg_windows = self.raw_eeg_windows[
-            0 : self.num_windows, 0 : self.num_channels, 0 : self.num_samples
+            0 : self.num_windows, 0 : self.n_channels, 0 : self.n_samples
         ]
         self.processed_eeg_windows = self.processed_eeg_windows[
-            0 : self.num_windows, 0 : self.num_channels, 0 : self.num_samples
+            0 : self.num_windows, 0 : self.n_channels, 0 : self.n_samples
         ]
         self.labels = self.labels[0 : self.num_windows]
 
@@ -790,14 +790,14 @@ class EegData:
                     # Trim the unused ends of numpy arrays
                     self.current_raw_eeg_windows = self.current_raw_eeg_windows[
                         0 : self.current_num_windows,
-                        0 : self.num_channels,
-                        0 : self.num_samples,
+                        0 : self.n_channels,
+                        0 : self.n_samples,
                     ]
                     self.current_processed_eeg_windows = (
                         self.current_processed_eeg_windows[
                             0 : self.current_num_windows,
-                            0 : self.num_channels,
-                            0 : self.num_samples,
+                            0 : self.n_channels,
+                            0 : self.n_samples,
                         ]
                     )
                     self.current_labels = self.current_labels[
@@ -972,10 +972,10 @@ class EegData:
             start_time = self.marker_timestamps[self.marker_count]
 
             # Find the number of samples per window
-            self.num_samples = int(self.window_length * self.fsample)
+            self.n_samples = int(self.window_length * self.fsample)
 
             # set the window timestamps at exactly the sampling frequency
-            self.window_timestamps = np.arange(self.num_samples) / self.fsample
+            self.window_timestamps = np.arange(self.n_samples) / self.fsample
 
             # locate the indices of the window in the eeg data
             for i, s in enumerate(self.eeg_timestamps[self.search_index : -1]):
@@ -984,10 +984,10 @@ class EegData:
                     break
 
             # Get the end location for the window
-            end_loc = int(start_loc + self.num_samples + 1)
+            end_loc = int(start_loc + self.n_samples + 1)
 
             # For each channel of the EEG, interpolate to uniform sampling rate
-            for c in range(self.num_channels):
+            for c in range(self.n_channels):
                 # First, adjust the EEG timestamps to start from zero
                 eeg_timestamps_adjusted = (
                     self.eeg_timestamps[start_loc:end_loc]
@@ -1003,15 +1003,15 @@ class EegData:
 
                 # Third, sdd to the EEG window
                 self.current_raw_eeg_windows[
-                    self.current_num_windows, c, 0 : self.num_samples
+                    self.current_num_windows, c, 0 : self.n_samples
                 ] = channel_data
 
             # This is where to do preprocessing
             self.current_processed_eeg_windows[
-                self.current_num_windows, : self.num_channels, : self.num_samples
+                self.current_num_windows, : self.n_channels, : self.n_samples
             ] = self._preprocessing(
                 window=self.current_raw_eeg_windows[
-                    self.current_num_windows, : self.num_channels, : self.num_samples
+                    self.current_num_windows, : self.n_channels, : self.n_samples
                 ],
                 option=self.pp_type,
                 order=self.pp_order,
@@ -1021,10 +1021,10 @@ class EegData:
 
             # This is where to do artefact rejection
             self.current_processed_eeg_windows[
-                self.current_num_windows, : self.num_channels, : self.num_samples
+                self.current_num_windows, : self.n_channels, : self.n_samples
             ] = self._artefact_rejection(
                 window=self.current_processed_eeg_windows[
-                    self.current_num_windows, : self.num_channels, : self.num_samples
+                    self.current_num_windows, : self.n_channels, : self.n_samples
                 ],
                 option=None,
             )
@@ -1038,14 +1038,14 @@ class EegData:
 
             # copy to the eeg_data object
             self.raw_eeg_windows[
-                self.num_windows, 0 : self.num_channels, 0 : self.num_samples
+                self.num_windows, 0 : self.n_channels, 0 : self.n_samples
             ] = self.current_raw_eeg_windows[
-                self.current_num_windows, 0 : self.num_channels, 0 : self.num_samples
+                self.current_num_windows, 0 : self.n_channels, 0 : self.n_samples
             ]
             self.processed_eeg_windows[
-                self.num_windows, 0 : self.num_channels, 0 : self.num_samples
+                self.num_windows, 0 : self.n_channels, 0 : self.n_samples
             ] = self.current_processed_eeg_windows[
-                self.current_num_windows, 0 : self.num_channels, 0 : self.num_samples
+                self.current_num_windows, 0 : self.n_channels, 0 : self.n_samples
             ]
             self.labels[self.num_windows] = self.current_labels[
                 self.current_num_windows
@@ -1054,12 +1054,12 @@ class EegData:
             # Send live updates
             if self.live_update:
                 try:
-                    if self.num_samples != 0:
+                    if self.n_samples != 0:
                         prediction = self._classifier.predict(
                             self.current_processed_eeg_windows[
                                 self.current_num_windows,
-                                0 : self.num_channels,
-                                0 : self.num_samples,
+                                0 : self.n_channels,
+                                0 : self.n_samples,
                             ]
                         )
                         self._messenger.prediction(prediction)

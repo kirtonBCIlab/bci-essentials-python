@@ -158,7 +158,7 @@ class MiClassifier(GenericClassifier):
 
         """
         # get dimensions
-        num_windows, num_channels, num_samples = self.X.shape
+        num_windows, n_channels, n_samples = self.X.shape
 
         # do the rest of the training if train_free is false
         self.X = np.array(self.X)

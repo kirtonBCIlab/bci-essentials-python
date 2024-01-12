@@ -102,7 +102,7 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
             Windows of EEG data.
             3D array containing data with `float` type.
 
-            shape = (`num_windows`,`num_channels`,`num_samples`)
+            shape = (`num_windows`,`n_channels`,`n_samples`)
         target_freqs : numpy.ndarray
             Target frequencies for the SSVEP.
         fsample : float
@@ -124,22 +124,22 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
             Supertrials of X.
             3D array containing data with `float` type.
 
-            shape = (`num_windows`,`num_channels*number of target_freqs`,
-            `num_channels*number of target_freqs`)
+            shape = (`num_windows`,`n_channels*number of target_freqs`,
+            `n_channels*number of target_freqs`)
 
         """
-        num_windows, num_channels, num_samples = X.shape
+        num_windows, n_channels, n_samples = X.shape
         n_target_freqs = len(target_freqs)
 
         super_X = np.zeros(
-            [num_windows, num_channels * n_target_freqs, num_channels * n_target_freqs]
+            [num_windows, n_channels * n_target_freqs, n_channels * n_target_freqs]
         )
 
         # Create super trial of all trials filtered at all bands
         for window in range(num_windows):
             for tf, target_freq in enumerate(target_freqs):
-                lower_bound = int((num_channels * tf))
-                upper_bound = int((num_channels * tf) + num_channels)
+                lower_bound = int((n_channels * tf))
+                upper_bound = int((n_channels * tf) + n_channels)
 
                 signal = X[window, :, :]
                 for f in range(n_harmonics):
@@ -184,8 +184,8 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
         # get dimensions
         # X = self.X
 
-        # Convert each window of X into a SPD of dimensions [num_windows, num_channels*nfreqs, num_channels*nfreqs]
-        num_windows, num_channels, num_samples = self.X.shape
+        # Convert each window of X into a SPD of dimensions [num_windows, n_channels*nfreqs, n_channels*nfreqs]
+        num_windows, n_channels, n_samples = self.X.shape
 
         #################
         # Try rebuilding the classifier each time
