@@ -6,8 +6,8 @@ a set of windows.
 - For single windows, inputs are of the shape `n_channels x n_samples`, where:
     - n_channels = number of channels
     - n_samples = number of samples
-- For multiple windows, inputs are of the shape `num_windows x n_channels x n_samples`, where:
-    - num_windows = number of windows
+- For multiple windows, inputs are of the shape `n_windows x n_channels x n_samples`, where:
+    - n_windows = number of windows
     - n_channels = number of channels
     - n_samples = number of samples
 
@@ -35,11 +35,11 @@ def get_shape(data):
         2D or 3D array containing data with `float` type.
 
         shape = (`n_channels`,`n_samples`) OR
-        (`num_windows`,`n_channels`,`n_samples`)
+        (`n_windows`,`n_channels`,`n_samples`)
 
     Returns
     -------
-    num_windows : int
+    n_windows : int
         Number of windows.
     n_channels : int
         Number of channels.
@@ -48,12 +48,12 @@ def get_shape(data):
 
     """
     try:
-        num_windows, n_channels, n_samples = np.shape(data)
+        n_windows, n_channels, n_samples = np.shape(data)
     except Exception:
         n_channels, n_samples = np.shape(data)
-        num_windows = 1
+        n_windows = 1
 
-    return num_windows, n_channels, n_samples
+    return n_windows, n_channels, n_samples
 
 
 # This function is never used at the moment, anywhere in the code. Renaming to more clear convention on it being a public function.
@@ -119,7 +119,7 @@ def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
         Resting state EEG window with eyes closed.
         3D array containing data with `float` type.
 
-        shape = (`num_windows`,`n_channels`,`n_samples`)
+        shape = (`n_windows`,`n_channels`,`n_samples`)
     alpha_min : float, *optional*
         Lowest possible value of alpha peak (Hz)
         - Default is `8`.
@@ -138,12 +138,12 @@ def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
 
     fs = 256
 
-    num_windows, n_channels, n_samples = get_shape(data)
+    n_windows, n_channels, n_samples = get_shape(data)
 
-    # Create alpha_peaks of length num_windows
-    alpha_peaks = np.zeros(num_windows)
+    # Create alpha_peaks of length n_windows
+    alpha_peaks = np.zeros(n_windows)
 
-    for window in range(num_windows):
+    for window in range(n_windows):
         # Get the current window
         current_window = data[window, :, :]
 
@@ -192,7 +192,7 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
         Windows of resting state EEG data.
         3D array containing data with `float` type.
 
-        shape = (`num_windows`,`n_channels`,`n_samples`)
+        shape = (`n_windows`,`n_channels`,`n_samples`)
     fs : float
         Sampling frequency (Hz).
     transition_freqs : array-like, *optional*
@@ -221,17 +221,17 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
 
     """
     # Get Shape
-    num_windows, n_channels, n_samples = get_shape(data)
+    n_windows, n_channels, n_samples = get_shape(data)
 
     # Initialize
-    abs_bandpower = np.zeros((len(transition_freqs), num_windows))
-    rel_bandpower = np.zeros((len(transition_freqs), num_windows))
+    abs_bandpower = np.zeros((len(transition_freqs), n_windows))
+    rel_bandpower = np.zeros((len(transition_freqs), n_windows))
     rel_bandpower_mat = np.zeros(
-        (len(transition_freqs), len(transition_freqs), num_windows)
+        (len(transition_freqs), len(transition_freqs), n_windows)
     )
 
     # for each window
-    for window in range(num_windows):
+    for window in range(n_windows):
         # Get the current window
         current_window = data[window, :, :]
 

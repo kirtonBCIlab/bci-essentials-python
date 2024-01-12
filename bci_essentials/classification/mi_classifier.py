@@ -158,7 +158,7 @@ class MiClassifier(GenericClassifier):
 
         """
         # get dimensions
-        num_windows, n_channels, n_samples = self.X.shape
+        n_windows, n_channels, n_samples = self.X.shape
 
         # do the rest of the training if train_free is false
         self.X = np.array(self.X)
@@ -171,10 +171,10 @@ class MiClassifier(GenericClassifier):
         # get temporal subset
         subX = self.X[self.next_fit_window :, :, :]
         suby = self.y[self.next_fit_window :]
-        self.next_fit_window = num_windows
+        self.next_fit_window = n_windows
 
         # Init predictions to all false
-        preds = np.zeros(num_windows)
+        preds = np.zeros(n_windows)
 
         def __mi_kernel(subX, suby):
             """MI kernel.
@@ -279,7 +279,7 @@ class MiClassifier(GenericClassifier):
 
         # Log performance stats
 
-        self.offline_window_count = num_windows
+        self.offline_window_count = n_windows
         self.offline_window_counts.append(self.offline_window_count)
 
         # accuracy

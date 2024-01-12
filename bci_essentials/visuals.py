@@ -3,8 +3,8 @@ Visualization toolbox for BCI Essentials
 
 The EEG data inputs for each function are either windows or
 decision blocks.
-- For windows, inputs are of the shape `num_windows x n_channels x n_samples`, where:
-    - num_windows = number of windows (for a single window `W_window = 1`)
+- For windows, inputs are of the shape `n_windows x n_channels x n_samples`, where:
+    - n_windows = number of windows (for a single window `W_window = 1`)
     - n_channels = number of channels
     - n_samples = number of samples
 - For decision blocks, inputs are of the shape `num_decisions x n_channels x n_samples`, where:
@@ -137,7 +137,7 @@ def plot_big_decision_block(
     `None`
 
     """
-    num_decisions, O, num_windows, n_channels, n_samples = big_decision_block.shape
+    num_decisions, O, n_windows, n_channels, n_samples = big_decision_block.shape
 
     num_decisions = 9
 
@@ -159,8 +159,8 @@ def plot_big_decision_block(
 
         # plot the ERP
         erp_label = erp_targets[decision]
-        # for window in num_windows plot the signal
-        for window in range(num_windows):
+        # for window in n_windows plot the signal
+        for window in range(n_windows):
             sum_range = big_decision_block[decision, erp_label, window, 0, 0:10].sum()
             if sum_range != 0:
                 for channel in range(n_channels):
@@ -172,7 +172,7 @@ def plot_big_decision_block(
                         color=color_string,
                     )
 
-                # plot the average of all num_windows in bold
+                # plot the average of all n_windows in bold
                 color_string = "C{}".format(int(channel))
             else:
                 break
@@ -194,8 +194,8 @@ def plot_big_decision_block(
 
         # plot any non ERP
         non_erp_label = 0
-        # for window in num_windows plot the signal
-        for window in range(num_windows):
+        # for window in n_windows plot the signal
+        for window in range(n_windows):
             sum_range = big_decision_block[
                 decision, non_erp_label, window, 0, 0:10
             ].sum()
@@ -209,7 +209,7 @@ def plot_big_decision_block(
                         color=color_string,
                     )
 
-                # plot the average of all num_windows in bold
+                # plot the average of all n_windows in bold
                 color_string = "C{}".format(int(channel))
             else:
                 break
@@ -230,9 +230,9 @@ def plot_big_decision_block(
         ax[1].set_title("Non-ERP on object{}".format(non_erp_label))
         ax[1].set_ylim(ylims)
         ax[1].legend()
-        # for window in num_windows plot the signal
+        # for window in n_windows plot the signal
 
-        # plot the average of all num_windows in bold
+        # plot the average of all n_windows in bold
 
         fig[decision].show()
 

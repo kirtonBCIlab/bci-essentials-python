@@ -5,8 +5,8 @@ The EEG data inputs can be 2D or 3D arrays.
 - For single windows, inputs are of the shape `n_channels x n_samples`, where:
     - n_channels = number of channels
     - n_samples = number of samples
-- For multiple windows, inputs are of the shape `num_windows x n_channels x n_samples`, where:
-    - num_windows = number of windows
+- For multiple windows, inputs are of the shape `n_windows x n_channels x n_samples`, where:
+    - n_windows = number of windows
     - n_channels = number of channels
     - n_samples = number of samples
 
@@ -37,7 +37,7 @@ def bandpass(data, f_low, f_high, order, fsample):
         Windows of EEG data.
         3D (or 2D) array containing data with `float` type.
 
-        shape = (num_windows, n_channels, n_samples) or (n_channels, n_samples)
+        shape = (n_windows, n_channels, n_samples) or (n_channels, n_samples)
     f_low : float
         Lower corner frequency.
     f_high : float
@@ -53,18 +53,18 @@ def bandpass(data, f_low, f_high, order, fsample):
         Windows of filtered EEG data.
         3D (or 2D) array containing data with `float` type.
 
-        shape = (num_windows, n_channels, n_samples) or (n_channels, n_samples)
+        shape = (n_windows, n_channels, n_samples) or (n_channels, n_samples)
     """
     Wn = [f_low / (fsample / 2), f_high / (fsample / 2)]
     b, a = signal.butter(order, Wn, btype="bandpass")
 
     try:
-        num_windows, n_channels, n_samples = np.shape(data)
+        n_windows, n_channels, n_samples = np.shape(data)
 
         new_data = np.ndarray(
-            shape=(num_windows, n_channels, n_samples), dtype=float
+            shape=(n_windows, n_channels, n_samples), dtype=float
         )
-        for window in range(0, num_windows):
+        for window in range(0, n_windows):
             current_window = data[window, :, :]
             new_data[window, :, :] = signal.filtfilt(b, a, current_window, padlen=0)
 
@@ -92,7 +92,7 @@ def lowpass(data, f_critical, order, fsample):
         Windows of EEG data.
         3D (or 2D) array containing data with `float` type.
 
-        shape = (num_windows, n_channels, n_samples) or (n_channels, n_samples)
+        shape = (n_windows, n_channels, n_samples) or (n_channels, n_samples)
     f_critical : float
         Critical (cutoff) frequency.
     order : int
@@ -106,18 +106,18 @@ def lowpass(data, f_critical, order, fsample):
         Windows of filtered EEG data.
         3D (or 2D) array containing data with `float` type.
 
-        shape = (num_windows, n_channels, n_samples) or (n_channels, n_samples)
+        shape = (n_windows, n_channels, n_samples) or (n_channels, n_samples)
     """
     Wn = f_critical / (fsample / 2)
     b, a = signal.butter(order, Wn, btype="lowpass")
 
     try:
-        num_windows, n_channels, n_samples = np.shape(data)
+        n_windows, n_channels, n_samples = np.shape(data)
 
         new_data = np.ndarray(
-            shape=(num_windows, n_channels, n_samples), dtype=float
+            shape=(n_windows, n_channels, n_samples), dtype=float
         )
-        for window in range(0, num_windows):
+        for window in range(0, n_windows):
             for channel in range(0, n_channels):
                 current_window = data[window, channel, :]
                 new_data[window, channel, :] = signal.filtfilt(
@@ -148,7 +148,7 @@ def highpass(data, f_critical, order, fsample):
         Windows of EEG data.
         3D (or 2D) array containing data with `float` type.
 
-        shape = (num_windows, n_channels, n_samples) or (n_channels, n_samples)
+        shape = (n_windows, n_channels, n_samples) or (n_channels, n_samples)
     f_critical : float
         Critical (cutoff) frequency.
     order : int
@@ -162,18 +162,18 @@ def highpass(data, f_critical, order, fsample):
         Windows of filtered EEG data.
         3D (or 2D) array containing data with `float` type.
 
-        shape = (num_windows, n_channels, n_samples) or (n_channels, n_samples)
+        shape = (n_windows, n_channels, n_samples) or (n_channels, n_samples)
     """
     Wn = f_critical / (fsample / 2)
     b, a = signal.butter(order, Wn, btype="highpass")
 
     try:
-        num_windows, n_channels, n_samples = np.shape(data)
+        n_windows, n_channels, n_samples = np.shape(data)
 
         new_data = np.ndarray(
-            shape=(num_windows, n_channels, n_samples), dtype=float
+            shape=(n_windows, n_channels, n_samples), dtype=float
         )
-        for window in range(0, num_windows):
+        for window in range(0, n_windows):
             current_window = data[window, :, :]
             new_data[window, :, :] = signal.filtfilt(b, a, current_window, padlen=0)
 
@@ -199,7 +199,7 @@ def notch(data, f_notch, Q, fsample):
         Windows of EEG data.
         3D (or 2D) array containing data with `float` type.
 
-        shape = (num_windows, n_channels, n_samples) or (n_channels, n_samples)
+        shape = (n_windows, n_channels, n_samples) or (n_channels, n_samples)
     f_notch : float
         Frequency of notch.
     Q : float
@@ -222,11 +222,11 @@ def notch(data, f_notch, Q, fsample):
     b, a = signal.iirnotch(f_notch, Q, fsample)
 
     try:
-        num_windows, n_channels, n_samples = np.shape(data)
+        n_windows, n_channels, n_samples = np.shape(data)
         new_data = np.ndarray(
-            shape=(num_windows, n_channels, n_samples), dtype=float
+            shape=(n_windows, n_channels, n_samples), dtype=float
         )
-        for window in range(0, num_windows):
+        for window in range(0, n_windows):
             current_window = data[window, :, :]
             new_data[window, :, :] = signal.filtfilt(b, a, current_window, padlen=0)
         return new_data
@@ -251,7 +251,7 @@ def lico(X, y, expansion_factor=3, sum_num=2, shuffle=False):
         Windows of EEG data.
         3D array containing data with `float` type.
 
-        shape = (num_windows, n_channels, n_samples)
+        shape = (n_windows, n_channels, n_samples)
     y : numpy.ndarray
         Labels corresponding to X.
     expansion_factor : int, *optional*
@@ -271,13 +271,13 @@ def lico(X, y, expansion_factor=3, sum_num=2, shuffle=False):
     """
     true_X = X[y == 1]
 
-    num_windows, n_channels, n_samples = true_X.shape
+    n_windows, n_channels, n_samples = true_X.shape
     logger.info("Shape of ERPs only: %s", true_X.shape)
-    new_window = num_windows * np.round(expansion_factor - 1)
+    new_window = n_windows * np.round(expansion_factor - 1)
     new_X = np.zeros([new_window, n_channels, n_samples])
-    for window in range(num_windows):
+    for window in range(n_windows):
         for j in range(sum_num):
-            random_epoch = true_X[random.choice(range(num_windows)), :, :]
+            random_epoch = true_X[random.choice(range(n_windows)), :, :]
             new_X[window, :, :] += random_epoch / sum_num
 
     over_X = np.append(X, new_X, axis=0)

@@ -682,7 +682,7 @@ class EegData:
         # initialize the numbers of markers and windows to zero
         self.marker_count = 0
         self.current_num_windows = 0
-        self.num_windows = 0
+        self.n_windows = 0
 
         self.num_online_selections = 0
         self.online_selection_indices = []
@@ -729,12 +729,12 @@ class EegData:
 
         # Trim all the data
         self.raw_eeg_windows = self.raw_eeg_windows[
-            0 : self.num_windows, 0 : self.n_channels, 0 : self.n_samples
+            0 : self.n_windows, 0 : self.n_channels, 0 : self.n_samples
         ]
         self.processed_eeg_windows = self.processed_eeg_windows[
-            0 : self.num_windows, 0 : self.n_channels, 0 : self.n_samples
+            0 : self.n_windows, 0 : self.n_channels, 0 : self.n_samples
         ]
-        self.labels = self.labels[0 : self.num_windows]
+        self.labels = self.labels[0 : self.n_windows]
 
     def step(self):
         """Runs a single EegData processing step.
@@ -850,8 +850,8 @@ class EegData:
                         # save the online selection indices
                         selection_inds = list(
                             range(
-                                self.num_windows - self.current_num_windows,
-                                self.num_windows,
+                                self.n_windows - self.current_num_windows,
+                                self.n_windows,
                             )
                         )
                         self.online_selection_indices.append(selection_inds)
@@ -1038,16 +1038,16 @@ class EegData:
 
             # copy to the eeg_data object
             self.raw_eeg_windows[
-                self.num_windows, 0 : self.n_channels, 0 : self.n_samples
+                self.n_windows, 0 : self.n_channels, 0 : self.n_samples
             ] = self.current_raw_eeg_windows[
                 self.current_num_windows, 0 : self.n_channels, 0 : self.n_samples
             ]
             self.processed_eeg_windows[
-                self.num_windows, 0 : self.n_channels, 0 : self.n_samples
+                self.n_windows, 0 : self.n_channels, 0 : self.n_samples
             ] = self.current_processed_eeg_windows[
                 self.current_num_windows, 0 : self.n_channels, 0 : self.n_samples
             ]
-            self.labels[self.num_windows] = self.current_labels[
+            self.labels[self.n_windows] = self.current_labels[
                 self.current_num_windows
             ]
 
@@ -1069,5 +1069,5 @@ class EegData:
             # iterate to next window
             self.marker_count += 1
             self.current_num_windows += 1
-            self.num_windows += 1
+            self.n_windows += 1
             self.search_index = start_loc

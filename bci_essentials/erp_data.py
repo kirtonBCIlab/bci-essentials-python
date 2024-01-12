@@ -167,7 +167,7 @@ class ErpData(EegData):
 
         # initialize the numbers of markers, windows, and decision blocks to zero
         self.marker_count = 0
-        self.num_windows = 0
+        self.n_windows = 0
         self.decision_count = 0
 
         self.training_labels = np.zeros((self.max_windows), dtype=int)
@@ -248,16 +248,16 @@ class ErpData(EegData):
 
         # Trim the unused ends of numpy arrays
         if self.training:
-            self.training_labels = self.training_labels[0 : self.num_windows - 1]
-            self.target_index = self.target_index[0 : self.num_windows - 1]
+            self.training_labels = self.training_labels[0 : self.n_windows - 1]
+            self.target_index = self.target_index[0 : self.n_windows - 1]
 
-        # self.erp_windows = self.erp_windows[0:self.num_windows, 0:self.n_channels, 0:self.n_samples]
+        # self.erp_windows = self.erp_windows[0:self.n_windows, 0:self.n_channels, 0:self.n_samples]
         self.erp_windows_raw = self.erp_windows_raw[
-            0 : self.num_windows, 0 : self.n_channels, 0 : self.n_samples
+            0 : self.n_windows, 0 : self.n_channels, 0 : self.n_samples
         ]
-        self.target_index = self.target_index[0 : self.num_windows]
-        self.training_labels = self.training_labels[0 : self.num_windows]
-        self.stim_labels = self.stim_labels[0 : self.num_windows, :]
+        self.target_index = self.target_index[0 : self.n_windows]
+        self.training_labels = self.training_labels[0 : self.n_windows]
+        self.stim_labels = self.stim_labels[0 : self.n_windows, :]
         self.num_options_per_decision = self.num_options_per_decision[
             0 : self.decision_count
         ]
@@ -523,15 +523,15 @@ class ErpData(EegData):
                     logger.info("Marker information: %s", current_marker_info)
                     current_target = self.unity_label
 
-                self.training_labels[self.num_windows] = current_target
+                self.training_labels[self.n_windows] = current_target
 
                 for fi in flash_indices:
-                    self.stim_labels[self.num_windows, fi] = True
+                    self.stim_labels[self.n_windows, fi] = True
 
                 if current_target in flash_indices:
-                    self.target_index[self.num_windows] = True
+                    self.target_index[self.n_windows] = True
                 else:
-                    self.target_index[self.num_windows] = False
+                    self.target_index[self.n_windows] = False
 
             # Find the start time and end time for the window based on the marker timestamp
             start_time = self.marker_timestamps[self.marker_count] + self.window_start
@@ -570,9 +570,9 @@ class ErpData(EegData):
 
                     # add to raw ERP windows
                     self.erp_windows_raw[
-                        self.num_windows, c, 0 : self.n_samples
+                        self.n_windows, c, 0 : self.n_samples
                     ] = channel_data
-                    # self.decision_blocks_raw[self.decision_count, self.num_windows, c, 0:self.n_samples]
+                    # self.decision_blocks_raw[self.decision_count, self.n_windows, c, 0:self.n_samples]
 
                     # if self.pp_type == "bandpass":
                     #     channel_data_2 = bandpass(channel_data[np.newaxis,:], self.pp_low, self.pp_high, self.pp_order, self.fsample)
@@ -593,17 +593,17 @@ class ErpData(EegData):
                             self.non_target_plot = flash_index
 
                     # # add to processed ERP windows
-                    # self.erp_windows[self.num_windows, c, 0:self.n_samples] = channel_data
+                    # self.erp_windows[self.n_windows, c, 0:self.n_samples] = channel_data
 
                     # # Does the ensemble avearging
                     # self.decision_blocks[self.decision_count, flash_index, c, 0:self.n_samples] += channel_data
 
                 # This is where to do preprocessing
                 self.erp_windows_processed[
-                    self.num_windows, : self.n_channels, : self.n_samples
+                    self.n_windows, : self.n_channels, : self.n_samples
                 ] = self._preprocessing(
                     window=self.erp_windows_raw[
-                        self.num_windows, : self.n_channels, : self.n_samples
+                        self.n_windows, : self.n_channels, : self.n_samples
                     ],
                     option=self.pp_type,
                     order=self.pp_order,
@@ -613,10 +613,10 @@ class ErpData(EegData):
 
                 # This is where to do artefact rejection
                 self.erp_windows_processed[
-                    self.num_windows, : self.n_channels, : self.n_samples
+                    self.n_windows, : self.n_channels, : self.n_samples
                 ] = self._artefact_rejection(
                     window=self.erp_windows_processed[
-                        self.num_windows, : self.n_channels, : self.n_samples
+                        self.n_windows, : self.n_channels, : self.n_samples
                     ],
                     option=None,
                 )
@@ -630,7 +630,7 @@ class ErpData(EegData):
                     0 : self.n_channels,
                     0 : self.n_samples,
                 ] = self.erp_windows_raw[
-                    self.num_windows, : self.n_channels, : self.n_samples
+                    self.n_windows, : self.n_channels, : self.n_samples
                 ]
 
                 self.big_decision_blocks_processed[
@@ -640,7 +640,7 @@ class ErpData(EegData):
                     0 : self.n_channels,
                     0 : self.n_samples,
                 ] = self.erp_windows_processed[
-                    self.num_windows, : self.n_channels, : self.n_samples
+                    self.n_windows, : self.n_channels, : self.n_samples
                 ]
 
                 # self.windows_per_decision[flash_index] += 1
@@ -648,7 +648,7 @@ class ErpData(EegData):
 
             # iterate to next window
             self.marker_count += 1
-            self.num_windows += 1
+            self.n_windows += 1
             self.search_index = start_loc
             if self.online:
                 time.sleep(0.000001)

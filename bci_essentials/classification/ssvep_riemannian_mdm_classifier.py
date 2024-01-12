@@ -102,7 +102,7 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
             Windows of EEG data.
             3D array containing data with `float` type.
 
-            shape = (`num_windows`,`n_channels`,`n_samples`)
+            shape = (`n_windows`,`n_channels`,`n_samples`)
         target_freqs : numpy.ndarray
             Target frequencies for the SSVEP.
         fsample : float
@@ -124,19 +124,19 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
             Supertrials of X.
             3D array containing data with `float` type.
 
-            shape = (`num_windows`,`n_channels*number of target_freqs`,
+            shape = (`n_windows`,`n_channels*number of target_freqs`,
             `n_channels*number of target_freqs`)
 
         """
-        num_windows, n_channels, n_samples = X.shape
+        n_windows, n_channels, n_samples = X.shape
         n_target_freqs = len(target_freqs)
 
         super_X = np.zeros(
-            [num_windows, n_channels * n_target_freqs, n_channels * n_target_freqs]
+            [n_windows, n_channels * n_target_freqs, n_channels * n_target_freqs]
         )
 
         # Create super trial of all trials filtered at all bands
-        for window in range(num_windows):
+        for window in range(n_windows):
             for tf, target_freq in enumerate(target_freqs):
                 lower_bound = int((n_channels * tf))
                 upper_bound = int((n_channels * tf) + n_channels)
@@ -184,8 +184,8 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
         # get dimensions
         # X = self.X
 
-        # Convert each window of X into a SPD of dimensions [num_windows, n_channels*nfreqs, n_channels*nfreqs]
-        num_windows, n_channels, n_samples = self.X.shape
+        # Convert each window of X into a SPD of dimensions [n_windows, n_channels*nfreqs, n_channels*nfreqs]
+        n_windows, n_channels, n_samples = self.X.shape
 
         #################
         # Try rebuilding the classifier each time
@@ -196,10 +196,10 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
         # get temporal subset
         subX = self.X[self.next_fit_window :, :, :]
         suby = self.y[self.next_fit_window :]
-        self.next_fit_window = num_windows
+        self.next_fit_window = n_windows
 
         # Init predictions to all false
-        preds = np.zeros(num_windows)
+        preds = np.zeros(n_windows)
 
         def __ssvep_kernel(subX, suby):
             """SSVEP kernel.
@@ -306,7 +306,7 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
 
         # Log performance stats
 
-        self.offline_window_count = num_windows
+        self.offline_window_count = n_windows
         self.offline_window_counts.append(self.offline_window_count)
 
         # accuracy

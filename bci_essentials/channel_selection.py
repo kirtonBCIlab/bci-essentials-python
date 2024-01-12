@@ -3,8 +3,8 @@ This module includes functions for selecting channels in order to
 improve BCI performance.
 
 The EEG data input for each function is a set of windows. The data must
-be of the shape `num_windows x n_channels x n_samples`, where:
-- num_windows = number of windows
+be of the shape `n_windows x n_channels x n_samples`, where:
+- n_windows = number of windows
 - n_channels = number of channels
 - n_samples = number of samples
 
@@ -47,12 +47,12 @@ def channel_selection_by_method(
         Training data for the classifier as windows of EEG data.
         3D array containing data with `float` type.
 
-        shape = (`num_windows`,`n_channels`,`n_samples`)
+        shape = (`n_windows`,`n_channels`,`n_samples`)
     y : numpy.ndarray
         Training labels for the classifier.
         1D array.
 
-        shape = (`num_windows`)
+        shape = (`n_windows`)
     channel_labels : list of `str`
         The set of channel labels corresponding to `n_channels`.
         A list of strings with length = `n_channels`.
@@ -97,7 +97,7 @@ def channel_selection_by_method(
         The predictions from the model.
         1D array with the same shape as `y`.
 
-        shape = (`num_windows`)
+        shape = (`n_windows`)
     accuracy : float
         The accuracy of the trained classification model.
     precision : float
@@ -287,12 +287,12 @@ def __sfs(
         Training data for the classifier as windows of EEG data.
         3D array containing data with `float` type.
 
-        shape = (`num_windows`,`n_channels`,`n_samples`)
+        shape = (`n_windows`,`n_channels`,`n_samples`)
     y : numpy.ndarray
         Training labels for the classifier.
         1D array.
 
-        shape = (`num_windows`)
+        shape = (`n_windows`)
     channel_labels: list of `str`
         The set of channel labels corresponding to `n_channels`.
         A list of strings with length = `n_channels`.
@@ -326,7 +326,7 @@ def __sfs(
         The predictions from the model.
         1D array with the same shape as `y`.
 
-        shape = (`num_windows`)
+        shape = (`n_windows`)
     accuracy : float
         The accuracy of the trained classification model.
     precision : float
@@ -352,7 +352,7 @@ def __sfs(
 
     start_time = time.time()
 
-    num_windows, n_channels, n_samples = X.shape
+    n_windows, n_channels, n_samples = X.shape
     sfs_subset = []
 
     for i, c in enumerate(channel_labels):
@@ -413,7 +413,7 @@ def __sfs(
                 sets_to_try.append(set_to_try)
 
                 # Get the new subset of data
-                new_subset_data = np.zeros((num_windows, len(set_to_try), n_samples))
+                new_subset_data = np.zeros((n_windows, len(set_to_try), n_samples))
                 for subset_idx, channel_number in enumerate(set_to_try):
                     channel_data = X[:, channel_number, :]
                     new_subset_data[:, subset_idx, :] = channel_data
@@ -561,12 +561,12 @@ def __sbs(
         Training data for the classifier as windows of EEG data.
         3D array containing data with `float` type.
 
-        shape = (`num_windows`,`n_channels`,`n_samples`)
+        shape = (`n_windows`,`n_channels`,`n_samples`)
     y : numpy.ndarray
         Training labels for the classifier.
         1D array.
 
-        shape = (`num_windows`)
+        shape = (`n_windows`)
     channel_labels: list of `str`
         The set of channel labels corresponding to `n_channels`.
         A list of strings with length = `n_channels`.
@@ -599,7 +599,7 @@ def __sbs(
         The predictions from the model.
         1D array with the same shape as `y`.
 
-        shape = (`num_windows`)
+        shape = (`n_windows`)
     accuracy : float
         The accuracy of the trained classification model.
     precision : float
@@ -631,7 +631,7 @@ def __sbs(
 
     start_time = time.time()
 
-    num_windows, n_channels, n_samples = X.shape
+    n_windows, n_channels, n_samples = X.shape
     sbs_subset = []
     all_sets_tried = []  # set of all channels that have been tried
 
@@ -689,7 +689,7 @@ def __sbs(
                 continue
 
             # Get the new subset of data
-            new_subset_data = np.zeros((num_windows, len(set_to_try), n_samples))
+            new_subset_data = np.zeros((n_windows, len(set_to_try), n_samples))
             for subset_idx, channel_number in enumerate(set_to_try):
                 channel_data = X[:, channel_number, :]
                 new_subset_data[:, subset_idx, :] = channel_data
@@ -840,12 +840,12 @@ def __sbfs(
         Training data for the classifier as windows of EEG data.
         3D array containing data with `float` type.
 
-        shape = (`num_windows`,`n_channels`,`n_samples`)
+        shape = (`n_windows`,`n_channels`,`n_samples`)
     y : numpy.ndarray
         Training labels for the classifier.
         1D array.
 
-        shape = (`num_windows`)
+        shape = (`n_windows`)
     channel_labels: list of `str`
         The set of channel labels corresponding to `n_channels`.
         A list of strings with length = `n_channels`.
@@ -878,7 +878,7 @@ def __sbfs(
         The predictions from the model.
         1D array with the same shape as `y`.
 
-        shape = (`num_windows`)
+        shape = (`n_windows`)
     accuracy : float
         The accuracy of the trained classification model.
     precision : float
@@ -909,7 +909,7 @@ def __sbfs(
 
     start_time = time.time()
 
-    num_windows, n_channels, n_samples = X.shape
+    n_windows, n_channels, n_samples = X.shape
     sbfs_subset = []
     all_sets_tried = []  # set of all channels that have been tried
 
@@ -984,7 +984,7 @@ def __sbfs(
                 continue
 
             # Get the new subset of data
-            new_subset_data = np.zeros((num_windows, len(set_to_try), n_samples))
+            new_subset_data = np.zeros((n_windows, len(set_to_try), n_samples))
             for subset_idx, channel_number in enumerate(set_to_try):
                 channel_data = X[:, channel_number, :]
                 new_subset_data[:, subset_idx, :] = channel_data
@@ -1115,7 +1115,7 @@ def __sbfs(
                     continue
 
                 # Get the new subset of data
-                new_subset_data = np.zeros((num_windows, len(set_to_try), n_samples))
+                new_subset_data = np.zeros((n_windows, len(set_to_try), n_samples))
                 for subset_idx, channel_number in enumerate(set_to_try):
                     channel_data = X[:, channel_number, :]
                     new_subset_data[:, subset_idx, :] = channel_data
@@ -1294,12 +1294,12 @@ def __sffs(
         Training data for the classifier as windows of EEG data.
         3D array containing data with `float` type.
 
-        shape = (`num_windows`,`n_channels`,`n_samples`)
+        shape = (`n_windows`,`n_channels`,`n_samples`)
     y : numpy.ndarray
         Training labels for the classifier.
         1D array.
 
-        shape = (`num_windows`)
+        shape = (`n_windows`)
     channel_labels: list of `str`
         The set of channel labels corresponding to `n_channels`.
         A list of strings with length = `n_channels`.
@@ -1332,7 +1332,7 @@ def __sffs(
         The predictions from the model.
         1D array with the same shape as `y`.
 
-        shape = (`num_windows`)
+        shape = (`n_windows`)
     accuracy : float
         The accuracy of the trained classification model.
     precision : float
@@ -1360,7 +1360,7 @@ def __sffs(
 
     start_time = time.time()
 
-    num_windows, n_channels, n_samples = X.shape
+    n_windows, n_channels, n_samples = X.shape
     sffs_subset = []
     all_sets_tried = []  # set of all channels that have been tried
 
@@ -1433,7 +1433,7 @@ def __sffs(
                 sets_to_try.append(set_to_try)
 
                 # Get the new subset of data
-                new_subset_data = np.zeros((num_windows, len(set_to_try), n_samples))
+                new_subset_data = np.zeros((n_windows, len(set_to_try), n_samples))
                 for subset_idx, channel_number in enumerate(set_to_try):
                     channel_data = X[:, channel_number, :]
                     new_subset_data[:, subset_idx, :] = channel_data
@@ -1562,7 +1562,7 @@ def __sffs(
                     continue
 
                 # Get the new subset of data
-                new_subset_data = np.zeros((num_windows, len(set_to_try), n_samples))
+                new_subset_data = np.zeros((n_windows, len(set_to_try), n_samples))
                 for subset_idx, channel_number in enumerate(set_to_try):
                     channel_data = X[:, channel_number, :]
                     new_subset_data[:, subset_idx, :] = channel_data

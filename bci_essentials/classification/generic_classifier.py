@@ -196,7 +196,7 @@ class GenericClassifier(ABC):
 
             # Return for the given indices
             try:
-                # num_windows, n_channels, n_samples = self.X.shape
+                # n_windows, n_channels, n_samples = self.X.shape
 
                 if sum(X.shape) == 0:
                     new_X = self.X[:, subset_indices, :]

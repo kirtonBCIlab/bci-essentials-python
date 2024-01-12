@@ -390,7 +390,7 @@ class ErpRgClassifier(GenericClassifier):
         Parameters
         ----------
         X : numpy.ndarray
-            3D array where shape = (num_windows, n_channels, n_samples)
+            3D array where shape = (n_windows, n_channels, n_samples)
 
         Returns
         -------
