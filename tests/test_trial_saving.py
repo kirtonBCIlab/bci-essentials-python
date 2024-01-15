@@ -43,13 +43,16 @@ class TestRawTrialSave(unittest.TestCase):
         data1.run()
 
         # Create a temp .npy file to save the raw EEG trials and labels
-        data1.save_data("raw_trial_eeg.npy")
+        data1.save_trials_as_npy("raw_trial_eeg.npz")
 
         # Load the Raw EEG Trials and labels from the .npy file
-        loaded_result = np.load("raw_trial_eeg.npy")
+        loaded_npz = np.load("raw_trial_eeg.npz")
 
-        X = loaded_result[0]
-        y = loaded_result[1]
+        X = loaded_npz['X']
+        y = loaded_npz['y']
+
+        # Delete the temp .npy file
+        # os.remove("raw_trial_eeg.npz")
 
         # Check that all values of the classifier's numpy arrays are the same
         self.assertTrue(np.array_equal(data1.raw_eeg_trials, X))
