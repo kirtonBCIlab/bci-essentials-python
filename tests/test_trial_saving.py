@@ -42,7 +42,7 @@ class TestRawTrialSave(unittest.TestCase):
         X = loaded_npz["X"]
         y = loaded_npz["y"]
 
-        # Delete the temp .npy file
+        # Delete the temp .npz file
         loaded_npz.close()
         os.remove("raw_trial_eeg.npz")
 
