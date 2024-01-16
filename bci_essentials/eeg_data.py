@@ -251,7 +251,7 @@ class EegData:
         self.eeg_data = np.concatenate((self.eeg_data, eeg))
         self.eeg_timestamps = np.concatenate((self.eeg_timestamps, timestamps))
 
-    def save_trials_as_npy(self, file_name: str):
+    def save_trials_as_npz(self, file_name: str):
         """Saves EEG trials and labels as a numpy file.
 
         Parameters
@@ -264,7 +264,7 @@ class EegData:
         `None`
 
         """
-        # Check if file ends with .npy, if not add it
+        # Check if file ends with .npz, if not add it
         if file_name[-4:] != ".npz":
             file_name += ".npz"
 

@@ -4,10 +4,7 @@ import numpy as np
 
 from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
 from bci_essentials.eeg_data import EegData
-from bci_essentials.erp_data import ErpData
-from bci_essentials.classification.mi_classifier import MiClassifier
-from bci_essentials.classification.erp_rg_classifier import ErpRgClassifier
-from bci_essentials.session_saving import save_classifier, load_classifier
+from bci_essentials.classification.null_classifier import NullClassifier
 from bci_essentials.utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
@@ -20,14 +17,7 @@ class TestRawTrialSave(unittest.TestCase):
         marker_source1 = XdfMarkerSource(xdf_path)
 
         # Select a classifier
-        classifier1 = MiClassifier()
-        classifier1.set_mi_classifier_settings(
-            n_splits=5,
-            type="TS",
-            random_seed=35,
-            channel_selection="riemann",
-            covariance_estimator="oas",
-        )
+        classifier1 = NullClassifier()
 
         # Load the data
         data1 = EegData(classifier1, eeg_source1, marker_source1)
@@ -43,7 +33,7 @@ class TestRawTrialSave(unittest.TestCase):
         data1.run()
 
         # Create a temp .npy file to save the raw EEG trials and labels
-        data1.save_trials_as_npy("raw_trial_eeg.npz")
+        data1.save_trials_as_npz("raw_trial_eeg.npz")
 
         # Load the Raw EEG Trials and labels from the .npy file
         loaded_npz = np.load("raw_trial_eeg.npz")
