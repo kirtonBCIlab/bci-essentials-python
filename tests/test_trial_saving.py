@@ -10,6 +10,7 @@ from bci_essentials.utils.logger import Logger  # Logger wrapper
 # Instantiate a logger for the module at the default level of logging.INFO
 logger = Logger(name="test_classifier_save")
 
+
 class TestRawTrialSave(unittest.TestCase):
     def test_xy_trial_save(self):
         xdf_path = os.path.join(os.path.dirname(__file__), "data", "mi_smoke.xdf")
@@ -38,15 +39,17 @@ class TestRawTrialSave(unittest.TestCase):
         # Load the Raw EEG Trials and labels from the .npy file
         loaded_npz = np.load("raw_trial_eeg.npz")
 
-        X = loaded_npz['X']
-        y = loaded_npz['y']
+        X = loaded_npz["X"]
+        y = loaded_npz["y"]
 
-        # Delete the temp .npy file
-        # os.remove("raw_trial_eeg.npz")
+        # Delete the temp .npz file
+        loaded_npz.close()
+        os.remove("raw_trial_eeg.npz")
 
         # Check that all values of the classifier's numpy arrays are the same
         self.assertTrue(np.array_equal(data1.raw_eeg_trials, X))
         self.assertTrue(np.array_equal(data1.labels, y))
+
 
 if __name__ == "__main__":
     unittest.main()
