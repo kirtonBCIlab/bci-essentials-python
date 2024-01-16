@@ -87,15 +87,6 @@ class EegData:
         # Switch any trigger channels to stim, this is for mne/bids export (?)
         self.ch_type = [type.replace("trg", "stim") for type in self.ch_type]
 
-        # if it is the DSI7 flex, relabel the channels, may want to make this more flexible in the future
-        if self.headset_string == "DSI7":
-            self.channel_labels.pop()
-            self.n_channels = 7
-
-        if self.headset_string == "DSI24":
-            self.channel_labels.pop()
-            self.n_channels = 23
-
         # If a subset is to be used, define a new n_channels, channel labels, and eeg data
         if self.__subset != []:
             logger.info("A subset was defined")
