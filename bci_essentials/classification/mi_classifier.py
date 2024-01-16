@@ -36,7 +36,7 @@ class MiClassifier(GenericClassifier):
         type="TS",
         remove_flats=False,
         whitening=False,
-        covariance_estimator="scm",
+        covariance_estimator="oas",
         artifact_rejection="none",
         channel_selection="none",
         pred_threshold=0.5,
@@ -61,7 +61,7 @@ class MiClassifier(GenericClassifier):
             - Default is `False`.
         covariance_estimator : str, *optional*
             Covariance estimator. See pyriemann Covariances.
-            - Default is `"scm"`.
+            - Default is `"oas"`.
         artifact_rejection : str, *optional*
             Description of parameter `artifact_rejection`.
             - Default is `"none"`.

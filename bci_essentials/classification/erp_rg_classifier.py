@@ -42,7 +42,7 @@ class ErpRgClassifier(GenericClassifier):
         oversample_ratio=0,
         undersample_ratio=0,
         random_seed=42,
-        covariance_estimator="scm",  # Covariance estimator, see pyriemann Covariances
+        covariance_estimator="oas",  # Covariance estimator, see pyriemann Covariances
     ):
         """Set P300 Classifier Settings.
 
@@ -69,7 +69,7 @@ class ErpRgClassifier(GenericClassifier):
             - Default is `42`.
         covariance_estimator : str, *optional*
             Covariance estimator. See pyriemann Covariances.
-            - Default is `"scm"`.
+            - Default is `"oas"`.
 
         Returns
         -------

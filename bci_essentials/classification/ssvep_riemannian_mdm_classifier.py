@@ -37,7 +37,7 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
         random_seed=42,
         n_harmonics=2,
         f_width=0.2,
-        covariance_estimator="scm",
+        covariance_estimator="oas",
     ):
         """Set the SSVEP settings.
 
@@ -58,7 +58,7 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
             - Default is `0.2`.
         covariance_estimator : str, *optional*
             Covariance Estimator (see Covariances - pyriemann)
-            - Default is `"scm"`.
+            - Default is `"oas"`.
 
         Returns
         -------
@@ -90,7 +90,7 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
         fsample,
         f_width=0.4,
         n_harmonics=2,
-        covariance_estimator="scm",
+        covariance_estimator="oas",
     ):
         """Get SSVEP Supertrial.
 
@@ -116,7 +116,7 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
             - Default is `2`.
         covarianc_estimator : str, *optional*
             Covariance Estimator (see Covariances - pyriemann)
-            - Default is `"scm"`.
+            - Default is `"oas"`.
 
         Returns
         -------

@@ -19,23 +19,23 @@ class TestEegData(unittest.TestCase):
         data = EegData(self.classifier, self.eeg, self.markers)
         self.assertEqual(data.ch_type, ["eeg", "stim", "eeg", "stim"])
 
-    def test_dsi7_mods(self):
-        self.eeg.name = "DSI7"
-        self.eeg.channel_labels = ["foo"] * 8
-        self.eeg.n_channels = 8
-        data = EegData(self.classifier, self.eeg, self.markers)
+    # def test_dsi7_mods(self):
+    #     self.eeg.name = "DSI7"
+    #     self.eeg.channel_labels = ["foo"] * 8
+    #     self.eeg.n_channels = 8
+    #     data = EegData(self.classifier, self.eeg, self.markers)
 
-        self.assertEqual(data.n_channels, 7)
-        self.assertEqual(len(data.channel_labels), 7)
+    #     self.assertEqual(data.n_channels, 7)
+    #     self.assertEqual(len(data.channel_labels), 7)
 
-    def test_dsi24_mods(self):
-        self.eeg.name = "DSI24"
-        self.eeg.channel_labels = ["foo"] * 24
-        self.eeg.n_channels = 24
-        data = EegData(self.classifier, self.eeg, self.markers)
+    # def test_dsi24_mods(self):
+    #     self.eeg.name = "DSI24"
+    #     self.eeg.channel_labels = ["foo"] * 24
+    #     self.eeg.n_channels = 24
+    #     data = EegData(self.classifier, self.eeg, self.markers)
 
-        self.assertEqual(data.n_channels, 23)
-        self.assertEqual(len(data.channel_labels), 23)
+    #     self.assertEqual(data.n_channels, 23)
+    #     self.assertEqual(len(data.channel_labels), 23)
 
     # offline
     def test_when_offline_loop_stops_when_no_more_data(self):

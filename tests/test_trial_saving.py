@@ -42,7 +42,8 @@ class TestRawTrialSave(unittest.TestCase):
         y = loaded_npz['y']
 
         # Delete the temp .npy file
-        # os.remove("raw_trial_eeg.npz")
+        loaded_npz.close()
+        os.remove("raw_trial_eeg.npz")
 
         # Check that all values of the classifier's numpy arrays are the same
         self.assertTrue(np.array_equal(data1.raw_eeg_trials, X))
