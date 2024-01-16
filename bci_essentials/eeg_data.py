@@ -251,26 +251,33 @@ class EegData:
         self.eeg_data = np.concatenate((self.eeg_data, eeg))
         self.eeg_timestamps = np.concatenate((self.eeg_timestamps, timestamps))
 
-    def save_data(self, directory_name):
-        """Save the data from different stages.
-
-        Creates a directory with x files. Includes raw EEG, markers,
-        processed EEG, features.
-
-        **NOT IMPLEMENTED YET**
+    def save_trials_as_npz(self, file_name: str):
+        """Saves EEG trials and labels as a numpy file.
 
         Parameters
         ----------
-        directory_name : str
-            Name of the directory to save the data to.
+        file_name : str
+            The name of the file to save the EEG trials and labels to.
 
         Returns
         -------
-        data_pickle : pickle
-            Saves the data as a pickle file. Includes raw EEG, markers,
-            processed EEG, features.
+        `None`
 
         """
+        # Check if file ends with .npz, if not add it
+        if file_name[-4:] != ".npz":
+            file_name += ".npz"
+
+        # Get the raw EEG trials and labels
+        X = self.raw_eeg_trials
+        y = self.labels
+
+        # Cut X and y to be the lenght of the number of trials, because X and y are initialized to be the maximum number of trials
+        X = X[: self.n_trials]
+        y = y[: self.n_trials]
+
+        # Save the raw EEG trials and labels as a numpy file
+        np.savez(file_name, X=X, y=y)
 
     # SIGNAL PROCESSING
     # Preprocessing goes here (trials are n_channels by n_samples)
