@@ -14,7 +14,7 @@ class SSVEP_NCAN_classifier(Generic_classifier):
 
     def set_ssvep_settings(
         self,
-        sampling_freq:int,
+        sampling_freq:float,
         target_freqs:np.ndarray,
         classifier_name:str="MEC",
         harmonics_count:int=4,
@@ -27,9 +27,9 @@ class SSVEP_NCAN_classifier(Generic_classifier):
         """
         Parameters
         ----------
-        `sampling_frequency` : int
+        `sampling_frequency` : float
             Sampling frequency of the signal [Hz].
-        `target frequencies` : list[int] 
+        `target frequencies` : np.ndarray 
             Stimulation frequencies of each target. Must be a 1D array.
             This must be a 1D array,  where the first element is the stimulation
             frequency of the first target, the second element is the stimulation
@@ -87,7 +87,7 @@ class SSVEP_NCAN_classifier(Generic_classifier):
         self.setup = False
         
     def fit(self, print_fit=True, print_performance=True):
-        """ Fit the model. Not used in this classifiers """
+        """ Fit the model. Not used in these classifiers """
 
         # TODO: You are able to call predict and self.X here because it is accesing
         #       by the EEG_data object. Write code to get a classification accuracy.

@@ -28,7 +28,7 @@ from bci_essentials.eeg_data import EEG_data
 # Identify the file to simulate
 # Filename assumes the data is within a subfolder called "data" located
 # within the same folder as this script
-filename = os.path.join("data", "p300_example.xdf")
+filename = os.path.join("data", "ssvep_example.xdf")
 
 # Check whether to start now, or at the next even minute to sync with other programs
 start_now = False
@@ -73,7 +73,7 @@ fs_marker = round(len(marker_time_stamps) / (time_stop - time_start))
 fs_eeg = round(len(eeg_time_stamps) / (time_stop - time_start))
 
 # create the eeg stream
-info = StreamInfo("MockEEG", "EEG", 8, fs_eeg, "float32", "mockeeg1")
+info = StreamInfo("MockEEG", "EEG", 16, fs_eeg, "float32", "mockeeg1")
 
 # add channel data
 channels = info.desc().append_child("channels")
