@@ -24,6 +24,7 @@ import matplotlib.pyplot as plt
 
 from .eeg_data import EegData
 from .utils.logger import Logger
+from .classification.generic_classifier import Prediction
 
 # Instantiate a logger for the module at the default level of logging.INFO
 # Logs to bci_essentials.__module__) where __module__ is the name of the module
@@ -450,7 +451,7 @@ class ErpData(EegData):
 
                             if self._messenger is not None:
                                 logger.info("Sending prediction %s", prediction)
-                                self._messenger.prediction(prediction)
+                                self._messenger.prediction(Prediction(labels=prediction))
 
                     # TODO: Code is currently unreachable
                     else:
