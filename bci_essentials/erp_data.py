@@ -451,7 +451,9 @@ class ErpData(EegData):
 
                             if self._messenger is not None:
                                 logger.info("Sending prediction %s", prediction)
-                                self._messenger.prediction(Prediction(labels=prediction))
+                                self._messenger.prediction(
+                                    Prediction(labels=prediction)
+                                )
 
                     # TODO: Code is currently unreachable
                     else:
