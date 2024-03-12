@@ -13,6 +13,7 @@ decision blocks.
     - n_samples = number of samples
 
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 
