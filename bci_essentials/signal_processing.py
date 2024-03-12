@@ -13,6 +13,7 @@ The EEG data inputs can be 2D or 3D arrays.
 - Outputs are the same dimensions as input (trials, channels, samples)
 
 """
+
 import numpy as np
 from scipy import signal
 import random

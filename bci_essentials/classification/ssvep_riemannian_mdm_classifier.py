@@ -166,9 +166,9 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
 
                 cov_mat_diag = np.diag(np.diag(cov_mat[0, :, :]))
 
-                super_X[
-                    trial, lower_bound:upper_bound, lower_bound:upper_bound
-                ] = cov_mat_diag
+                super_X[trial, lower_bound:upper_bound, lower_bound:upper_bound] = (
+                    cov_mat_diag
+                )
 
         return super_X
 

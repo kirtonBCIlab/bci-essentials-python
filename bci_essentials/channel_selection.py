@@ -9,6 +9,7 @@ be of the shape `n_trials x n_channels x n_samples`, where:
 - n_samples = number of samples
 
 """
+
 from joblib import Parallel, delayed
 import time
 import numpy as np
@@ -1217,9 +1218,9 @@ def __sbfs(
                     ]
                     step += 1
 
-                performance_at_nchannels[
-                    length_of_resultant_set - 1
-                ] = current_performance
+                performance_at_nchannels[length_of_resultant_set - 1] = (
+                    current_performance
+                )
                 best_subset_at_nchannels[length_of_resultant_set - 1] = sbfs_subset
 
             # if no performance gains, then stop conditional inclusion
@@ -1665,9 +1666,9 @@ def __sffs(
                     ]
                     step += 1
 
-                performance_at_nchannels[
-                    length_of_resultant_set - 1
-                ] = current_performance
+                performance_at_nchannels[length_of_resultant_set - 1] = (
+                    current_performance
+                )
                 best_subset_at_nchannels[length_of_resultant_set - 1] = sffs_subset
 
             # if no performance gains, then stop conditional exclusion
