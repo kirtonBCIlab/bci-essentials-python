@@ -24,7 +24,6 @@ import matplotlib.pyplot as plt
 
 from .eeg_data import EegData
 from .utils.logger import Logger
-from .classification.generic_classifier import Prediction
 
 # Instantiate a logger for the module at the default level of logging.INFO
 # Logs to bci_essentials.__module__) where __module__ is the name of the module
