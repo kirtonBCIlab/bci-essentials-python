@@ -569,9 +569,9 @@ class ErpData(EegData):
                     )
 
                     # add to raw ERP trials
-                    self.erp_trials_raw[
-                        self.n_trials, c, 0 : self.n_samples
-                    ] = channel_data
+                    self.erp_trials_raw[self.n_trials, c, 0 : self.n_samples] = (
+                        channel_data
+                    )
                     # self.decision_blocks_raw[self.decision_count, self.n_trials, c, 0:self.n_samples]
 
                     # if self.pp_type == "bandpass":

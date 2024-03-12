@@ -2,6 +2,7 @@
 Test Motor Imagery (MI) classification offline using data from an existing stream
 
 """
+
 # Stock libraries
 import os
 
