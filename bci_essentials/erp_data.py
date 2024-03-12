@@ -446,7 +446,9 @@ class ErpData(EegData):
                                 ],
                             )
 
-                            logger.info("%s was selected by the classifier", prediction)
+                            logger.info(
+                                "%s was selected by the classifier", prediction.labels
+                            )
 
                             if self._messenger is not None:
                                 logger.info("Sending prediction %s", prediction)

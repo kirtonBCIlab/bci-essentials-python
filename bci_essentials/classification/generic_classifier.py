@@ -338,7 +338,7 @@ class GenericClassifier(ABC):
 
     # predict a label based on a decision block
     # This doesn't seem to be used anywhere
-    def predict_decision_block(self, decision_block):
+    def predict_decision_block(self, decision_block) -> Prediction:
         """Predict a label based on a decision block.
 
         Parameters
@@ -375,7 +375,7 @@ class GenericClassifier(ABC):
         self.predictions.append(prediction)
         self.pred_probas.append(proba_mat)
 
-        return prediction
+        return Prediction(labels=prediction, probabilities=proba_mat)
 
     @abstractmethod
     def fit(self):
