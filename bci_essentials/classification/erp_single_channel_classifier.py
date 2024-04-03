@@ -23,6 +23,7 @@ from .generic_classifier import GenericClassifier, Prediction
 from ..signal_processing import lico
 from ..channel_selection import channel_selection_by_method
 from ..utils.logger import Logger  # Logger wrapper
+from ..utils.reduce_to_single_channel import ReduceToSingleChannel
 
 # Instantiate a logger for the module at the default level of logging.INFO
 # Logs to bci_essentials.__module__) where __module__ is the name of the module
@@ -163,6 +164,7 @@ class ErpSingleChannelClassifier(GenericClassifier):
 
         # Define the classifier
         self.clf = make_pipeline(
+            ReduceToSingleChannel(),
             LinearDiscriminantAnalysis(solver="eigen", shrinkage="auto"),
         )
 
@@ -203,8 +205,7 @@ class ErpSingleChannelClassifier(GenericClassifier):
                 The recall of the trained classification model.
 
             """
-            # Transform X to only have one channel
-            X = X[:,0,:]
+            print("X shape: ", X.shape)
 
             for train_idx, test_idx in cv.split(X, y):
                 y_train, y_test = y[train_idx], y[test_idx]
@@ -395,4 +396,6 @@ class ErpSingleChannelClassifier(GenericClassifier):
             Empty Predict object
 
         """
+
         return Prediction()
+    
