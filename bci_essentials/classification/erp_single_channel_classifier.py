@@ -398,4 +398,3 @@ class ErpSingleChannelClassifier(GenericClassifier):
         """
 
         return Prediction()
-    

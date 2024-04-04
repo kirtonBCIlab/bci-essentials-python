@@ -2,14 +2,15 @@
 
 from sklearn.base import BaseEstimator, TransformerMixin
 
+
 class ReduceToSingleChannel(BaseEstimator, TransformerMixin):
     def __init__(self):
         pass
-    
+
     def fit(self, X, y=None):
         # No fitting necessary for this transformer
         return self
-    
+
     def transform(self, X):
         if X.ndim == 3:
             X = X[:, 0, :]

@@ -492,9 +492,9 @@ class ErpData(EegData):
             time_diff = self.eeg_timestamps[-1] - self.marker_timestamps[-1]
             if time_diff > 100:
                 logger.warning(
-                    "The timestamps are not alligned, the difference is %s seconds", time_diff
+                    "The timestamps are not alligned, the difference is %s seconds",
+                    time_diff,
                 )
-
 
             if self.eeg_timestamps[-1] <= end_time_plus_buffer:
                 # UPDATE THE SEARCH START LOC
