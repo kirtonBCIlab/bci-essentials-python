@@ -973,6 +973,18 @@ class EegData:
             # set the trial timestamps at exactly the sampling frequency
             self.trial_timestamps = np.arange(self.n_samples) / self.fsample
 
+            # If EEG data is not available, wait for more data
+            if self.eeg_timestamps.size == 0:
+                break
+
+            # Get the difference between the timestamp of the most recent marker and the most recent EEG
+            # timestamp, check the difference and if it is most than 1000 s then warn that the timestamps are not alligned
+            time_diff = self.eeg_timestamps[-1] - self.marker_timestamps[-1]
+            if time_diff > 1000:
+                logger.warning(
+                    "The timestamps are not alligned, the difference is %s", time_diff
+                )
+
             # locate the indices of the trial in the eeg data
             for i, s in enumerate(self.eeg_timestamps[self.search_index : -1]):
                 if s > start_time:
