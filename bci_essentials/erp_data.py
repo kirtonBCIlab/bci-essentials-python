@@ -483,6 +483,19 @@ class ErpData(EegData):
                 + self.buffer_time
             )
 
+            # If EEG data is not available, wait for more data
+            if self.eeg_timestamps.size == 0:
+                break
+
+            # Get the difference between the timestamp of the most recent marker and the most recent EEG
+            # timestamp, check the difference and if it is most than 1000 s then warn that the timestamps are not alligned
+            time_diff = self.eeg_timestamps[-1] - self.marker_timestamps[-1]
+            if time_diff > 100:
+                logger.warning(
+                    "The timestamps are not alligned, the difference is %s seconds",
+                    time_diff,
+                )
+
             if self.eeg_timestamps[-1] <= end_time_plus_buffer:
                 # UPDATE THE SEARCH START LOC
                 break
