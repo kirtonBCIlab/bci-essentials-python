@@ -7,7 +7,8 @@ import os
 
 from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
 from bci_essentials.erp_data import ErpData
-from bci_essentials.classification.erp_single_channel_classifier import ErpSingleChannelClassifier
+from bci_essentials.classification.erp_single_channel_classifier import \
+    ErpSingleChannelClassifier
 
 # Identify the file to simulate
 # Filename assumes the data is within a subfolder called "data" located
