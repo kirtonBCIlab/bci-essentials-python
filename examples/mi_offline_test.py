@@ -6,7 +6,7 @@ Test Motor Imagery (MI) classification offline using data from an existing strea
 import os
 
 from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
-from bci_essentials.eeg_data import EegData
+from bci_essentials.eeg_data import EegData, DataTank
 from bci_essentials.classification.mi_classifier import MiClassifier
 
 # Identify the file to simulate
@@ -15,6 +15,8 @@ from bci_essentials.classification.mi_classifier import MiClassifier
 filename = os.path.join("data", "mi_example_2.xdf")
 eeg_source = XdfEegSource(filename)
 marker_source = XdfMarkerSource(filename)
+data_tank = DataTank()
+
 
 # Select a classifier
 classifier = MiClassifier()  # you can add a subset here
@@ -29,7 +31,7 @@ classifier.set_mi_classifier_settings(
 )
 
 # Initialize data object
-test_mi = EegData(classifier, eeg_source, marker_source)
+test_mi = EegData(classifier, eeg_source, marker_source, data_tank)
 
 # Run main loop, this will do all of the classification for online or offline
 test_mi.setup(
@@ -40,3 +42,5 @@ test_mi.setup(
     pp_order=5,
 )
 test_mi.run()
+
+print("Debug")

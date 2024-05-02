@@ -31,6 +31,49 @@ from .utils.logger import Logger
 # Logs to bci_essentials.__module__) where __module__ is the name of the module
 logger = Logger(name=__name__)
 
+# Will eventually move somewhere else
+class DataTank:
+    """
+    Class shaping EEG data into trials for classification.
+    """
+
+
+    def __init__(
+        self
+    ):
+        self.raw_eeg = np.zeros((0, 0))
+        self.raw_eeg_timestamps = np.zeros((0))
+        self.raw_marker_strings = np.zeros((0), dtype=str)
+        self.raw_marker_timestamps = np.zeros((0))
+        self.event_marker_strings = np.zeros((0), dtype=str)
+        self.event_marker_timestamps = np.zeros((0))
+
+        self.latest_eeg_timestamp = 0
+
+    def package_resting_state(self):
+        pass
+
+    def append_raw_eeg(self, new_raw_eeg, new_eeg_timestamps):
+        # If this is the first chunk of EEG, initialize the arrays
+        if self.raw_eeg.size == 0:
+            self.raw_eeg = new_raw_eeg
+            self.raw_eeg_timestamps = new_eeg_timestamps
+        else:
+            self.raw_eeg = np.concatenate((self.raw_eeg, new_raw_eeg))
+            self.raw_eeg_timestamps = np.concatenate((self.raw_eeg_timestamps, new_eeg_timestamps))
+
+        self.latest_eeg_timestamp = new_eeg_timestamps[-1]
+
+    def append_raw_markers(self, new_marker_strings, new_marker_timestamps):
+        if self.raw_marker_strings.size == 0:
+            self.raw_marker_strings = new_marker_strings
+            self.raw_marker_timestamps = new_marker_timestamps
+        else:
+            self.raw_marker_strings = np.concatenate((self.raw_marker_strings, new_marker_strings))
+            self.raw_marker_timestamps = np.concatenate((self.raw_marker_timestamps, new_marker_timestamps))
+
+    def save_raw_eeg():
+        pass
 
 # EEG data
 class EegData:
@@ -44,6 +87,7 @@ class EegData:
         classifier: GenericClassifier,
         eeg_source: EegSource,
         marker_source: MarkerSource | None = None,
+        data_tank: DataTank | None = None,
         messenger: Messenger | None = None,
         subset: list[str] = [],
     ):
@@ -58,6 +102,8 @@ class EegData:
         marker_source : EegSource
             Source of Marker/Control data and timestamps, this could be from a file or Unity via
             LSL, etc.  The default value is None.
+        data_tank : DataTank
+            DataTank object to handle the storage of EEG trials and labels.  The default value is None.
         messenger: Messenger
             Messenger object to handle events from EegData, ex: acknowledging markers and
             predictions.  The default value is None.
@@ -69,11 +115,13 @@ class EegData:
         assert isinstance(classifier, GenericClassifier)
         assert isinstance(eeg_source, EegSource)
         assert isinstance(marker_source, MarkerSource | None)
+        assert isinstance(data_tank, DataTank | None)
         assert isinstance(messenger, Messenger | None)
 
         self._classifier = classifier
         self.__eeg_source = eeg_source
         self.__marker_source = marker_source
+        self.__data_tank = data_tank
         self._messenger = messenger
         self.__subset = subset
 
@@ -83,6 +131,13 @@ class EegData:
         self.ch_type = self.__eeg_source.channel_types
         self.ch_units = self.__eeg_source.channel_units
         self.channel_labels = self.__eeg_source.channel_labels
+
+        self.__data_tank.headset_string = self.__eeg_source.name
+        self.__data_tank.fsample = self.__eeg_source.fsample
+        self.__data_tank.n_channels = self.__eeg_source.n_channels
+        self.__data_tank.ch_type = self.__eeg_source.channel_types
+        self.__data_tank.ch_units = self.__eeg_source.channel_units
+        self.__data_tank.channel_labels = self.__eeg_source.channel_labels
 
         # Switch any trigger channels to stim, this is for mne/bids export (?)
         self.ch_type = [type.replace("trg", "stim") for type in self.ch_type]
@@ -192,9 +247,42 @@ class EegData:
         time_correction = self.__marker_source.time_correction()
         timestamps = [timestamps[i] + time_correction for i in range(len(timestamps))]
 
-        # add the fresh data to the buffers
-        self.marker_data = np.concatenate((self.marker_data, markers))
-        self.marker_timestamps = np.concatenate((self.marker_timestamps, timestamps))
+        # Sort between event and command markers. Event markers are used by the data tank.
+        # Command markers are used this controller currently called EegData.
+
+        for marker in markers:
+            marker = marker[0]
+            if "Ping" in marker:
+                continue
+
+            
+
+            # If the marker contains a single string, not including ',' and
+            # begining with a alpha character, then it is an command marker
+            marker_is_single_string = len(marker.split(",")) == 1
+            marker_begins_with_alpha = marker[0].isalpha()
+            is_command_marker = marker_is_single_string and marker_begins_with_alpha
+
+
+            if is_command_marker:
+                self.marker_data = np.append(self.marker_data, marker)
+                self.marker_timestamps = np.append(self.marker_timestamps, timestamps[0])
+
+            else:
+                self.__data_tank.event_marker_strings = np.append(
+                    self.__data_tank.event_marker_strings, marker
+                )
+                self.__data_tank.event_marker_timestamps = np.append(
+                    self.__data_tank.event_marker_timestamps, timestamps[0]
+                )
+
+        print("debug")
+
+        # # add the fresh data to the buffers
+        # self.marker_data = np.concatenate((self.marker_data, markers))
+        # self.marker_timestamps = np.concatenate((self.marker_timestamps, timestamps))
+
+        # self.__data_tank.append_raw_markers(markers, timestamps)
 
     def __pull_eeg_data_from_source(self):
         """Pulls eeg samples from source, sanity checks and appends to buffer"""
@@ -241,6 +329,11 @@ class EegData:
         # add the fresh data to the buffers
         self.eeg_data = np.concatenate((self.eeg_data, eeg))
         self.eeg_timestamps = np.concatenate((self.eeg_timestamps, timestamps))
+
+        self.__data_tank.append_raw_eeg(eeg, timestamps)
+
+        # Update latest EEG timestamp
+        self.latest_eeg_timestamp = timestamps[-1]
 
     def save_trials_as_npz(self, file_name: str):
         """Saves EEG trials and labels as a numpy file.
@@ -949,7 +1042,7 @@ class EegData:
             )
 
             # If we don't have the full trial then pull more data, only do this online
-            if self.eeg_timestamps[-1] <= end_time_plus_buffer:
+            if self.latest_eeg_timestamp <= end_time_plus_buffer:
                 if self.online is True:
                     break
                 if self.online is False:
