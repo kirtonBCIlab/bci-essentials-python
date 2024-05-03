@@ -1037,10 +1037,6 @@ class EegData:
             )
 
             # Add the label if it exists, otherwise set a flag of -1 to denote that there is no label
-            # if self.training:
-            #     self.current_labels[self.current_num_trials] = label
-            # else:
-            #     self.current_labels[self.current_num_trials] = -1
             self.current_labels[self.current_num_trials] = label
 
             # copy to the eeg_data object
