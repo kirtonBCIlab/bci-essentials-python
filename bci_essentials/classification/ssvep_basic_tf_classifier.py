@@ -29,9 +29,9 @@ class SsvepBasicTrainFreeClassifier(GenericClassifier):
         Parameters
         ----------
         sampling_freq : int
-            Description of parameter `sampling_freq`.
+            Sampling frequency of the EEG data.
         target_freqs : list of `int`
-            Description of parameter `target_freqs`.
+            List of the target frequencies for SSVEP detection.
 
         Returns
         -------
