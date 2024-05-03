@@ -103,9 +103,6 @@ class ErpRgClassifier(GenericClassifier):
 
         """
         logger.debug("Adding to training set")
-        # n_decisions = number of epochs/decisions
-        # n_channels = number of channels
-        # n_samples = number of samples
         n_decisions, n_channels, n_samples = decision_block.shape
 
         # get a subset
@@ -175,7 +172,6 @@ class ErpRgClassifier(GenericClassifier):
         # Init predictions to all false
         preds = np.zeros(len(self.y))
 
-        #
         def __erp_rg_kernel(X, y):
             """ERP RG kernel.
 
@@ -278,7 +274,7 @@ class ErpRgClassifier(GenericClassifier):
                         # select a random value from the list of false indices
                         remove_at = false_ind[random.randrange(0, len(false_ind))]
 
-                        # remove that value from the false ind list
+                        # remove that value from the false index list
                         false_ind.remove(remove_at)
 
                         # add the index to be removed to a list
