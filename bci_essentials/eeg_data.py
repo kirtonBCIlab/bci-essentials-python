@@ -37,10 +37,7 @@ class DataTank:
     Class shaping EEG data into trials for classification.
     """
 
-
-    def __init__(
-        self
-    ):
+    def __init__(self):
         self.raw_eeg = np.zeros((0, 0))
         self.raw_eeg_timestamps = np.zeros((0))
         self.raw_marker_strings = np.zeros((0), dtype=str)
@@ -72,7 +69,20 @@ class DataTank:
             self.raw_marker_strings = np.concatenate((self.raw_marker_strings, new_marker_strings))
             self.raw_marker_timestamps = np.concatenate((self.raw_marker_timestamps, new_marker_timestamps))
 
+    def __interpolate(self):
+        pass
+
+    def __preprocess(self):
+        pass
+
     def save_raw_eeg():
+        pass
+
+class MiDataTank(DataTank):
+    def add_epochs(self):
+        pass
+
+    def train_classifier(self):
         pass
 
 # EEG data
