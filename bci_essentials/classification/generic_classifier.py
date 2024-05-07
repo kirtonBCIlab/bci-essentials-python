@@ -340,7 +340,7 @@ class GenericClassifier(ABC):
         Returns
         -------
         prediction : Prediction
-            A Predication object containing the predicated label and 
+            A Predication object containing the predicated label and
             prediction probabilities.
 
         """

@@ -181,7 +181,7 @@ class MiClassifier(GenericClassifier):
             suby : numpy.ndarray
                 Labels for training data.
                 1D array with shape = (`n_epochs`, ).
-                
+
             Returns
             -------
             model : classifier

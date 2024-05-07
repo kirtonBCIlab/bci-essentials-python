@@ -146,7 +146,7 @@ class ErpRgClassifier(GenericClassifier):
         lico_expansion_factor : int, *optional*
             Linear combination oversampling expansion factor.
             Determines the number of ERPs in the training set that will be expanded.
-            Higher value increases the oversampling, generating more synthetic 
+            Higher value increases the oversampling, generating more synthetic
             samples for the minority class.
             - Default is `1`.
 
