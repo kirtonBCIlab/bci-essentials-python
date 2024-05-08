@@ -101,7 +101,6 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
         X : numpy.ndarray
             Trials of EEG data.
             3D array containing data with `float` type.
-
             shape = (`n_trials`,`n_channels`,`n_samples`)
         target_freqs : numpy.ndarray
             Target frequencies for the SSVEP.
@@ -181,8 +180,6 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
             Models created used in `predict()`.
 
         """
-        # get dimensions
-        # X = self.X
 
         # Convert each trial of X into a SPD of dimensions [n_trials, n_channels*nfreqs, n_channels*nfreqs]
         n_trials, n_channels, n_samples = self.X.shape
@@ -207,17 +204,12 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
             Parameters
             ----------
             subX : numpy.ndarray
-                Description of parameter `subX`.
-                If array, state size and type. E.g.
-                3D array containing data with `float` type.
-
-                shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
+                Input data ffor training/testing the classifier.
+                3D array with shape = (`n_epochs`, `n_channels`, `n_samples`).
             suby : numpy.ndarray
-                Description of parameter `suby`.
-                If array, state size and type. E.g.
-                1D array containing data with `int` type.
+                Target labels for the input data.
+                1D array with shape = (`n_epochs`, ).
 
-                shape = (`1st_dimension`,)
             Returns
             -------
             model : classifier
@@ -238,7 +230,6 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
 
                 X_train, X_test = subX[train_idx], subX[test_idx]
                 y_train = suby[train_idx]
-                # y_train, y_test = suby[train_idx], suby[test_idx]
 
                 # get the covariance matrices for the training set
                 X_train_super = self.get_ssvep_supertrial(

@@ -357,7 +357,7 @@ class EegData:
             new_trial = trial
             return new_trial
 
-        # other preprocessing options go here\
+        # other preprocessing options go here
 
     def _package_resting_state_data(self):
         """Package resting state data.
@@ -428,6 +428,7 @@ class EegData:
                     rest_start_time.append(current_rs_timestamp)
                     rest_start_loc.append(current_timestamp_loc - 1)
                     logger.debug("received rest start")
+
                 # get rest end times
                 if current_rs_data_marker == "End Rest for RS: 0":
                     rest_end_time.append(current_rs_timestamp)
@@ -435,9 +436,8 @@ class EegData:
                     logger.debug("received rest end")
 
             # Eyes open
-            # Get duration, nsmaples
-
             if len(eyes_open_end_loc) > 0:
+                # Get duration, nsamples
                 duration = np.floor(eyes_open_end_time[0] - eyes_open_start_time[0])
                 n_samples = int(duration * self.fsample)
 
@@ -477,9 +477,8 @@ class EegData:
             logger.debug("Done packaging resting state data")
 
             # Eyes closed
-
             if len(eyes_closed_end_loc) > 0:
-                # Get duration, nsmaples
+                # Get duration, nsamples
                 duration = np.floor(eyes_closed_end_time[0] - eyes_closed_start_time[0])
                 n_samples = int(duration * self.fsample)
 
@@ -518,7 +517,7 @@ class EegData:
 
             # Rest
             if len(rest_end_loc) > 0:
-                # Get duration, nsmaples
+                # Get duration, nsamples
                 while rest_end_time[0] < rest_start_time[0]:
                     rest_end_time.pop(0)
                     rest_end_loc.pop(0)
@@ -978,7 +977,7 @@ class EegData:
                 break
 
             # Get the difference between the timestamp of the most recent marker and the most recent EEG
-            # timestamp, check the difference and if it is most than 1000 s then warn that the timestamps are not alligned
+            # timestamp, check the difference and if it is more than 1000 s then warn that the timestamps are not alligned
             time_diff = self.eeg_timestamps[-1] - self.marker_timestamps[-1]
             if time_diff > 1000:
                 logger.warning(
@@ -1009,7 +1008,7 @@ class EegData:
                     self.eeg_data[start_loc:end_loc, c],
                 )
 
-                # Third, sdd to the EEG trial
+                # Third, add to the EEG trial
                 self.current_raw_eeg_trials[
                     self.current_num_trials, c, 0 : self.n_samples
                 ] = channel_data
@@ -1038,10 +1037,6 @@ class EegData:
             )
 
             # Add the label if it exists, otherwise set a flag of -1 to denote that there is no label
-            # if self.training:
-            #     self.current_labels[self.current_num_trials] = label
-            # else:
-            #     self.current_labels[self.current_num_trials] = -1
             self.current_labels[self.current_num_trials] = label
 
             # copy to the eeg_data object
