@@ -1,0 +1,81 @@
+import numpy as np
+from ..signal_processing import bandpass
+
+# Will eventually move somewhere else
+class DataTank:
+    """
+    Class shaping EEG data into trials for classification.
+
+    Please use a subclass, depending on your paradigm.
+    """
+
+    def __init__(self):
+        self.raw_eeg = np.zeros((0, 0))
+        self.raw_eeg_timestamps = np.zeros((0))
+        self.raw_marker_strings = np.zeros((0), dtype=str)
+        self.raw_marker_timestamps = np.zeros((0))
+        self.event_marker_strings = np.zeros((0), dtype=str)
+        self.event_marker_timestamps = np.zeros((0))
+
+        self.live_classification = False
+
+        self.latest_eeg_timestamp = 0
+
+    def set_source_data(self, headset_string, fsample, n_channels, ch_types, ch_units, channel_labels):
+        """
+        """
+        self.headset_string = headset_string
+        self.fsample = fsample
+        self.n_channels = n_channels
+        self.ch_types = ch_types
+        self.ch_units = ch_units
+        self.channel_labels = channel_labels
+
+    def package_resting_state_data(self):
+        pass
+
+    def append_raw_eeg(self, new_raw_eeg, new_eeg_timestamps):
+        # If this is the first chunk of EEG, initialize the arrays
+        if self.raw_eeg.size == 0:
+            self.raw_eeg = new_raw_eeg
+            self.raw_eeg_timestamps = new_eeg_timestamps
+        else:
+            self.raw_eeg = np.concatenate((self.raw_eeg, new_raw_eeg))
+            self.raw_eeg_timestamps = np.concatenate((self.raw_eeg_timestamps, new_eeg_timestamps))
+
+        self.latest_eeg_timestamp = new_eeg_timestamps[-1]
+
+    def append_raw_markers(self, new_marker_strings, new_marker_timestamps):
+        if self.raw_marker_strings.size == 0:
+            self.raw_marker_strings = new_marker_strings
+            self.raw_marker_timestamps = new_marker_timestamps
+        else:
+            self.raw_marker_strings = np.concatenate((self.raw_marker_strings, new_marker_strings))
+            self.raw_marker_timestamps = np.concatenate((self.raw_marker_timestamps, new_marker_timestamps))
+
+        # If live classification is True then we want to add each marker epoch to the epoch
+        # array as it comes in and also send one away for classification
+
+    def add_to_epoch_array():
+        # This is called when a trial ends
+        # Raise an error saying to use a subclass
+        raise NotImplementedError("Please use a subclass to implement this method.")
+    
+        # Optional return the new epochs here
+
+    def get_training_data():
+        # Get info from all labelled epochs to train classifier
+        pass
+
+    def get_unlabeled_epoch():
+        # Get an unlabeled epoch for classification
+        pass
+
+    def __interpolate():
+        pass
+
+    def __preprocess():
+        pass
+
+    def save_raw_eeg():
+        pass

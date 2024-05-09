@@ -22,6 +22,8 @@ import time
 import numpy as np
 
 from .signal_processing import notch, bandpass
+from .paradigm import BaseParadigm
+from .data_tank.data_tank import DataTank
 from .classification.generic_classifier import GenericClassifier
 from .io.sources import EegSource, MarkerSource
 from .io.messenger import Messenger
@@ -30,60 +32,6 @@ from .utils.logger import Logger
 # Instantiate a logger for the module at the default level of logging.INFO
 # Logs to bci_essentials.__module__) where __module__ is the name of the module
 logger = Logger(name=__name__)
-
-# Will eventually move somewhere else
-class DataTank:
-    """
-    Class shaping EEG data into trials for classification.
-    """
-
-    def __init__(self):
-        self.raw_eeg = np.zeros((0, 0))
-        self.raw_eeg_timestamps = np.zeros((0))
-        self.raw_marker_strings = np.zeros((0), dtype=str)
-        self.raw_marker_timestamps = np.zeros((0))
-        self.event_marker_strings = np.zeros((0), dtype=str)
-        self.event_marker_timestamps = np.zeros((0))
-
-        self.latest_eeg_timestamp = 0
-
-    def package_resting_state(self):
-        pass
-
-    def append_raw_eeg(self, new_raw_eeg, new_eeg_timestamps):
-        # If this is the first chunk of EEG, initialize the arrays
-        if self.raw_eeg.size == 0:
-            self.raw_eeg = new_raw_eeg
-            self.raw_eeg_timestamps = new_eeg_timestamps
-        else:
-            self.raw_eeg = np.concatenate((self.raw_eeg, new_raw_eeg))
-            self.raw_eeg_timestamps = np.concatenate((self.raw_eeg_timestamps, new_eeg_timestamps))
-
-        self.latest_eeg_timestamp = new_eeg_timestamps[-1]
-
-    def append_raw_markers(self, new_marker_strings, new_marker_timestamps):
-        if self.raw_marker_strings.size == 0:
-            self.raw_marker_strings = new_marker_strings
-            self.raw_marker_timestamps = new_marker_timestamps
-        else:
-            self.raw_marker_strings = np.concatenate((self.raw_marker_strings, new_marker_strings))
-            self.raw_marker_timestamps = np.concatenate((self.raw_marker_timestamps, new_marker_timestamps))
-
-    def __interpolate(self):
-        pass
-
-    def __preprocess(self):
-        pass
-
-    def save_raw_eeg():
-        pass
-
-class MiDataTank(DataTank):
-    def add_epochs(self):
-        pass
-
-    def train_classifier(self):
-        pass
 
 # EEG data
 class EegData:
@@ -97,6 +45,7 @@ class EegData:
         classifier: GenericClassifier,
         eeg_source: EegSource,
         marker_source: MarkerSource | None = None,
+        paradigm: BaseParadigm | None = None,
         data_tank: DataTank | None = None,
         messenger: Messenger | None = None,
         subset: list[str] = [],
@@ -125,12 +74,14 @@ class EegData:
         assert isinstance(classifier, GenericClassifier)
         assert isinstance(eeg_source, EegSource)
         assert isinstance(marker_source, MarkerSource | None)
+        assert isinstance(paradigm, BaseParadigm | None)
         assert isinstance(data_tank, DataTank | None)
         assert isinstance(messenger, Messenger | None)
 
         self._classifier = classifier
         self.__eeg_source = eeg_source
         self.__marker_source = marker_source
+        self.__paradigm = paradigm
         self.__data_tank = data_tank
         self._messenger = messenger
         self.__subset = subset
@@ -142,12 +93,14 @@ class EegData:
         self.ch_units = self.__eeg_source.channel_units
         self.channel_labels = self.__eeg_source.channel_labels
 
-        self.__data_tank.headset_string = self.__eeg_source.name
-        self.__data_tank.fsample = self.__eeg_source.fsample
-        self.__data_tank.n_channels = self.__eeg_source.n_channels
-        self.__data_tank.ch_type = self.__eeg_source.channel_types
-        self.__data_tank.ch_units = self.__eeg_source.channel_units
-        self.__data_tank.channel_labels = self.__eeg_source.channel_labels
+        self.__data_tank.set_source_data(
+            self.headset_string,
+            self.fsample,
+            self.n_channels,
+            self.ch_type,
+            self.ch_units,
+            self.channel_labels,
+        )
 
         # Switch any trigger channels to stim, this is for mne/bids export (?)
         self.ch_type = [type.replace("trg", "stim") for type in self.ch_type]
@@ -265,8 +218,6 @@ class EegData:
             if "Ping" in marker:
                 continue
 
-            
-
             # If the marker contains a single string, not including ',' and
             # begining with a alpha character, then it is an command marker
             marker_is_single_string = len(marker.split(",")) == 1
@@ -346,7 +297,9 @@ class EegData:
         self.latest_eeg_timestamp = timestamps[-1]
 
     def save_trials_as_npz(self, file_name: str):
-        """Saves EEG trials and labels as a numpy file.
+        """
+        TODO - replace this with npz saving of epochs in data tank
+        Saves EEG trials and labels as a numpy file.
 
         Parameters
         ----------
@@ -373,309 +326,14 @@ class EegData:
         # Save the raw EEG trials and labels as a numpy file
         np.savez(file_name, X=X, y=y)
 
-    # SIGNAL PROCESSING
-    # Preprocessing goes here (trials are n_channels by n_samples)
-    def _preprocessing(self, trial, option=None, order=5, fc=60, fl=10, fh=50):
-        """Signal preprocessing.
-
-        Preprocesses the signal using one of the methods from the
-        `signal_processing.py` module.
-
-        Parameters
-        ----------
-        trial : numpy.ndarray
-            Trial of EEG data.
-            2D array containing data with `float` type.
-
-            shape = (`n_channels`,`n_samples`)
-        option : str, *optional*
-            Preprocessing option. Options include:
-            - `"notch"` : Notch filter
-            - `"bandpass"` : Bandpass filter
-            - Default is `None`.
-        order : int, *optional*
-            Order of the Bandpass filter.
-            - Default is `5`.
-        fc : int, *optional*
-            Frequency of the notch filter.
-            - Default is `60`.
-        fl : int, *optional*
-            Lower corner frequency of the bandpass filter.
-            - Default is `10`.
-        fh : int, *optional*
-            Upper corner frequency of the bandpass filter.
-            - Default is `50`.
-
-        Returns
-        -------
-        new_trial : numpy.ndarray
-            Preprocessed trial of EEG data.
-            2D array containing data with `float` type.
-
-            shape = (`n_channels`,`n_samples`)
-
-        """
-        # do nothing
-        if option is None:
-            new_trial = trial
-            return new_trial
-
-        if option == "notch":
-            new_trial = notch(trial, fc=60, Q=30, fsample=self.fsample)
-            return new_trial
-
-        if option == "bandpass":
-            new_trial = bandpass(trial, fl, fh, order, self.fsample)
-            return new_trial
-
-        # other preprocessing options go here
-
-    # Artefact rejection goes here (trials are n_channels by n_samples)
-    def _artefact_rejection(self, trial, option=None):
-        """Artefact rejection.
-
-        Parameters
-        ----------
-        trial : numpy.ndarray
-            Trial of EEG data.
-            2D array containing data with `float` type.
-
-            shape = (`n_channels`,`n_samples`)
-        option : str, *optional*
-            Artefact rejection option. Options include:
-            - Nothing has been implemented yet.
-            - Default is `None`.
-
-        Returns
-        -------
-        new_trial : numpy.ndarray
-            Artefact rejected trial of EEG data.
-            2D array containing data with `float` type.
-
-            shape = (`n_channels`,`n_samples`)
-
-        """
-        # do nothing
-        if option is None:
-            new_trial = trial
-            return new_trial
-
-        # other preprocessing options go here\
-
-    def _package_resting_state_data(self):
-        """Package resting state data.
-
-        Returns
-        -------
-        `None`
-            `self.rest_trials` is updated.
-
-        """
-        try:
-            logger.debug("Packaging resting state data")
-
-            eyes_open_start_time = []
-            eyes_open_end_time = []
-            eyes_closed_start_time = []
-            eyes_closed_end_time = []
-            rest_start_time = []
-            rest_end_time = []
-
-            # Initialize start and end locations
-            eyes_open_start_loc = []
-            eyes_open_end_loc = []
-            eyes_closed_start_loc = []
-            eyes_closed_end_loc = []
-            rest_start_loc = []
-            rest_end_loc = []
-
-            current_time = self.eeg_timestamps[0]
-            current_timestamp_loc = 0
-
-            for i in range(len(self.marker_data)):
-                # Get current resting state data marker and time stamp
-                current_rs_data_marker = self.marker_data[i][0]
-                current_rs_timestamp = self.marker_timestamps[i]
-
-                # Increment the EEG until just past the marker timestamp
-                while current_time < current_rs_timestamp:
-                    current_timestamp_loc += 1
-                    current_time = self.eeg_timestamps[current_timestamp_loc]
-
-                # get eyes open start times
-                if current_rs_data_marker == "Start Eyes Open RS: 1":
-                    eyes_open_start_time.append(current_rs_timestamp)
-                    eyes_open_start_loc.append(current_timestamp_loc - 1)
-                    logger.debug("received eyes open start")
-
-                # get eyes open end times
-                if current_rs_data_marker == "End Eyes Open RS: 1":
-                    eyes_open_end_time.append(current_rs_timestamp)
-                    eyes_open_end_loc.append(current_timestamp_loc)
-                    logger.debug("received eyes open end")
-
-                # get eyes closed start times
-                if current_rs_data_marker == "Start Eyes Closed RS: 2":
-                    eyes_closed_start_time.append(current_rs_timestamp)
-                    eyes_closed_start_loc.append(current_timestamp_loc - 1)
-                    logger.debug("received eyes closed start")
-
-                # get eyes closed end times
-                if current_rs_data_marker == "End Eyes Closed RS: 2":
-                    eyes_closed_end_time.append(current_rs_timestamp)
-                    eyes_closed_end_loc.append(current_timestamp_loc)
-                    logger.debug("received eyes closed end")
-
-                # get rest start times
-                if current_rs_data_marker == "Start Rest for RS: 0":
-                    rest_start_time.append(current_rs_timestamp)
-                    rest_start_loc.append(current_timestamp_loc - 1)
-                    logger.debug("received rest start")
-                # get rest end times
-                if current_rs_data_marker == "End Rest for RS: 0":
-                    rest_end_time.append(current_rs_timestamp)
-                    rest_end_loc.append(current_timestamp_loc)
-                    logger.debug("received rest end")
-
-            # Eyes open
-            # Get duration, nsmaples
-
-            if len(eyes_open_end_loc) > 0:
-                duration = np.floor(eyes_open_end_time[0] - eyes_open_start_time[0])
-                n_samples = int(duration * self.fsample)
-
-                self.eyes_open_timestamps = np.array(range(n_samples)) / self.fsample
-                self.eyes_open_trials = np.ndarray(
-                    (len(eyes_open_start_time), self.n_channels, n_samples)
-                )
-                # Now copy EEG for these trials
-                for i in range(len(eyes_open_start_time)):
-                    # Get current eyes open start and end locations
-                    current_eyes_open_start = eyes_open_start_loc[i]
-                    current_eyes_open_end = eyes_open_end_loc[i]
-
-                    # For each channel of the EEG, interpolate to uniform sampling rate
-                    for c in range(self.n_channels):
-                        # First, adjust the EEG timestamps to start from zero
-                        eeg_timestamps_adjusted = (
-                            self.eeg_timestamps[
-                                current_eyes_open_start:current_eyes_open_end
-                            ]
-                            - self.eeg_timestamps[current_eyes_open_start]
-                        )
-
-                        # Second, interpolate to timestamps at a uniform sampling rate
-                        channel_data = np.interp(
-                            self.eyes_open_timestamps,
-                            eeg_timestamps_adjusted,
-                            self.eeg_data[
-                                current_eyes_open_start:current_eyes_open_end, c
-                            ],
-                        )
-
-                        # Third, add to the EEG trial
-                        self.eyes_open_trials[i, c, :] = channel_data
-                        self.eyes_open_timestamps
-
-            logger.debug("Done packaging resting state data")
-
-            # Eyes closed
-
-            if len(eyes_closed_end_loc) > 0:
-                # Get duration, nsmaples
-                duration = np.floor(eyes_closed_end_time[0] - eyes_closed_start_time[0])
-                n_samples = int(duration * self.fsample)
-
-                self.eyes_closed_timestamps = np.array(range(n_samples)) / self.fsample
-                self.eyes_closed_trials = np.ndarray(
-                    (len(eyes_closed_start_time), self.n_channels, n_samples)
-                )
-                # Now copy EEG for these trials
-                for i in range(len(eyes_closed_start_time)):
-                    # Get current eyes closed start and end locations
-                    current_eyes_closed_start = eyes_closed_start_loc[i]
-                    current_eyes_closed_end = eyes_closed_end_loc[i]
-
-                    # For each channel of the EEG, interpolate to uniform sampling rate
-                    for c in range(self.n_channels):
-                        # First, adjust the EEG timestamps to start from zero
-                        eeg_timestamps_adjusted = (
-                            self.eeg_timestamps[
-                                current_eyes_closed_start:current_eyes_closed_end
-                            ]
-                            - self.eeg_timestamps[current_eyes_closed_start]
-                        )
-
-                        # Second, interpolate to timestamps at a uniform sampling rate
-                        channel_data = np.interp(
-                            self.eyes_closed_timestamps,
-                            eeg_timestamps_adjusted,
-                            self.eeg_data[
-                                current_eyes_closed_start:current_eyes_closed_end, c
-                            ],
-                        )
-
-                        # Third, add to the EEG trial
-                        self.eyes_closed_trials[i, c, :] = channel_data
-                        self.eyes_closed_timestamps
-
-            # Rest
-            if len(rest_end_loc) > 0:
-                # Get duration, nsmaples
-                while rest_end_time[0] < rest_start_time[0]:
-                    rest_end_time.pop(0)
-                    rest_end_loc.pop(0)
-
-                duration = np.floor(rest_end_time[0] - rest_start_time[0])
-
-                n_samples = int(duration * self.fsample)
-
-                self.rest_timestamps = np.array(range(n_samples)) / self.fsample
-                self.rest_trials = np.ndarray(
-                    (len(rest_start_time), self.n_channels, n_samples)
-                )
-                # Now copy EEG for these trials
-                for i in range(len(rest_start_time)):
-                    # Get current rest start and end locations
-                    current_rest_start = rest_start_loc[i]
-                    current_rest_end = rest_end_loc[i]
-
-                    # For each channel of the EEG, interpolate to uniform sampling rate
-                    for c in range(self.n_channels):
-                        # First, adjust the EEG timestamps to start from zero
-                        eeg_timestamps_adjusted = (
-                            self.eeg_timestamps[current_rest_start:current_rest_end]
-                            - self.eeg_timestamps[current_rest_start]
-                        )
-
-                        # Second, interpolate to timestamps at a uniform sampling rate
-                        channel_data = np.interp(
-                            self.rest_timestamps,
-                            eeg_timestamps_adjusted,
-                            self.eeg_data[current_rest_start:current_rest_end, c],
-                        )
-
-                        # Third, add to the EEG trial
-                        self.rest_trials[i, c, :] = channel_data
-                        self.rest_timestamps
-        except Exception:
-            logger.warning("Failed to package resting state data")
-
     def setup(
         self,
         buffer_time=0.01,
-        max_channels=64,
-        max_samples=2560,
-        max_trials=1000,
         training=True,
         online=True,
         train_complete=False,
         iterative_training=False,
         live_update=False,
-        pp_type="bandpass",  # preprocessing method
-        pp_low=1,  # bandpass lower cutoff
-        pp_high=40,  # bandpass upper cutoff
-        pp_order=5,  # bandpass order
     ):
         """Configure processing loop.  This should be called before starting
         the loop with run() or step().  Calling after will reset the loop state.
@@ -693,15 +351,6 @@ class EegData:
         buffer_time : float, *optional*
             Buffer time for EEG sampling in `online` mode (seconds).
             - Default is `0.01`.
-        max_channels : int, *optional*
-            Maximum number of EEG channels to read in.
-            - Default is `64`.
-        max_samples : int, *optional*
-            Maximum number of EEG samples to read in per trial.
-            - Default is `2560`.
-        max_trials : int, *optional*
-            Maximum number of trials to read in per loop (?).
-            - Default is `1000`.
         max_loops : int, *optional*
             Maximum number of loops to run.
             - Default is `1000000`.
@@ -727,18 +376,6 @@ class EegData:
             Flag to indicate if the classifier will be used to provide
             live updates on trial classification.
             - Default is `False`.
-        pp_type : str, *optional*
-            Preprocessing method to apply to the EEG data.
-            - Default is `"bandpass"`.
-        pp_low : int, *optional*
-            Low corner frequency for bandpass filter.
-            - Default is `1`.
-        pp_high : int, *optional*
-            Upper corner frequency for bandpass filter.
-            - Default is `40`.
-        pp_order : int, *optional*
-            Order of the bandpass filter.
-            - Default is `5`.
 
         Returns
         -------
@@ -751,32 +388,9 @@ class EegData:
         self.iterative_training = iterative_training
         self.train_complete = train_complete
 
-        self.max_channels = max_channels
-        self.max_samples = max_samples
-        self.max_trials = max_trials
-
-        self.pp_type = pp_type
-        self.pp_low = pp_low
-        self.pp_high = pp_high
-        self.pp_order = pp_order
-
         self.buffer_time = buffer_time
         self.trial_end_buffer = buffer_time
         self.search_index = 0
-
-        # initialize trials and labels
-        self.current_raw_eeg_trials = np.zeros(
-            (self.max_trials, self.max_channels, self.max_samples)
-        )
-        self.current_processed_eeg_trials = self.current_raw_eeg_trials
-        self.current_labels = np.zeros((self.max_trials))
-
-        self.raw_eeg_trials = np.zeros(
-            (self.max_trials, self.max_channels, self.max_samples)
-        )
-        self.processed_eeg_trials = self.raw_eeg_trials
-        self.labels = np.zeros((self.max_trials))  # temporary labels
-        self.training_labels = np.zeros((self.max_trials))  # permanent training labels
 
         # initialize the numbers of markers and trials to zero
         self.marker_count = 0
@@ -826,15 +440,6 @@ class EegData:
 
             self.loops += 1
 
-        # Trim all the data
-        self.raw_eeg_trials = self.raw_eeg_trials[
-            0 : self.n_trials, 0 : self.n_channels, 0 : self.n_samples
-        ]
-        self.processed_eeg_trials = self.processed_eeg_trials[
-            0 : self.n_trials, 0 : self.n_channels, 0 : self.n_samples
-        ]
-        self.labels = self.labels[0 : self.n_trials]
-
     def step(self):
         """Runs a single EegData processing step.
         See setup() for configuration of processing.
@@ -849,334 +454,149 @@ class EegData:
             None
 
         """
-        # read from sources to get new data
+        # read from sources to get new data. This puts command markers in the marker_data array and
+        # event markers in the event_marker_strings array
         self._pull_data_from_sources()
 
-        # check if there is an available marker, if not, break and wait for more data
+        # check if there is an available command marker, if not, break and wait for more data
         while len(self.marker_timestamps) > self.marker_count:
             self.loops = 0
 
             # Get the current marker
             current_step_marker = self.marker_data[self.marker_count][0]
 
-            # If the marker contains a single string, not including ',' and
-            # begining with a alpha character, then it is an event message
-            marker_is_single_string = len(current_step_marker.split(",")) == 1
-            marker_begins_with_alpha = current_step_marker[0].isalpha()
-            is_event_marker = marker_is_single_string and marker_begins_with_alpha
-
-            if is_event_marker:
-                if self._messenger is not None:
-                    # send feedback for each marker that you receive
-                    self._messenger.marker_received(current_step_marker)
-
-                logger.info("Marker: %s", current_step_marker)
-
-                # once all resting state data is collected then go and compile it
-                if current_step_marker == "Done with all RS collection":
-                    self._package_resting_state_data()
-                    self.marker_count += 1
-
-                elif current_step_marker == "Trial Started":
-                    logger.debug(
-                        "Trial started, incrementing marker count and continuing"
-                    )
-                    # Note that a marker occured, but do nothing else
-                    self.marker_count += 1
-
-                elif current_step_marker == "Trial Ends":
-                    logger.debug("Trial ended, trim the unused ends of numpy arrays")
-                    # Trim the unused ends of numpy arrays
-                    self.current_raw_eeg_trials = self.current_raw_eeg_trials[
-                        0 : self.current_num_trials,
-                        0 : self.n_channels,
-                        0 : self.n_samples,
-                    ]
-                    self.current_processed_eeg_trials = (
-                        self.current_processed_eeg_trials[
-                            0 : self.current_num_trials,
-                            0 : self.n_channels,
-                            0 : self.n_samples,
-                        ]
-                    )
-                    self.current_labels = self.current_labels[
-                        0 : self.current_num_trials
-                    ]
-
-                    # TRAIN
-                    if self.training:
-                        self._classifier.add_to_train(
-                            self.current_processed_eeg_trials, self.current_labels
-                        )
-
-                        logger.debug(
-                            "%s trials and labels added to training set",
-                            self.current_num_trials,
-                        )
-
-                        # if iterative training is on and active then also make a prediction
-                        if self.iterative_training:
-                            logger.info(
-                                "Added current samples to training set, "
-                                + "now making a prediction"
-                            )
-
-                            # Make a prediction
-                            prediction = self._classifier.predict(
-                                self.current_processed_eeg_trials
-                            )
-
-                            logger.info(
-                                "%s was selected by the iterative classifier",
-                                prediction.labels,
-                            )
-
-                            if self._messenger is not None:
-                                self._messenger.prediction(prediction)
-
-                    # PREDICT
-                    elif self.train_complete and self.current_num_trials != 0:
-                        logger.info(
-                            "Making a prediction based on %s trials",
-                            self.current_num_trials,
-                        )
-
-                        if self.current_num_trials == 0:
-                            logger.error("No trials to make a decision")
-                            self.marker_count += 1
-                            break
-
-                        # save the online selection indices
-                        selection_inds = list(
-                            range(
-                                self.n_trials - self.current_num_trials,
-                                self.n_trials,
-                            )
-                        )
-                        self.online_selection_indices.append(selection_inds)
-
-                        # make the prediciton
-                        try:
-                            prediction = self._classifier.predict(
-                                self.current_processed_eeg_trials
-                            )
-                            self.online_selections.append(prediction.labels)
-
-                            logger.info(
-                                "%s was selected by classifier", prediction.labels
-                            )
-
-                            if self._messenger is not None:
-                                self._messenger.prediction(prediction)
-
-                        except Exception:
-                            logger.warning("This classification failed...")
-
-                    # OH DEAR
-                    else:
-                        logger.error("Unable to classify... womp womp")
-
-                    # Reset trials and labels
-                    self.marker_count += 1
-                    self.current_num_trials = 0
-                    self.current_raw_eeg_trials = np.zeros(
-                        (self.max_trials, self.max_channels, self.max_samples)
-                    )
-                    self.current_processed_eeg_trials = self.current_raw_eeg_trials
-                    self.current_labels = np.zeros((self.max_trials))
-
-                # If human training completed then train the classifier
-                elif (
-                    current_step_marker == "Training Complete"
-                    and self.train_complete is False
-                ):
-                    logger.debug("Training the classifier")
-
-                    self._classifier.fit()
-                    self.train_complete = True
-                    self.training = False
-                    self.marker_count += 1
-
-                elif current_step_marker == "Update Classifier":
-                    logger.debug("Retraining the classifier")
-
-                    self._classifier.fit()
-
-                    self.iterative_training = True
-                    if self.online:
-                        self.live_update = True
-
-                    self.marker_count += 1
-
-                else:
-                    self.marker_count += 1
-
-                if self.online:
-                    time.sleep(0.01)
-                self.loops += 1
-                continue
-
-            # Get marker info
-            current_marker_info = current_step_marker.split(",")
-
-            self.paradigm_string = current_marker_info[0]
-            self.num_options = int(current_marker_info[1])
-            label = int(current_marker_info[2])
-            self.trial_length = float(current_marker_info[3])  # trial length
-            if (
-                len(current_marker_info) > 4
-            ):  # if longer, collect this info and maybe it can be used by the classifier
-                self.meta = []
-                for i in range(4, len(current_marker_info)):
-                    self.meta.__add__([current_marker_info[i]])
-
-                # Load the correct SSVEP freqs
-                if current_marker_info[0] == "ssvep":
-                    self._classifier.target_freqs = [1] * (len(current_marker_info) - 4)
-                    self._classifier.sampling_freq = self.fsample
-                    for i in range(4, len(current_marker_info)):
-                        self._classifier.target_freqs[i - 4] = float(
-                            current_marker_info[i]
-                        )
-                        logger.debug(
-                            "Changed %s target frequency to %s",
-                            i - 4,
-                            current_marker_info[i],
-                        )
-
-            # Check if the whole EEG trial corresponding to the marker is available
-            end_time_plus_buffer = (
-                self.marker_timestamps[self.marker_count]
-                + self.trial_length
-                + self.buffer_time
-            )
-
-            # If we don't have the full trial then pull more data, only do this online
-            if self.latest_eeg_timestamp <= end_time_plus_buffer:
-                if self.online is True:
-                    break
-                if self.online is False:
-                    self.marker_count += 1
-                break
-
-            logger.info("Marker information: %s", current_marker_info)
-
-            # send message if there is an available outlet
             if self._messenger is not None:
-                logger.info("sending marker back")
                 # send feedback for each marker that you receive
                 self._messenger.marker_received(current_step_marker)
 
-            # Find the start time for the trial based on the marker timestamp
-            start_time = self.marker_timestamps[self.marker_count]
+            logger.info("Marker: %s", current_step_marker)
 
-            # Find the number of samples per trial
-            self.n_samples = int(self.trial_length * self.fsample)
+            # once all resting state data is collected then go and compile it
+            # TODO
+            if current_step_marker == "Done with all RS collection":
+                self.__paradigm._package_resting_state_data(self.marker_data, self.marker_timestamps, self.eeg_data, self.eeg_timestamps)
+                self.marker_count += 1
 
-            # set the trial timestamps at exactly the sampling frequency
-            self.trial_timestamps = np.arange(self.n_samples) / self.fsample
-
-            # If EEG data is not available, wait for more data
-            if self.eeg_timestamps.size == 0:
-                break
-
-            # Get the difference between the timestamp of the most recent marker and the most recent EEG
-            # timestamp, check the difference and if it is most than 1000 s then warn that the timestamps are not alligned
-            time_diff = self.eeg_timestamps[-1] - self.marker_timestamps[-1]
-            if time_diff > 1000:
-                logger.warning(
-                    "The timestamps are not alligned, the difference is %s", time_diff
+            elif current_step_marker == "Trial Started":
+                logger.debug(
+                    "Trial started, incrementing marker count and continuing"
                 )
+                # Note that a marker occured, but do nothing else
+                self.marker_count += 1
 
-            # locate the indices of the trial in the eeg data
-            for i, s in enumerate(self.eeg_timestamps[self.search_index : -1]):
-                if s > start_time:
-                    start_loc = self.search_index + i - 1
-                    break
+            elif current_step_marker == "Trial Ends":
+                # Tell the data tank to update the epoch array
 
-            # Get the end location for the trial
-            end_loc = int(start_loc + self.n_samples + 1)
+                self.__data_tank.add_to_epoch_array()
 
-            # For each channel of the EEG, interpolate to uniform sampling rate
-            for c in range(self.n_channels):
-                # First, adjust the EEG timestamps to start from zero
-                eeg_timestamps_adjusted = (
-                    self.eeg_timestamps[start_loc:end_loc]
-                    - self.eeg_timestamps[start_loc]
-                )
+                # TRAIN
+                if self.training:
+                    self._classifier.add_to_train(
+                        self.current_processed_eeg_trials, self.current_labels
+                    )
 
-                # Second, interpolate to timestamps at a uniform sampling rate
-                channel_data = np.interp(
-                    self.trial_timestamps,
-                    eeg_timestamps_adjusted,
-                    self.eeg_data[start_loc:end_loc, c],
-                )
+                    logger.debug(
+                        "%s trials and labels added to training set",
+                        self.current_num_trials,
+                    )
 
-                # Third, sdd to the EEG trial
-                self.current_raw_eeg_trials[
-                    self.current_num_trials, c, 0 : self.n_samples
-                ] = channel_data
-
-            # This is where to do preprocessing
-            self.current_processed_eeg_trials[
-                self.current_num_trials, : self.n_channels, : self.n_samples
-            ] = self._preprocessing(
-                trial=self.current_raw_eeg_trials[
-                    self.current_num_trials, : self.n_channels, : self.n_samples
-                ],
-                option=self.pp_type,
-                order=self.pp_order,
-                fl=self.pp_low,
-                fh=self.pp_high,
-            )
-
-            # This is where to do artefact rejection
-            self.current_processed_eeg_trials[
-                self.current_num_trials, : self.n_channels, : self.n_samples
-            ] = self._artefact_rejection(
-                trial=self.current_processed_eeg_trials[
-                    self.current_num_trials, : self.n_channels, : self.n_samples
-                ],
-                option=None,
-            )
-
-            # Add the label if it exists, otherwise set a flag of -1 to denote that there is no label
-            # if self.training:
-            #     self.current_labels[self.current_num_trials] = label
-            # else:
-            #     self.current_labels[self.current_num_trials] = -1
-            self.current_labels[self.current_num_trials] = label
-
-            # copy to the eeg_data object
-            self.raw_eeg_trials[
-                self.n_trials, 0 : self.n_channels, 0 : self.n_samples
-            ] = self.current_raw_eeg_trials[
-                self.current_num_trials, 0 : self.n_channels, 0 : self.n_samples
-            ]
-            self.processed_eeg_trials[
-                self.n_trials, 0 : self.n_channels, 0 : self.n_samples
-            ] = self.current_processed_eeg_trials[
-                self.current_num_trials, 0 : self.n_channels, 0 : self.n_samples
-            ]
-            self.labels[self.n_trials] = self.current_labels[self.current_num_trials]
-
-            # Send live updates
-            if self.live_update:
-                try:
-                    if self.n_samples != 0:
-                        prediction = self._classifier.predict(
-                            self.current_processed_eeg_trials[
-                                self.current_num_trials,
-                                0 : self.n_channels,
-                                0 : self.n_samples,
-                            ]
+                    # if iterative training is on and active then also make a prediction 
+                    if self.iterative_training:
+                        logger.info(
+                            "Added current samples to training set, "
+                            + "now making a prediction"
                         )
-                        self._messenger.prediction(prediction)
-                except Exception:
-                    logger.error("Unable to classify this trial")
 
-            # iterate to next trial
-            self.marker_count += 1
-            self.current_num_trials += 1
-            self.n_trials += 1
-            self.search_index = start_loc
+                        # Make a prediction
+                        prediction = self._classifier.predict(
+                            self.current_processed_eeg_trials
+                        )
+
+                        logger.info(
+                            "%s was selected by the iterative classifier",
+                            prediction.labels,
+                        )
+
+                        if self._messenger is not None:
+                            self._messenger.prediction(prediction)
+
+                # PREDICT
+                elif self.train_complete and self.current_num_trials != 0:
+                    logger.info(
+                        "Making a prediction based on %s trials",
+                        self.current_num_trials,
+                    )
+
+                    if self.current_num_trials == 0:
+                        logger.error("No trials to make a decision")
+                        self.marker_count += 1
+                        break
+
+                    # save the online selection indices
+                    selection_inds = list(
+                        range(
+                            self.n_trials - self.current_num_trials,
+                            self.n_trials,
+                        )
+                    )
+                    self.online_selection_indices.append(selection_inds)
+
+                    # make the prediciton
+                    try:
+                        prediction = self._classifier.predict(
+                            self.current_processed_eeg_trials
+                        )
+                        self.online_selections.append(prediction.labels)
+
+                        logger.info(
+                            "%s was selected by classifier", prediction.labels
+                        )
+
+                        if self._messenger is not None:
+                            self._messenger.prediction(prediction)
+
+                    except Exception:
+                        logger.warning("This classification failed...")
+
+                # OH DEAR
+                else:
+                    logger.error("Unable to classify... womp womp")
+
+                # Reset trials and labels
+                self.marker_count += 1
+                self.current_num_trials = 0
+                self.current_raw_eeg_trials = np.zeros(
+                    (self.max_trials, self.max_channels, self.max_samples)
+                )
+                self.current_processed_eeg_trials = self.current_raw_eeg_trials
+                self.current_labels = np.zeros((self.max_trials))
+
+            # If human training completed then train the classifier
+            elif (
+                current_step_marker == "Training Complete"
+                and self.train_complete is False
+            ):
+                logger.debug("Training the classifier")
+
+                self._classifier.fit()
+                self.train_complete = True
+                self.training = False
+                self.marker_count += 1
+
+            elif current_step_marker == "Update Classifier":
+                logger.debug("Retraining the classifier")
+
+                self._classifier.fit()
+
+                self.iterative_training = True
+                if self.online:
+                    self.live_update = True
+
+                self.marker_count += 1
+
+            else:
+                self.marker_count += 1
+
+            if self.online:
+                time.sleep(0.01)
+            self.loops += 1
