@@ -326,44 +326,44 @@ class GenericClassifier(ABC):
             self.X = np.append(self.X, decision_block, axis=0)
             self.y = np.append(self.y, labels, axis=0)
 
-    # predict a label based on a decision block
-    # This doesn't seem to be used anywhere
-    def predict_decision_block(self, decision_block) -> Prediction:
-        """Predict a label based on a decision block.
+    # # predict a label based on a decision block
+    # # This doesn't seem to be used anywhere
+    # def predict_decision_block(self, decision_block) -> Prediction:
+    #     """Predict a label based on a decision block.
 
-        Parameters
-        ----------
-        decision_block : numpy.ndarray
-            Decision block containing EEG data for training.
-            3D array with shape = (`n_epochs`, `n_channels`, `n_samples`).
+    #     Parameters
+    #     ----------
+    #     decision_block : numpy.ndarray
+    #         Decision block containing EEG data for training.
+    #         3D array with shape = (`n_epochs`, `n_channels`, `n_samples`).
 
-        Returns
-        -------
-        prediction : Prediction
-            A Predication object containing the predicated label and
-            prediction probabilities.
+    #     Returns
+    #     -------
+    #     prediction : Prediction
+    #         A Predication object containing the predicated label and
+    #         prediction probabilities.
 
-        """
-        decision_block_subset = self.get_subset(
-            decision_block, self.subset, self.channel_labels
-        )
+    #     """
+    #     decision_block_subset = self.get_subset(
+    #         decision_block, self.subset, self.channel_labels
+    #     )
 
-        # get prediction probabilities for all
-        proba_mat = self.clf.predict_proba(decision_block_subset)
+    #     # get prediction probabilities for all
+    #     proba_mat = self.clf.predict_proba(decision_block_subset)
 
-        proba = proba_mat[:, 1]
-        relative_proba = proba / np.amax(proba)
+    #     proba = proba_mat[:, 1]
+    #     relative_proba = proba / np.amax(proba)
 
-        log_proba = np.log(relative_proba)
-        logger.info("log relative probabilities:\n%s", log_proba)
+    #     log_proba = np.log(relative_proba)
+    #     logger.info("log relative probabilities:\n%s", log_proba)
 
-        # the selection is the highest probability
-        prediction = int(np.where(proba == np.amax(proba))[0][0])
+    #     # the selection is the highest probability
+    #     prediction = int(np.where(proba == np.amax(proba))[0][0])
 
-        self.predictions.append(prediction)
-        self.pred_probas.append(proba_mat)
+    #     self.predictions.append(prediction)
+    #     self.pred_probas.append(proba_mat)
 
-        return Prediction(labels=prediction, probabilities=proba_mat)
+    #     return Prediction(labels=prediction, probabilities=proba_mat)
 
     @abstractmethod
     def fit(self):

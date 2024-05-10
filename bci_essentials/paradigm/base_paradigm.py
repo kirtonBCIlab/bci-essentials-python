@@ -1,15 +1,35 @@
 import numpy as np
 
 from ..utils.logger import Logger
+from ..signal_processing import bandpass
 
 # Instantiate a logger for the module at the default level of logging.INFO
 # Logs to bci_essentials.__module__) where __module__ is the name of the module
 logger = Logger(name=__name__)
 
 class BaseParadigm():
+    def __init__(self, filters=[5,30], channel_subset=None):
+        """
+        Base class for all paradigms.
+        
+        Parameters
+        ----------
+        filters : list of floats | [5, 30]
+            Filter bands.
+        channel_subset : list of str | None 
+            Channel subset to use. 
+            """
+        self.lowcut = filters[0]
+        self.highcut = filters[1]
+        self.channel_subset = channel_subset
 
-    def __preprocess(self):
-        pass
+    def __preprocess(self, eeg, fsample, lowcut, highcut):
+        """
+        Preprocess EEG data with bandpass filter.
+        """
+        new_eeg = bandpass(eeg, lowcut, highcut, 5, fsample)
+
+        return new_eeg
 
     def __interpolate(self, eeg, timestamps, fsample):
         """

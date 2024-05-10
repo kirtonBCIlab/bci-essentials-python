@@ -56,7 +56,7 @@ class DataTank:
         # If live classification is True then we want to add each marker epoch to the epoch
         # array as it comes in and also send one away for classification
 
-    def add_to_epoch_array():
+    def update_epochs():
         # This is called when a trial ends
         # Raise an error saying to use a subclass
         raise NotImplementedError("Please use a subclass to implement this method.")
@@ -65,7 +65,10 @@ class DataTank:
 
     def get_training_data():
         # Get info from all labelled epochs to train classifier
-        pass
+        # On repeated calls, only return new data
+        X = None
+        y = None
+        return X, y
 
     def get_unlabeled_epoch():
         # Get an unlabeled epoch for classification
@@ -79,3 +82,33 @@ class DataTank:
 
     def save_raw_eeg():
         pass
+
+    def save_epochs_as_npz(self, file_name: str):
+        """
+        TODO - replace this with npz saving of epochs in data tank
+        Saves EEG trials and labels as a numpy file.
+
+        Parameters
+        ----------
+        file_name : str
+            The name of the file to save the EEG trials and labels to.
+
+        Returns
+        -------
+        `None`
+
+        """
+        # Check if file ends with .npz, if not add it
+        if file_name[-4:] != ".npz":
+            file_name += ".npz"
+
+        # Get the raw EEG trials and labels
+        X = self.raw_eeg_trials
+        y = self.labels
+
+        # Cut X and y to be the lenght of the number of trials, because X and y are initialized to be the maximum number of trials
+        X = X[: self.n_trials]
+        y = y[: self.n_trials]
+
+        # Save the raw EEG trials and labels as a numpy file
+        np.savez(file_name, X=X, y=y)

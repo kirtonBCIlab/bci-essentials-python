@@ -48,7 +48,6 @@ class EegData:
         paradigm: BaseParadigm | None = None,
         data_tank: DataTank | None = None,
         messenger: Messenger | None = None,
-        subset: list[str] = [],
     ):
         """Initializes `EegData` class.
 
@@ -61,13 +60,13 @@ class EegData:
         marker_source : EegSource
             Source of Marker/Control data and timestamps, this could be from a file or Unity via
             LSL, etc.  The default value is None.
+        paradigm : BaseParadigm
+            The paradigm used by EegData. This defines the processing and reshaping steps for the EEG data.
         data_tank : DataTank
             DataTank object to handle the storage of EEG trials and labels.  The default value is None.
         messenger: Messenger
             Messenger object to handle events from EegData, ex: acknowledging markers and
             predictions.  The default value is None.
-        subset : list of `int`, *optional*
-            The list of EEG channel names to process, default is `[]`, meaning all channels.
         """
 
         # Ensure the incoming dependencies are the right type
@@ -84,7 +83,6 @@ class EegData:
         self.__paradigm = paradigm
         self.__data_tank = data_tank
         self._messenger = messenger
-        self.__subset = subset
 
         self.headset_string = self.__eeg_source.name
         self.fsample = self.__eeg_source.fsample
@@ -135,44 +133,6 @@ class EegData:
         self.ping_count = 0
         self.n_samples = 0
         self.time_units = ""
-
-    def edit_settings(
-        self,
-        user_id="0000",
-        n_channels=8,
-        channel_labels=["?", "?", "?", "?", "?", "?", "?", "?"],
-        fsample=256,
-    ):
-        """Override settings obtained from eeg_source on init
-
-        Parameters
-        ----------
-        user_id : str, *optional*
-            The user ID.
-            - Default is `"0000"`.
-        n_channels : int, *optional*
-            The number of channels.
-            - Default is `8`.
-        channel_labels : list of `str`, *optional*
-            The channel labels.
-            - Default is `["?", "?", "?", "?", "?", "?", "?", "?"]`.
-        fsample : int, *optional*
-            The sampling rate.
-            - Default is `256`.
-
-        Returns
-        -------
-        `None`
-
-        """
-        self.user_id = user_id  # user id
-        self.n_channels = n_channels  # number of channels
-        self.channel_labels = channel_labels  # EEG electrode placements
-        self.fsample = fsample  # sampling rate
-
-        if len(channel_labels) != self.n_channels:
-            logger.warning("Channel locations do not fit number of channels!!!")
-            self.channel_labels = ["?"] * self.n_channels
 
     # Get new data from source, whatever it is
     def _pull_data_from_sources(self):
@@ -296,44 +256,12 @@ class EegData:
         # Update latest EEG timestamp
         self.latest_eeg_timestamp = timestamps[-1]
 
-    def save_trials_as_npz(self, file_name: str):
-        """
-        TODO - replace this with npz saving of epochs in data tank
-        Saves EEG trials and labels as a numpy file.
-
-        Parameters
-        ----------
-        file_name : str
-            The name of the file to save the EEG trials and labels to.
-
-        Returns
-        -------
-        `None`
-
-        """
-        # Check if file ends with .npz, if not add it
-        if file_name[-4:] != ".npz":
-            file_name += ".npz"
-
-        # Get the raw EEG trials and labels
-        X = self.raw_eeg_trials
-        y = self.labels
-
-        # Cut X and y to be the lenght of the number of trials, because X and y are initialized to be the maximum number of trials
-        X = X[: self.n_trials]
-        y = y[: self.n_trials]
-
-        # Save the raw EEG trials and labels as a numpy file
-        np.savez(file_name, X=X, y=y)
-
     def setup(
         self,
         buffer_time=0.01,
         training=True,
         online=True,
         train_complete=False,
-        iterative_training=False,
-        live_update=False,
     ):
         """Configure processing loop.  This should be called before starting
         the loop with run() or step().  Calling after will reset the loop state.
@@ -351,9 +279,6 @@ class EegData:
         buffer_time : float, *optional*
             Buffer time for EEG sampling in `online` mode (seconds).
             - Default is `0.01`.
-        max_loops : int, *optional*
-            Maximum number of loops to run.
-            - Default is `1000000`.
         training : bool, *optional*
             Flag to indicate if the data will be used to train a classifier.
             - `True`: The data will be used to train the classifier.
@@ -369,13 +294,6 @@ class EegData:
             - `True`: The classifier has been trained.
             - `False`: The classifier has not been trained.
             - Default is `False`.
-        iterative_training : bool, *optional*
-            Flag to indicate if the classifier will be updated iteratively.
-            - Default is `False`.
-        live_update : bool, *optional*
-            Flag to indicate if the classifier will be used to provide
-            live updates on trial classification.
-            - Default is `False`.
 
         Returns
         -------
@@ -384,8 +302,6 @@ class EegData:
         """
         self.online = online
         self.training = training
-        self.live_update = live_update
-        self.iterative_training = iterative_training
         self.train_complete = train_complete
 
         self.buffer_time = buffer_time
@@ -400,9 +316,6 @@ class EegData:
         self.num_online_selections = 0
         self.online_selection_indices = []
         self.online_selections = []
-
-        # initialize loop count, TODO - why do this here?
-        self.loops = 0
 
     def run(self, max_loops: int = 1000000):
         """Runs EegData processing in a loop.
@@ -486,81 +399,98 @@ class EegData:
 
             elif current_step_marker == "Trial Ends":
                 # Tell the data tank to update the epoch array
+                self.__data_tank.update_epochs()
+                
+                # Ask the paradigm if it needs to do anything
+                
 
-                self.__data_tank.add_to_epoch_array()
+            elif current_step_marker == "Training Complete":
+                # Pull the epochs from the data tank and pass them to the classifier
+                X, y = self.__data_tank.get_training_data()
+                self._classifier.add_to_train(X, y)
+                self._classifier.fit()
 
-                # TRAIN
-                if self.training:
-                    self._classifier.add_to_train(
-                        self.current_processed_eeg_trials, self.current_labels
-                    )
+            elif current_step_marker == "Update Classifier":
+                # Pull the epochs from the data tank and pass them to the classifier
+                X, y = self.__data_tank.get_training_data()
+                self._classifier.add_to_train(X, y)
+                self._classifier.fit()
 
-                    logger.debug(
-                        "%s trials and labels added to training set",
-                        self.current_num_trials,
-                    )
+            
 
-                    # if iterative training is on and active then also make a prediction 
-                    if self.iterative_training:
-                        logger.info(
-                            "Added current samples to training set, "
-                            + "now making a prediction"
-                        )
 
-                        # Make a prediction
-                        prediction = self._classifier.predict(
-                            self.current_processed_eeg_trials
-                        )
+                # # TRAIN
+                # if self.training:
+                #     self._classifier.add_to_train(
+                #         self.current_processed_eeg_trials, self.current_labels
+                #     )
 
-                        logger.info(
-                            "%s was selected by the iterative classifier",
-                            prediction.labels,
-                        )
+                #     logger.debug(
+                #         "%s trials and labels added to training set",
+                #         self.current_num_trials,
+                #     )
 
-                        if self._messenger is not None:
-                            self._messenger.prediction(prediction)
+                #     # if iterative training is on and active then also make a prediction 
+                #     if self.iterative_training:
+                #         logger.info(
+                #             "Added current samples to training set, "
+                #             + "now making a prediction"
+                #         )
 
-                # PREDICT
-                elif self.train_complete and self.current_num_trials != 0:
-                    logger.info(
-                        "Making a prediction based on %s trials",
-                        self.current_num_trials,
-                    )
+                #         # Make a prediction
+                #         prediction = self._classifier.predict(
+                #             self.current_processed_eeg_trials
+                #         )
 
-                    if self.current_num_trials == 0:
-                        logger.error("No trials to make a decision")
-                        self.marker_count += 1
-                        break
+                #         logger.info(
+                #             "%s was selected by the iterative classifier",
+                #             prediction.labels,
+                #         )
 
-                    # save the online selection indices
-                    selection_inds = list(
-                        range(
-                            self.n_trials - self.current_num_trials,
-                            self.n_trials,
-                        )
-                    )
-                    self.online_selection_indices.append(selection_inds)
+                #         if self._messenger is not None:
+                #             self._messenger.prediction(prediction)
 
-                    # make the prediciton
-                    try:
-                        prediction = self._classifier.predict(
-                            self.current_processed_eeg_trials
-                        )
-                        self.online_selections.append(prediction.labels)
+                # # PREDICT
+                # elif self.train_complete and self.current_num_trials != 0:
+                #     logger.info(
+                #         "Making a prediction based on %s trials",
+                #         self.current_num_trials,
+                #     )
 
-                        logger.info(
-                            "%s was selected by classifier", prediction.labels
-                        )
+                #     if self.current_num_trials == 0:
+                #         logger.error("No trials to make a decision")
+                #         self.marker_count += 1
+                #         break
 
-                        if self._messenger is not None:
-                            self._messenger.prediction(prediction)
+                #     # save the online selection indices
+                #     selection_inds = list(
+                #         range(
+                #             self.n_trials - self.current_num_trials,
+                #             self.n_trials,
+                #         )
+                #     )
+                #     self.online_selection_indices.append(selection_inds)
 
-                    except Exception:
-                        logger.warning("This classification failed...")
+                #     # make the prediciton
+                #     try:
+                #         prediction = self._classifier.predict(
+                #             self.current_processed_eeg_trials
+                #         )
+                #         self.online_selections.append(prediction.labels)
 
-                # OH DEAR
-                else:
-                    logger.error("Unable to classify... womp womp")
+                #         logger.info(
+                #             "%s was selected by classifier", prediction.labels
+                #         )
+
+                #         if self._messenger is not None:
+                #             self._messenger.prediction(prediction)
+
+                #     except Exception:
+                #         logger.warning("This classification failed...")
+
+                # # OH DEAR
+                # else:
+                #     logger.error("Unable to classify... womp womp")
 
                 # Reset trials and labels
                 self.marker_count += 1
