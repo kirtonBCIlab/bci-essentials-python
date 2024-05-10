@@ -230,18 +230,35 @@ class EegData:
         time_correction = self.__eeg_source.time_correction()
         timestamps = [timestamps[i] + time_correction for i in range(len(timestamps))]
 
-        # add the fresh data to the buffers
-        self.eeg_data = np.concatenate((self.eeg_data, eeg))
-        self.eeg_timestamps = np.concatenate((self.eeg_timestamps, timestamps))
+        # # add the fresh data to the buffers
+        # self.eeg_data = np.concatenate((self.eeg_data, eeg))
+        # self.eeg_timestamps = np.concatenate((self.eeg_timestamps, timestamps))
 
-        self.__data_tank.add_raw_eeg(eeg, timestamps)
+        self.__data_tank.add_raw_eeg(eeg.T, timestamps)
 
         # Update latest EEG timestamp
         self.latest_eeg_timestamp = timestamps[-1]
 
     def __process_and_classify(self):
-        eeg, timestamps = self.__data_tank.get_raw_eeg()
-        X, y = self.__paradigm.process_markers(self.marker_buffer, self.timestamp_buffer, eeg, timestamps)
+
+        eeg_start_time, eeg_end_time = self.__paradigm.get_eeg_start_and_end_times(self.event_marker_buffer, self.event_timestamp_buffer)
+
+        # Wait until we have all the EEG for these markers
+        while True:
+            eeg, timestamps = self.__data_tank.get_raw_eeg()
+            if timestamps[-1] < eeg_end_time:
+                time_dif = eeg_end_time - timestamps[-1]
+                if time_dif < 1000:
+                    logger.info("Waiting for EEG data, time difference is %s s", time_dif)
+                    time.sleep(time_dif)
+                else:
+                    logger.error(
+                    "The timestamps are not alligned, the difference is %s s", time_dif
+                    )
+            else:
+                break
+            
+        X, y = self.__paradigm.process_markers(self.event_marker_buffer, self.event_timestamp_buffer, eeg, timestamps, self.fsample)
 
         # Add the epochs to the data tank
         self.__data_tank.add_epochs(X, y)
@@ -262,8 +279,6 @@ class EegData:
 
     def setup(
         self,
-        buffer_time=0.01,
-        training=True,
         online=True,
         train_complete=False,
     ):
@@ -280,14 +295,6 @@ class EegData:
 
         Parameters
         ----------
-        buffer_time : float, *optional*
-            Buffer time for EEG sampling in `online` mode (seconds).
-            - Default is `0.01`.
-        training : bool, *optional*
-            Flag to indicate if the data will be used to train a classifier.
-            - `True`: The data will be used to train the classifier.
-            - `False`: The data will be used to predict with the classifier.
-            - Default is `True`.
         online : bool, *optional*
             Flag to indicate if the data will be processed in `online` mode.
             - `True`: The data will be processed in `online` mode.
@@ -305,12 +312,7 @@ class EegData:
 
         """
         self.online = online
-        self.training = training
         self.train_complete = train_complete
-
-        self.buffer_time = buffer_time
-        self.trial_end_buffer = buffer_time
-        self.search_index = 0
 
         # initialize the numbers of markers and trials to zero
         self.marker_count = 0
@@ -397,7 +399,7 @@ class EegData:
             # begining with a alpha character, then it is an command marker
             marker_is_single_string = len(current_step_marker.split(",")) == 1
             marker_begins_with_alpha = current_step_marker[0].isalpha()
-            is_event_marker = not marker_is_single_string and not marker_begins_with_alpha
+            is_event_marker = not marker_is_single_string
 
             # Add the marker to the event marker buffer
             if is_event_marker:
@@ -428,14 +430,16 @@ class EegData:
 
             elif current_step_marker == "Training Complete":
                 # Pull the epochs from the data tank and pass them to the classifier
-                X, y = self.__data_tank.get_training_data()
-                self._classifier.add_to_train(X, y)
+                X, y = self.__data_tank.get_epochs(latest=True)
+                if len(y) > 0:
+                    self._classifier.add_to_train(X, y)
                 self._classifier.fit()
 
             elif current_step_marker == "Update Classifier":
                 # Pull the epochs from the data tank and pass them to the classifier
                 X, y = self.__data_tank.get_epochs(latest=True)
-                self._classifier.add_to_train(X, y)
+                if len(y) > 0:
+                    self._classifier.add_to_train(X, y)
                 self._classifier.fit()
 
             self.marker_count += 1

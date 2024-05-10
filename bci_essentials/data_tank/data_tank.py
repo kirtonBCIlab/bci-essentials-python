@@ -23,6 +23,7 @@ class DataTank:
         self.latest_eeg_timestamp = 0
 
         self.epochs_sent = 0
+        self.epochs = np.zeros((0, 0))
 
     def set_source_data(
         self, headset_string, fsample, n_channels, ch_types, ch_units, channel_labels
@@ -73,17 +74,14 @@ class DataTank:
     def get_raw_markers(self):
         return self.raw_marker_strings, self.raw_marker_timestamps
 
-    def add_epochs(self, process_trial_func, markers, timestamps):
-        # This is called when a trial ends
-        # Raise an error saying to use a subclass
-        raise NotImplementedError("Please use a subclass to implement this method.")
-
-        # TODO
-        X = None
-        y = None
-
-        # Optional return the new epochs here
-        return X, y
+    def add_epochs(self, X, y):
+        # Add new epochs to the data tank
+        if self.epochs.size == 0:
+            self.epochs = np.array(X)
+            self.labels = np.array([int(y)])
+        else:
+            self.epochs = np.concatenate((self.epochs, np.array(X)))
+            self.labels = np.concatenate((self.labels, np.array([int(y)])))
     
     def get_epochs(self, latest=False):
         if latest:
@@ -96,18 +94,18 @@ class DataTank:
             # Return all
             return self.epochs, self.labels
 
-    def get_training_data():
-        # Get info from all labelled epochs to train classifier
-        # On repeated calls, only return new data
+    # def get_training_data():
+    #     # Get info from all labelled epochs to train classifier
+    #     # On repeated calls, only return new data
 
-        # TODO
-        X = None
-        y = None
-        return X, y
+    #     # TODO
+    #     X = None
+    #     y = None
+    #     return X, y
 
-    def get_unlabeled_epoch():
-        # Get an unlabeled epoch for classification
-        pass
+    # def get_unlabeled_epoch():
+    #     # Get an unlabeled epoch for classification
+    #     pass
 
     def save_raw():
         pass

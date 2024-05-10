@@ -16,7 +16,7 @@ from bci_essentials.classification.mi_classifier import MiClassifier
 filename = os.path.join("data", "mi_example_2.xdf")
 eeg_source = XdfEegSource(filename)
 marker_source = XdfMarkerSource(filename)
-paradigm = MiParadigm()
+paradigm = MiParadigm(live_update=True)
 data_tank = DataTank()
 
 # Select a classifier
@@ -37,7 +37,6 @@ test_mi = EegData(classifier, eeg_source, marker_source, paradigm, data_tank)
 # Run main loop, this will do all of the classification for online or offline
 test_mi.setup(
     online=False,
-    training=True,
 )
 test_mi.run()
 
