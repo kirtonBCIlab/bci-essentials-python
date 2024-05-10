@@ -1,6 +1,7 @@
 import numpy as np
 from ..signal_processing import bandpass
 
+
 # Will eventually move somewhere else
 class DataTank:
     """
@@ -21,9 +22,10 @@ class DataTank:
 
         self.latest_eeg_timestamp = 0
 
-    def set_source_data(self, headset_string, fsample, n_channels, ch_types, ch_units, channel_labels):
-        """
-        """
+    def set_source_data(
+        self, headset_string, fsample, n_channels, ch_types, ch_units, channel_labels
+    ):
+        """ """
         self.headset_string = headset_string
         self.fsample = fsample
         self.n_channels = n_channels
@@ -41,7 +43,9 @@ class DataTank:
             self.raw_eeg_timestamps = new_eeg_timestamps
         else:
             self.raw_eeg = np.concatenate((self.raw_eeg, new_raw_eeg))
-            self.raw_eeg_timestamps = np.concatenate((self.raw_eeg_timestamps, new_eeg_timestamps))
+            self.raw_eeg_timestamps = np.concatenate(
+                (self.raw_eeg_timestamps, new_eeg_timestamps)
+            )
 
         self.latest_eeg_timestamp = new_eeg_timestamps[-1]
 
@@ -50,8 +54,12 @@ class DataTank:
             self.raw_marker_strings = new_marker_strings
             self.raw_marker_timestamps = new_marker_timestamps
         else:
-            self.raw_marker_strings = np.concatenate((self.raw_marker_strings, new_marker_strings))
-            self.raw_marker_timestamps = np.concatenate((self.raw_marker_timestamps, new_marker_timestamps))
+            self.raw_marker_strings = np.concatenate(
+                (self.raw_marker_strings, new_marker_strings)
+            )
+            self.raw_marker_timestamps = np.concatenate(
+                (self.raw_marker_timestamps, new_marker_timestamps)
+            )
 
         # If live classification is True then we want to add each marker epoch to the epoch
         # array as it comes in and also send one away for classification
@@ -60,7 +68,7 @@ class DataTank:
         # This is called when a trial ends
         # Raise an error saying to use a subclass
         raise NotImplementedError("Please use a subclass to implement this method.")
-    
+
         # Optional return the new epochs here
 
     def get_training_data():

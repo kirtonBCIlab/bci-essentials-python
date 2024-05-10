@@ -2,11 +2,19 @@ import numpy as np
 
 from .base_paradigm import BaseParadigm
 
+
 class MiParadigm(BaseParadigm):
     """
     MI paradigm.
     """
-    def __init__(self, filters=[5,30], channel_subset=None, iterative_training=False, live_update=False):
+
+    def __init__(
+        self,
+        filters=[5, 30],
+        channel_subset=None,
+        iterative_training=False,
+        live_update=False,
+    ):
         """
         Parameters
         ----------
@@ -14,7 +22,7 @@ class MiParadigm(BaseParadigm):
             Filter bands.
             - Default is `[5, 30]`.
         channel_subset : list of str, *optional*
-            Channel subset to use. 
+            Channel subset to use.
             - Default is `None`.
         iterative_training : bool, *optional*
             Flag to indicate if the classifier will be updated iteratively.
@@ -40,5 +48,3 @@ class MiParadigm(BaseParadigm):
 
     def update_classifier(self):
         pass
-    
-

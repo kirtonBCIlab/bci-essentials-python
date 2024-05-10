@@ -571,9 +571,9 @@ class ErpData(EegData):
                     )
 
                     # add to raw ERP trials
-                    self.erp_trials_raw[self.n_trials, c, 0 : self.n_samples] = (
-                        channel_data
-                    )
+                    self.erp_trials_raw[
+                        self.n_trials, c, 0 : self.n_samples
+                    ] = channel_data
 
                     if self.plot_erp:
                         if flash_index == current_target:

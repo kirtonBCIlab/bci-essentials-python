@@ -1218,9 +1218,9 @@ def __sbfs(
                     ]
                     step += 1
 
-                performance_at_nchannels[length_of_resultant_set - 1] = (
-                    current_performance
-                )
+                performance_at_nchannels[
+                    length_of_resultant_set - 1
+                ] = current_performance
                 best_subset_at_nchannels[length_of_resultant_set - 1] = sbfs_subset
 
             # if no performance gains, then stop conditional inclusion
@@ -1666,9 +1666,9 @@ def __sffs(
                     ]
                     step += 1
 
-                performance_at_nchannels[length_of_resultant_set - 1] = (
-                    current_performance
-                )
+                performance_at_nchannels[
+                    length_of_resultant_set - 1
+                ] = current_performance
                 best_subset_at_nchannels[length_of_resultant_set - 1] = sffs_subset
 
             # if no performance gains, then stop conditional exclusion

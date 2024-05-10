@@ -32,12 +32,14 @@ from .utils.logger import Logger
 # Logs to bci_essentials.__module__) where __module__ is the name of the module
 logger = Logger(name=__name__)
 
+
 class MiDataTank(DataTank):
     # def add_epochs(self):
     #     pass
 
     def train_classifier(self):
         pass
+
 
 class P300DataTank(DataTank):
     # def add_epochs(self):
@@ -48,6 +50,7 @@ class P300DataTank(DataTank):
 
     def __ensemble_average(self):
         pass
+
 
 # EEG data
 class EegData:
@@ -229,18 +232,17 @@ class EegData:
             if "Ping" in marker:
                 continue
 
-            
-
             # If the marker contains a single string, not including ',' and
             # begining with a alpha character, then it is an command marker
             marker_is_single_string = len(marker.split(",")) == 1
             marker_begins_with_alpha = marker[0].isalpha()
             is_command_marker = marker_is_single_string and marker_begins_with_alpha
 
-
             if is_command_marker:
                 self.marker_data = np.append(self.marker_data, marker)
-                self.marker_timestamps = np.append(self.marker_timestamps, timestamps[0])
+                self.marker_timestamps = np.append(
+                    self.marker_timestamps, timestamps[0]
+                )
 
             else:
                 self.__data_tank.event_marker_strings = np.append(

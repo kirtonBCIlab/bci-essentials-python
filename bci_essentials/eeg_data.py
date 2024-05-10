@@ -33,6 +33,7 @@ from .utils.logger import Logger
 # Logs to bci_essentials.__module__) where __module__ is the name of the module
 logger = Logger(name=__name__)
 
+
 # EEG data
 class EegData:
     """
@@ -184,10 +185,11 @@ class EegData:
             marker_begins_with_alpha = marker[0].isalpha()
             is_command_marker = marker_is_single_string and marker_begins_with_alpha
 
-
             if is_command_marker:
                 self.marker_data = np.append(self.marker_data, marker)
-                self.marker_timestamps = np.append(self.marker_timestamps, timestamps[0])
+                self.marker_timestamps = np.append(
+                    self.marker_timestamps, timestamps[0]
+                )
 
             else:
                 self.__data_tank.event_marker_strings = np.append(
@@ -387,22 +389,24 @@ class EegData:
             # once all resting state data is collected then go and compile it
             # TODO
             if current_step_marker == "Done with all RS collection":
-                self.__paradigm._package_resting_state_data(self.marker_data, self.marker_timestamps, self.eeg_data, self.eeg_timestamps)
+                self.__paradigm._package_resting_state_data(
+                    self.marker_data,
+                    self.marker_timestamps,
+                    self.eeg_data,
+                    self.eeg_timestamps,
+                )
                 self.marker_count += 1
 
             elif current_step_marker == "Trial Started":
-                logger.debug(
-                    "Trial started, incrementing marker count and continuing"
-                )
+                logger.debug("Trial started, incrementing marker count and continuing")
                 # Note that a marker occured, but do nothing else
                 self.marker_count += 1
 
             elif current_step_marker == "Trial Ends":
                 # Tell the data tank to update the epoch array
                 self.__data_tank.update_epochs()
-                
+
                 # Ask the paradigm if it needs to do anything
-                
 
             elif current_step_marker == "Training Complete":
                 # Pull the epochs from the data tank and pass them to the classifier
@@ -416,9 +420,6 @@ class EegData:
                 self._classifier.add_to_train(X, y)
                 self._classifier.fit()
 
-            
-
-
                 # # TRAIN
                 # if self.training:
                 #     self._classifier.add_to_train(
@@ -430,7 +431,7 @@ class EegData:
                 #         self.current_num_trials,
                 #     )
 
-                #     # if iterative training is on and active then also make a prediction 
+                #     # if iterative training is on and active then also make a prediction
                 #     if self.iterative_training:
                 #         logger.info(
                 #             "Added current samples to training set, "

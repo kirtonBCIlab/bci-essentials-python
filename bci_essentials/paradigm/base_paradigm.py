@@ -7,18 +7,19 @@ from ..signal_processing import bandpass
 # Logs to bci_essentials.__module__) where __module__ is the name of the module
 logger = Logger(name=__name__)
 
-class BaseParadigm():
-    def __init__(self, filters=[5,30], channel_subset=None):
+
+class BaseParadigm:
+    def __init__(self, filters=[5, 30], channel_subset=None):
         """
         Base class for all paradigms.
-        
+
         Parameters
         ----------
         filters : list of floats | [5, 30]
             Filter bands.
-        channel_subset : list of str | None 
-            Channel subset to use. 
-            """
+        channel_subset : list of str | None
+            Channel subset to use.
+        """
         self.lowcut = filters[0]
         self.highcut = filters[1]
         self.channel_subset = channel_subset
@@ -34,7 +35,7 @@ class BaseParadigm():
     def __interpolate(self, eeg, timestamps, fsample):
         """
         Interpolate EEG data to a uniform sampling rate.
-        
+
         Parameters
         ----------
         eeg : ndarray
@@ -57,8 +58,10 @@ class BaseParadigm():
             new_eeg[c, :] = np.interp(new_timestamps, adjusted_timestamps, eeg[c, :])
 
         return new_eeg, new_timestamps
-        
-    def _package_resting_state_data(self, marker_data, marker_timestamps, eeg_data, eeg_timestamps):
+
+    def _package_resting_state_data(
+        self, marker_data, marker_timestamps, eeg_data, eeg_timestamps
+    ):
         """Package resting state data.
 
         Returns
@@ -150,7 +153,11 @@ class BaseParadigm():
                     current_eyes_open_start = eyes_open_start_loc[i]
                     current_eyes_open_end = eyes_open_end_loc[i]
 
-                    new_eeg, new_timestamps = self.__interpolate(eeg_data[:, current_eyes_open_start:current_eyes_open_end], self.eyes_open_timestamps, self.fsample)
+                    new_eeg, new_timestamps = self.__interpolate(
+                        eeg_data[:, current_eyes_open_start:current_eyes_open_end],
+                        self.eyes_open_timestamps,
+                        self.fsample,
+                    )
 
                     self.eyes_open_trials[i, :, :] = new_eeg
                     self.eyes_open_timestamps = new_timestamps
@@ -174,7 +181,11 @@ class BaseParadigm():
                     current_eyes_closed_start = eyes_closed_start_loc[i]
                     current_eyes_closed_end = eyes_closed_end_loc[i]
 
-                    new_eeg, new_timestamps = self.__interpolate(eeg_data[:, current_eyes_closed_start:current_eyes_closed_end], eyes_closed_timestamps, self.fsample)
+                    new_eeg, new_timestamps = self.__interpolate(
+                        eeg_data[:, current_eyes_closed_start:current_eyes_closed_end],
+                        eyes_closed_timestamps,
+                        self.fsample,
+                    )
 
                     eyes_closed_trials[i, :, :] = new_eeg
                     eyes_closed_timestamps = new_timestamps
@@ -200,10 +211,14 @@ class BaseParadigm():
                     current_rest_start = rest_start_loc[i]
                     current_rest_end = rest_end_loc[i]
 
-                    new_eeg, new_timestamps = self.__interpolate(eeg_data[:, current_rest_start:current_rest_end], rest_timestamps, self.fsample)
+                    new_eeg, new_timestamps = self.__interpolate(
+                        eeg_data[:, current_rest_start:current_rest_end],
+                        rest_timestamps,
+                        self.fsample,
+                    )
 
                     rest_trials[i, :, :] = new_eeg
                     rest_timestamps = new_timestamps
-                    
+
         except Exception:
             logger.warning("Failed to package resting state data")
