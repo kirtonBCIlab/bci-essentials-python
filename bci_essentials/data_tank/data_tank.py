@@ -22,6 +22,8 @@ class DataTank:
 
         self.latest_eeg_timestamp = 0
 
+        self.epochs_sent = 0
+
     def set_source_data(
         self, headset_string, fsample, n_channels, ch_types, ch_units, channel_labels
     ):
@@ -36,7 +38,7 @@ class DataTank:
     def package_resting_state_data(self):
         pass
 
-    def append_raw_eeg(self, new_raw_eeg, new_eeg_timestamps):
+    def add_raw_eeg(self, new_raw_eeg, new_eeg_timestamps):
         # If this is the first chunk of EEG, initialize the arrays
         if self.raw_eeg.size == 0:
             self.raw_eeg = new_raw_eeg
@@ -49,7 +51,7 @@ class DataTank:
 
         self.latest_eeg_timestamp = new_eeg_timestamps[-1]
 
-    def append_raw_markers(self, new_marker_strings, new_marker_timestamps):
+    def add_raw_markers(self, new_marker_strings, new_marker_timestamps):
         if self.raw_marker_strings.size == 0:
             self.raw_marker_strings = new_marker_strings
             self.raw_marker_timestamps = new_marker_timestamps
@@ -64,16 +66,41 @@ class DataTank:
         # If live classification is True then we want to add each marker epoch to the epoch
         # array as it comes in and also send one away for classification
 
-    def update_epochs():
+    def get_raw_eeg(self):
+        # Get the EEG data between the start and end times
+        return self.raw_eeg, self.raw_eeg_timestamps
+    
+    def get_raw_markers(self):
+        return self.raw_marker_strings, self.raw_marker_timestamps
+
+    def add_epochs(self, process_trial_func, markers, timestamps):
         # This is called when a trial ends
         # Raise an error saying to use a subclass
         raise NotImplementedError("Please use a subclass to implement this method.")
 
+        # TODO
+        X = None
+        y = None
+
         # Optional return the new epochs here
+        return X, y
+    
+    def get_epochs(self, latest=False):
+        if latest:
+            # Return only the new data
+            first_unsent = self.epochs_sent
+            self.epochs_sent = len(self.epochs)
+
+            return self.epochs[first_unsent:-1], self.labels[first_unsent:-1]
+        else:
+            # Return all
+            return self.epochs, self.labels
 
     def get_training_data():
         # Get info from all labelled epochs to train classifier
         # On repeated calls, only return new data
+
+        # TODO
         X = None
         y = None
         return X, y
@@ -82,13 +109,7 @@ class DataTank:
         # Get an unlabeled epoch for classification
         pass
 
-    def __interpolate():
-        pass
-
-    def __preprocess():
-        pass
-
-    def save_raw_eeg():
+    def save_raw():
         pass
 
     def save_epochs_as_npz(self, file_name: str):

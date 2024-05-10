@@ -24,6 +24,13 @@ class BaseParadigm:
         self.highcut = filters[1]
         self.channel_subset = channel_subset
 
+        # When do we return classifications?
+        self.classify_each_epoch = False
+        self.classify_each_trial = False
+
+        # Do we classify labeled epochs (such as in the case of iterative training)?
+        self.classify_labeled_epochs = False
+
     def __preprocess(self, eeg, fsample, lowcut, highcut):
         """
         Preprocess EEG data with bandpass filter.

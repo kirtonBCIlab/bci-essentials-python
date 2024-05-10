@@ -34,8 +34,22 @@ class MiParadigm(BaseParadigm):
         """
         super().__init__(filters, channel_subset)
 
-        self.iterative_training = iterative_training
         self.live_update = live_update
+        self.iterative_training = iterative_training
+
+        if self.live_update:
+            self.classify_each_epoch = True
+
+        if self.iterative_training:
+            self.classify_each_trial = True
+
+    def process_markers(self, markers, marker_timestamps, eeg, eeg_timestamps):
+        """
+        This takes 
+        """
+        X = None
+        y = None
+        return X, y
 
     def check_compatibility(self):
         pass

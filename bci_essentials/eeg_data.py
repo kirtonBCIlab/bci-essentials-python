@@ -22,7 +22,7 @@ import time
 import numpy as np
 
 from .signal_processing import notch, bandpass
-from .paradigm import BaseParadigm
+from .paradigm.base_paradigm import BaseParadigm
 from .data_tank.data_tank import DataTank
 from .classification.generic_classifier import GenericClassifier
 from .io.sources import EegSource, MarkerSource
@@ -104,21 +104,22 @@ class EegData:
         # Switch any trigger channels to stim, this is for mne/bids export (?)
         self.ch_type = [type.replace("trg", "stim") for type in self.ch_type]
 
-        # If a subset is to be used, define a new n_channels, channel labels, and eeg data
-        if self.__subset != []:
-            logger.info("A subset was defined")
-            logger.info("Original channels\n%s", self.channel_labels)
+        # # THIS IS GOING TO BE A PART OF PARADIGM
+        # # If a subset is to be used, define a new n_channels, channel labels, and eeg data
+        # if self.__subset != []:
+        #     logger.info("A subset was defined")
+        #     logger.info("Original channels\n%s", self.channel_labels)
 
-            self.n_channels = len(self.__subset)
-            self.subset_indices = []
-            for s in self.__subset:
-                self.subset_indices.append(self.channel_labels.index(s))
+        #     self.n_channels = len(self.__subset)
+        #     self.subset_indices = []
+        #     for s in self.__subset:
+        #         self.subset_indices.append(self.channel_labels.index(s))
 
-            self.channel_labels = self.__subset
-            logger.info("Subset channels\n%s", self.channel_labels)
+        #     self.channel_labels = self.__subset
+        #     logger.info("Subset channels\n%s", self.channel_labels)
 
-        else:
-            self.subset_indices = list(range(0, self.n_channels))
+        # else:
+        #     self.subset_indices = list(range(0, self.n_channels))
 
         self._classifier.channel_labels = self.channel_labels
 
@@ -171,41 +172,21 @@ class EegData:
         time_correction = self.__marker_source.time_correction()
         timestamps = [timestamps[i] + time_correction for i in range(len(timestamps))]
 
-        # Sort between event and command markers. Event markers are used by the data tank.
-        # Command markers are used this controller currently called EegData.
-
         for marker in markers:
             marker = marker[0]
             if "Ping" in marker:
                 continue
 
-            # If the marker contains a single string, not including ',' and
-            # begining with a alpha character, then it is an command marker
-            marker_is_single_string = len(marker.split(",")) == 1
-            marker_begins_with_alpha = marker[0].isalpha()
-            is_command_marker = marker_is_single_string and marker_begins_with_alpha
+            # Add all markers to the controller
+            self.marker_data = np.append(self.marker_data, marker)
+            self.marker_timestamps = np.append(
+                self.marker_timestamps, timestamps[0]
+            )
 
-            if is_command_marker:
-                self.marker_data = np.append(self.marker_data, marker)
-                self.marker_timestamps = np.append(
-                    self.marker_timestamps, timestamps[0]
-                )
-
-            else:
-                self.__data_tank.event_marker_strings = np.append(
-                    self.__data_tank.event_marker_strings, marker
-                )
-                self.__data_tank.event_marker_timestamps = np.append(
-                    self.__data_tank.event_marker_timestamps, timestamps[0]
-                )
+            # Add all markers to the data tank
+            self.__data_tank.add_raw_markers(markers, timestamps)
 
         print("debug")
-
-        # # add the fresh data to the buffers
-        # self.marker_data = np.concatenate((self.marker_data, markers))
-        # self.marker_timestamps = np.concatenate((self.marker_timestamps, timestamps))
-
-        # self.__data_tank.append_raw_markers(markers, timestamps)
 
     def __pull_eeg_data_from_source(self):
         """Pulls eeg samples from source, sanity checks and appends to buffer"""
@@ -222,9 +203,9 @@ class EegData:
             logger.warning("discarded invalid eeg data")
             return
 
-        # handle subsets if needed
-        if self.__subset != []:
-            eeg = eeg[:, self.subset_indices]
+        # # handle subsets if needed
+        # if self.__subset != []:
+        #     eeg = eeg[:, self.subset_indices]
 
         # if time is in milliseconds, divide by 1000, works for sampling rates above 10Hz
         try:
@@ -253,10 +234,31 @@ class EegData:
         self.eeg_data = np.concatenate((self.eeg_data, eeg))
         self.eeg_timestamps = np.concatenate((self.eeg_timestamps, timestamps))
 
-        self.__data_tank.append_raw_eeg(eeg, timestamps)
+        self.__data_tank.add_raw_eeg(eeg, timestamps)
 
         # Update latest EEG timestamp
         self.latest_eeg_timestamp = timestamps[-1]
+
+    def __process_and_classify(self):
+        eeg, timestamps = self.__data_tank.get_raw_eeg()
+        X, y = self.__paradigm.process_markers(self.marker_buffer, self.timestamp_buffer, eeg, timestamps)
+
+        # Add the epochs to the data tank
+        self.__data_tank.add_epochs(X, y)
+
+        # If either there are no labels OR iterative training is on, then make a prediction
+        if self.train_complete:
+            if -1 in y or self.__paradigm.iterative_training:
+                prediction = self._classifier.predict(X)
+                self.__send_prediction(prediction)
+
+        self.event_marker_buffer = []
+        self.event_timestamp_buffer = []
+
+    def __send_prediction(self, prediction):
+        """Send a prediction to the messenger object."""
+        if self._messenger is not None:
+            self._messenger.prediction(prediction)        
 
     def setup(
         self,
@@ -373,12 +375,17 @@ class EegData:
         # event markers in the event_marker_strings array
         self._pull_data_from_sources()
 
+        # Initialize the event marker buffer
+        self.event_marker_buffer = []
+        self.event_timestamp_buffer = []
+
         # check if there is an available command marker, if not, break and wait for more data
         while len(self.marker_timestamps) > self.marker_count:
             self.loops = 0
 
             # Get the current marker
-            current_step_marker = self.marker_data[self.marker_count][0]
+            current_step_marker = self.marker_data[self.marker_count]
+            current_timestamp = self.marker_timestamps[self.marker_count]
 
             if self._messenger is not None:
                 # send feedback for each marker that you receive
@@ -386,27 +393,38 @@ class EegData:
 
             logger.info("Marker: %s", current_step_marker)
 
-            # once all resting state data is collected then go and compile it
+            # If the marker contains a single string, not including ',' and
+            # begining with a alpha character, then it is an command marker
+            marker_is_single_string = len(current_step_marker.split(",")) == 1
+            marker_begins_with_alpha = current_step_marker[0].isalpha()
+            is_event_marker = not marker_is_single_string and not marker_begins_with_alpha
+
+            # Add the marker to the event marker buffer
+            if is_event_marker:
+                self.event_marker_buffer.append(current_step_marker)
+                self.event_timestamp_buffer.append(current_timestamp)
+
+                # If classification is on epochs, then update epochs, maybe classify, and clear the buffer
+                if self.__paradigm.classify_each_epoch:
+                    self.__process_and_classify()
+
             # TODO
-            if current_step_marker == "Done with all RS collection":
+            elif current_step_marker == "Done with all RS collection":
                 self.__paradigm._package_resting_state_data(
                     self.marker_data,
                     self.marker_timestamps,
                     self.eeg_data,
                     self.eeg_timestamps,
                 )
-                self.marker_count += 1
 
             elif current_step_marker == "Trial Started":
                 logger.debug("Trial started, incrementing marker count and continuing")
                 # Note that a marker occured, but do nothing else
-                self.marker_count += 1
 
             elif current_step_marker == "Trial Ends":
-                # Tell the data tank to update the epoch array
-                self.__data_tank.update_epochs()
-
-                # Ask the paradigm if it needs to do anything
+                # If we are classifying based on trials, then process the trial, 
+                if self.__paradigm.classify_each_trial:
+                    self.__process_and_classify()
 
             elif current_step_marker == "Training Complete":
                 # Pull the epochs from the data tank and pass them to the classifier
@@ -416,117 +434,11 @@ class EegData:
 
             elif current_step_marker == "Update Classifier":
                 # Pull the epochs from the data tank and pass them to the classifier
-                X, y = self.__data_tank.get_training_data()
+                X, y = self.__data_tank.get_epochs(latest=True)
                 self._classifier.add_to_train(X, y)
                 self._classifier.fit()
 
-                # # TRAIN
-                # if self.training:
-                #     self._classifier.add_to_train(
-                #         self.current_processed_eeg_trials, self.current_labels
-                #     )
-
-                #     logger.debug(
-                #         "%s trials and labels added to training set",
-                #         self.current_num_trials,
-                #     )
-
-                #     # if iterative training is on and active then also make a prediction
-                #     if self.iterative_training:
-                #         logger.info(
-                #             "Added current samples to training set, "
-                #             + "now making a prediction"
-                #         )
-
-                #         # Make a prediction
-                #         prediction = self._classifier.predict(
-                #             self.current_processed_eeg_trials
-                #         )
-
-                #         logger.info(
-                #             "%s was selected by the iterative classifier",
-                #             prediction.labels,
-                #         )
-
-                #         if self._messenger is not None:
-                #             self._messenger.prediction(prediction)
-
-                # # PREDICT
-                # elif self.train_complete and self.current_num_trials != 0:
-                #     logger.info(
-                #         "Making a prediction based on %s trials",
-                #         self.current_num_trials,
-                #     )
-
-                #     if self.current_num_trials == 0:
-                #         logger.error("No trials to make a decision")
-                #         self.marker_count += 1
-                #         break
-
-                #     # save the online selection indices
-                #     selection_inds = list(
-                #         range(
-                #             self.n_trials - self.current_num_trials,
-                #             self.n_trials,
-                #         )
-                #     )
-                #     self.online_selection_indices.append(selection_inds)
-
-                #     # make the prediciton
-                #     try:
-                #         prediction = self._classifier.predict(
-                #             self.current_processed_eeg_trials
-                #         )
-                #         self.online_selections.append(prediction.labels)
-
-                #         logger.info(
-                #             "%s was selected by classifier", prediction.labels
-                #         )
-
-                #         if self._messenger is not None:
-                #             self._messenger.prediction(prediction)
-
-                #     except Exception:
-                #         logger.warning("This classification failed...")
-
-                # # OH DEAR
-                # else:
-                #     logger.error("Unable to classify... womp womp")
-
-                # Reset trials and labels
-                self.marker_count += 1
-                self.current_num_trials = 0
-                self.current_raw_eeg_trials = np.zeros(
-                    (self.max_trials, self.max_channels, self.max_samples)
-                )
-                self.current_processed_eeg_trials = self.current_raw_eeg_trials
-                self.current_labels = np.zeros((self.max_trials))
-
-            # If human training completed then train the classifier
-            elif (
-                current_step_marker == "Training Complete"
-                and self.train_complete is False
-            ):
-                logger.debug("Training the classifier")
-
-                self._classifier.fit()
-                self.train_complete = True
-                self.training = False
-                self.marker_count += 1
-
-            elif current_step_marker == "Update Classifier":
-                logger.debug("Retraining the classifier")
-
-                self._classifier.fit()
-
-                self.iterative_training = True
-                if self.online:
-                    self.live_update = True
-
-                self.marker_count += 1
-
-            else:
-                self.marker_count += 1
+            self.marker_count += 1
 
             if self.online:
                 time.sleep(0.01)
