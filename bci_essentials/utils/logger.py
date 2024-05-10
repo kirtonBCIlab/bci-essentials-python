@@ -197,22 +197,11 @@ class Logger:
             Name of the logger.
             – Default is 'bci_essentials'.
         """
-        # if name is None:
-        #     name = 'bci_essentials'
 
         self.logger = logging.getLogger(name)
 
         # Check if this logger already has handlers set up
         if not self.logger.hasHandlers():
-            # Determine the logging level
-            # if level is None:
-            #     level_to_set = self.__default_level
-            # else:
-            #     level_to_set = level
-
-            # Configure the logger
-            # self.__configure(level_to_set
-            # self.__configure(self.__default_level)
             self.__configure()
 
     def __configure(self):

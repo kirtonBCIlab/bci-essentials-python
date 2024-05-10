@@ -50,25 +50,26 @@ class MiClassifier(GenericClassifier):
             Number of folds for cross-validation.
             - Default is `5`.
         type : str, *optional*
-            Description of parameter `type`.
+            Type of classifier to be used.
+            Options = sLDA, RandomForest, TS, or MDM.
             - Default is `"TS"`.
         remove_flats : bool, *optional*
-            Description of parameter `remove_flats`.
+            Whether to remove flat channels from the EEG data.
             - Default is `False`.
         whitening : bool, *optional*
-            Description of parameter `whitening`.
+            Whether to apply whitening to the EEG data.
             - Default is `False`.
         covariance_estimator : str, *optional*
             Covariance estimator. See pyriemann Covariances.
             - Default is `"oas"`.
         artifact_rejection : str, *optional*
-            Description of parameter `artifact_rejection`.
+            Method for artefact rejection.
             - Default is `"none"`.
         channel_selection : str, *optional*
-            Description of parameter `channel_selection`.
+            Method for channel selection.
             - Default is `"none"`.
         pred_threshold : float, *optional*
-            Description of parameter `pred_threshold`.
+            Prediction threshold used for classification.
             - Default is `0.5`.
         random_seed : int, *optional*
             Random seed.
@@ -114,12 +115,6 @@ class MiClassifier(GenericClassifier):
             mdm = MDM(metric=dict(mean="riemann", distance="riemann"), n_jobs=n_jobs)
             self.clf_model = Pipeline([("MDM", mdm)])
             self.clf = Pipeline([("MDM", mdm)])
-
-        # CSP + Logistic Regression (REQUIRES MNE CSP)
-        # elif type == "CSP-LR":
-        #     lr = LogisticRegression()
-        #     self.clf_model = Pipeline([('CSP', csp), ('LogisticRegression', lr)])
-        #     self.clf = Pipeline([('CSP', csp), ('LogisticRegression', lr)])
 
         else:
             logger.error("Classifier type not defined")
@@ -181,17 +176,12 @@ class MiClassifier(GenericClassifier):
             Parameters
             ----------
             subX : numpy.ndarray
-                Description of parameter `subX`.
-                If array, state size and type. E.g.
-                3D array containing data with `float` type.
-
-                shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
+                EEG data for training.
+                3D array with shape = (`n_epochs`, `n_channels`, `n_samples`).
             suby : numpy.ndarray
-                Description of parameter `suby`.
-                If array, state size and type. E.g.
-                1D array containing data with `int` type.
+                Labels for training data.
+                1D array with shape = (`n_epochs`, ).
 
-                shape = (`1st_dimension`,)
             Returns
             -------
             model : classifier

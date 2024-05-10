@@ -251,7 +251,6 @@ class ErpData(EegData):
             self.training_labels = self.training_labels[0 : self.n_trials - 1]
             self.target_index = self.target_index[0 : self.n_trials - 1]
 
-        # self.erp_trials = self.erp_trials[0:self.n_trials, 0:self.n_channels, 0:self.n_samples]
         self.erp_trials_raw = self.erp_trials_raw[
             0 : self.n_trials, 0 : self.n_channels, 0 : self.n_samples
         ]
@@ -303,7 +302,7 @@ class ErpData(EegData):
                     or current_step_marker == "P300 SingleFlash Begins"
                     or current_step_marker == "Trial Started"
                 ):
-                    # Note that a marker occured, but do nothing else
+                    # Note that a marker occurred, but do nothing else
                     logger.info("Trial Started")
                     self.marker_count += 1
                     logger.debug("Increased marker count by 1 to %s", self.marker_count)
@@ -331,7 +330,7 @@ class ErpData(EegData):
                     current_step_marker == "P300 SingleFlash Ends"
                     or current_step_marker == "Trial Ends"
                 ):
-                    # get the smallest number of trials per decision in the case the are not the same
+                    # get the smallest number of trials per decision in the case they are not the same
                     num_ensemble_trials = int(np.min(self.trials_per_decision))
 
                     # save the number of options
@@ -412,8 +411,6 @@ class ErpData(EegData):
                                     self.unity_label,
                                 )
 
-                                # plot what was added
-                                # decision_vis(self.decision_blocks[self.decision_count,:,:,:], self.fsample, unity_label, self.channel_labels)
                             else:
                                 logger.debug(
                                     "Adding decision block %s to "
@@ -431,7 +428,7 @@ class ErpData(EegData):
                                     self.labels[self.decision_count],
                                 )
 
-                                # if the last of the labelled data was just added
+                                # if the last of the labeled data was just added
                                 if self.decision_count == len(self.labels) - 1:
                                     # FIT
                                     logger.debug("Training the classifier")
@@ -466,7 +463,7 @@ class ErpData(EegData):
                     self.decision_count += 1
                     self.trials_per_decision = np.zeros((self.num_options))
 
-                    # UPDATE THE SEARCH START LOC
+                    # UPDATE THE SEARCH START LOCATION
                     # continue
                 else:
                     self.marker_count += 1
@@ -488,7 +485,7 @@ class ErpData(EegData):
                 break
 
             # Get the difference between the timestamp of the most recent marker and the most recent EEG
-            # timestamp, check the difference and if it is most than 1000 s then warn that the timestamps are not alligned
+            # timestamp, check the difference and if it is more than 1000 s then warn that the timestamps are not alligned
             time_diff = self.eeg_timestamps[-1] - self.marker_timestamps[-1]
             if time_diff > 100:
                 logger.warning(
@@ -497,7 +494,7 @@ class ErpData(EegData):
                 )
 
             if self.eeg_timestamps[-1] <= end_time_plus_buffer:
-                # UPDATE THE SEARCH START LOC
+                # UPDATE THE SEARCH START LOCATION
                 break
 
             if self._messenger is not None:
@@ -510,8 +507,6 @@ class ErpData(EegData):
             flash_indices = list()
 
             for i, info in enumerate(current_marker_info):
-                # if i == 0:
-                #     bci_string = info
                 if i == 1:
                     self.flash_type = info
                 elif i == 2:
@@ -528,12 +523,9 @@ class ErpData(EegData):
 
             self.trials_per_decision[flash_indices] += 1
 
-            # During training,
-            # should this be repeated for multiple flash indices
-            # for flash_index in flash_indices:
+            # During training, should this be repeated for multiple flash indices
             if self.training:
                 # Get target info
-                # current_target = target_order[self.decision_count]
                 if self.unity_train:
                     logger.info("Marker information: %s", current_marker_info)
                     current_target = self.unity_label
@@ -548,9 +540,8 @@ class ErpData(EegData):
                 else:
                     self.target_index[self.n_trials] = False
 
-            # Find the start time and end time for the trial based on the marker timestamp
+            # Find the start time for the trial based on the marker timestamp
             start_time = self.marker_timestamps[self.marker_count] + self.trial_start
-            # end_time = self.marker_timestamps[self.marker_count] + self.trial_end
 
             # locate the indices of the trial in the eeg data
             for i, s in enumerate(self.eeg_timestamps[self.search_index : -1]):
@@ -559,15 +550,11 @@ class ErpData(EegData):
                 )
                 if s > start_time:
                     start_loc = self.search_index + i - 1
-                    # if start_loc < 0:
-                    #     start_loc = 0
-
                     break
+
             end_loc = start_loc + self.n_samples + 1
 
             # Adjust trials per option
-            # self.trials_per_option = np.zeros(self.num_options, dtype=int)
-
             logger.debug("Trial (start_loc, end_loc): (%s, %s)", start_loc, end_loc)
             # linear interpolation and add to numpy array
             for flash_index in flash_indices:
@@ -587,14 +574,6 @@ class ErpData(EegData):
                     self.erp_trials_raw[self.n_trials, c, 0 : self.n_samples] = (
                         channel_data
                     )
-                    # self.decision_blocks_raw[self.decision_count, self.n_trials, c, 0:self.n_samples]
-
-                    # if self.pp_type == "bandpass":
-                    #     channel_data_2 = bandpass(channel_data[np.newaxis,:], self.pp_low, self.pp_high, self.pp_order, self.fsample)
-                    #     channel_data = channel_data_2[0,:]
-
-                    # # Add to the instance count
-                    # self.trials_per_decision[flash_index] += 1
 
                     if self.plot_erp:
                         if flash_index == current_target:
@@ -606,12 +585,6 @@ class ErpData(EegData):
                         ):
                             self.axs2[c].plot(range(self.n_samples), channel_data)
                             self.non_target_plot = flash_index
-
-                    # # add to processed ERP trials
-                    # self.erp_trials[self.n_trials, c, 0:self.n_samples] = channel_data
-
-                    # # Does the ensemble avearging
-                    # self.decision_blocks[self.decision_count, flash_index, c, 0:self.n_samples] += channel_data
 
                 # This is where to do preprocessing
                 self.erp_trials_processed[
@@ -637,7 +610,6 @@ class ErpData(EegData):
                 )
 
                 # Add the raw trial to the raw decision blocks
-                # self.decision_blocks_raw[self.decision_count, flash_index, 0:self.n_channels, 0:self.n_samples] +=  self.erp_trials_processed
                 self.big_decision_blocks_raw[
                     self.decision_count,
                     flash_index,
@@ -658,7 +630,6 @@ class ErpData(EegData):
                     self.n_trials, : self.n_channels, : self.n_samples
                 ]
 
-                # self.trials_per_decision[flash_index] += 1
             # Reset for the next decision
 
             # iterate to next trial

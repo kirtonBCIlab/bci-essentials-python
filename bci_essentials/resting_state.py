@@ -165,7 +165,6 @@ def get_alpha_peak(data, alpha_min=8, alpha_max=12, plot_psd=False):
             ncols = int(np.ceil(np.sqrt(n_channels)))
 
             fig, axs = plt.subplots(nrows, ncols, figsize=(10, 8))
-            # fig.suptitle("Some PSDs")
             for r in range(nrows):
                 for c in range(ncols):
                     ch = (ncols * r) + c
@@ -260,7 +259,6 @@ def get_bandpower_features(data, fs, transition_freqs=[0, 4, 8, 12, 30]):
 
             # Get power for each channel
             abs_power = np.zeros([n_channels])
-            # norm_power = np.zeros([n_channels])
             for ch in range(n_channels):
                 abs_power[ch] = np.trapz(
                     Pxx[ch, ind_local_min:ind_local_max], f[ind_local_min:ind_local_max]

@@ -44,64 +44,59 @@ class GenericClassifier(ABC):
 
         Parameters
         ----------
-        training_selection : type, *optional*
-            Description of parameter `training_selection`.
+        training_selection : int, *optional*
+            Integer representing the object selected for training.
             - Default is `0`.
-        subset : list of `type`, *optional*
-            Description of parameter `subset`.
+        subset : list of `int` or `str`, *optional*
+            List of indices (int) or labels (str) of the desired channels.
             - Default is `[]`.
 
         Attributes
         ----------
         X : numpy.ndarray
-            Description of attribute `X`.
-            If array, state size and type. E.g.
-            3D array containing data with `float` type.
-
-            shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
+            Input features (training data).
+            3D numpy array with shape = (`n_samples`, `n_channels`, `n_trials`).
             - Initial value is `np.ndarray([0])`.
         y : numpy.ndarray
-            Description of attribute `y`.
-            If array, state size and type. E.g.
-            1D array containing data with `int` type.
-
-            shape = (`1st_dimension`,)
+            Target labels corresponding to input features in `X`.
+            1D numpy array with shape = (`n_samples`, ).
             - Initial value is `np.ndarray([0])`.
         subset_defined : bool
-            Description of attribute `subset_defined`.
+            Flag indicating whether a subset is defined.
             - Initial value is `False`.
-        subset : list of `type`
-            Description of attribute `subset`.
+        subset : list of `int` or `str`
+            List of indices (int) or labels (str) of the desired channels.
             - Initial value is parameter `subset`.
         channel_labels : list of `str`
-            Description of attribute `channel_labels`.
+            Channel labels from the entire EEG montage.
             - Initial value is `[]`.
         channel_selection_setup : bool
-            Description of attribute `channel_selection_setup`.
+            FLag indicating whether channel selection is set up.
             - Initial value is `False`.
         offline_accuracy : list of `float`
-            Description of attribute `offline_accuracy`.
+            Stores offline accuracy values during training.
             - Initial value is `[]`.
         offline_precision : list of `float`
-            Description of attribute `offline_precision`.
+            Stores offline precision values during training.
             - Initial value is `[]`.
         offline_recall : list of `float`
-            Description of attribute `offline_recall`.
+            Stores offline recall values during training.
             - Initial value is `[]`.
         offline_trial_count : int
-            Description of attribute `offline_trial_count`.
+            Counter to keep track of the number of offline trials
             - Initial value is `0`.
         offline_trial_counts : list of `int`
-            Description of attribute `offline_trial_counts`.
+            List to store the counts of offline trials.
+            i.e. `offline_trial_count' values.
             - Initial value is `[]`.
         next_fit_trial : int
-            Description of attribute `next_fit_trial`.
+            Counter to track the next trial for fitting.
             - Initial value is `0`.
-        predictions : list of `type`
-            Description of attribute `predictions`.
+        predictions : list
+            Stores predications made during training or testing
             - Initial value is `[]`.
         pred_probas : list of `float`
-            Description of attribute `pred_probas`.
+            List to store predication probabilities during testing.
             - Initial value is `[]`.
 
         """
@@ -111,7 +106,6 @@ class GenericClassifier(ABC):
         self.y = np.ndarray([0])
         """@private (This is just for the API docs, to avoid double listing."""
 
-        #
         self.subset_defined = False
         """@private (This is just for the API docs, to avoid double listing."""
         self.subset = subset
@@ -196,8 +190,6 @@ class GenericClassifier(ABC):
 
             # Return for the given indices
             try:
-                # n_trials, n_channels, n_samples = self.X.shape
-
                 if sum(X.shape) == 0:
                     new_X = self.X[:, subset_indices, :]
                     self.X = new_X
@@ -207,7 +199,6 @@ class GenericClassifier(ABC):
                     return X
 
             except Exception:
-                # n_channels, n_samples = self.X.shape
                 if sum(X.shape) == 0:
                     new_X = self.X[subset_indices, :]
                     self.X = new_X
@@ -249,19 +240,20 @@ class GenericClassifier(ABC):
             Whether or not to use the previously selected subset for the initial subset.
             Default is `False`.
         initial_channels : type, *optional*
-            Description of parameter `initial_channels`.
+            List of channels to use as initial subset for selection.
+            If empty, `initial_channels` is set to all available channels.
             - Default is `[]`.
-        max_time : type, *optional*
-            Description of parameter `max_time`.
+        max_time : int, *optional*
+            Maximum time in seconds allowed for channel selection.
             - Default is `999`.
-        min_channels : type, *optional*
-            Description of parameter `min_channels`.
+        min_channels : int, *optional*
+            Minimum number of channels to select during channel selection.
             - Default is `1`.
-        max_channels : type, *optional*
-            Description of parameter `max_channels`.
+        max_channels : int, *optional*
+            Maximum number of channels allowed in the final subset.
             - Default is `999`.
-        performance_delta : type, *optional*
-            Description of parameter `performance_delta`.
+        performance_delta : float, *optional*
+            Smallest performance increment to allow continue of the search.
             - Default is `0.001`.
         n_jobs : int, *optional*
             The number of threads to dedicate to this calculation.
@@ -299,19 +291,17 @@ class GenericClassifier(ABC):
 
         Parameters
         ----------
-        decision block : type
-            Description of parameter `decision block`.
-            If array, state size and type. E.g.
-            3D array containing data with `float` type.
-
-            shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
-        labels : type
-            Description of parameter `labels`.
-        num_options : type, *optional*
-            Description of parameter `num_options`.
+        decision_block : numpy.ndarray
+            Decision block containing EEG data for training.
+            3D array with shape = (`n_epochs`, `n_channels`, `n_samples`).
+        labels : numpy.ndarray
+            Labels corresponding to each epoch in `decision_block`.
+            1D array with shape = (`n_epochs`, ).
+        num_options : int, *optional*
+            Number of options available for each trial.
             - Default is `0`.
-        meta : type, *optional*
-            Description of parameter `meta`.
+        meta : list, *optional*
+            Additional metadata related to the training data.
             - Default is `[]`.
 
         Returns
@@ -343,17 +333,15 @@ class GenericClassifier(ABC):
 
         Parameters
         ----------
-        decision block : type
-            Description of parameter `decision block`.
-            If array, state size and type. E.g.
-            3D array containing data with `float` type.
-
-            shape = (`first_dimension`,`second_dimension`,`third_dimension`)
+        decision_block : numpy.ndarray
+            Decision block containing EEG data for training.
+            3D array with shape = (`n_epochs`, `n_channels`, `n_samples`).
 
         Returns
         -------
-        prediction : type
-            Description of returned object.
+        prediction : Prediction
+            A Predication object containing the predicated label and
+            prediction probabilities.
 
         """
         decision_block_subset = self.get_subset(

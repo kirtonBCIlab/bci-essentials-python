@@ -89,13 +89,12 @@ class ErpRgClassifier(GenericClassifier):
         Parameters
         ----------
         decision_block : numpy.ndarray
-            Description of parameter `decision block`.
-            If array, state size and type. E.g.
-            3D array containing data with `float` type.
-
-            shape = (`n_decisions`,`n_channels`,`n_samples`)
-        label_idx : type
-            Description of parameter `label_idx`.
+            Data to be added to the training set
+            3D numpy array with shape = (`n_decisions`,`n_channels`,`n_samples`)
+            E.g. 3D array containing data with `float` type.
+        label_idx : array_like
+            Index or indices indicating the labels for the decision blocks in `decision_block`.
+            This should be a 1D array or a list of integers representing labels.
 
         Returns
         -------
@@ -103,9 +102,6 @@ class ErpRgClassifier(GenericClassifier):
 
         """
         logger.debug("Adding to training set")
-        # n_decisions = number of epochs/decisions
-        # n_channels = number of channels
-        # n_samples = number of samples
         n_decisions, n_channels, n_samples = decision_block.shape
 
         # get a subset
@@ -138,16 +134,20 @@ class ErpRgClassifier(GenericClassifier):
         Parameters
         ----------
         n_splits : int, *optional*
-            Description of parameter `n_splits`.
+            Number of folds for cross validation.
+            E.g. how many parts the dataset is divided into and trained/validated.
             - Default is `2`.
         plot_cm : bool, *optional*
-            Description of parameter `plot_cm`.
+            Whether to plot the confusion matrix during training.
             - Default is `False`.
         plot_roc : bool, *optional*
-            Description of parameter `plot_roc`.
+            Whether to plot the ROC curve during training.
             - Default is `False`.
         lico_expansion_factor : int, *optional*
-            Description of parameter `lico_expansion_factor`.
+            Linear combination oversampling expansion factor.
+            Determines the number of ERPs in the training set that will be expanded.
+            Higher value increases the oversampling, generating more synthetic
+            samples for the minority class.
             - Default is `1`.
 
         Returns
@@ -175,24 +175,22 @@ class ErpRgClassifier(GenericClassifier):
         # Init predictions to all false
         preds = np.zeros(len(self.y))
 
-        #
         def __erp_rg_kernel(X, y):
             """ERP RG kernel.
 
             Parameters
             ----------
             X : numpy.ndarray
-                Description of parameter `X`.
-                If array, state size and type. E.g.
-                3D array containing data with `float` type.
+                Input features (ERP data) for training.
+                3D numpy array with shape = (`n_trials`, `n_channels`, `n_samples`).
+                E.g. (100, 32, 1000) for 100 trials, 32 channels and 1000 samples per channel.
 
-                shape = (`1st_dimension`,`2nd_dimension`,`3rd_dimension`)
             y : numpy.ndarray
-                Description of parameter `y`.
-                If array, state size and type. E.g.
-                1D array containing data with `int` type.
+                Target labels corresponding to the input features in `X`.
+                1D numpy array with shape (n_trails, ).
+                Each label indicates the class of the corresponding trial in `X`.
+                E.g. (100, ) for 100 trials.
 
-                shape = (`1st_dimension`,)
 
             Returns
             -------
@@ -278,7 +276,7 @@ class ErpRgClassifier(GenericClassifier):
                         # select a random value from the list of false indices
                         remove_at = false_ind[random.randrange(0, len(false_ind))]
 
-                        # remove that value from the false ind list
+                        # remove that value from the false index list
                         false_ind.remove(remove_at)
 
                         # add the index to be removed to a list
