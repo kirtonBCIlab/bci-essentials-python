@@ -2,7 +2,10 @@ import os
 
 from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
 from bci_essentials.eeg_data import EegData
-from bci_essentials.erp_data import ErpData
+from bci_essentials.paradigm.mi_paradigm import MiParadigm
+from bci_essentials.paradigm.p300_paradigm import P300Paradigm
+from bci_essentials.data_tank.data_tank import DataTank
+# from bci_essentials.erp_data import ErpData
 from bci_essentials.resting_state import get_alpha_peak, get_bandpower_features
 from bci_essentials.classification.mi_classifier import MiClassifier
 from bci_essentials.classification.erp_rg_classifier import ErpRgClassifier
@@ -16,67 +19,30 @@ logger = Logger(name="rs_offline_test")
 # within the same folder as this script
 filename = os.path.join("data", "rs_example.xdf")
 
-try:
-    # Load the xdf
-    eeg_source = XdfEegSource(filename)
-    marker_source = XdfMarkerSource(filename)
 
-    # Select a classifier
-    classifier = MiClassifier()  # you can add a subset here
+# Load the xdf
+eeg_source = XdfEegSource(filename)
+marker_source = XdfMarkerSource(filename)
 
-    # Define the classifier settings
-    classifier.set_mi_classifier_settings(
-        n_splits=5, type="TS", random_seed=35, channel_selection="riemann"
-    )
+paradigm = MiParadigm(live_update=True, iterative_training=True)
+data_tank = DataTank()
 
-    # Initialize data object
-    test_rs = EegData(classifier, eeg_source, marker_source)
+# Select a classifier
+classifier = MiClassifier()  # you can add a subset here
 
-    # Run main loop, this will do all of the classification for online or offline
-    test_rs.setup(
-        online=False,
-        training=True,
-        pp_low=5,
-        pp_high=30,
-        pp_order=5,
-    )
-    test_rs.run()
+# Define the classifier settings
+classifier.set_mi_classifier_settings(
+    n_splits=5, type="TS", random_seed=35, channel_selection="riemann"
+)
 
-except Exception:
-    try:
-        # Load the xdf
-        logger.warning("Loading file: %s", filename)
-        eeg_source = XdfEegSource(filename)
-        marker_source = XdfMarkerSource(filename)
+# Initialize data object
+test_rs = EegData(classifier, eeg_source, marker_source, paradigm, data_tank)
 
-        # Choose a classifier
-        classifier = ErpRgClassifier()  # you can add a subset here
-
-        # Set classifier settings
-        classifier.set_p300_clf_settings(
-            n_splits=5, lico_expansion_factor=1, oversample_ratio=0, undersample_ratio=0
-        )
-
-        # Load the xdf
-        test_rs = ErpData(classifier, eeg_source, marker_source)
-
-        # Run main loop, this will do all of the classification for online or offline
-        test_rs.setup(
-            training=True,
-            online=False,
-            max_num_options=9,
-            max_trials_per_option=16,
-            pp_low=0.1,
-            pp_high=15,
-            pp_order=5,
-            plot_erp=False,
-            trial_start=0.0,
-            trial_end=0.6,
-        )
-        test_rs.run()
-
-    except Exception:
-        logger.error("Couldn't find resting state data")
+# Run main loop, this will do all of the classification for online or offline
+test_rs.setup(
+    online=False,
+)
+test_rs.run()
 
 try:
     eyes_open_trials = test_rs.eyes_open_trials
