@@ -404,6 +404,8 @@ class EegData:
                 self.event_marker_buffer.append(current_step_marker)
                 self.event_timestamp_buffer.append(current_timestamp)
 
+                print("Event Marker Buffer: ", self.event_timestamp_buffer)
+
                 # If classification is on epochs, then update epochs, maybe classify, and clear the buffer
                 if self.__paradigm.classify_each_epoch:
                     self.__process_and_classify()

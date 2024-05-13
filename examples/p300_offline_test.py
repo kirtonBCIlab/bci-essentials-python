@@ -6,7 +6,9 @@ Test P300 offline using data from an existing stream
 import os
 
 from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
-from bci_essentials.erp_data import ErpData
+from bci_essentials.eeg_data import EegData
+from bci_essentials.data_tank.data_tank import DataTank
+from bci_essentials.paradigm.p300_paradigm import P300Paradigm
 from bci_essentials.classification.erp_rg_classifier import ErpRgClassifier
 
 # Identify the file to simulate
@@ -15,6 +17,8 @@ from bci_essentials.classification.erp_rg_classifier import ErpRgClassifier
 filename = os.path.join("data", "p300_example.xdf")
 eeg_source = XdfEegSource(filename)
 marker_source = XdfMarkerSource(filename)
+paradigm = P300Paradigm()
+data_tank = DataTank()
 
 # Choose a classifier
 classifier = ErpRgClassifier()  # you can add a subset here
@@ -30,16 +34,10 @@ classifier.set_p300_clf_settings(
 )
 
 # Initialize the ERP data object
-test_erp = ErpData(classifier, eeg_source, marker_source)
+test_erp = EegData(classifier, eeg_source, marker_source, paradigm, data_tank)
 
 # Run main loop, this will do all of the classification for online or offline
 test_erp.setup(
-    training=True,
-    pp_low=0.1,
-    pp_high=10,
-    pp_order=5,
-    plot_erp=False,
-    trial_start=0.0,
-    trial_end=0.8,
+    online=False,
 )
 test_erp.run()

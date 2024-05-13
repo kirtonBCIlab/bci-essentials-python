@@ -64,9 +64,6 @@ class DataTank:
                 (self.raw_marker_timestamps, new_marker_timestamps)
             )
 
-        # If live classification is True then we want to add each marker epoch to the epoch
-        # array as it comes in and also send one away for classification
-
     def get_raw_eeg(self):
         # Get the EEG data between the start and end times
         return self.raw_eeg, self.raw_eeg_timestamps
@@ -89,23 +86,10 @@ class DataTank:
             first_unsent = self.epochs_sent
             self.epochs_sent = len(self.epochs)
 
-            return self.epochs[first_unsent:-1], self.labels[first_unsent:-1]
+            return self.epochs[first_unsent:], self.labels[first_unsent:]
         else:
             # Return all
             return self.epochs, self.labels
-
-    # def get_training_data():
-    #     # Get info from all labelled epochs to train classifier
-    #     # On repeated calls, only return new data
-
-    #     # TODO
-    #     X = None
-    #     y = None
-    #     return X, y
-
-    # def get_unlabeled_epoch():
-    #     # Get an unlabeled epoch for classification
-    #     pass
 
     def save_raw():
         pass
@@ -125,17 +109,17 @@ class DataTank:
         `None`
 
         """
-        # Check if file ends with .npz, if not add it
-        if file_name[-4:] != ".npz":
-            file_name += ".npz"
+        # # Check if file ends with .npz, if not add it
+        # if file_name[-4:] != ".npz":
+        #     file_name += ".npz"
 
-        # Get the raw EEG trials and labels
-        X = self.raw_eeg_trials
-        y = self.labels
+        # # Get the raw EEG trials and labels
+        # X = self.raw_eeg_trials
+        # y = self.labels
 
-        # Cut X and y to be the lenght of the number of trials, because X and y are initialized to be the maximum number of trials
-        X = X[: self.n_trials]
-        y = y[: self.n_trials]
+        # # Cut X and y to be the lenght of the number of trials, because X and y are initialized to be the maximum number of trials
+        # X = X[: self.n_trials]
+        # y = y[: self.n_trials]
 
-        # Save the raw EEG trials and labels as a numpy file
-        np.savez(file_name, X=X, y=y)
+        # # Save the raw EEG trials and labels as a numpy file
+        # np.savez(file_name, X=X, y=y)

@@ -7,7 +7,8 @@ import os
 
 from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
 from bci_essentials.paradigm.mi_paradigm import MiParadigm
-from bci_essentials.eeg_data import EegData, DataTank
+from bci_essentials.eeg_data import EegData
+from bci_essentials.data_tank.data_tank import DataTank
 from bci_essentials.classification.mi_classifier import MiClassifier
 
 # Identify the file to simulate
