@@ -75,10 +75,10 @@ class DataTank:
         # Add new epochs to the data tank
         if self.epochs.size == 0:
             self.epochs = np.array(X)
-            self.labels = np.array([int(y)])
+            self.labels = np.array(y)
         else:
             self.epochs = np.concatenate((self.epochs, np.array(X)))
-            self.labels = np.concatenate((self.labels, np.array([int(y)])))
+            self.labels = np.concatenate((self.labels, np.array(y)))
 
     def get_epochs(self, latest=False):
         if latest:

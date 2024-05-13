@@ -65,12 +65,11 @@ class MiParadigm(BaseParadigm):
             epoch_length = float(marker[3])
 
             nchannels, _ = eeg.shape
-            nsamples = np.ceil(epoch_length * fsample)
 
             marker_timestamp = marker_timestamps[i]
 
             # Subtract the marker timestamp from the EEG timestamps so that 0 becomes the marker onset
-            eeg_timestamps = eeg_timestamps - marker_timestamp
+            marker_eeg_timestamps = eeg_timestamps - marker_timestamp
 
             # Create the epoch time vector
             epoch_time = np.arange(0, epoch_length, 1 / fsample)
@@ -80,7 +79,7 @@ class MiParadigm(BaseParadigm):
 
             # Interpolate the EEG data to the epoch time vector for each channel
             for c in range(nchannels):
-                X[i, c, :] = np.interp(epoch_time, eeg_timestamps, eeg[c, :])
+                X[i, c, :] = np.interp(epoch_time, marker_eeg_timestamps, eeg[c, :])
 
             X[i, :, :] = super()._preprocess(
                 X[i, :, :], fsample, self.lowcut, self.highcut
@@ -88,10 +87,10 @@ class MiParadigm(BaseParadigm):
 
             if i == 0:
                 X = X
-                y = label
+                y = np.array([int(label)])
             else:
                 X = np.concatenate((X, X), axis=0)
-                y = np.concatenate((y, label))
+                y = np.concatenate((y, int(label)))
 
         return X, y
 

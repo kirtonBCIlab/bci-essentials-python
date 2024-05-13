@@ -83,44 +83,44 @@ class ErpRgClassifier(GenericClassifier):
         self.random_seed = random_seed
         self.covariance_estimator = covariance_estimator
 
-    def add_to_train(self, decision_block, label_idx):
-        """Add to training set.
+    # def add_to_train(self, decision_block, label_idx):
+    #     """Add to training set.
 
-        Parameters
-        ----------
-        decision_block : numpy.ndarray
-            Data to be added to the training set
-            3D numpy array with shape = (`n_decisions`,`n_channels`,`n_samples`)
-            E.g. 3D array containing data with `float` type.
-        label_idx : array_like
-            Index or indices indicating the labels for the decision blocks in `decision_block`.
-            This should be a 1D array or a list of integers representing labels.
+    #     Parameters
+    #     ----------
+    #     decision_block : numpy.ndarray
+    #         Data to be added to the training set
+    #         3D numpy array with shape = (`n_decisions`,`n_channels`,`n_samples`)
+    #         E.g. 3D array containing data with `float` type.
+    #     label_idx : array_like
+    #         Index or indices indicating the labels for the decision blocks in `decision_block`.
+    #         This should be a 1D array or a list of integers representing labels.
 
-        Returns
-        -------
-        `None`
+    #     Returns
+    #     -------
+    #     `None`
 
-        """
-        logger.debug("Adding to training set")
-        n_decisions, n_channels, n_samples = decision_block.shape
+    #     """
+    #     logger.debug("Adding to training set")
+    #     n_decisions, n_channels, n_samples = decision_block.shape
 
-        # get a subset
-        decision_block = self.get_subset(decision_block)
+    #     # get a subset
+    #     decision_block = self.get_subset(decision_block)
 
-        # get labels from label_idx
-        labels = np.zeros([n_decisions])
-        labels[label_idx] = 1
-        logger.debug("Labels: %s", labels)
+    #     # get labels from label_idx
+    #     labels = np.zeros([n_decisions])
+    #     labels[label_idx] = 1
+    #     logger.debug("Labels: %s", labels)
 
-        # If the classifier has no data then initialize
-        if self.X.size == 0:
-            self.X = decision_block
-            self.y = labels
+    #     # If the classifier has no data then initialize
+    #     if self.X.size == 0:
+    #         self.X = decision_block
+    #         self.y = labels
 
-        # If the classifier already has data then append
-        else:
-            self.X = np.append(self.X, decision_block, axis=0)
-            self.y = np.append(self.y, labels, axis=0)
+    #     # If the classifier already has data then append
+    #     else:
+    #         self.X = np.append(self.X, decision_block, axis=0)
+    #         self.y = np.append(self.y, labels, axis=0)
 
     def fit(
         self,

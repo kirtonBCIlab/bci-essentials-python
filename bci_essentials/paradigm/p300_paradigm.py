@@ -54,9 +54,9 @@ class P300Paradigm(BaseParadigm):
         self.buffer_time = buffer_time
 
     def get_eeg_start_and_end_times(self, markers, timestamps):
-        start_time = timestamps[0] - self.buffer_time
+        start_time = timestamps[0] + self.epoch_start - self.buffer_time
 
-        end_time = timestamps[-1] + float(markers[-1].split(",")[-1]) + self.buffer_time
+        end_time = timestamps[-1] + self.epoch_end + self.buffer_time
 
         return start_time, end_time
     
@@ -65,43 +65,70 @@ class P300Paradigm(BaseParadigm):
         This takes in the markers and EEG data and processes them into epochs.
         """
 
+        nchannels, _ = eeg.shape
+        num_objects = int(markers[0].split(",")[2])
+
+        train_target = int(markers[3].split(",")[3])
+        y = np.zeros(num_objects, dtype=int)
+        y[train_target] = 1
+
+        flash_counts = np.zeros(num_objects)
+
+        # X = np.zeros((num_objects, nchannels, len(epoch_time)))
+
+        # Do ensemble averaging so that we return a single epoch for each object
+
         for i, marker in enumerate(markers):
             marker = marker.split(",")
             paradigm_string = marker[0]  # Maybe use this as a compatibility check?
-            flash_type = marker[1] # s=single, m=multiple
-            num_options = int(marker[2])
-            train_target = int(marker[3])
             flash_indices = [int(x) for x in marker[4:]]
 
             nchannels, _ = eeg.shape
             epoch_length = self.epoch_end - self.epoch_start
-            nsamples = np.ceil(epoch_length * fsample)
 
             marker_timestamp = marker_timestamps[i]
 
             # Subtract the marker timestamp from the EEG timestamps so that 0 becomes the marker onset
-            eeg_timestamps = eeg_timestamps - marker_timestamp
+            marker_eeg_timestamps = eeg_timestamps - marker_timestamp
 
             # Create the epoch time vector
-            epoch_time = np.arange(0, epoch_length, 1 / fsample)
+            epoch_time = np.arange(self.epoch_start, self.epoch_end, 1 / fsample)
 
-            X = np.zeros((1, nchannels, len(epoch_time)))
-            y = None
+            epoch_X = np.zeros((1, nchannels, len(epoch_time)))
+
+            # Initialize object_epochs if this is the first epoch
+            if i == 0:
+                object_epochs = [np.zeros((num_objects, nchannels, len(epoch_time)))] * num_objects
 
             # Interpolate the EEG data to the epoch time vector for each channel
             for c in range(nchannels):
-                X[i, c, :] = np.interp(epoch_time, eeg_timestamps, eeg[c, :])
+                epoch_X[0, c, :] = np.interp(epoch_time, marker_eeg_timestamps, eeg[c, :])
 
-            X[i, :, :] = super()._preprocess(
-                X[i, :, :], fsample, self.lowcut, self.highcut
+            epoch_X[0, :, :] = super()._preprocess(
+                epoch_X[0, :, :], fsample, self.lowcut, self.highcut
             )
 
-            if i == 0:
-                X = X
-                y = label
-            else:
-                X = np.concatenate((X, X), axis=0)
-                y = np.concatenate((y, label))
+            # For each flash index in the marker
+            for flash_index in flash_indices:
+                if flash_counts[flash_index] == 0:
+                    object_epochs[flash_index] = epoch_X
+                    flash_counts[flash_index] += 1
+                else:
+                    object_epochs[flash_index] = np.concatenate(
+                        (object_epochs[flash_index], epoch_X), axis=0
+                    )
+                    flash_counts[flash_index] += 1
+        
+        # Average all epochs for each object
+        object_epochs_mean = [np.zeros((nchannels, len(epoch_time)))] * num_objects
+        for i in range(num_objects):
+            object_epochs_mean[i] = np.mean(object_epochs[i], axis=0)
+
+        X = np.zeros((num_objects, nchannels, len(epoch_time)))
+        for i in range(num_objects):
+            X[i, :, :] = object_epochs_mean[i]
+        # # object_epochs_mean = np.mean(object_epochs, axis=1)
+        # X = object_epochs_mean
 
         return X, y
 
