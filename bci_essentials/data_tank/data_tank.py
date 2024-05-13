@@ -70,7 +70,7 @@ class DataTank:
     def get_raw_eeg(self):
         # Get the EEG data between the start and end times
         return self.raw_eeg, self.raw_eeg_timestamps
-    
+
     def get_raw_markers(self):
         return self.raw_marker_strings, self.raw_marker_timestamps
 
@@ -82,7 +82,7 @@ class DataTank:
         else:
             self.epochs = np.concatenate((self.epochs, np.array(X)))
             self.labels = np.concatenate((self.labels, np.array([int(y)])))
-    
+
     def get_epochs(self, latest=False):
         if latest:
             # Return only the new data

@@ -104,7 +104,7 @@ class EegData:
         # Switch any trigger channels to stim, this is for mne/bids export (?)
         self.ch_type = [type.replace("trg", "stim") for type in self.ch_type]
 
-        # # THIS IS GOING TO BE A PART OF PARADIGM
+        # # THIS IS GOING TO BE A PART OF PARADIGM OR CLASSIFIER
         # # If a subset is to be used, define a new n_channels, channel labels, and eeg data
         # if self.__subset != []:
         #     logger.info("A subset was defined")
@@ -172,21 +172,17 @@ class EegData:
         time_correction = self.__marker_source.time_correction()
         timestamps = [timestamps[i] + time_correction for i in range(len(timestamps))]
 
-        for marker in markers:
+        for i, marker in enumerate(markers):
             marker = marker[0]
             if "Ping" in marker:
                 continue
 
             # Add all markers to the controller
             self.marker_data = np.append(self.marker_data, marker)
-            self.marker_timestamps = np.append(
-                self.marker_timestamps, timestamps[0]
-            )
+            self.marker_timestamps = np.append(self.marker_timestamps, timestamps[i])
 
             # Add all markers to the data tank
             self.__data_tank.add_raw_markers(markers, timestamps)
-
-        print("debug")
 
     def __pull_eeg_data_from_source(self):
         """Pulls eeg samples from source, sanity checks and appends to buffer"""
@@ -202,10 +198,6 @@ class EegData:
         if eeg.ndim != 2:
             logger.warning("discarded invalid eeg data")
             return
-
-        # # handle subsets if needed
-        # if self.__subset != []:
-        #     eeg = eeg[:, self.subset_indices]
 
         # if time is in milliseconds, divide by 1000, works for sampling rates above 10Hz
         try:
@@ -230,18 +222,15 @@ class EegData:
         time_correction = self.__eeg_source.time_correction()
         timestamps = [timestamps[i] + time_correction for i in range(len(timestamps))]
 
-        # # add the fresh data to the buffers
-        # self.eeg_data = np.concatenate((self.eeg_data, eeg))
-        # self.eeg_timestamps = np.concatenate((self.eeg_timestamps, timestamps))
-
         self.__data_tank.add_raw_eeg(eeg.T, timestamps)
 
         # Update latest EEG timestamp
         self.latest_eeg_timestamp = timestamps[-1]
 
     def __process_and_classify(self):
-
-        eeg_start_time, eeg_end_time = self.__paradigm.get_eeg_start_and_end_times(self.event_marker_buffer, self.event_timestamp_buffer)
+        eeg_start_time, eeg_end_time = self.__paradigm.get_eeg_start_and_end_times(
+            self.event_marker_buffer, self.event_timestamp_buffer
+        )
 
         # Wait until we have all the EEG for these markers
         while True:
@@ -249,23 +238,32 @@ class EegData:
             if timestamps[-1] < eeg_end_time:
                 time_dif = eeg_end_time - timestamps[-1]
                 if time_dif < 1000:
-                    logger.info("Waiting for EEG data, time difference is %s s", time_dif)
+                    logger.info(
+                        "Waiting for EEG data, time difference is %s s", time_dif
+                    )
                     time.sleep(time_dif)
                 else:
                     logger.error(
-                    "The timestamps are not alligned, the difference is %s s", time_dif
+                        "The timestamps are not alligned, the difference is %s s",
+                        time_dif,
                     )
             else:
                 break
-            
-        X, y = self.__paradigm.process_markers(self.event_marker_buffer, self.event_timestamp_buffer, eeg, timestamps, self.fsample)
+
+        X, y = self.__paradigm.process_markers(
+            self.event_marker_buffer,
+            self.event_timestamp_buffer,
+            eeg,
+            timestamps,
+            self.fsample,
+        )
 
         # Add the epochs to the data tank
         self.__data_tank.add_epochs(X, y)
 
         # If either there are no labels OR iterative training is on, then make a prediction
         if self.train_complete:
-            if -1 in y or self.__paradigm.iterative_training:
+            if "-1" in y or self.__paradigm.iterative_training:
                 prediction = self._classifier.predict(X)
                 self.__send_prediction(prediction)
 
@@ -275,7 +273,7 @@ class EegData:
     def __send_prediction(self, prediction):
         """Send a prediction to the messenger object."""
         if self._messenger is not None:
-            self._messenger.prediction(prediction)        
+            self._messenger.prediction(prediction)
 
     def setup(
         self,
@@ -424,7 +422,7 @@ class EegData:
                 # Note that a marker occured, but do nothing else
 
             elif current_step_marker == "Trial Ends":
-                # If we are classifying based on trials, then process the trial, 
+                # If we are classifying based on trials, then process the trial,
                 if self.__paradigm.classify_each_trial:
                     self.__process_and_classify()
 
@@ -434,6 +432,7 @@ class EegData:
                 if len(y) > 0:
                     self._classifier.add_to_train(X, y)
                 self._classifier.fit()
+                self.train_complete = True
 
             elif current_step_marker == "Update Classifier":
                 # Pull the epochs from the data tank and pass them to the classifier
@@ -441,6 +440,7 @@ class EegData:
                 if len(y) > 0:
                     self._classifier.add_to_train(X, y)
                 self._classifier.fit()
+                self.train_complete = True
 
             self.marker_count += 1
 

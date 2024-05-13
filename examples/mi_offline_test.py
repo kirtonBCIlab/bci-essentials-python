@@ -16,7 +16,7 @@ from bci_essentials.classification.mi_classifier import MiClassifier
 filename = os.path.join("data", "mi_example_2.xdf")
 eeg_source = XdfEegSource(filename)
 marker_source = XdfMarkerSource(filename)
-paradigm = MiParadigm(live_update=True)
+paradigm = MiParadigm(live_update=True, iterative_training=True)
 data_tank = DataTank()
 
 # Select a classifier

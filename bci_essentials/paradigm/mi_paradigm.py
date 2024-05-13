@@ -39,14 +39,14 @@ class MiParadigm(BaseParadigm):
 
         if self.live_update:
             self.classify_each_epoch = True
-
-        if self.iterative_training:
+            self.classify_each_trial = False
+        else:
             self.classify_each_trial = True
+            self.classify_each_epoch = False
 
         self.buffer_time = buffer_time
 
     def get_eeg_start_and_end_times(self, markers, timestamps):
-
         start_time = timestamps[0] - self.buffer_time
 
         end_time = timestamps[-1] + float(markers[-1].split(",")[-1]) + self.buffer_time
@@ -60,7 +60,7 @@ class MiParadigm(BaseParadigm):
 
         for i, marker in enumerate(markers):
             marker = marker.split(",")
-            paradigm_string = marker[0] # Maybe use this as a compatibility check?
+            paradigm_string = marker[0]  # Maybe use this as a compatibility check?
             num_options = int(marker[1])
             label = marker[2]
             epoch_length = float(marker[3])
@@ -69,6 +69,8 @@ class MiParadigm(BaseParadigm):
             nsamples = np.ceil(epoch_length * fsample)
 
             marker_timestamp = marker_timestamps[i]
+
+            print(marker_timestamp)
 
             # Subtract the marker timestamp from the EEG timestamps so that 0 becomes the marker onset
             eeg_timestamps = eeg_timestamps - marker_timestamp
@@ -81,7 +83,11 @@ class MiParadigm(BaseParadigm):
 
             # Interpolate the EEG data to the epoch time vector for each channel
             for c in range(nchannels):
-                X[0, c, :] = np.interp(epoch_time, eeg_timestamps, eeg[c, :])
+                X[i, c, :] = np.interp(epoch_time, eeg_timestamps, eeg[c, :])
+
+            X[i, :, :] = super()._preprocess(
+                X[i, :, :], fsample, self.lowcut, self.highcut
+            )
 
             if i == 0:
                 X = X
@@ -89,7 +95,7 @@ class MiParadigm(BaseParadigm):
             else:
                 X = np.concatenate((X, X), axis=0)
                 y = np.concatenate((y, label))
-            
+
         return X, y
 
     # TODO: Implement this

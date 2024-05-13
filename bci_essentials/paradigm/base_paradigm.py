@@ -31,7 +31,7 @@ class BaseParadigm:
         # Do we classify labeled epochs (such as in the case of iterative training)?
         self.classify_labeled_epochs = False
 
-    def __preprocess(self, eeg, fsample, lowcut, highcut):
+    def _preprocess(self, eeg, fsample, lowcut, highcut):
         """
         Preprocess EEG data with bandpass filter.
         """
