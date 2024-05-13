@@ -263,7 +263,7 @@ class EegData:
 
         # If either there are no labels OR iterative training is on, then make a prediction
         if self.train_complete:
-            if "-1" in y or self.__paradigm.iterative_training:
+            if -1 in y or self.__paradigm.iterative_training:
                 prediction = self._classifier.predict(X)
                 self.__send_prediction(prediction)
 

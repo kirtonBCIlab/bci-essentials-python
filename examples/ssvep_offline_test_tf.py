@@ -5,6 +5,8 @@ import os
 
 from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
 from bci_essentials.eeg_data import EegData
+from bci_essentials.paradigm.ssvep_paradigm import SsvepParadigm
+from bci_essentials.data_tank.data_tank import DataTank
 from bci_essentials.classification.ssvep_basic_tf_classifier import (
     SsvepBasicTrainFreeClassifier,
 )
@@ -15,6 +17,8 @@ from bci_essentials.classification.ssvep_basic_tf_classifier import (
 filename = os.path.join("data", "ssvep_example.xdf")
 eeg_source = XdfEegSource(filename)
 marker_source = XdfMarkerSource(filename)
+paradigm = SsvepParadigm(live_update=False, iterative_training=False)
+data_tank = DataTank()
 
 # Define the classifier
 classifier = SsvepBasicTrainFreeClassifier(subset=[])
@@ -38,15 +42,10 @@ classifier.set_ssvep_settings(
 
 # Initialize the SSVEP
 # should try to automate the reading of some of this stuff from the file header
-test_ssvep = EegData(classifier, eeg_source, marker_source)
+test_ssvep = EegData(classifier, eeg_source, marker_source, paradigm, data_tank)
 
 test_ssvep.setup(
     online=False,
-    training=False,
-    max_samples=5120,
-    pp_type="bandpass",
-    pp_low=3,
-    pp_high=50,
 )
 test_ssvep.run()
 

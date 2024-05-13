@@ -2,9 +2,11 @@ import numpy as np
 
 from .base_paradigm import BaseParadigm
 
-class MiParadigm(BaseParadigm):
+class SsvepParadigm(BaseParadigm):
     """
-    MI paradigm.
+    SSVEP paradigm.
+
+    TODO Determine how to automatically set the target frequencies in the classifier from here.
     """
 
     def __init__(
@@ -57,12 +59,16 @@ class MiParadigm(BaseParadigm):
         This takes in the markers and EEG data and processes them into epochs.
         """
 
+        # Initialize y
+        y = np.zeros(len(markers), dtype=int)
+
         for i, marker in enumerate(markers):
             marker = marker.split(",")
             paradigm_string = marker[0]  # Maybe use this as a compatibility check?
             num_options = int(marker[1])
-            label = marker[2]
+            label = int(marker[2])
             epoch_length = float(marker[3])
+            self.flash_indices = [float(x) for x in marker[4:]]
 
             nchannels, _ = eeg.shape
 
@@ -76,7 +82,6 @@ class MiParadigm(BaseParadigm):
 
             # Initialize the EEG data array
             epoch_eeg = np.zeros((1, nchannels, len(epoch_time)))
-            y = None
 
             # Interpolate the EEG data to the epoch time vector for each channel
             for c in range(nchannels):
@@ -88,11 +93,10 @@ class MiParadigm(BaseParadigm):
 
             if i == 0:
                 X = epoch_eeg
-                y = np.array([int(label)])
             else:
                 X = np.concatenate((X, epoch_eeg), axis=0)
-                y = np.concatenate((y, int(label)))
 
+            y[i] = label
         return X, y
 
     # TODO: Implement this

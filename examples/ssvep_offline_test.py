@@ -5,6 +5,8 @@ import os
 
 from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
 from bci_essentials.eeg_data import EegData
+from bci_essentials.paradigm.ssvep_paradigm import SsvepParadigm
+from bci_essentials.data_tank.data_tank import DataTank
 from bci_essentials.classification.ssvep_riemannian_mdm_classifier import (
     SsvepRiemannianMdmClassifier,
 )
@@ -15,14 +17,18 @@ from bci_essentials.classification.ssvep_riemannian_mdm_classifier import (
 filename = os.path.join("data", "ssvep_example.xdf")
 eeg_source = XdfEegSource(filename)
 marker_source = XdfMarkerSource(filename)
+paradigm = SsvepParadigm(live_update=False, iterative_training=False)
+data_tank = DataTank()
 
 # Define the classifier
 classifier = SsvepRiemannianMdmClassifier(subset=[])
 classifier.set_ssvep_settings(n_splits=3, random_seed=42, n_harmonics=3, f_width=0.5)
 
+classifier.target_freqs = [24,20.57143,18,16,14.4,12,10.28571,9,8,7.2,6,4.965517]
+
 # Initialize the SSVEP
 # should try to automate the reading of some of this stuff from the file header
-test_ssvep = EegData(classifier, eeg_source, marker_source)
+test_ssvep = EegData(classifier, eeg_source, marker_source, paradigm, data_tank)
 
 # initial_subset=['PO7', 'PO3', 'POz', 'PO4', 'PO8', 'O1', 'Oz', 'O2', 'Cp4', 'C4', 'F4', 'Cp3', 'C3', 'F3', 'Cz', 'Fz']
 # test_ssvep.classifier.setup_channel_selection(method = "SBS", metric="accuracy", initial_channels = initial_subset,    # wrapper setup
@@ -31,11 +37,6 @@ test_ssvep = EegData(classifier, eeg_source, marker_source)
 
 test_ssvep.setup(
     online=False,
-    training=True,
-    max_samples=5120,
-    pp_type="bandpass",
-    pp_low=3,
-    pp_high=50,
 )
 test_ssvep.run()
 

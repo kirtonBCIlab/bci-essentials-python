@@ -3,7 +3,6 @@ import os
 
 from bci_essentials.io.xdf_sources import XdfMarkerSource, XdfEegSource
 from bci_essentials.eeg_data import EegData
-from bci_essentials.erp_data import ErpData
 from bci_essentials.classification.mi_classifier import MiClassifier
 from bci_essentials.classification.erp_rg_classifier import ErpRgClassifier
 from bci_essentials.classification.ssvep_riemannian_mdm_classifier import (
