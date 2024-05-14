@@ -55,6 +55,23 @@ class P300Paradigm(BaseParadigm):
         self.buffer_time = buffer_time
 
     def get_eeg_start_and_end_times(self, markers, timestamps):
+        """
+        Get the start and end times of the EEG data based on the markers.
+
+        Parameters
+        ----------
+        markers : list of str
+            List of markers.
+        timestamps : list of float
+            List of timestamps.
+
+        Returns
+        -------
+        float
+            Start time.
+        float
+            End time.
+        """
         start_time = timestamps[0] + self.epoch_start - self.buffer_time
 
         end_time = timestamps[-1] + self.epoch_end + self.buffer_time
@@ -63,7 +80,27 @@ class P300Paradigm(BaseParadigm):
 
     def process_markers(self, markers, marker_timestamps, eeg, eeg_timestamps, fsample):
         """
-        This takes in the markers and EEG data and processes them into epochs.
+        This takes in the markers and EEG data and processes them into epochs according to the P300 paradigm.
+        
+        Parameters
+        ----------
+        markers : list of str
+            List of markers.
+        marker_timestamps : list of float
+            List of timestamps.
+        eeg : np.array
+            EEG data. Shape is (n_channels, n_samples).
+        eeg_timestamps : np.array
+            EEG timestamps. Shape is (n_samples).
+        fsample : float
+            Sampling frequency.
+
+        Returns
+        -------
+        np.array
+            Processed EEG data. Shape is (n_epochs, n_channels, n_samples).
+        np.array
+            Labels. Shape is (n_epochs).
         """
 
         nchannels, _ = eeg.shape

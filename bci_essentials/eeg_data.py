@@ -104,23 +104,6 @@ class EegData:
         # Switch any trigger channels to stim, this is for mne/bids export (?)
         self.ch_type = [type.replace("trg", "stim") for type in self.ch_type]
 
-        # # THIS IS GOING TO BE A PART OF PARADIGM OR CLASSIFIER
-        # # If a subset is to be used, define a new n_channels, channel labels, and eeg data
-        # if self.__subset != []:
-        #     logger.info("A subset was defined")
-        #     logger.info("Original channels\n%s", self.channel_labels)
-
-        #     self.n_channels = len(self.__subset)
-        #     self.subset_indices = []
-        #     for s in self.__subset:
-        #         self.subset_indices.append(self.channel_labels.index(s))
-
-        #     self.channel_labels = self.__subset
-        #     logger.info("Subset channels\n%s", self.channel_labels)
-
-        # else:
-        #     self.subset_indices = list(range(0, self.n_channels))
-
         self._classifier.channel_labels = self.channel_labels
 
         logger.info(self.headset_string)

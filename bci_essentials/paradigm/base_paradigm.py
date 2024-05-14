@@ -12,6 +12,7 @@ class BaseParadigm:
     def __init__(self, filters=[5, 30], channel_subset=None):
         """
         Base class for all paradigms.
+        Please use a subclass of this class for your specific paradigm.
 
         Parameters
         ----------
@@ -34,6 +35,23 @@ class BaseParadigm:
     def _preprocess(self, eeg, fsample, lowcut, highcut):
         """
         Preprocess EEG data with bandpass filter.
+
+        Parameters
+        ----------
+        eeg : np.ndarray
+            EEG data. Shape is (n_channels, n_samples).
+        fsample : float
+            Sampling frequency.
+        lowcut : float
+            Lower cutoff frequency.
+        highcut : float
+            Upper cutoff frequency.
+
+        Returns
+        -------
+        np.ndarray
+            Bandpassed EEG data. Shape is (n_channels, n_samples).
+
         """
         new_eeg = bandpass(eeg, lowcut, highcut, 5, fsample)
 
@@ -43,6 +61,19 @@ class BaseParadigm:
         self, marker_data, marker_timestamps, eeg_data, eeg_timestamps, fsample
     ):
         """Package resting state data.
+
+        Parameters
+        ----------
+        marker_data : list of str
+            List of markers.
+        marker_timestamps : np.ndarray
+            Timestamps of markers.
+        eeg_data : np.ndarray   
+            EEG data. Shape is (n_channels, n_samples).
+        eeg_timestamps : np.ndarray
+            Timestamps of EEG data. Shape is (n_samples,).
+        fsample : float
+            Sampling frequency.
 
         Returns
         -------
