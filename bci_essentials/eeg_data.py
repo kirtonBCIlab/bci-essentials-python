@@ -242,6 +242,12 @@ class EegData:
                         "Waiting for EEG data, time difference is %s s", time_dif
                     )
                     time.sleep(time_dif)
+
+                    if self.online == False:
+                        logger.info(
+                            "Oh wait this is offline, there will never be more data!"
+                        )
+                        break
                 else:
                     logger.error(
                         "The timestamps are not alligned, the difference is %s s",
@@ -279,6 +285,7 @@ class EegData:
         self,
         online=True,
         train_complete=False,
+        train_lock=False,
     ):
         """Configure processing loop.  This should be called before starting
         the loop with run() or step().  Calling after will reset the loop state.
@@ -303,6 +310,11 @@ class EegData:
             - `True`: The classifier has been trained.
             - `False`: The classifier has not been trained.
             - Default is `False`.
+        train_lock : bool, *optional*
+            Flag to indicate if the classifier is locked (ie. no more training).
+            - `True`: The classifier is locked.
+            - `False`: The classifier is not locked.
+            - Default is `False`.
 
         Returns
         -------
@@ -311,6 +323,7 @@ class EegData:
         """
         self.online = online
         self.train_complete = train_complete
+        self.train_lock = train_lock
 
         # initialize the numbers of markers and trials to zero
         self.marker_count = 0
@@ -422,7 +435,6 @@ class EegData:
 
                 self.__data_tank.add_resting_state_data(resting_state_data)
 
-
             elif current_step_marker == "Trial Started":
                 logger.debug("Trial started, incrementing marker count and continuing")
                 # Note that a marker occured, but do nothing else
@@ -433,20 +445,22 @@ class EegData:
                     self.__process_and_classify()
 
             elif current_step_marker == "Training Complete":
-                # Pull the epochs from the data tank and pass them to the classifier
-                X, y = self.__data_tank.get_epochs(latest=True)
-                if len(y) > 0:
-                    self._classifier.add_to_train(X, y)
-                self._classifier.fit()
-                self.train_complete = True
+                if self.train_lock == False:
+                    # Pull the epochs from the data tank and pass them to the classifier
+                    X, y = self.__data_tank.get_epochs(latest=True)
+                    if len(y) > 0:
+                        self._classifier.add_to_train(X, y)
+                    self._classifier.fit()
+                    self.train_complete = True
 
             elif current_step_marker == "Update Classifier":
-                # Pull the epochs from the data tank and pass them to the classifier
-                X, y = self.__data_tank.get_epochs(latest=True)
-                if len(y) > 0:
-                    self._classifier.add_to_train(X, y)
-                self._classifier.fit()
-                self.train_complete = True
+                if self.train_lock == False:
+                    # Pull the epochs from the data tank and pass them to the classifier
+                    X, y = self.__data_tank.get_epochs(latest=True)
+                    if len(y) > 0:
+                        self._classifier.add_to_train(X, y)
+                    self._classifier.fit()
+                    self.train_complete = True
 
             self.marker_count += 1
 

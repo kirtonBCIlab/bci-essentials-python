@@ -1,6 +1,8 @@
 from bci_essentials.io.lsl_sources import LslEegSource, LslMarkerSource
 from bci_essentials.io.lsl_messenger import LslMessenger
 from bci_essentials.eeg_data import EegData
+from bci_essentials.paradigm.ssvep_paradigm import SsvepParadigm
+from bci_essentials.data_tank.data_tank import DataTank
 from bci_essentials.classification.ssvep_riemannian_mdm_classifier import (
     SsvepRiemannianMdmClassifier,
 )
@@ -10,6 +12,9 @@ eeg_source = LslEegSource()
 marker_source = LslMarkerSource()
 messenger = LslMessenger()
 
+paradigm = SsvepParadigm()
+data_tank = DataTank()
+
 # Define the classifier
 classifier = SsvepRiemannianMdmClassifier()
 classifier.set_ssvep_settings(
@@ -17,7 +22,9 @@ classifier.set_ssvep_settings(
 )
 
 # Initialize the data class
-test_ssvep = EegData(classifier, eeg_source, marker_source, messenger)
+test_ssvep = EegData(
+    classifier, eeg_source, marker_source, messenger, paradigm, data_tank
+)
 
 # # Channel Selection
 # initial_subset=[]
@@ -27,10 +34,5 @@ test_ssvep = EegData(classifier, eeg_source, marker_source, messenger)
 
 test_ssvep.setup(
     online=True,
-    training=True,
-    max_samples=5120,
-    pp_type="bandpass",
-    pp_low=3,
-    pp_high=50,
 )
 test_ssvep.run()

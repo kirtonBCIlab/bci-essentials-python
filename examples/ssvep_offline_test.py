@@ -24,7 +24,20 @@ data_tank = DataTank()
 classifier = SsvepRiemannianMdmClassifier(subset=[])
 classifier.set_ssvep_settings(n_splits=3, random_seed=42, n_harmonics=3, f_width=0.5)
 
-classifier.target_freqs = [24,20.57143,18,16,14.4,12,10.28571,9,8,7.2,6,4.965517]
+classifier.target_freqs = [
+    24,
+    20.57143,
+    18,
+    16,
+    14.4,
+    12,
+    10.28571,
+    9,
+    8,
+    7.2,
+    6,
+    4.965517,
+]
 
 # Initialize the SSVEP
 # should try to automate the reading of some of this stuff from the file header

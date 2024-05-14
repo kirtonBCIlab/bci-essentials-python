@@ -3,6 +3,10 @@ import os
 
 from bci_essentials.io.xdf_sources import XdfMarkerSource, XdfEegSource
 from bci_essentials.eeg_data import EegData
+from bci_essentials.paradigm.mi_paradigm import MiParadigm
+from bci_essentials.paradigm.p300_paradigm import P300Paradigm
+from bci_essentials.paradigm.ssvep_paradigm import SsvepParadigm
+from bci_essentials.data_tank.data_tank import DataTank
 from bci_essentials.classification.mi_classifier import MiClassifier
 from bci_essentials.classification.erp_rg_classifier import ErpRgClassifier
 from bci_essentials.classification.ssvep_riemannian_mdm_classifier import (
@@ -21,6 +25,9 @@ class TestSmoke(unittest.TestCase):
         eeg_source = XdfEegSource(xdf_path)
         marker_source = XdfMarkerSource(xdf_path)
 
+        paradigm = MiParadigm(live_update=True, iterative_training=False)
+        data_tank = DataTank()
+
         # Select a classifier
         classifier = MiClassifier()
         classifier.set_mi_classifier_settings(
@@ -28,15 +35,11 @@ class TestSmoke(unittest.TestCase):
         )
 
         # Load the data
-        data = EegData(classifier, eeg_source, marker_source)
+        data = EegData(classifier, eeg_source, marker_source, paradigm, data_tank)
 
         # Run main loop, this will do all of the classification for online or offline
         data.setup(
             online=False,
-            training=True,
-            pp_low=5,
-            pp_high=50,
-            pp_order=5,
         )
         data.run()
 
@@ -60,6 +63,9 @@ class TestSmoke(unittest.TestCase):
         eeg_source = XdfEegSource(xdf_path)
         marker_source = XdfMarkerSource(xdf_path)
 
+        paradigm = P300Paradigm()
+        data_tank = DataTank()
+
         # Select a classifier
         classifier = ErpRgClassifier()
         classifier.set_p300_clf_settings(
@@ -71,21 +77,11 @@ class TestSmoke(unittest.TestCase):
         )
 
         # Load the data
-        data = ErpData(classifier, eeg_source, marker_source)
+        data = EegData(classifier, eeg_source, marker_source, paradigm, data_tank)
 
         # Run main loop, this will do all of the classification for online or offline
         data.setup(
             online=False,
-            training=True,
-            pp_low=0.1,
-            pp_high=10,
-            pp_order=5,
-            plot_erp=False,
-            trial_start=0.0,
-            trial_end=0.8,
-            max_num_options=9,
-            max_trials_per_option=16,
-            max_decisions=20,
         )
         data.run()
 
@@ -109,6 +105,9 @@ class TestSmoke(unittest.TestCase):
         eeg_source = XdfEegSource(xdf_path)
         marker_source = XdfMarkerSource(xdf_path)
 
+        paradigm = SsvepParadigm()
+        data_tank = DataTank()
+
         # Select a classifier
         classifier = SsvepRiemannianMdmClassifier()
         classifier.set_ssvep_settings(
@@ -118,18 +117,27 @@ class TestSmoke(unittest.TestCase):
             f_width=0.2,
             covariance_estimator="scm",
         )
+        classifier.target_freqs = [
+            24,
+            20.57143,
+            18,
+            16,
+            14.4,
+            12,
+            10.28571,
+            9,
+            8,
+            7.2,
+            6,
+            4.965517,
+        ]
 
         # Load the data
-        data = EegData(classifier, eeg_source, marker_source)
+        data = EegData(classifier, eeg_source, marker_source, paradigm, data_tank)
 
         # Run main loop, this will do all of the classification for online or offline
         data.setup(
             online=False,
-            training=True,
-            pp_type="bandpass",
-            pp_low=3,
-            pp_high=50,
-            pp_order=5,
         )
         data.run()
 

@@ -2,6 +2,7 @@ import numpy as np
 
 from .base_paradigm import BaseParadigm
 
+
 class P300Paradigm(BaseParadigm):
     """
     P300 paradigm.
@@ -59,7 +60,7 @@ class P300Paradigm(BaseParadigm):
         end_time = timestamps[-1] + self.epoch_end + self.buffer_time
 
         return start_time, end_time
-    
+
     def process_markers(self, markers, marker_timestamps, eeg, eeg_timestamps, fsample):
         """
         This takes in the markers and EEG data and processes them into epochs.
@@ -98,11 +99,15 @@ class P300Paradigm(BaseParadigm):
 
             # Initialize object_epochs if this is the first epoch
             if i == 0:
-                object_epochs = [np.zeros((num_objects, nchannels, len(epoch_time)))] * num_objects
+                object_epochs = [
+                    np.zeros((num_objects, nchannels, len(epoch_time)))
+                ] * num_objects
 
             # Interpolate the EEG data to the epoch time vector for each channel
             for c in range(nchannels):
-                epoch_X[0, c, :] = np.interp(epoch_time, marker_eeg_timestamps, eeg[c, :])
+                epoch_X[0, c, :] = np.interp(
+                    epoch_time, marker_eeg_timestamps, eeg[c, :]
+                )
 
             epoch_X[0, :, :] = super()._preprocess(
                 epoch_X[0, :, :], fsample, self.lowcut, self.highcut
@@ -118,7 +123,7 @@ class P300Paradigm(BaseParadigm):
                         (object_epochs[flash_index], epoch_X), axis=0
                     )
                     flash_counts[flash_index] += 1
-        
+
         # Average all epochs for each object
         object_epochs_mean = [np.zeros((nchannels, len(epoch_time)))] * num_objects
         for i in range(num_objects):

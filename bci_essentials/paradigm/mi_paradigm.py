@@ -2,6 +2,7 @@ import numpy as np
 
 from .base_paradigm import BaseParadigm
 
+
 class MiParadigm(BaseParadigm):
     """
     MI paradigm.
@@ -82,7 +83,9 @@ class MiParadigm(BaseParadigm):
 
             # Interpolate the EEG data to the epoch time vector for each channel
             for c in range(nchannels):
-                epoch_eeg[0, c, :] = np.interp(epoch_time, marker_eeg_timestamps, eeg[c, :])
+                epoch_eeg[0, c, :] = np.interp(
+                    epoch_time, marker_eeg_timestamps, eeg[c, :]
+                )
 
             epoch_eeg[0, :, :] = super()._preprocess(
                 epoch_eeg[0, :, :], fsample, self.lowcut, self.highcut

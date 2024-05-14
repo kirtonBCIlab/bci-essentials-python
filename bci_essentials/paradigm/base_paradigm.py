@@ -134,16 +134,24 @@ class BaseParadigm:
                 for i in range(len(eyes_open_start_time)):
                     eyes_open_time_correction = eyes_open_start_time[i]
 
-                    corrected_eeg_timestamps = eeg_timestamps - eyes_open_time_correction
+                    corrected_eeg_timestamps = (
+                        eeg_timestamps - eyes_open_time_correction
+                    )
 
                     for c in range(self.n_channels):
-                        new_eeg[0, c, :] = np.interp(eyes_open_timestamps, corrected_eeg_timestamps, eeg_data[c, :])
+                        new_eeg[0, c, :] = np.interp(
+                            eyes_open_timestamps,
+                            corrected_eeg_timestamps,
+                            eeg_data[c, :],
+                        )
 
                     if i == 0:
                         eyes_open_trials = new_eeg
                         eyes_open_timestamps = eyes_open_timestamps
                     else:
-                        eyes_open_trials = np.concatenate((eyes_open_trials, new_eeg), axis=0)
+                        eyes_open_trials = np.concatenate(
+                            (eyes_open_trials, new_eeg), axis=0
+                        )
 
             # Eyes closed
 
@@ -160,16 +168,24 @@ class BaseParadigm:
                 for i in range(len(eyes_closed_start_time)):
                     eyes_closed_time_correction = eyes_closed_start_time[i]
 
-                    corrected_eeg_timestamps = eeg_timestamps - eyes_closed_time_correction
+                    corrected_eeg_timestamps = (
+                        eeg_timestamps - eyes_closed_time_correction
+                    )
 
                     for c in range(self.n_channels):
-                        new_eeg[0, c, :] = np.interp(eyes_closed_timestamps, corrected_eeg_timestamps, eeg_data[c, :])
+                        new_eeg[0, c, :] = np.interp(
+                            eyes_closed_timestamps,
+                            corrected_eeg_timestamps,
+                            eeg_data[c, :],
+                        )
 
                     if i == 0:
                         eyes_closed_trials = new_eeg
                         eyes_closed_timestamps = eyes_closed_timestamps
                     else:
-                        eyes_closed_trials = np.concatenate((eyes_closed_trials, new_eeg), axis=0)
+                        eyes_closed_trials = np.concatenate(
+                            (eyes_closed_trials, new_eeg), axis=0
+                        )
 
             # Rest
             if len(rest_end_loc) > 0:
@@ -192,7 +208,9 @@ class BaseParadigm:
                     corrected_eeg_timestamps = eeg_timestamps - rest_time_correction
 
                     for c in range(self.n_channels):
-                        new_eeg[0, c, :] = np.interp(rest_timestamps, corrected_eeg_timestamps, eeg_data[c, :])
+                        new_eeg[0, c, :] = np.interp(
+                            rest_timestamps, corrected_eeg_timestamps, eeg_data[c, :]
+                        )
 
                     if i == 0:
                         rest_trials = new_eeg
@@ -214,7 +232,7 @@ class BaseParadigm:
             logger.debug("Done packaging resting state data")
 
             return resting_state_data
-        
+
         except Exception as e:
             logger.error(f"Error packaging resting state data: {e}")
 

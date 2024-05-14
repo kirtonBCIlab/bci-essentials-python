@@ -10,6 +10,8 @@ import os
 # bci_essentials
 from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
 from bci_essentials.eeg_data import EegData
+from bci_essentials.paradigm.mi_paradigm import MiParadigm
+from bci_essentials.data_tank.data_tank import DataTank
 from bci_essentials.classification.mi_classifier import MiClassifier
 from bci_essentials.utils.logger import Logger  # Logger wrapper
 
@@ -33,6 +35,9 @@ filename = os.path.join("data", "mi_example_2.xdf")
 eeg_source = XdfEegSource(filename)
 marker_source = XdfMarkerSource(filename)
 
+paradigm = MiParadigm(live_update=True, iterative_training=True)
+data_tank = DataTank()
+
 # Select a classifier
 classifier = MiClassifier()  # you can add a subset here
 
@@ -55,15 +60,11 @@ classifier.setup_channel_selection(
 )
 
 # Initialize data object
-test_mi = EegData(classifier, eeg_source, marker_source)
+test_mi = EegData(classifier, eeg_source, marker_source, paradigm, data_tank)
 
 # Run main loop, this will do all of the classification for online or offline
 test_mi.setup(
     online=False,
-    training=True,
-    pp_low=5,
-    pp_high=30,
-    pp_order=5,
 )
 test_mi.run()
 

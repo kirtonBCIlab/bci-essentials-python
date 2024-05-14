@@ -77,8 +77,14 @@ class DataTank:
             self.epochs = np.array(X)
             self.labels = np.array(y)
         else:
-            self.epochs = np.concatenate((self.epochs, np.array(X)))
-            self.labels = np.concatenate((self.labels, np.array(y)))
+            # Check the size of the new data
+            if X.shape[1:] != self.epochs.shape[1:]:
+                print(
+                    "Epochs are not the same size, skipping this data.",
+                )
+            else:
+                self.epochs = np.concatenate((self.epochs, np.array(X)))
+                self.labels = np.concatenate((self.labels, np.array(y)))
 
     def get_epochs(self, latest=False):
         if latest:
@@ -90,7 +96,7 @@ class DataTank:
         else:
             # Return all
             return self.epochs, self.labels
-        
+
     def add_resting_state_data(self, resting_state_data):
         """
         Add resting state data to the data tank.
@@ -126,17 +132,13 @@ class DataTank:
         `None`
 
         """
-        # # Check if file ends with .npz, if not add it
-        # if file_name[-4:] != ".npz":
-        #     file_name += ".npz"
+        # Check if file ends with .npz, if not add it
+        if file_name[-4:] != ".npz":
+            file_name += ".npz"
 
-        # # Get the raw EEG trials and labels
-        # X = self.raw_eeg_trials
-        # y = self.labels
+        # Get the raw EEG trials and labels
+        X = self.epochs
+        y = self.labels
 
-        # # Cut X and y to be the lenght of the number of trials, because X and y are initialized to be the maximum number of trials
-        # X = X[: self.n_trials]
-        # y = y[: self.n_trials]
-
-        # # Save the raw EEG trials and labels as a numpy file
-        # np.savez(file_name, X=X, y=y)
+        # Save the raw EEG trials and labels as a numpy file
+        np.savez(file_name, X=X, y=y)
