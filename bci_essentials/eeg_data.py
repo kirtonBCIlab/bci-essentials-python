@@ -331,9 +331,12 @@ class EegData:
             None
 
         """
+
         # if offline, then all data is already loaded, only need to loop once
         if self.online is False:
             self.loops = max_loops - 1
+        else:
+            self.loops = 0
 
         # start the main loop, stops after pulling new data, max_loops times
         while self.loops < max_loops:
