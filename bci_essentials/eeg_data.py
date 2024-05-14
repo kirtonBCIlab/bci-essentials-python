@@ -412,13 +412,16 @@ class EegData:
             elif current_step_marker == "Done with all RS collection":
                 self.eeg_data, self.eeg_timestamps = self.__data_tank.get_raw_eeg()
 
-                self.__paradigm._package_resting_state_data(
+                resting_state_data = self.__paradigm._package_resting_state_data(
                     self.marker_data,
                     self.marker_timestamps,
                     self.eeg_data,
                     self.eeg_timestamps,
                     self.fsample,
                 )
+
+                self.__data_tank.add_resting_state_data(resting_state_data)
+
 
             elif current_step_marker == "Trial Started":
                 logger.debug("Trial started, incrementing marker count and continuing")

@@ -39,33 +39,6 @@ class BaseParadigm:
 
         return new_eeg
 
-    def __interpolate(self, eeg, timestamps, fsample):
-        """
-        Interpolate EEG data to a uniform sampling rate.
-
-        Parameters
-        ----------
-        eeg : ndarray
-            EEG data (nchannels x nsamples).
-        timestamps : ndarray
-            Timestamps of the EEG data.
-        fsample : float
-            Sampling rate.
-        """
-        # Get the number of channels and samples
-        n_channels, n_samples = eeg.shape
-
-        # Get the new timestamps
-        adjusted_timestamps = timestamps - timestamps[0]
-        new_timestamps = np.arange(0, timestamps[-1], 1 / fsample)
-        new_eeg = np.zeros((n_channels, len(new_timestamps)))
-
-        # Interpolate the EEG data
-        for c in range(n_channels):
-            new_eeg[c, :] = np.interp(new_timestamps, adjusted_timestamps, eeg[c, :])
-
-        return new_eeg, new_timestamps
-
     def _package_resting_state_data(
         self, marker_data, marker_timestamps, eeg_data, eeg_timestamps, fsample
     ):
@@ -77,158 +50,172 @@ class BaseParadigm:
             `self.rest_trials` is updated.
 
         """
-        # try:
-        logger.debug("Packaging resting state data")
+        try:
+            logger.debug("Packaging resting state data")
 
-        eyes_open_start_time = []
-        eyes_open_end_time = []
-        eyes_closed_start_time = []
-        eyes_closed_end_time = []
-        rest_start_time = []
-        rest_end_time = []
+            eyes_open_start_time = []
+            eyes_open_end_time = []
+            eyes_closed_start_time = []
+            eyes_closed_end_time = []
+            rest_start_time = []
+            rest_end_time = []
 
-        # Initialize start and end locations
-        eyes_open_start_loc = []
-        eyes_open_end_loc = []
-        eyes_closed_start_loc = []
-        eyes_closed_end_loc = []
-        rest_start_loc = []
-        rest_end_loc = []
+            # Initialize start and end locations
+            eyes_open_start_loc = []
+            eyes_open_end_loc = []
+            eyes_closed_start_loc = []
+            eyes_closed_end_loc = []
+            rest_start_loc = []
+            rest_end_loc = []
 
-        current_time = eeg_timestamps[0]
-        current_timestamp_loc = 0
+            current_time = eeg_timestamps[0]
+            current_timestamp_loc = 0
 
-        self.fsample = fsample
-        self.n_channels = eeg_data.shape[0]
+            self.fsample = fsample
+            self.n_channels = eeg_data.shape[0]
 
-        for i in range(len(marker_data)):
-            # Get current resting state data marker and time stamp
-            current_rs_data_marker = marker_data[i]
-            current_rs_timestamp = marker_timestamps[i]
+            for i in range(len(marker_data)):
+                # Get current resting state data marker and time stamp
+                current_rs_data_marker = marker_data[i]
+                current_rs_timestamp = marker_timestamps[i]
 
-            # Increment the EEG until just past the marker timestamp
-            while current_time < current_rs_timestamp:
-                current_timestamp_loc += 1
-                current_time = eeg_timestamps[current_timestamp_loc]
+                # Increment the EEG until just past the marker timestamp
+                while current_time < current_rs_timestamp:
+                    current_timestamp_loc += 1
+                    current_time = eeg_timestamps[current_timestamp_loc]
 
-            # get eyes open start times
-            if current_rs_data_marker == "Start Eyes Open RS: 1":
-                eyes_open_start_time.append(current_rs_timestamp)
-                eyes_open_start_loc.append(current_timestamp_loc - 1)
-                logger.debug("received eyes open start")
+                # get eyes open start times
+                if current_rs_data_marker == "Start Eyes Open RS: 1":
+                    eyes_open_start_time.append(current_rs_timestamp)
+                    eyes_open_start_loc.append(current_timestamp_loc - 1)
+                    logger.debug("received eyes open start")
 
-            # get eyes open end times
-            if current_rs_data_marker == "End Eyes Open RS: 1":
-                eyes_open_end_time.append(current_rs_timestamp)
-                eyes_open_end_loc.append(current_timestamp_loc)
-                logger.debug("received eyes open end")
+                # get eyes open end times
+                if current_rs_data_marker == "End Eyes Open RS: 1":
+                    eyes_open_end_time.append(current_rs_timestamp)
+                    eyes_open_end_loc.append(current_timestamp_loc)
+                    logger.debug("received eyes open end")
 
-            # get eyes closed start times
-            if current_rs_data_marker == "Start Eyes Closed RS: 2":
-                eyes_closed_start_time.append(current_rs_timestamp)
-                eyes_closed_start_loc.append(current_timestamp_loc - 1)
-                logger.debug("received eyes closed start")
+                # get eyes closed start times
+                if current_rs_data_marker == "Start Eyes Closed RS: 2":
+                    eyes_closed_start_time.append(current_rs_timestamp)
+                    eyes_closed_start_loc.append(current_timestamp_loc - 1)
+                    logger.debug("received eyes closed start")
 
-            # get eyes closed end times
-            if current_rs_data_marker == "End Eyes Closed RS: 2":
-                eyes_closed_end_time.append(current_rs_timestamp)
-                eyes_closed_end_loc.append(current_timestamp_loc)
-                logger.debug("received eyes closed end")
+                # get eyes closed end times
+                if current_rs_data_marker == "End Eyes Closed RS: 2":
+                    eyes_closed_end_time.append(current_rs_timestamp)
+                    eyes_closed_end_loc.append(current_timestamp_loc)
+                    logger.debug("received eyes closed end")
 
-            # get rest start times
-            if current_rs_data_marker == "Start Rest for RS: 0":
-                rest_start_time.append(current_rs_timestamp)
-                rest_start_loc.append(current_timestamp_loc - 1)
-                logger.debug("received rest start")
-            # get rest end times
-            if current_rs_data_marker == "End Rest for RS: 0":
-                rest_end_time.append(current_rs_timestamp)
-                rest_end_loc.append(current_timestamp_loc)
-                logger.debug("received rest end")
+                # get rest start times
+                if current_rs_data_marker == "Start Rest for RS: 0":
+                    rest_start_time.append(current_rs_timestamp)
+                    rest_start_loc.append(current_timestamp_loc - 1)
+                    logger.debug("received rest start")
+                # get rest end times
+                if current_rs_data_marker == "End Rest for RS: 0":
+                    rest_end_time.append(current_rs_timestamp)
+                    rest_end_loc.append(current_timestamp_loc)
+                    logger.debug("received rest end")
 
-        # Eyes open
-        # Get duration, nsamples
+            # Eyes open
+            # Get duration, nsamples
 
-        if len(eyes_open_end_loc) > 0:
-            duration = np.floor(eyes_open_end_time[0] - eyes_open_start_time[0])
-            n_samples = int(duration * self.fsample)
+            if len(eyes_open_end_loc) > 0:
+                duration = np.floor(eyes_open_end_time[0] - eyes_open_start_time[0])
+                n_samples = int(duration * self.fsample)
 
-            self.eyes_open_timestamps = np.array(range(n_samples)) / self.fsample
-            self.eyes_open_trials = np.ndarray(
-                (len(eyes_open_start_time), self.n_channels, n_samples)
-            )
-            # Now copy EEG for these trials
-            for i in range(len(eyes_open_start_time)):
-                # Get current eyes open start and end locations
-                current_eyes_open_start = eyes_open_start_loc[i]
-                current_eyes_open_end = eyes_open_end_loc[i]
+                new_eeg = np.zeros((1, self.n_channels, n_samples))
 
-                new_eeg, new_timestamps = self.__interpolate(
-                    eeg_data[:, current_eyes_open_start:current_eyes_open_end],
-                    self.eyes_open_timestamps,
-                    self.fsample,
-                )
+                eyes_open_timestamps = np.arange(0, duration, 1 / self.fsample)
 
-                self.eyes_open_trials[i, :, :] = new_eeg
-                self.eyes_open_timestamps = new_timestamps
+                # Now copy EEG for these trials
+                for i in range(len(eyes_open_start_time)):
+                    eyes_open_time_correction = eyes_open_start_time[i]
 
-        logger.debug("Done packaging resting state data")
+                    corrected_eeg_timestamps = eeg_timestamps - eyes_open_time_correction
 
-        # Eyes closed
+                    for c in range(self.n_channels):
+                        new_eeg[0, c, :] = np.interp(eyes_open_timestamps, corrected_eeg_timestamps, eeg_data[c, :])
 
-        if len(eyes_closed_end_loc) > 0:
-            # Get duration, nsmaples
-            duration = np.floor(eyes_closed_end_time[0] - eyes_closed_start_time[0])
-            n_samples = int(duration * self.fsample)
+                    if i == 0:
+                        eyes_open_trials = new_eeg
+                        eyes_open_timestamps = eyes_open_timestamps
+                    else:
+                        eyes_open_trials = np.concatenate((eyes_open_trials, new_eeg), axis=0)
 
-            eyes_closed_timestamps = np.array(range(n_samples)) / self.fsample
-            eyes_closed_trials = np.ndarray(
-                (len(eyes_closed_start_time), self.n_channels, n_samples)
-            )
-            # Now copy EEG for these trials
-            for i in range(len(eyes_closed_start_time)):
-                # Get current eyes closed start and end locations
-                current_eyes_closed_start = eyes_closed_start_loc[i]
-                current_eyes_closed_end = eyes_closed_end_loc[i]
+            # Eyes closed
 
-                new_eeg, new_timestamps = self.__interpolate(
-                    eeg_data[:, current_eyes_closed_start:current_eyes_closed_end],
-                    eyes_closed_timestamps,
-                    self.fsample,
-                )
+            if len(eyes_closed_end_loc) > 0:
+                # Get duration, nsmaples
+                duration = np.floor(eyes_closed_end_time[0] - eyes_closed_start_time[0])
+                n_samples = int(duration * self.fsample)
 
-                eyes_closed_trials[i, :, :] = new_eeg
-                eyes_closed_timestamps = new_timestamps
+                new_eeg = np.zeros((1, self.n_channels, n_samples))
 
-        # Rest
-        if len(rest_end_loc) > 0:
-            # Get duration, nsmaples
-            while rest_end_time[0] < rest_start_time[0]:
-                rest_end_time.pop(0)
-                rest_end_loc.pop(0)
+                eyes_closed_timestamps = np.arange(0, duration, 1 / self.fsample)
 
-            duration = np.floor(rest_end_time[0] - rest_start_time[0])
+                # Now copy EEG for these trials
+                for i in range(len(eyes_closed_start_time)):
+                    eyes_closed_time_correction = eyes_closed_start_time[i]
 
-            n_samples = int(duration * self.fsample)
+                    corrected_eeg_timestamps = eeg_timestamps - eyes_closed_time_correction
 
-            rest_timestamps = np.array(range(n_samples)) / self.fsample
-            rest_trials = np.ndarray(
-                (len(rest_start_time), self.n_channels, n_samples)
-            )
-            # Now copy EEG for these trials
-            for i in range(len(rest_start_time)):
-                # Get current rest start and end locations
-                current_rest_start = rest_start_loc[i]
-                current_rest_end = rest_end_loc[i]
+                    for c in range(self.n_channels):
+                        new_eeg[0, c, :] = np.interp(eyes_closed_timestamps, corrected_eeg_timestamps, eeg_data[c, :])
 
-                new_eeg, new_timestamps = self.__interpolate(
-                    eeg_data[:, current_rest_start:current_rest_end],
-                    rest_timestamps,
-                    self.fsample,
-                )
+                    if i == 0:
+                        eyes_closed_trials = new_eeg
+                        eyes_closed_timestamps = eyes_closed_timestamps
+                    else:
+                        eyes_closed_trials = np.concatenate((eyes_closed_trials, new_eeg), axis=0)
 
-                rest_trials[i, :, :] = new_eeg
-                rest_timestamps = new_timestamps
+            # Rest
+            if len(rest_end_loc) > 0:
+                # Get duration, nsmaples
+                while rest_end_time[0] < rest_start_time[0]:
+                    rest_end_time.pop(0)
+                    rest_end_loc.pop(0)
 
-        # except Exception:
-        #     logger.warning("Failed to package resting state data")
+                duration = np.floor(rest_end_time[0] - rest_start_time[0])
+                n_samples = int(duration * self.fsample)
+
+                new_eeg = np.zeros((1, self.n_channels, n_samples))
+
+                rest_timestamps = np.arange(0, duration, 1 / self.fsample)
+
+                # Now copy EEG for these trials
+                for i in range(len(rest_start_time)):
+                    rest_time_correction = rest_start_time[i]
+
+                    corrected_eeg_timestamps = eeg_timestamps - rest_time_correction
+
+                    for c in range(self.n_channels):
+                        new_eeg[0, c, :] = np.interp(rest_timestamps, corrected_eeg_timestamps, eeg_data[c, :])
+
+                    if i == 0:
+                        rest_trials = new_eeg
+                        rest_timestamps = rest_timestamps
+
+                    else:
+                        rest_trials = np.concatenate((rest_trials, new_eeg), axis=0)
+
+            # Put all the available data into a dictionary
+            resting_state_data = {
+                "eyes_open_trials": eyes_open_trials,
+                "eyes_open_timestamps": eyes_open_timestamps,
+                "eyes_closed_trials": eyes_closed_trials,
+                "eyes_closed_timestamps": eyes_closed_timestamps,
+                "rest_trials": rest_trials,
+                "rest_timestamps": rest_timestamps,
+            }
+
+            logger.debug("Done packaging resting state data")
+
+            return resting_state_data
+        
+        except Exception as e:
+            logger.error(f"Error packaging resting state data: {e}")
+
+            return None

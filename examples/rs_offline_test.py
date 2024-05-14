@@ -45,17 +45,17 @@ test_rs.setup(
 test_rs.run()
 
 try:
-    eyes_open_trials = test_rs.eyes_open_trials
+    eyes_open_trials = data_tank.resting_state_data["eyes_open_trials"]
 except Exception:
     logger.error("Couldn't find eyes open data")
 
 try:
-    eyes_closed_trials = test_rs.eyes_closed_trials
+    eyes_closed_trials = data_tank.resting_state_data["eyes_closed_trials"]
 except Exception:
     logger.error("Couldn't find eyes closed data")
 
 try:
-    rest_trials = test_rs.rest_trials
+    rest_trials = data_tank.resting_state_data["rest_trials"]
 except Exception:
     logger.error("Couldn't find rest data")
 

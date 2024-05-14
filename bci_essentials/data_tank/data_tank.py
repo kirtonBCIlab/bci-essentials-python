@@ -90,6 +90,23 @@ class DataTank:
         else:
             # Return all
             return self.epochs, self.labels
+        
+    def add_resting_state_data(self, resting_state_data):
+        """
+        Add resting state data to the data tank.
+
+        Parameters
+        ----------
+        resting_state_data : dict
+            Dictionary containing resting state data.
+
+        Returns
+        -------
+        `None`
+
+        """
+        # Get the resting state data
+        self.resting_state_data = resting_state_data
 
     def save_raw():
         pass
