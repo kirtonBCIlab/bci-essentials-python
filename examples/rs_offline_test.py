@@ -3,13 +3,11 @@ import os
 from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
 from bci_essentials.eeg_data import EegData
 from bci_essentials.paradigm.mi_paradigm import MiParadigm
-from bci_essentials.paradigm.p300_paradigm import P300Paradigm
 from bci_essentials.data_tank.data_tank import DataTank
 
 # from bci_essentials.erp_data import ErpData
 from bci_essentials.resting_state import get_alpha_peak, get_bandpower_features
 from bci_essentials.classification.mi_classifier import MiClassifier
-from bci_essentials.classification.erp_rg_classifier import ErpRgClassifier
 from bci_essentials.utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO

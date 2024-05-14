@@ -100,8 +100,6 @@ class MiParadigm(BaseParadigm):
 
         for i, marker in enumerate(markers):
             marker = marker.split(",")
-            paradigm_string = marker[0]  # Maybe use this as a compatibility check?
-            num_options = int(marker[1])
             label = int(marker[2])
             epoch_length = float(marker[3])
 

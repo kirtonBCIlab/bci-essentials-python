@@ -1,5 +1,4 @@
 import numpy as np
-from ..signal_processing import bandpass
 
 
 # Will eventually move somewhere else

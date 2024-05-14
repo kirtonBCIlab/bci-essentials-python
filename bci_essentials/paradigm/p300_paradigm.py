@@ -118,11 +118,9 @@ class P300Paradigm(BaseParadigm):
 
         for i, marker in enumerate(markers):
             marker = marker.split(",")
-            paradigm_string = marker[0]  # Maybe use this as a compatibility check?
             flash_indices = [int(x) for x in marker[4:]]
 
             nchannels, _ = eeg.shape
-            epoch_length = self.epoch_end - self.epoch_start
 
             marker_timestamp = marker_timestamps[i]
 

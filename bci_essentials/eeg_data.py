@@ -21,7 +21,6 @@ length.
 import time
 import numpy as np
 
-from .signal_processing import notch, bandpass
 from .paradigm.base_paradigm import BaseParadigm
 from .data_tank.data_tank import DataTank
 from .classification.generic_classifier import GenericClassifier
@@ -226,7 +225,7 @@ class EegData:
                     )
                     time.sleep(time_dif)
 
-                    if self.online == False:
+                    if self.online is False:
                         logger.info(
                             "Oh wait this is offline, there will never be more data!"
                         )
@@ -392,10 +391,8 @@ class EegData:
 
             logger.info("Marker: %s", current_step_marker)
 
-            # If the marker contains a single string, not including ',' and
-            # begining with a alpha character, then it is an command marker
+            # If the marker contains a single string, then it is a command marker
             marker_is_single_string = len(current_step_marker.split(",")) == 1
-            marker_begins_with_alpha = current_step_marker[0].isalpha()
             is_event_marker = not marker_is_single_string
 
             # Add the marker to the event marker buffer
@@ -431,7 +428,7 @@ class EegData:
                     self.__process_and_classify()
 
             elif current_step_marker == "Training Complete":
-                if self.train_lock == False:
+                if self.train_lock is False:
                     # Pull the epochs from the data tank and pass them to the classifier
                     X, y = self.__data_tank.get_epochs(latest=True)
                     if len(y) > 0:
@@ -440,7 +437,7 @@ class EegData:
                     self.train_complete = True
 
             elif current_step_marker == "Update Classifier":
-                if self.train_lock == False:
+                if self.train_lock is False:
                     # Pull the epochs from the data tank and pass them to the classifier
                     X, y = self.__data_tank.get_epochs(latest=True)
                     if len(y) > 0:
