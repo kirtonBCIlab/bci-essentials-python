@@ -68,7 +68,7 @@ class BaseParadigm:
             List of markers.
         marker_timestamps : np.ndarray
             Timestamps of markers.
-        eeg_data : np.ndarray   
+        eeg_data : np.ndarray
             EEG data. Shape is (n_channels, n_samples).
         eeg_timestamps : np.ndarray
             Timestamps of EEG data. Shape is (n_samples,).

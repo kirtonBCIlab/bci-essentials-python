@@ -38,7 +38,7 @@ class DataTank:
     def set_source_data(
         self, headset_string, fsample, n_channels, ch_types, ch_units, channel_labels
     ):
-        """ 
+        """
         Set the source data for the DataTank so that this metadata can be saved with the data.
 
         Parameters
@@ -71,12 +71,12 @@ class DataTank:
     def add_raw_eeg(self, new_raw_eeg, new_eeg_timestamps):
         """
         Add raw EEG data to the data tank.
-        
+
         Parameters
         ----------
         new_raw_eeg : np.array
             The new raw EEG data to add.
-            
+
         new_eeg_timestamps : np.array
             The timestamps of the new raw EEG data.
 
@@ -161,7 +161,7 @@ class DataTank:
             The new epochs to add. Shape is (n_epochs, n_channels, n_samples).
         y : np.array
             The labels of the epochs. Shape is (n_epochs).
-        
+
         Returns
         -------
         `None`
@@ -196,7 +196,7 @@ class DataTank:
             The epochs. Shape is (n_epochs, n_channels, n_samples).
         np.array
             The labels of the epochs. Shape is (n_epochs).
-        
+
         """
         if latest:
             # Return only the new data
