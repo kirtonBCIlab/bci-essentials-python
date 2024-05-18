@@ -3,6 +3,8 @@ from bci_essentials.io.lsl_messenger import LslMessenger
 from bci_essentials.erp_data import ErpData
 from bci_essentials.classification.erp_rg_classifier import ErpRgClassifier
 
+from pylsl import resolve_stream, StreamInlet
+
 # create LSL sources, these will block until the outlets are present
 eeg_source = LslEegSource()
 marker_source = LslMarkerSource()
@@ -34,4 +36,15 @@ test_erp.setup(
     trial_start=0.0,
     trial_end=0.8,
 )
+
+# Resolve the EEG stream
+streams = resolve_stream('type', 'EEG')
+inlet = StreamInlet(streams[0])
+
+# Get the full stream info
+info = inlet.info()
+
+# Print the XML description
+print(info.as_xml())
+
 test_erp.run()
