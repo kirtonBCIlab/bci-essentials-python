@@ -106,7 +106,7 @@ class SsvepParadigm(BaseParadigm):
             epoch_length = float(marker[3])
             self.flash_indices = [float(x) for x in marker[4:]]
 
-            nchannels, _ = eeg.shape
+            n_channels, _ = eeg.shape
 
             marker_timestamp = marker_timestamps[i]
 
@@ -117,10 +117,10 @@ class SsvepParadigm(BaseParadigm):
             epoch_time = np.arange(0, epoch_length, 1 / fsample)
 
             # Initialize the EEG data array
-            epoch_eeg = np.zeros((1, nchannels, len(epoch_time)))
+            epoch_eeg = np.zeros((1, n_channels, len(epoch_time)))
 
             # Interpolate the EEG data to the epoch time vector for each channel
-            for c in range(nchannels):
+            for c in range(n_channels):
                 epoch_eeg[0, c, :] = np.interp(
                     epoch_time, marker_eeg_timestamps, eeg[c, :]
                 )
