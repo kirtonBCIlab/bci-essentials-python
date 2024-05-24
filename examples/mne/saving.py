@@ -6,7 +6,7 @@
 # Logs to bci_essentials.__module__) where __module__ is the name of the module
 # logger = Logger(name=__name__)
 
-#TODO: Put this saving into the data_tank class
+# TODO: Put this saving into the data_tank class
 
 
 # def mne_export_as_raw(bci_controller_object):
