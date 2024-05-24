@@ -36,7 +36,9 @@ class TestClassifierSave(unittest.TestCase):
         )
 
         # Load the data
-        data1 = BciController(classifier1, eeg_source1, marker_source1, paradigm, data_tank1)
+        data1 = BciController(
+            classifier1, eeg_source1, marker_source1, paradigm, data_tank1
+        )
 
         # Run main loop, this will do all of the classification for online or offline
         data1.setup(
@@ -56,7 +58,9 @@ class TestClassifierSave(unittest.TestCase):
         # Create a new BciController object, recreate xdf sources to reload files
         eeg_source2 = XdfEegSource(xdf_path)
         marker_source2 = XdfMarkerSource(xdf_path)
-        data2 = BciController(classifier2, eeg_source2, marker_source2, paradigm, data_tank2)
+        data2 = BciController(
+            classifier2, eeg_source2, marker_source2, paradigm, data_tank2
+        )
 
         # Check that all values of the classifier's numpy arrays are the same
         self.assertTrue(np.array_equal(classifier1.X, classifier2.X))
@@ -107,7 +111,9 @@ class TestClassifierSave(unittest.TestCase):
         )
 
         # Load the data
-        data1 = BciController(classifier1, eeg_source1, marker_source1, paradigm, data_tank1)
+        data1 = BciController(
+            classifier1, eeg_source1, marker_source1, paradigm, data_tank1
+        )
 
         # Run main loop, this will do all of the classification for online or offline
         data1.setup(
@@ -126,7 +132,9 @@ class TestClassifierSave(unittest.TestCase):
         # Create a new ErpData object, recreate xdf sources to reload files
         eeg_source2 = XdfEegSource(xdf_path)
         marker_source2 = XdfMarkerSource(xdf_path)
-        data2 = BciController(classifier2, eeg_source2, marker_source2, paradigm, data_tank2)
+        data2 = BciController(
+            classifier2, eeg_source2, marker_source2, paradigm, data_tank2
+        )
 
         # Check that all values of the classifier's numpy arrays are the same
         self.assertTrue(np.array_equal(classifier1.X, classifier2.X))

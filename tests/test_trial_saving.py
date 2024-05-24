@@ -26,7 +26,9 @@ class TestRawTrialSave(unittest.TestCase):
         classifier1 = NullClassifier()
 
         # Load the data
-        data1 = BciController(classifier1, eeg_source1, marker_source1, paradigm1, data_tank1)
+        data1 = BciController(
+            classifier1, eeg_source1, marker_source1, paradigm1, data_tank1
+        )
 
         # Run main loop, this will do all of the classification for online or offline
         data1.setup(

@@ -2,6 +2,7 @@ import unittest
 
 from bci_essentials.io.sources import MarkerSource, EegSource
 from bci_essentials.io.messenger import Messenger
+
 # from bci_essentials.paradigm.paradigm import Paradigm
 from bci_essentials.paradigm.mi_paradigm import MiParadigm
 from bci_essentials.data_tank.data_tank import DataTank

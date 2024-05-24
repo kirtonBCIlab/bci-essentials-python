@@ -20,7 +20,9 @@ classifier = MiClassifier()  # you can add a subset here
 classifier.set_mi_classifier_settings(n_splits=3, type="TS", random_seed=35)
 
 # Define the MI data object
-mi_data = BciController(classifier, eeg_source, marker_source, messenger, paradigm, data_tank)
+mi_data = BciController(
+    classifier, eeg_source, marker_source, messenger, paradigm, data_tank
+)
 
 # Run
 mi_data.setup(online=True)

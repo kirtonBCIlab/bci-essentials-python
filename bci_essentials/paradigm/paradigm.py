@@ -269,7 +269,7 @@ class Paradigm(ABC):
             logger.error(f"Error packaging resting state data: {e}")
 
             return None
-        
+
     @abstractmethod
     def get_eeg_start_and_end_times(self, markers, timestamps):
         """
