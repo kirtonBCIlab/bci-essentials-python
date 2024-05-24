@@ -1,14 +1,13 @@
 import mne
 from bci_essentials.utils.logger import Logger
-from bci_essentials.eeg_data import BciController
-from bci_essentials.erp_data import ErpData
+from bci_essentials.bci_controller import BciController
 
 # Instantiate a logger for the module at the default level of logging.INFO
 # Logs to bci_essentials.__module__) where __module__ is the name of the module
 logger = Logger(name=__name__)
 
 
-def mne_export_as_raw(eeg_data_object):
+def mne_export_as_raw(bci_controller_object):
     """MNE export EEG as RawArray.
 
     Exports the EEG data as a MNE RawArray object.
@@ -24,28 +23,28 @@ def mne_export_as_raw(eeg_data_object):
 
     logger.error("mne_export_as_raw has not been implemented yet")
 
-    assert isinstance(eeg_data_object, BciController)
+    assert isinstance(bci_controller_object, BciController)
 
     # create info from metadata
     info = mne.create_info(
-        ch_names=eeg_data_object.channel_labels,
-        sfreq=eeg_data_object.fsample,
+        ch_names=bci_controller_object.channel_labels,
+        sfreq=bci_controller_object.fsample,
         ch_types="eeg",
     )
 
     # create the MNE epochs, pass in the raw
 
     # make sure that units match
-    raw_data = eeg_data_object.eeg_data.transpose()
+    raw_data = bci_controller_object.bci_controller.transpose()
     raw_array = mne.io.RawArray(data=raw_data, info=info)
 
     # change the last column of epochs array events to be the class labels
-    # raw_array.events[:, -1] = eeg_data_object.labels
+    # raw_array.events[:, -1] = bci_controller_object.labels
 
     return raw_array
 
 
-def mne_export_as_epochs(eeg_data_object):
+def mne_export_as_epochs(bci_controller_object):
     """MNE export EEG as EpochsArray.
 
     Exports the EEG data as a MNE EpochsArray object.
@@ -61,20 +60,20 @@ def mne_export_as_epochs(eeg_data_object):
 
     logger.error("mne_export_as_raw has not been implemented yet")
 
-    assert isinstance(eeg_data_object, BciController)
+    assert isinstance(bci_controller_object, BciController)
 
     # create info from metadata
     info = mne.create_info(
-        ch_names=eeg_data_object.channel_labels,
-        sfreq=eeg_data_object.fsample,
-        ch_types=eeg_data_object.ch_type,
+        ch_names=bci_controller_object.channel_labels,
+        sfreq=bci_controller_object.fsample,
+        ch_types=bci_controller_object.ch_type,
     )
 
     # create the MNE epochs, pass in the raw
 
     # make sure that units match
-    epoch_data = eeg_data_object.raw_eeg_trials.copy()
-    for i, u in enumerate(eeg_data_object.ch_units):
+    epoch_data = bci_controller_object.raw_eeg_trials.copy()
+    for i, u in enumerate(bci_controller_object.ch_units):
         if u == "microvolts":
             # convert to volts
             epoch_data[:, i, :] = epoch_data[:, i, :] / 1000000
@@ -82,12 +81,12 @@ def mne_export_as_epochs(eeg_data_object):
     epochs_array = mne.EpochsArray(data=epoch_data, info=info)
 
     # change the last column of epochs array events to be the class labels
-    epochs_array.events[:, -1] = eeg_data_object.labels
+    epochs_array.events[:, -1] = bci_controller_object.labels
 
     return epochs_array
 
 
-def mne_export_resting_state_as_raw(eeg_data_object):
+def mne_export_resting_state_as_raw(bci_controller_object):
     """MNE export resting state EEG as RawArray.
 
     Exports the resting state EEG data as a MNE RawArray object.
@@ -103,7 +102,7 @@ def mne_export_resting_state_as_raw(eeg_data_object):
 
     logger.error("mne_export_as_raw has not been implemented yet")
 
-    assert isinstance(eeg_data_object, BciController)
+    assert isinstance(bci_controller_object, BciController)
 
     # Check for mne
     try:
@@ -115,8 +114,8 @@ def mne_export_resting_state_as_raw(eeg_data_object):
 
     # create info from metadata
     info = mne.create_info(
-        ch_names=eeg_data_object.channel_labels,
-        sfreq=eeg_data_object.fsample,
+        ch_names=bci_controller_object.channel_labels,
+        sfreq=bci_controller_object.fsample,
         ch_types="eeg",
     )
 
@@ -124,18 +123,18 @@ def mne_export_resting_state_as_raw(eeg_data_object):
         # create the MNE epochs, pass in the raw
 
         # make sure that units match
-        raw_data = eeg_data_object.rest_trials[0, :, :]
+        raw_data = bci_controller_object.rest_trials[0, :, :]
         raw_array = mne.io.RawArray(data=raw_data, info=info)
 
         # change the last column of epochs array events to be the class labels
-        # raw_array.events[:, -1] = eeg_data_object.labels
+        # raw_array.events[:, -1] = bci_controller_object.labels
 
     except Exception:
         # could not find resting state data, sending the whole collection instead
         logger.warning(
             "NO PROPER RESTING STATE DATA FOUND, SENDING ALL OF THE EEG DATA INSTEAD"
         )
-        raw_data = eeg_data_object.eeg_data.transpose()
+        raw_data = bci_controller_object.bci_controller.transpose()
         raw_array = mne.io.RawArray(data=raw_data, info=info)
 
     return raw_array

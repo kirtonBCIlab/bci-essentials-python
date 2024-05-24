@@ -4,7 +4,7 @@ from ..classification.generic_classifier import Prediction
 
 
 class Messenger(ABC):
-    """A Messenger object is used by EEG_data to send event messages.  For example,
+    """A Messenger object is used by bci_controller to send event messages.  For example,
     to acknowledge that a marker has been received, or to provide a prediction.
     """
 

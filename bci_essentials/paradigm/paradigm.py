@@ -59,7 +59,7 @@ class Paradigm(ABC):
         return new_eeg
 
     def package_resting_state_data(
-        self, marker_data, marker_timestamps, eeg_data, eeg_timestamps, fsample
+        self, marker_data, marker_timestamps, bci_controller, eeg_timestamps, fsample
     ):
         """Package resting state data.
 
@@ -69,7 +69,7 @@ class Paradigm(ABC):
             List of markers.
         marker_timestamps : np.ndarray
             Timestamps of markers.
-        eeg_data : np.ndarray
+        bci_controller : np.ndarray
             EEG data. Shape is (n_channels, n_samples).
         eeg_timestamps : np.ndarray
             Timestamps of EEG data. Shape is (n_samples,).
@@ -104,7 +104,7 @@ class Paradigm(ABC):
             current_timestamp_loc = 0
 
             self.fsample = fsample
-            self.n_channels = eeg_data.shape[0]
+            self.n_channels = bci_controller.shape[0]
 
             for i in range(len(marker_data)):
                 # Get current resting state data marker and time stamp
@@ -174,7 +174,7 @@ class Paradigm(ABC):
                         new_eeg[0, c, :] = np.interp(
                             eyes_open_timestamps,
                             corrected_eeg_timestamps,
-                            eeg_data[c, :],
+                            bci_controller[c, :],
                         )
 
                     if i == 0:
@@ -208,7 +208,7 @@ class Paradigm(ABC):
                         new_eeg[0, c, :] = np.interp(
                             eyes_closed_timestamps,
                             corrected_eeg_timestamps,
-                            eeg_data[c, :],
+                            bci_controller[c, :],
                         )
 
                     if i == 0:
@@ -241,7 +241,7 @@ class Paradigm(ABC):
 
                     for c in range(self.n_channels):
                         new_eeg[0, c, :] = np.interp(
-                            rest_timestamps, corrected_eeg_timestamps, eeg_data[c, :]
+                            rest_timestamps, corrected_eeg_timestamps, bci_controller[c, :]
                         )
 
                     if i == 0:

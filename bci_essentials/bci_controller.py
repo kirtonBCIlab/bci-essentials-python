@@ -111,7 +111,7 @@ class BciController:
         # Initialize data and timestamp arrays to the right dimensions, but zero elements
         self.marker_data = np.zeros((0, 1))
         self.marker_timestamps = np.zeros((0))
-        self.eeg_data = np.zeros((0, self.n_channels))
+        self.bci_controller = np.zeros((0, self.n_channels))
         self.eeg_timestamps = np.zeros((0))
 
         self.ping_count = 0
@@ -121,10 +121,10 @@ class BciController:
     # Get new data from source, whatever it is
     def _pull_data_from_sources(self):
         """Get pull data from EEG and optionally, the marker source.
-        This method will fill up the marker_data, eeg_data and corresponding timestamp arrays.
+        This method will fill up the marker_data, bci_controller and corresponding timestamp arrays.
         """
         self.__pull_marker_data_from_source()
-        self.__pull_eeg_data_from_source()
+        self.__pull_bci_controller_from_source()
 
         # If the outlet exists send a ping
         if self._messenger is not None:
@@ -166,7 +166,7 @@ class BciController:
             # Add all markers to the data tank
             self.__data_tank.add_raw_markers(markers, timestamps)
 
-    def __pull_eeg_data_from_source(self):
+    def __pull_bci_controller_from_source(self):
         """Pulls eeg samples from source, sanity checks and appends to buffer"""
 
         # read in the data
@@ -406,12 +406,12 @@ class BciController:
 
             # TODO
             elif current_step_marker == "Done with all RS collection":
-                self.eeg_data, self.eeg_timestamps = self.__data_tank.get_raw_eeg()
+                self.bci_controller, self.eeg_timestamps = self.__data_tank.get_raw_eeg()
 
                 resting_state_data = self.__paradigm.package_resting_state_data(
                     self.marker_data,
                     self.marker_timestamps,
-                    self.eeg_data,
+                    self.bci_controller,
                     self.eeg_timestamps,
                     self.fsample,
                 )

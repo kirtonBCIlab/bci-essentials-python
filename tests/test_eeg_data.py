@@ -115,7 +115,7 @@ class TestBciController(unittest.TestCase):
         )
 
         # provide garbage data (None is invalid, length of data and timestamps doesn't match)
-        self.eeg.eeg_data = [1.0]
+        self.eeg.bci_controller = [1.0]
         self.eeg.eeg_timestamps = [1.0]
         data.setup(online=True)
         data.run(max_loops=2)
@@ -145,11 +145,11 @@ class _MockEegSource(EegSource):
     channel_types = []
     channel_units = []
     channel_labels = []
-    eeg_data = [[]]
+    bci_controller = [[]]
     eeg_timestamps = []
 
     def get_samples(self) -> tuple[list[list], list]:
-        return [self.eeg_data, self.eeg_timestamps]
+        return [self.bci_controller, self.eeg_timestamps]
 
     def time_correction(self) -> float:
         return 0.0
