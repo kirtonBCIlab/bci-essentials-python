@@ -13,7 +13,7 @@ and classified (using one of the `classification` sub-modules).
 
 Classes
 -------
-- `EegData` : For processing continuous data in trials of a defined
+- `BciController` : For processing continuous data in trials of a defined
 length.
 
 """
@@ -34,7 +34,7 @@ logger = Logger(name=__name__)
 
 
 # EEG data
-class EegData:
+class BciController:
     """
     Class that holds, trials, processes, and classifies EEG data.
     This class is used for processing of continuous EEG data in trials of a defined length.
@@ -49,23 +49,23 @@ class EegData:
         data_tank: DataTank | None = None,
         messenger: Messenger | None = None,
     ):
-        """Initializes `EegData` class.
+        """Initializes `BciController` class.
 
         Parameters
         ----------
         classifier : GenericClassifier
-            The classifier used by EegData.
+            The classifier used by BciController.
         eeg_source : EegSource
             Source of EEG data and timestamps, this could be from a file or headset via LSL, etc.
         marker_source : EegSource
             Source of Marker/Control data and timestamps, this could be from a file or Unity via
             LSL, etc.  The default value is None.
         paradigm : Paradigm
-            The paradigm used by EegData. This defines the processing and reshaping steps for the EEG data.
+            The paradigm used by BciController. This defines the processing and reshaping steps for the EEG data.
         data_tank : DataTank
             DataTank object to handle the storage of EEG trials and labels.  The default value is None.
         messenger: Messenger
-            Messenger object to handle events from EegData, ex: acknowledging markers and
+            Messenger object to handle events from BciController, ex: acknowledging markers and
             predictions.  The default value is None.
         """
 
@@ -275,7 +275,7 @@ class EegData:
         The processing loop reads in EEG and marker data and processes it.
         The loop can be run in "offline" or "online" modes:
         - If in `online` mode, then the loop will continuously try to read
-        in data from the `EegData` object and process it. The loop will
+        in data from the `BciController` object and process it. The loop will
         terminate when `max_loops` is reached, or when manually terminated.
         - If in `offline` mode, then the loop will read in all of the data
         at once, process it, and then terminate.
@@ -317,7 +317,7 @@ class EegData:
         self.online_selections = []
 
     def run(self, max_loops: int = 1000000):
-        """Runs EegData processing in a loop.
+        """Runs BciController processing in a loop.
         See setup() for configuration of processing.
 
         Parameters
@@ -356,7 +356,7 @@ class EegData:
             self.loops += 1
 
     def step(self):
-        """Runs a single EegData processing step.
+        """Runs a single BciController processing step.
         See setup() for configuration of processing.
 
         Parameters

@@ -2,14 +2,15 @@ import unittest
 
 from bci_essentials.io.sources import MarkerSource, EegSource
 from bci_essentials.io.messenger import Messenger
-from bci_essentials.paradigm.paradigm import Paradigm
+# from bci_essentials.paradigm.paradigm import Paradigm
+from bci_essentials.paradigm.mi_paradigm import MiParadigm
 from bci_essentials.data_tank.data_tank import DataTank
-from bci_essentials.eeg_data import EegData
+from bci_essentials.bci_controller import BciController
 from bci_essentials.classification.generic_classifier import Prediction
 from bci_essentials.classification.null_classifier import NullClassifier
 
 
-class TestEegData(unittest.TestCase):
+class TestBciController(unittest.TestCase):
     def setUp(self) -> None:
         self.classifier = NullClassifier()
         self.eeg = _MockEegSource()
@@ -18,18 +19,18 @@ class TestEegData(unittest.TestCase):
 
     def test_trg_channel_types_changed_to_stim(self):
         self.eeg.channel_types = ["eeg", "trg", "eeg", "stim"]
-        data = EegData(
-            self.classifier, self.eeg, self.markers, Paradigm(), DataTank()
+        data = BciController(
+            self.classifier, self.eeg, self.markers, MiParadigm(), DataTank()
         )
         self.assertEqual(data.ch_type, ["eeg", "stim", "eeg", "stim"])
 
     # offline
     def test_when_offline_loop_stops_when_no_more_data(self):
-        data = EegData(
+        data = BciController(
             self.classifier,
             self.eeg,
             self.markers,
-            Paradigm(),
+            MiParadigm(),
             DataTank(),
             self.messenger,
         )
@@ -38,11 +39,11 @@ class TestEegData(unittest.TestCase):
         self.assertEqual(self.messenger.ping_count, 1)
 
     def test_offline_single_step_runs_single_loop(self):
-        data = EegData(
+        data = BciController(
             self.classifier,
             self.eeg,
             self.markers,
-            Paradigm(),
+            MiParadigm(),
             DataTank(),
             self.messenger,
         )
@@ -55,11 +56,11 @@ class TestEegData(unittest.TestCase):
 
     # online
     def test_when_online_loop_continues_even_when_no_data(self):
-        data = EegData(
+        data = BciController(
             self.classifier,
             self.eeg,
             self.markers,
-            Paradigm(),
+            MiParadigm(),
             DataTank(),
             self.messenger,
         )
@@ -68,11 +69,11 @@ class TestEegData(unittest.TestCase):
         self.assertEqual(self.messenger.ping_count, 10)
 
     def test_online_single_step_runs_single_loop(self):
-        data = EegData(
+        data = BciController(
             self.classifier,
             self.eeg,
             self.markers,
-            Paradigm(),
+            MiParadigm(),
             DataTank(),
             self.messenger,
         )
@@ -84,11 +85,11 @@ class TestEegData(unittest.TestCase):
         self.assertEqual(self.messenger.ping_count, 2)
 
     def test_when_online_and_invalid_markers_then_loop_continues(self):
-        data = EegData(
+        data = BciController(
             self.classifier,
             self.eeg,
             self.markers,
-            Paradigm(),
+            MiParadigm(),
             DataTank(),
             self.messenger,
         )
@@ -103,11 +104,11 @@ class TestEegData(unittest.TestCase):
         self.assertEqual(self.messenger.ping_count, 2)
 
     def test_when_online_and_invalid_eeg_then_loop_continues(self):
-        data = EegData(
+        data = BciController(
             self.classifier,
             self.eeg,
             self.markers,
-            Paradigm(),
+            MiParadigm(),
             DataTank(),
             self.messenger,
         )
@@ -122,7 +123,7 @@ class TestEegData(unittest.TestCase):
         self.assertEqual(self.messenger.ping_count, 2)
 
 
-# Placeholder to make EegData happy
+# Placeholder to make BciController happy
 class _MockMarkerSource(MarkerSource):
     name = "MockMarker"
     marker_data = [[]]
@@ -135,7 +136,7 @@ class _MockMarkerSource(MarkerSource):
         return 0.0
 
 
-# Placeholder to make EegData happy
+# Placeholder to make BciController happy
 class _MockEegSource(EegSource):
     name = "MockEeg"
     fsample = 0.0
@@ -153,7 +154,7 @@ class _MockEegSource(EegSource):
         return 0.0
 
 
-# Count how often these methods are called to check that EegData
+# Count how often these methods are called to check that BciController
 # would have sent a message, not checking content.
 class _MockMessenger(Messenger):
     ping_count = 0

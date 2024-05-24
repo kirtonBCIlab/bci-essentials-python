@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
-from bci_essentials.eeg_data import EegData
+from bci_essentials.eeg_data import BciController
 from bci_essentials.paradigm.mi_paradigm import MiParadigm
 from bci_essentials.paradigm.p300_paradigm import P300Paradigm
 from bci_essentials.data_tank.data_tank import DataTank
@@ -36,7 +36,7 @@ class TestClassifierSave(unittest.TestCase):
         )
 
         # Load the data
-        data1 = EegData(classifier1, eeg_source1, marker_source1, paradigm, data_tank1)
+        data1 = BciController(classifier1, eeg_source1, marker_source1, paradigm, data_tank1)
 
         # Run main loop, this will do all of the classification for online or offline
         data1.setup(
@@ -53,10 +53,10 @@ class TestClassifierSave(unittest.TestCase):
         # Load the classifier
         classifier2 = load_classifier("test_mi_classifier.pkl")
 
-        # Create a new EegData object, recreate xdf sources to reload files
+        # Create a new BciController object, recreate xdf sources to reload files
         eeg_source2 = XdfEegSource(xdf_path)
         marker_source2 = XdfMarkerSource(xdf_path)
-        data2 = EegData(classifier2, eeg_source2, marker_source2, paradigm, data_tank2)
+        data2 = BciController(classifier2, eeg_source2, marker_source2, paradigm, data_tank2)
 
         # Check that all values of the classifier's numpy arrays are the same
         self.assertTrue(np.array_equal(classifier1.X, classifier2.X))
@@ -107,7 +107,7 @@ class TestClassifierSave(unittest.TestCase):
         )
 
         # Load the data
-        data1 = EegData(classifier1, eeg_source1, marker_source1, paradigm, data_tank1)
+        data1 = BciController(classifier1, eeg_source1, marker_source1, paradigm, data_tank1)
 
         # Run main loop, this will do all of the classification for online or offline
         data1.setup(
@@ -126,7 +126,7 @@ class TestClassifierSave(unittest.TestCase):
         # Create a new ErpData object, recreate xdf sources to reload files
         eeg_source2 = XdfEegSource(xdf_path)
         marker_source2 = XdfMarkerSource(xdf_path)
-        data2 = EegData(classifier2, eeg_source2, marker_source2, paradigm, data_tank2)
+        data2 = BciController(classifier2, eeg_source2, marker_source2, paradigm, data_tank2)
 
         # Check that all values of the classifier's numpy arrays are the same
         self.assertTrue(np.array_equal(classifier1.X, classifier2.X))

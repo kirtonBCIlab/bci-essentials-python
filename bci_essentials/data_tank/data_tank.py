@@ -20,12 +20,12 @@ class DataTank:
         """
 
         # Initialize np arrays to store the data
-        self.raw_eeg = np.zeros((0, 0))
-        self.raw_eeg_timestamps = np.zeros((0))
-        self.raw_marker_strings = np.zeros((0), dtype=str)
-        self.raw_marker_timestamps = np.zeros((0))
-        self.event_marker_strings = np.zeros((0), dtype=str)
-        self.event_marker_timestamps = np.zeros((0))
+        self.__raw_eeg = np.zeros((0, 0))
+        self.__raw_eeg_timestamps = np.zeros((0))
+        self.__raw_marker_strings = np.zeros((0), dtype=str)
+        self.__raw_marker_timestamps = np.zeros((0))
+        # self.event_marker_strings = np.zeros((0), dtype=str)
+        # self.event_marker_timestamps = np.zeros((0))
 
         # Keep track of the latest timestamp
         self.latest_eeg_timestamp = 0
@@ -85,13 +85,13 @@ class DataTank:
         """
 
         # If this is the first chunk of EEG, initialize the arrays
-        if self.raw_eeg.size == 0:
-            self.raw_eeg = new_raw_eeg
-            self.raw_eeg_timestamps = new_eeg_timestamps
+        if self.__raw_eeg.size == 0:
+            self.__raw_eeg = new_raw_eeg
+            self.__raw_eeg_timestamps = new_eeg_timestamps
         else:
-            self.raw_eeg = np.concatenate((self.raw_eeg, new_raw_eeg))
-            self.raw_eeg_timestamps = np.concatenate(
-                (self.raw_eeg_timestamps, new_eeg_timestamps)
+            self.__raw_eeg = np.concatenate((self.__raw_eeg, new_raw_eeg))
+            self.__raw_eeg_timestamps = np.concatenate(
+                (self.__raw_eeg_timestamps, new_eeg_timestamps)
             )
 
         self.latest_eeg_timestamp = new_eeg_timestamps[-1]
@@ -112,15 +112,15 @@ class DataTank:
         `None`
         """
 
-        if self.raw_marker_strings.size == 0:
-            self.raw_marker_strings = new_marker_strings
-            self.raw_marker_timestamps = new_marker_timestamps
+        if self.__raw_marker_strings.size == 0:
+            self.__raw_marker_strings = new_marker_strings
+            self.__raw_marker_timestamps = new_marker_timestamps
         else:
-            self.raw_marker_strings = np.concatenate(
-                (self.raw_marker_strings, new_marker_strings)
+            self.__raw_marker_strings = np.concatenate(
+                (self.__raw_marker_strings, new_marker_strings)
             )
-            self.raw_marker_timestamps = np.concatenate(
-                (self.raw_marker_timestamps, new_marker_timestamps)
+            self.__raw_marker_timestamps = np.concatenate(
+                (self.__raw_marker_timestamps, new_marker_timestamps)
             )
 
     def get_raw_eeg(self):
@@ -135,7 +135,7 @@ class DataTank:
             The timestamps of the raw EEG data.
         """
         # Get the EEG data between the start and end times
-        return self.raw_eeg, self.raw_eeg_timestamps
+        return self.__raw_eeg, self.__raw_eeg_timestamps
 
     def get_raw_markers(self):
         """
@@ -148,7 +148,7 @@ class DataTank:
         np.array
             The timestamps of the raw marker strings.
         """
-        return self.raw_marker_strings, self.raw_marker_timestamps
+        return self.__raw_marker_strings, self.__raw_marker_timestamps
 
     def add_epochs(self, X, y):
         """
@@ -222,7 +222,7 @@ class DataTank:
 
         """
         # Get the resting state data
-        self.resting_state_data = resting_state_data
+        self.__resting_state_data = resting_state_data
 
     def get_resting_state_data(self):
         """
@@ -234,7 +234,7 @@ class DataTank:
             Dictionary containing resting state data.
 
         """
-        return self.resting_state_data
+        return self.__resting_state_data
 
     def save_epochs_as_npz(self, file_name: str):
         """

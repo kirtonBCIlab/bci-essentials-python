@@ -4,7 +4,7 @@
 import os
 
 from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
-from bci_essentials.eeg_data import EegData
+from bci_essentials.eeg_data import BciController
 from bci_essentials.paradigm.ssvep_paradigm import SsvepParadigm
 from bci_essentials.data_tank.data_tank import DataTank
 from bci_essentials.classification.ssvep_riemannian_mdm_classifier import (
@@ -41,7 +41,7 @@ classifier.target_freqs = [
 
 # Initialize the SSVEP
 # should try to automate the reading of some of this stuff from the file header
-test_ssvep = EegData(classifier, eeg_source, marker_source, paradigm, data_tank)
+test_ssvep = BciController(classifier, eeg_source, marker_source, paradigm, data_tank)
 
 # initial_subset=['PO7', 'PO3', 'POz', 'PO4', 'PO8', 'O1', 'Oz', 'O2', 'Cp4', 'C4', 'F4', 'Cp3', 'C3', 'F3', 'Cz', 'Fz']
 # test_ssvep.classifier.setup_channel_selection(method = "SBS", metric="accuracy", initial_channels = initial_subset,    # wrapper setup

@@ -1,6 +1,6 @@
 import mne
 from bci_essentials.utils.logger import Logger
-from bci_essentials.eeg_data import EegData
+from bci_essentials.eeg_data import BciController
 from bci_essentials.erp_data import ErpData
 
 # Instantiate a logger for the module at the default level of logging.INFO
@@ -24,7 +24,7 @@ def mne_export_as_raw(eeg_data_object):
 
     logger.error("mne_export_as_raw has not been implemented yet")
 
-    assert isinstance(eeg_data_object, EegData)
+    assert isinstance(eeg_data_object, BciController)
 
     # create info from metadata
     info = mne.create_info(
@@ -61,7 +61,7 @@ def mne_export_as_epochs(eeg_data_object):
 
     logger.error("mne_export_as_raw has not been implemented yet")
 
-    assert isinstance(eeg_data_object, EegData)
+    assert isinstance(eeg_data_object, BciController)
 
     # create info from metadata
     info = mne.create_info(
@@ -103,7 +103,7 @@ def mne_export_resting_state_as_raw(eeg_data_object):
 
     logger.error("mne_export_as_raw has not been implemented yet")
 
-    assert isinstance(eeg_data_object, EegData)
+    assert isinstance(eeg_data_object, BciController)
 
     # Check for mne
     try:

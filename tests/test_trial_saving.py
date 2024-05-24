@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
-from bci_essentials.eeg_data import EegData
+from bci_essentials.bci_controller import BciController
 from bci_essentials.paradigm.mi_paradigm import MiParadigm
 from bci_essentials.data_tank.data_tank import DataTank
 from bci_essentials.classification.null_classifier import NullClassifier
@@ -26,7 +26,7 @@ class TestRawTrialSave(unittest.TestCase):
         classifier1 = NullClassifier()
 
         # Load the data
-        data1 = EegData(classifier1, eeg_source1, marker_source1, paradigm1, data_tank1)
+        data1 = BciController(classifier1, eeg_source1, marker_source1, paradigm1, data_tank1)
 
         # Run main loop, this will do all of the classification for online or offline
         data1.setup(

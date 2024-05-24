@@ -9,7 +9,7 @@ import os
 
 # bci_essentials
 from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
-from bci_essentials.eeg_data import EegData
+from bci_essentials.eeg_data import BciController
 from bci_essentials.paradigm.mi_paradigm import MiParadigm
 from bci_essentials.data_tank.data_tank import DataTank
 from bci_essentials.classification.mi_classifier import MiClassifier
@@ -60,7 +60,7 @@ classifier.setup_channel_selection(
 )
 
 # Initialize data object
-test_mi = EegData(classifier, eeg_source, marker_source, paradigm, data_tank)
+test_mi = BciController(classifier, eeg_source, marker_source, paradigm, data_tank)
 
 # Run main loop, this will do all of the classification for online or offline
 test_mi.setup(

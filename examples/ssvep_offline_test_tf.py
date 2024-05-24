@@ -4,7 +4,7 @@
 import os
 
 from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
-from bci_essentials.eeg_data import EegData
+from bci_essentials.eeg_data import BciController
 from bci_essentials.paradigm.ssvep_paradigm import SsvepParadigm
 from bci_essentials.data_tank.data_tank import DataTank
 from bci_essentials.classification.ssvep_basic_tf_classifier import (
@@ -42,7 +42,7 @@ classifier.set_ssvep_settings(
 
 # Initialize the SSVEP
 # should try to automate the reading of some of this stuff from the file header
-test_ssvep = EegData(classifier, eeg_source, marker_source, paradigm, data_tank)
+test_ssvep = BciController(classifier, eeg_source, marker_source, paradigm, data_tank)
 
 test_ssvep.setup(
     online=False,
