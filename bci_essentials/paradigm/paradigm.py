@@ -269,3 +269,53 @@ class Paradigm(ABC):
             logger.error(f"Error packaging resting state data: {e}")
 
             return None
+        
+    @abstractmethod
+    def get_eeg_start_and_end_times(self, markers, timestamps):
+        """
+        Get the start and end times of the EEG data based on the markers.
+
+        Parameters
+        ----------
+        markers : list of str
+            List of markers.
+        timestamps : list of float
+            List of timestamps.
+
+        Returns
+        -------
+        float
+            Start time.
+        float
+            End time.
+        """
+
+        pass
+
+    @abstractmethod
+    def process_markers(self, markers, marker_timestamps, eeg, eeg_timestamps, fsample):
+        """
+        This takes in the markers and EEG data and processes them into epochs accordingt to the MI paradigm.
+
+        Parameters
+        ----------
+        markers : list of str
+            List of markers.
+        marker_timestamps : list of float
+            List of timestamps.
+        eeg : np.array
+            EEG data. Shape is (n_channels, n_samples).
+        eeg_timestamps : np.array
+            EEG timestamps. Shape is (n_samples).
+        fsample : float
+            Sampling frequency.
+
+        Returns
+        -------
+        np.array
+            Processed EEG data. Shape is (n_epochs, n_channels, n_samples).
+        np.array
+            Labels. Shape is (n_epochs).
+        """
+
+        pass
