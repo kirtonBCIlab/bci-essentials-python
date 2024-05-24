@@ -2,7 +2,7 @@ import unittest
 
 from bci_essentials.io.sources import MarkerSource, EegSource
 from bci_essentials.io.messenger import Messenger
-from bci_essentials.paradigm.base_paradigm import BaseParadigm
+from bci_essentials.paradigm.paradigm import Paradigm
 from bci_essentials.data_tank.data_tank import DataTank
 from bci_essentials.eeg_data import EegData
 from bci_essentials.classification.generic_classifier import Prediction
@@ -19,7 +19,7 @@ class TestEegData(unittest.TestCase):
     def test_trg_channel_types_changed_to_stim(self):
         self.eeg.channel_types = ["eeg", "trg", "eeg", "stim"]
         data = EegData(
-            self.classifier, self.eeg, self.markers, BaseParadigm(), DataTank()
+            self.classifier, self.eeg, self.markers, Paradigm(), DataTank()
         )
         self.assertEqual(data.ch_type, ["eeg", "stim", "eeg", "stim"])
 
@@ -29,7 +29,7 @@ class TestEegData(unittest.TestCase):
             self.classifier,
             self.eeg,
             self.markers,
-            BaseParadigm(),
+            Paradigm(),
             DataTank(),
             self.messenger,
         )
@@ -42,7 +42,7 @@ class TestEegData(unittest.TestCase):
             self.classifier,
             self.eeg,
             self.markers,
-            BaseParadigm(),
+            Paradigm(),
             DataTank(),
             self.messenger,
         )
@@ -59,7 +59,7 @@ class TestEegData(unittest.TestCase):
             self.classifier,
             self.eeg,
             self.markers,
-            BaseParadigm(),
+            Paradigm(),
             DataTank(),
             self.messenger,
         )
@@ -72,7 +72,7 @@ class TestEegData(unittest.TestCase):
             self.classifier,
             self.eeg,
             self.markers,
-            BaseParadigm(),
+            Paradigm(),
             DataTank(),
             self.messenger,
         )
@@ -88,7 +88,7 @@ class TestEegData(unittest.TestCase):
             self.classifier,
             self.eeg,
             self.markers,
-            BaseParadigm(),
+            Paradigm(),
             DataTank(),
             self.messenger,
         )
@@ -107,7 +107,7 @@ class TestEegData(unittest.TestCase):
             self.classifier,
             self.eeg,
             self.markers,
-            BaseParadigm(),
+            Paradigm(),
             DataTank(),
             self.messenger,
         )

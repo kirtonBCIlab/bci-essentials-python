@@ -21,7 +21,7 @@ length.
 import time
 import numpy as np
 
-from .paradigm.base_paradigm import BaseParadigm
+from .paradigm.paradigm import Paradigm
 from .data_tank.data_tank import DataTank
 from .classification.generic_classifier import GenericClassifier
 from .io.sources import EegSource, MarkerSource
@@ -45,7 +45,7 @@ class EegData:
         classifier: GenericClassifier,
         eeg_source: EegSource,
         marker_source: MarkerSource | None = None,
-        paradigm: BaseParadigm | None = None,
+        paradigm: Paradigm | None = None,
         data_tank: DataTank | None = None,
         messenger: Messenger | None = None,
     ):
@@ -60,7 +60,7 @@ class EegData:
         marker_source : EegSource
             Source of Marker/Control data and timestamps, this could be from a file or Unity via
             LSL, etc.  The default value is None.
-        paradigm : BaseParadigm
+        paradigm : Paradigm
             The paradigm used by EegData. This defines the processing and reshaping steps for the EEG data.
         data_tank : DataTank
             DataTank object to handle the storage of EEG trials and labels.  The default value is None.
@@ -73,7 +73,7 @@ class EegData:
         assert isinstance(classifier, GenericClassifier)
         assert isinstance(eeg_source, EegSource)
         assert isinstance(marker_source, MarkerSource | None)
-        assert isinstance(paradigm, BaseParadigm | None)
+        assert isinstance(paradigm, Paradigm | None)
         assert isinstance(data_tank, DataTank | None)
         assert isinstance(messenger, Messenger | None)
 
@@ -408,7 +408,7 @@ class EegData:
             elif current_step_marker == "Done with all RS collection":
                 self.eeg_data, self.eeg_timestamps = self.__data_tank.get_raw_eeg()
 
-                resting_state_data = self.__paradigm._package_resting_state_data(
+                resting_state_data = self.__paradigm.package_resting_state_data(
                     self.marker_data,
                     self.marker_timestamps,
                     self.eeg_data,

@@ -1,9 +1,9 @@
 import numpy as np
 
-from .base_paradigm import BaseParadigm
+from .paradigm import Paradigm
 
 
-class P300Paradigm(BaseParadigm):
+class P300Paradigm(Paradigm):
     """
     P300 paradigm.
     """

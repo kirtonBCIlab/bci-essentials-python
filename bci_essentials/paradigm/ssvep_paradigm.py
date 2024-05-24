@@ -1,9 +1,9 @@
 import numpy as np
 
-from .base_paradigm import BaseParadigm
+from .paradigm import Paradigm
 
 
-class SsvepParadigm(BaseParadigm):
+class SsvepParadigm(Paradigm):
     """
     SSVEP paradigm.
 

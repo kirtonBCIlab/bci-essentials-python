@@ -1,4 +1,5 @@
 import numpy as np
+from abc import ABC, abstractmethod
 
 from ..utils.logger import Logger
 from ..signal_processing import bandpass
@@ -8,7 +9,7 @@ from ..signal_processing import bandpass
 logger = Logger(name=__name__)
 
 
-class BaseParadigm:
+class Paradigm(ABC):
     def __init__(self, filters=[5, 30], channel_subset=None):
         """
         Base class for all paradigms.
@@ -57,7 +58,7 @@ class BaseParadigm:
 
         return new_eeg
 
-    def _package_resting_state_data(
+    def package_resting_state_data(
         self, marker_data, marker_timestamps, eeg_data, eeg_timestamps, fsample
     ):
         """Package resting state data.
