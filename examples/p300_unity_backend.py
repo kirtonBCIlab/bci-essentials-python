@@ -1,6 +1,6 @@
 from bci_essentials.io.lsl_sources import LslEegSource, LslMarkerSource
 from bci_essentials.io.lsl_messenger import LslMessenger
-from bci_essentials.eeg_data import BciController
+from bci_essentials.bci_controller import BciController
 from bci_essentials.paradigm.p300_paradigm import P300Paradigm
 from bci_essentials.data_tank.data_tank import DataTank
 from bci_essentials.classification.erp_rg_classifier import ErpRgClassifier

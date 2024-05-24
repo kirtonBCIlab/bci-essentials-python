@@ -1,6 +1,6 @@
 from bci_essentials.io.lsl_sources import LslEegSource, LslMarkerSource
 from bci_essentials.io.lsl_messenger import LslMessenger
-from bci_essentials.eeg_data import BciController
+from bci_essentials.bci_controller import BciController
 from bci_essentials.data_tank.data_tank import DataTank
 from bci_essentials.paradigm.ssvep_paradigm import SsvepParadigm
 from bci_essentials.classification.ssvep_basic_tf_classifier import (
