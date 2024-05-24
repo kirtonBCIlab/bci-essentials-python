@@ -241,7 +241,9 @@ class Paradigm(ABC):
 
                     for c in range(self.n_channels):
                         new_eeg[0, c, :] = np.interp(
-                            rest_timestamps, corrected_eeg_timestamps, bci_controller[c, :]
+                            rest_timestamps,
+                            corrected_eeg_timestamps,
+                            bci_controller[c, :],
                         )
 
                     if i == 0:

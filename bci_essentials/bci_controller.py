@@ -406,7 +406,10 @@ class BciController:
 
             # TODO
             elif current_step_marker == "Done with all RS collection":
-                self.bci_controller, self.eeg_timestamps = self.__data_tank.get_raw_eeg()
+                (
+                    self.bci_controller,
+                    self.eeg_timestamps,
+                ) = self.__data_tank.get_raw_eeg()
 
                 resting_state_data = self.__paradigm.package_resting_state_data(
                     self.marker_data,
