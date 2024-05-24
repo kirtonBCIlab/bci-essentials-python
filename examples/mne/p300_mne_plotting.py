@@ -6,10 +6,12 @@ Test P300 offline using data from an existing stream
 import os
 
 from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
-from bci_essentials.erp_data import ErpData
+from bci_essentials.bci_controller import BciController
+from bci_essentials.paradigm.p300_paradigm import P300Paradigm
+from bci_essentials.data_tank.data_tank import DataTank
 from bci_essentials.classification.erp_rg_classifier import ErpRgClassifier
 from bci_essentials.utils.logger import Logger  # Logger wrapper
-from saving import mne_export_erp_as_epochs
+# from saving import mne_export_erp_as_epochs
 
 # Instantiate a logger for the module at the default level of logging.INFO
 logger = Logger(name="p300_mne_plotting")
@@ -21,6 +23,8 @@ filename = os.path.join("examples\\data", "p300_example.xdf")
 classifier = ErpRgClassifier()  # you can add a subset here
 eeg_source = XdfEegSource(filename)
 marker_source = XdfMarkerSource(filename)
+paradigm = P300Paradigm()
+data_tank = DataTank()
 
 # Set classifier settings
 classifier.set_p300_clf_settings(
@@ -32,25 +36,15 @@ classifier.set_p300_clf_settings(
 )
 
 # Initialize the ERP data object
-test_erp = ErpData(classifier, eeg_source, marker_source)
+test_erp = BciController(classifier, eeg_source, marker_source, paradigm, data_tank)
 
 # Run main loop, this will do all of the classification for online or offline
-test_erp.setup(
-    training=True,
-    max_num_options=10,
-    max_decisions=50,
-    pp_low=0.1,
-    pp_high=10,
-    pp_order=5,
-    plot_erp=False,
-    trial_start=0.0,
-    trial_end=0.8,
-)
+test_erp.setup()
 test_erp.run()
 
 logger.debug("Testing mne_export_erp_as_epochs()")
-mne_epochs = mne_export_erp_as_epochs(test_erp)
+# mne_epochs = mne_export_erp_as_epochs(test_erp)
 
-mne_epochs.plot(picks="eeg")
+# mne_epochs.plot(picks="eeg")
 
 logger.debug("Ran in DEBUG mode")

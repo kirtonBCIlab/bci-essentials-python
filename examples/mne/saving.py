@@ -1,232 +1,208 @@
-import mne
-from bci_essentials.utils.logger import Logger
-from bci_essentials.bci_controller import BciController
+# import mne
+# from bci_essentials.utils.logger import Logger
+# from bci_essentials.bci_controller import BciController
 
 # Instantiate a logger for the module at the default level of logging.INFO
 # Logs to bci_essentials.__module__) where __module__ is the name of the module
-logger = Logger(name=__name__)
+# logger = Logger(name=__name__)
 
+#TODO: Put this saving into the data_tank class
 
-def mne_export_as_raw(bci_controller_object):
-    """MNE export EEG as RawArray.
 
-    Exports the EEG data as a MNE RawArray object.
+# def mne_export_as_raw(bci_controller_object):
+#     """MNE export EEG as RawArray.
 
-    **Requires MNE**
+#     Exports the EEG data as a MNE RawArray object.
 
-    Returns
-    -------
-    raw_array : mne.io.RawArray
-        MNE RawArray object.
+#     **Requires MNE**
 
-    """
+#     Returns
+#     -------
+#     raw_array : mne.io.RawArray
+#         MNE RawArray object.
 
-    logger.error("mne_export_as_raw has not been implemented yet")
+#     """
 
-    assert isinstance(bci_controller_object, BciController)
+#     logger.error("mne_export_as_raw has not been implemented yet")
 
-    # create info from metadata
-    info = mne.create_info(
-        ch_names=bci_controller_object.channel_labels,
-        sfreq=bci_controller_object.fsample,
-        ch_types="eeg",
-    )
+#     assert isinstance(bci_controller_object, BciController)
 
-    # create the MNE epochs, pass in the raw
+#     # create info from metadata
+#     info = mne.create_info(
+#         ch_names=bci_controller_object.channel_labels,
+#         sfreq=bci_controller_object.fsample,
+#         ch_types="eeg",
+#     )
 
-    # make sure that units match
-    raw_data = bci_controller_object.bci_controller.transpose()
-    raw_array = mne.io.RawArray(data=raw_data, info=info)
+#     # create the MNE epochs, pass in the raw
 
-    # change the last column of epochs array events to be the class labels
-    # raw_array.events[:, -1] = bci_controller_object.labels
+#     # make sure that units match
+#     raw_data = bci_controller_object.bci_controller.transpose()
+#     raw_array = mne.io.RawArray(data=raw_data, info=info)
 
-    return raw_array
+#     # change the last column of epochs array events to be the class labels
+#     # raw_array.events[:, -1] = bci_controller_object.labels
 
+#     return raw_array
 
-def mne_export_as_epochs(bci_controller_object):
-    """MNE export EEG as EpochsArray.
 
-    Exports the EEG data as a MNE EpochsArray object.
+# def mne_export_as_epochs(bci_controller_object):
+#     """MNE export EEG as EpochsArray.
 
-    **Requires MNE**
+#     Exports the EEG data as a MNE EpochsArray object.
 
-    Returns
-    -------
-    epochs_array : mne.EpochsArray
-        MNE EpochsArray object.
+#     **Requires MNE**
 
-    """
+#     Returns
+#     -------
+#     epochs_array : mne.EpochsArray
+#         MNE EpochsArray object.
 
-    logger.error("mne_export_as_raw has not been implemented yet")
+#     """
 
-    assert isinstance(bci_controller_object, BciController)
+#     logger.error("mne_export_as_raw has not been implemented yet")
 
-    # create info from metadata
-    info = mne.create_info(
-        ch_names=bci_controller_object.channel_labels,
-        sfreq=bci_controller_object.fsample,
-        ch_types=bci_controller_object.ch_type,
-    )
+#     assert isinstance(bci_controller_object, BciController)
 
-    # create the MNE epochs, pass in the raw
+#     # create info from metadata
+#     info = mne.create_info(
+#         ch_names=bci_controller_object.channel_labels,
+#         sfreq=bci_controller_object.fsample,
+#         ch_types=bci_controller_object.ch_type,
+#     )
 
-    # make sure that units match
-    epoch_data = bci_controller_object.raw_eeg_trials.copy()
-    for i, u in enumerate(bci_controller_object.ch_units):
-        if u == "microvolts":
-            # convert to volts
-            epoch_data[:, i, :] = epoch_data[:, i, :] / 1000000
+#     # create the MNE epochs, pass in the raw
 
-    epochs_array = mne.EpochsArray(data=epoch_data, info=info)
+#     # make sure that units match
+#     epoch_data = bci_controller_object.raw_eeg_trials.copy()
+#     for i, u in enumerate(bci_controller_object.ch_units):
+#         if u == "microvolts":
+#             # convert to volts
+#             epoch_data[:, i, :] = epoch_data[:, i, :] / 1000000
 
-    # change the last column of epochs array events to be the class labels
-    epochs_array.events[:, -1] = bci_controller_object.labels
+#     epochs_array = mne.EpochsArray(data=epoch_data, info=info)
 
-    return epochs_array
+#     # change the last column of epochs array events to be the class labels
+#     epochs_array.events[:, -1] = bci_controller_object.labels
 
+#     return epochs_array
 
-def mne_export_resting_state_as_raw(bci_controller_object):
-    """MNE export resting state EEG as RawArray.
 
-    Exports the resting state EEG data as a MNE RawArray object.
+# def mne_export_resting_state_as_raw(bci_controller_object):
+#     """MNE export resting state EEG as RawArray.
 
-    **Requires MNE**
+#     Exports the resting state EEG data as a MNE RawArray object.
 
-    Returns
-    -------
-    raw_array : mne.io.RawArray
-        MNE RawArray object.
+#     **Requires MNE**
 
-    """
+#     Returns
+#     -------
+#     raw_array : mne.io.RawArray
+#         MNE RawArray object.
 
-    logger.error("mne_export_as_raw has not been implemented yet")
+#     """
 
-    assert isinstance(bci_controller_object, BciController)
+#     logger.error("mne_export_as_raw has not been implemented yet")
 
-    # Check for mne
-    try:
-        import mne
-    except Exception:
-        logger.critical(
-            "Could not import mne, you may have to install (pip install mne)"
-        )
+#     assert isinstance(bci_controller_object, BciController)
 
-    # create info from metadata
-    info = mne.create_info(
-        ch_names=bci_controller_object.channel_labels,
-        sfreq=bci_controller_object.fsample,
-        ch_types="eeg",
-    )
+#     # Check for mne
+#     try:
+#         import mne
+#     except Exception:
+#         logger.critical(
+#             "Could not import mne, you may have to install (pip install mne)"
+#         )
 
-    try:
-        # create the MNE epochs, pass in the raw
+#     # create info from metadata
+#     info = mne.create_info(
+#         ch_names=bci_controller_object.channel_labels,
+#         sfreq=bci_controller_object.fsample,
+#         ch_types="eeg",
+#     )
 
-        # make sure that units match
-        raw_data = bci_controller_object.rest_trials[0, :, :]
-        raw_array = mne.io.RawArray(data=raw_data, info=info)
+#     try:
+#         # create the MNE epochs, pass in the raw
 
-        # change the last column of epochs array events to be the class labels
-        # raw_array.events[:, -1] = bci_controller_object.labels
+#         # make sure that units match
+#         raw_data = bci_controller_object.rest_trials[0, :, :]
+#         raw_array = mne.io.RawArray(data=raw_data, info=info)
 
-    except Exception:
-        # could not find resting state data, sending the whole collection instead
-        logger.warning(
-            "NO PROPER RESTING STATE DATA FOUND, SENDING ALL OF THE EEG DATA INSTEAD"
-        )
-        raw_data = bci_controller_object.bci_controller.transpose()
-        raw_array = mne.io.RawArray(data=raw_data, info=info)
+#         # change the last column of epochs array events to be the class labels
+#         # raw_array.events[:, -1] = bci_controller_object.labels
 
-    return raw_array
+#     except Exception:
+#         # could not find resting state data, sending the whole collection instead
+#         logger.warning(
+#             "NO PROPER RESTING STATE DATA FOUND, SENDING ALL OF THE EEG DATA INSTEAD"
+#         )
+#         raw_data = bci_controller_object.bci_controller.transpose()
+#         raw_array = mne.io.RawArray(data=raw_data, info=info)
 
+#     return raw_array
 
-def mne_export_erp_as_epochs(erp_data_object):
-    """MNE export EEG as EpochsArray.
 
-    Exports the EEG data as a MNE EpochsArray object.
+# def mne_export_erp_as_epochs(erp_data_object):
+#     """MNE export EEG as EpochsArray.
 
-    **Requires MNE**
+#     Exports the EEG data as a MNE EpochsArray object.
 
-    Returns
-    -------
-    epochs_array : mne.EpochsArray
-        MNE EpochsArray object.
+#     **Requires MNE**
 
-    """
+#     Returns
+#     -------
+#     epochs_array : mne.EpochsArray
+#         MNE EpochsArray object.
 
-    assert isinstance(erp_data_object, ErpData)
+#     """
 
-    # create info from metadata
-    info = mne.create_info(
-        ch_names=erp_data_object.channel_labels,
-        sfreq=erp_data_object.fsample,
-        ch_types=erp_data_object.ch_type,
-    )
+#     assert isinstance(erp_data_object, ErpData)
 
-    # create the MNE epochs, pass in the raw
+#     # create info from metadata
+#     info = mne.create_info(
+#         ch_names=erp_data_object.channel_labels,
+#         sfreq=erp_data_object.fsample,
+#         ch_types=erp_data_object.ch_type,
+#     )
 
-    # make sure that units match
-    # This only works because ErpData.erp_trials_processed is not private, like it probable should be
-    epoch_data = erp_data_object.erp_trials_processed[
-        : len(erp_data_object.target_index), :, :
-    ].copy()
-    for i, u in enumerate(erp_data_object.ch_units):
-        if u == "microvolts":
-            # convert to volts
-            epoch_data[:, i, :] = epoch_data[:, i, :] / 1000000
+#     # create the MNE epochs, pass in the raw
 
-    epochs_array = mne.EpochsArray(data=epoch_data, info=info)
+#     # make sure that units match
+#     # This only works because ErpData.erp_trials_processed is not private, like it probable should be
+#     epoch_data = erp_data_object.erp_trials_processed[
+#         : len(erp_data_object.target_index), :, :
+#     ].copy()
+#     for i, u in enumerate(erp_data_object.ch_units):
+#         if u == "microvolts":
+#             # convert to volts
+#             epoch_data[:, i, :] = epoch_data[:, i, :] / 1000000
 
-    # change the last column of epochs array events to be the class labels
-    epochs_array.events[:, -1] = erp_data_object.target_index.astype(int)
+#     epochs_array = mne.EpochsArray(data=epoch_data, info=info)
 
-    return epochs_array
+#     # change the last column of epochs array events to be the class labels
+#     epochs_array.events[:, -1] = erp_data_object.target_index.astype(int)
 
+#     return epochs_array
 
-def mne_export_erp_as_evoked(erp_data_object):
-    """MNE Export evoked EEG data as EpochsArray.
 
-    Exports the evoked EEG data as a MNE EpochsArray object.
+# def mne_export_erp_as_evoked(erp_data_object):
+#     """MNE Export evoked EEG data as EpochsArray.
 
-    **Requires MNE**
+#     Exports the evoked EEG data as a MNE EpochsArray object.
 
-    **HAS NOT BEEN IMPLEMENTED YET.**
+#     **Requires MNE**
 
-    Returns
-    -------
-    evoked_array : mne.EpochsArray
-        MNE EpochsArray object.
+#     **HAS NOT BEEN IMPLEMENTED YET.**
 
-        **NOTE: NOT ACTUALLY THE CASE AT THE MOMENT**.
-        This is what the code will return once it has been implemented.
+#     Returns
+#     -------
+#     evoked_array : mne.EpochsArray
+#         MNE EpochsArray object.
 
-    """
-    logger.error("mne_export_as_evoked has not yet been implemented")
+#         **NOTE: NOT ACTUALLY THE CASE AT THE MOMENT**.
+#         This is what the code will return once it has been implemented.
 
-    assert isinstance(erp_data_object, ErpData)
-    # # Check for mne
-    # try:
-    #     import mne
-    # except Exception:
-    #     logger.critical(
-    #         "Could not import mne, you may have to install (pip install mne)"
-    #     )
+#     """
+#     logger.error("mne_export_as_evoked has not yet been implemented")
 
-    # # create info from metadata
-    # info = mne.create_info(ch_names=erp_data_object.channel_labels, sfreq=erp_data_object.fsample, ch_types=erp_data_object.ch_type)
-
-    # # create the MNE epochs, pass in the raw
-
-    # # make sure that units match
-    # evoked_data = erp_data_object.raw_eeg_trials.copy()
-    # for i, u in enumerate(erp_data_object.ch_units):
-    #     if u == "microvolts":
-    #         # convert to volts
-    #         evoked_data[:,i,:] = evoked_data[:,i,:] / 1000000
-
-    # evoked_array = mne.EpochsArray(data=evoked_data, info=info, tmin=erp_data_object.trial_start)
-
-    # # change the last column of epochs array events to be the class labels
-    # evoked_array.events[:, -1] = erp_data_object.labels
-
-    # return evoked_array
+#     assert isinstance(erp_data_object, ErpData)
