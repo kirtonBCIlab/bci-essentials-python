@@ -164,7 +164,7 @@ class BciController:
             self.marker_timestamps = np.append(self.marker_timestamps, timestamps[i])
 
             # Add all markers to the data tank
-            self.__data_tank.add_raw_markers(markers, timestamps)
+            self.__data_tank.add_raw_markers(np.array([marker]), np.array([timestamps[i]]))
 
     def __pull_bci_controller_from_source(self):
         """Pulls eeg samples from source, sanity checks and appends to buffer"""
