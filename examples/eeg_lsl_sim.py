@@ -59,7 +59,7 @@ eeg_source = XdfEegSource(filename)
 
 # Get the data from that stream
 marker_data, marker_timestamps = marker_source.get_markers()
-eeg_data, eeg_timestamps = eeg_source.get_samples()
+bci_controller, eeg_timestamps = eeg_source.get_samples()
 
 # find the time range of the marker stream and delete EEG data out of this range
 time_start = min(marker_timestamps)
@@ -67,7 +67,7 @@ time_stop = max(marker_timestamps)
 
 eeg_keep_ind = [(eeg_timestamps > time_start) & (eeg_timestamps < time_stop)]
 eeg_timestamps = eeg_timestamps[tuple(eeg_keep_ind)]
-eeg_data = eeg_data[tuple(eeg_keep_ind)]
+bci_controller = bci_controller[tuple(eeg_keep_ind)]
 
 # estimate sampling rates
 fs_marker = round(len(marker_timestamps) / (time_stop - time_start))
@@ -108,7 +108,7 @@ i = 0
 while i < nloops:
     for j in range(0, len(eeg_timestamps) - 1):
         # publish to stream
-        eeg_sample = eeg_data[j][:]
+        eeg_sample = bci_controller[j][:]
         outlet.push_sample(eeg_sample)
         if j != len(eeg_timestamps):
             time.sleep(eeg_timestamps[j + 1] - eeg_timestamps[j])

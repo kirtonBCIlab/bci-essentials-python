@@ -262,7 +262,7 @@ class SwitchDeepClassifier(GenericClassifier):
     def predict(self, X):
         """Predict function which preprocesses data and makes prediction(s).
 
-        Function is passed an array of size `(X, 8, 512)` from `eeg_data.py`
+        Function is passed an array of size `(X, 8, 512)` from `bci_controller.py`
         where it will predict upon the likelihood of state 1 vs state 2.
         Only works for three states currently.
 

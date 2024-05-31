@@ -8,7 +8,7 @@ logger = Logger(name=__name__)
 
 
 class MarkerSource(ABC):
-    """MarkerSource objects send time synchronized markers/commands to EEG_data."""
+    """MarkerSource objects send time synchronized markers/commands to bci_controller."""
 
     @property
     @abstractmethod
@@ -48,10 +48,10 @@ class MarkerSource(ABC):
 
 
 class EegSource(ABC):
-    """EegSource objects produce samples of EEG for use in EEG_data.
+    """EegSource objects produce samples of EEG for use in bci_controller.
 
     It can be used to represent an BCI headset providing EEG data, or it could be a source
-    of Markers to control EEG_data behaviour, etc.
+    of Markers to control bci_controller behaviour, etc.
     """
 
     @property

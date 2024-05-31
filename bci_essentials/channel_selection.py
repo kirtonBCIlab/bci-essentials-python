@@ -918,8 +918,8 @@ def __sbfs(
         if c in initial_channels:
             sbfs_subset.append(i)
 
-    performance_at_nchannels = np.zeros(len(channel_labels))
-    best_subset_at_nchannels = [0] * len(channel_labels)
+    performance_at_n_channels = np.zeros(len(channel_labels))
+    best_subset_at_n_channels = [0] * len(channel_labels)
 
     previous_performance = 0
 
@@ -950,8 +950,8 @@ def __sbfs(
         best_precision = initial_precision
         best_recall = initial_recall
 
-        performance_at_nchannels[len(initial_channels) - 1] = initial_performance
-        best_subset_at_nchannels[len(initial_channels) - 1] = initial_channels
+        performance_at_n_channels[len(initial_channels) - 1] = initial_performance
+        best_subset_at_n_channels[len(initial_channels) - 1] = initial_channels
 
     # If not possible then set the initial performance to 0
     except ValueError:
@@ -1044,9 +1044,9 @@ def __sbfs(
         current_performance = best_round_performance
 
         # If this is the best perfomance at n_channels
-        if performance_at_nchannels[len(sbfs_subset) - 1] < current_performance:
-            performance_at_nchannels[len(sbfs_subset) - 1] = current_performance
-            best_subset_at_nchannels[len(sbfs_subset) - 1] = sbfs_subset
+        if performance_at_n_channels[len(sbfs_subset) - 1] < current_performance:
+            performance_at_n_channels[len(sbfs_subset) - 1] = current_performance
+            best_subset_at_n_channels[len(sbfs_subset) - 1] = sbfs_subset
 
         p_delta = current_performance - previous_performance
         previous_performance = current_performance
@@ -1163,7 +1163,7 @@ def __sbfs(
 
             # if performance is better the best performance at n_channels
             if (
-                performance_at_nchannels[length_of_resultant_set - 1]
+                performance_at_n_channels[length_of_resultant_set - 1]
                 < best_round_performance
             ):
                 sbfs_subset = sets_to_try[best_set_index]
@@ -1218,10 +1218,10 @@ def __sbfs(
                     ]
                     step += 1
 
-                performance_at_nchannels[length_of_resultant_set - 1] = (
+                performance_at_n_channels[length_of_resultant_set - 1] = (
                     current_performance
                 )
-                best_subset_at_nchannels[length_of_resultant_set - 1] = sbfs_subset
+                best_subset_at_n_channels[length_of_resultant_set - 1] = sbfs_subset
 
             # if no performance gains, then stop conditional inclusion
             else:
@@ -1369,9 +1369,9 @@ def __sffs(
         if c in initial_channels:
             sffs_subset.append(i)
 
-    performance_at_nchannels = np.zeros(len(channel_labels))
-    performance_at_nchannels[: min_channels - 1] = np.inf
-    best_subset_at_nchannels = [0] * len(channel_labels)
+    performance_at_n_channels = np.zeros(len(channel_labels))
+    performance_at_n_channels[: min_channels - 1] = np.inf
+    best_subset_at_n_channels = [0] * len(channel_labels)
 
     previous_performance = 0
 
@@ -1402,8 +1402,8 @@ def __sffs(
         best_precision = initial_precision
         best_recall = initial_recall
 
-        performance_at_nchannels[len(initial_channels) - 1] = initial_performance
-        best_subset_at_nchannels[len(initial_channels) - 1] = initial_channels
+        performance_at_n_channels[len(initial_channels) - 1] = initial_performance
+        best_subset_at_n_channels[len(initial_channels) - 1] = initial_channels
 
     # If not possible then set the initial performance to 0
     except ValueError:
@@ -1491,9 +1491,9 @@ def __sffs(
         logger.debug("Accuracies: %s", accuracies)
 
         # If this is the best perfomance at n_channels
-        if performance_at_nchannels[len(sffs_subset) - 1] < current_performance:
-            performance_at_nchannels[len(sffs_subset) - 1] = current_performance
-            best_subset_at_nchannels[len(sffs_subset) - 1] = sffs_subset
+        if performance_at_n_channels[len(sffs_subset) - 1] < current_performance:
+            performance_at_n_channels[len(sffs_subset) - 1] = current_performance
+            best_subset_at_n_channels[len(sffs_subset) - 1] = sffs_subset
 
         p_delta = current_performance - previous_performance
         previous_performance = current_performance
@@ -1612,7 +1612,7 @@ def __sffs(
 
             # if performance is better at the resultant channel length
             if (
-                performance_at_nchannels[length_of_resultant_set - 1]
+                performance_at_n_channels[length_of_resultant_set - 1]
                 < best_round_performance
             ):
                 sffs_subset = sets_to_try[best_set_index]
@@ -1666,10 +1666,10 @@ def __sffs(
                     ]
                     step += 1
 
-                performance_at_nchannels[length_of_resultant_set - 1] = (
+                performance_at_n_channels[length_of_resultant_set - 1] = (
                     current_performance
                 )
-                best_subset_at_nchannels[length_of_resultant_set - 1] = sffs_subset
+                best_subset_at_n_channels[length_of_resultant_set - 1] = sffs_subset
 
             # if no performance gains, then stop conditional exclusion
             else:

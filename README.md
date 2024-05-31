@@ -44,9 +44,9 @@ python examples/mi_unity_backend.py
 ## Directory
 ### bci_essentials
 The main packge containing modules for BCI processing.
-- eeg_data.py         -   module for reading online/offline data, windowing, processing, and classifying EEG signals
-- classification.py   -   module containing relevant classifiers for eeg_data, classifiers can be extended to meet individual needs
-- signal_processing.py-   module containing functions for the processing of EEG_data
+- bci_controller.py         -   module for reading online/offline data, windowing, processing, and classifying EEG signals
+- classification.py   -   module containing relevant classifiers for bci_controller, classifiers can be extended to meet individual needs
+- signal_processing.py-   module containing functions for the processing of bci_controller
 - visuals.py          -   module for visualizing EEG data
 
 ### examples
