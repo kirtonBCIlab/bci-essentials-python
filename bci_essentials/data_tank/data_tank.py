@@ -89,7 +89,7 @@ class DataTank:
             self.__raw_eeg = new_raw_eeg
             self.__raw_eeg_timestamps = new_eeg_timestamps
         else:
-            self.__raw_eeg = np.concatenate((self.__raw_eeg, new_raw_eeg))
+            self.__raw_eeg = np.concatenate((self.__raw_eeg, new_raw_eeg), axis=1)
             self.__raw_eeg_timestamps = np.concatenate(
                 (self.__raw_eeg_timestamps, new_eeg_timestamps)
             )
