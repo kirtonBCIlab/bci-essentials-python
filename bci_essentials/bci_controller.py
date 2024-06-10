@@ -234,6 +234,10 @@ class BciController:
                             "Oh wait this is offline, there will never be more data!"
                         )
                         break
+
+                    else:
+                        # Pull new EEG data
+                        self.__pull_eeg_data_from_source()
                 else:
                     logger.error(
                         "The timestamps are not alligned, the difference is %s s",
