@@ -124,7 +124,7 @@ class BciController:
         This method will fill up the marker_data, bci_controller and corresponding timestamp arrays.
         """
         self.__pull_marker_data_from_source()
-        self.__pull_bci_controller_from_source()
+        self.__pull_eeg_data_from_source()
 
         # If the outlet exists send a ping
         if self._messenger is not None:
@@ -168,7 +168,7 @@ class BciController:
                 np.array([marker]), np.array([timestamps[i]])
             )
 
-    def __pull_bci_controller_from_source(self):
+    def __pull_eeg_data_from_source(self):
         """Pulls eeg samples from source, sanity checks and appends to buffer"""
 
         # read in the data
@@ -232,6 +232,10 @@ class BciController:
                             "Oh wait this is offline, there will never be more data!"
                         )
                         break
+
+                    else:
+                        # Pull new EEG data
+                        self.__pull_eeg_data_from_source()
                 else:
                     logger.error(
                         "The timestamps are not alligned, the difference is %s s",
