@@ -171,8 +171,6 @@ class BciController:
     def __pull_eeg_data_from_source(self):
         """Pulls eeg samples from source, sanity checks and appends to buffer"""
 
-        print("Pulling EEG data from source")
-
         # read in the data
         eeg, timestamps = self.__eeg_source.get_samples()
         eeg = np.array(eeg)
