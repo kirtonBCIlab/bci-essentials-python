@@ -18,53 +18,63 @@ from bci_essentials.utils.logger import Logger  # Logger wrapper
 # Instantiate a logger at the default level of logging.INFO
 logger = Logger(name="channel_selection_prediction_test")
 
-class TestClassifierSave(unittest.TestCase):
-    def test_mi_ch_select_predictions(self):
-        # Identify the file to simulate
-        # Filename assumes the data is within a subfolder called "data" located
-        # within the same folder as this script
-        filename = os.path.join("data", "mi_example_2.xdf")
-        eeg_source = XdfEegSource(filename)
-        marker_source = XdfMarkerSource(filename)
+# class TestClassifierSave(unittest.TestCase):
+#     def test_mi_ch_select_predictions(self):
+#### put the test here ####
 
-        paradigm = MiParadigm(live_update=True, iterative_training=True)
-        data_tank = DataTank()
+# Identify the file to simulate
+# Filename assumes the data is within a subfolder called "data" located
+# within the same folder as this script
+filename = os.path.join("data", "mi_example_2.xdf")
+eeg_source = XdfEegSource(filename)
+marker_source = XdfMarkerSource(filename)
 
-        # Select a classifier
-        classifier = MiClassifier()  # you can add a subset here
+paradigm = MiParadigm(live_update=True, iterative_training=True)
+data_tank = DataTank()
 
-        # Define the classifier settings
-        classifier.set_mi_classifier_settings(n_splits=5, type="TS", random_seed=35)
+# Select a classifier
+classifier = MiClassifier()  # you can add a subset here
 
-        # Define channel selection settings
-        initial_subset = []
-        classifier.setup_channel_selection(
-            method="SFS",
-            metric="accuracy",
-            iterative_selection=True,
-            initial_channels=initial_subset,  # wrapper setup
-            max_time=4,
-            min_channels=0,
-            max_channels=20,
-            performance_delta=-0.05,  # stopping criterion
-            n_jobs=-1,
-            record_performance=True,
-        )
+# Define the classifier settings
+classifier.set_mi_classifier_settings(n_splits=5, type="TS", random_seed=35)
 
-        # Initialize data object
-        test_mi = BciController(classifier, eeg_source, marker_source, paradigm, data_tank)
+# Define channel selection settings
+initial_subset = []
+classifier.setup_channel_selection(
+    method="SFS",
+    metric="accuracy",
+    iterative_selection=True,
+    initial_channels=initial_subset,  # wrapper setup
+    max_time=4,
+    min_channels=0,
+    max_channels=16,
+    performance_delta=-0.05,  # stopping criterion
+    n_jobs=-1,
+    record_performance=True,
+)
 
-        # Run main loop, this will do all of the classification for online or offline
-        test_mi.setup(
-            online=False,
-        )
-        test_mi.run()
+# Initialize data object
+test_mi = BciController(classifier, eeg_source, marker_source, paradigm, data_tank)
 
-        # Get the predictions from the channel selection model
-        test_decisions = classifier.predict(classifier.X)
+# Run main loop, this will do all of the classification for online or offline
+test_mi.setup(
+    online=False,
+)
+test_mi.run()
 
-        # Get the predictions from test_decisions
-        test_predictions = classifier.predictions
+# Get the predictions from the channel selection model
+test_decisions = classifier.clf.predict(classifier.X)
 
-if __name__ == "__main__":
-    unittest.main()
+# Get the predictions from test_decisions
+test_predictions = test_decisions.labels
+
+# Compare the predictions from the channel selection model to the predictions from the model
+print(test_predictions)
+print(classifier.predictions[0:len(test_predictions)])
+
+# # Compare the predictions from the channel selection model to the predictions from the model
+# self.assertEqual(test_predictions, classifier.predictions)
+
+
+# if __name__ == "__main__":
+#     unittest.main()

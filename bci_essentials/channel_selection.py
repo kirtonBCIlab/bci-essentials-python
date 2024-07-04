@@ -422,6 +422,10 @@ def __sfs(
                 # Add to list of all subsets of X to try
                 X_to_try.append(new_subset_data)
 
+        # If sets to try is empty, break
+        if len(sets_to_try) == 0:
+            break
+
         # This handles the multiprocessing to check multiple channel combinations at once if n_jobs > 1
         outputs = Parallel(n_jobs=n_jobs)(
             delayed(kernel_func)(Xtest, y) for Xtest in X_to_try

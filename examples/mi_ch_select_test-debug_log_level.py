@@ -53,7 +53,7 @@ classifier.setup_channel_selection(
     initial_channels=initial_subset,  # wrapper setup
     max_time=4,
     min_channels=0,
-    max_channels=20,
+    max_channels=16,
     performance_delta=-0.05,  # stopping criterion
     n_jobs=-1,
     record_performance=True,
@@ -67,6 +67,8 @@ test_mi.setup(
     online=False,
 )
 test_mi.run()
+
+test_decisions = classifier.predict(classifier.X)
 
 logger.info("%s", classifier.results_df)
 
