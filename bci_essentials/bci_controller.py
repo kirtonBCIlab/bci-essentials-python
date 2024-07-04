@@ -359,6 +359,9 @@ class BciController:
             if self.online:
                 time.sleep(0.00001)
 
+            if self.online is False:
+                self.loops = max_loops - 1
+
             self.loops += 1
 
     def step(self):
