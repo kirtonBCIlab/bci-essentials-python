@@ -407,8 +407,8 @@ def __sfs(
     while stop_criterion is False:
         sets_to_try = []
         X_to_try = []
-        for channel in range(n_channels):
-            if channel not in sfs_subset:
+        for c in range(n_channels):
+            if c not in sfs_subset:
                 set_to_try = sfs_subset.copy()
                 set_to_try.append(c)
                 sets_to_try.append(set_to_try)
