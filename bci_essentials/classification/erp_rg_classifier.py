@@ -396,4 +396,18 @@ class ErpRgClassifier(GenericClassifier):
             Empty Predict object
 
         """
-        return Prediction()
+        proba_mat = self.clf.predict_proba(X)
+
+        proba = proba_mat[:, 1]
+        relative_proba = proba / np.amax(proba)
+
+        log_proba = np.log(relative_proba)
+        logger.info("log relative probabilities:\n%s", log_proba)
+
+        # the selection is the highest probability
+        prediction = int(np.where(proba == np.amax(proba))[0][0])
+
+        self.predictions.append(prediction)
+        self.pred_probas.append(proba_mat)
+
+        return Prediction(labels=prediction, probabilities=proba_mat)
