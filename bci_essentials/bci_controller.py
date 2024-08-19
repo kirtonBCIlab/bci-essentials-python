@@ -84,6 +84,10 @@ class BciController:
         self.__data_tank = data_tank
         self._messenger = messenger
 
+        # Initialize the event marker buffer
+        self.event_marker_buffer = []
+        self.event_timestamp_buffer = []
+
         self.headset_string = self.__eeg_source.name
         self.fsample = self.__eeg_source.fsample
         self.n_channels = self.__eeg_source.n_channels
@@ -378,10 +382,6 @@ class BciController:
         # read from sources to get new data. This puts command markers in the marker_data array and
         # event markers in the event_marker_strings array
         self._pull_data_from_sources()
-
-        # Initialize the event marker buffer
-        self.event_marker_buffer = []
-        self.event_timestamp_buffer = []
 
         # check if there is an available command marker, if not, break and wait for more data
         while len(self.marker_timestamps) > self.marker_count:
