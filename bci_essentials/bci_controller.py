@@ -386,8 +386,6 @@ class BciController:
                 # send feedback for each marker that you receive
                 self._messenger.marker_received(current_step_marker)
 
-            logger.info("Marker: %s", current_step_marker)
-
             # If the marker contains a single string, then it is a command marker
             marker_is_single_string = len(current_step_marker.split(",")) == 1
             is_event_marker = not marker_is_single_string
@@ -449,4 +447,5 @@ class BciController:
                     self._classifier.fit()
                     self.train_complete = True
 
+            logger.info("Processed Marker: %s", current_step_marker)
             self.marker_count += 1
