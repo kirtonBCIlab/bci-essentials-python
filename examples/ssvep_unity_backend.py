@@ -26,6 +26,15 @@ test_ssvep = BciController(
     classifier, eeg_source, marker_source, paradigm, data_tank, messenger
 )
 
+classifier.target_freqs = [
+    7.857143,
+    9.705882,
+    12.69231,
+    15,
+    18.33333,
+    22
+]
+
 # # Channel Selection
 # initial_subset=[]
 # test_ssvep.classifier.setup_channel_selection(method = "SBFS", metric="accuracy", initial_channels = initial_subset,    # wrapper setup
