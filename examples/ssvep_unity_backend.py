@@ -23,7 +23,7 @@ classifier.set_ssvep_settings(
 
 # Initialize the data class
 test_ssvep = BciController(
-    classifier, eeg_source, marker_source, messenger, paradigm, data_tank
+    classifier, eeg_source, marker_source, paradigm, data_tank, messenger
 )
 
 # # Channel Selection

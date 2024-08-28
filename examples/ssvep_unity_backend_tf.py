@@ -20,7 +20,7 @@ classifier = SsvepBasicTrainFreeClassifier()
 
 # Initialize the EEG Data
 test_ssvep = BciController(
-    classifier, eeg_source, marker_source, messenger, paradigm, data_tank
+    classifier, eeg_source, marker_source, paradigm, data_tank, messenger
 )
 
 # set train complete to true so that predictions will be allowed

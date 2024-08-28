@@ -337,6 +337,10 @@ class BciController:
         else:
             self.loops = 0
 
+        # Initialize the event marker buffer
+        self.event_marker_buffer = []
+        self.event_timestamp_buffer = []
+
         # start the main loop, stops after pulling new data, max_loops times
         while self.loops < max_loops:
             # print out loop status
@@ -372,9 +376,9 @@ class BciController:
         # event markers in the event_marker_strings array
         self._pull_data_from_sources()
 
-        # Initialize the event marker buffer
-        self.event_marker_buffer = []
-        self.event_timestamp_buffer = []
+        # # Initialize the event marker buffer
+        # self.event_marker_buffer = []
+        # self.event_timestamp_buffer = []
 
         # check if there is an available command marker, if not, break and wait for more data
         while len(self.marker_timestamps) > self.marker_count:
