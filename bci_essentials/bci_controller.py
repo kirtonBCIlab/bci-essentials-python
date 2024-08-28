@@ -212,37 +212,29 @@ class BciController:
         self.latest_eeg_timestamp = timestamps[-1]
 
     def __process_and_classify(self):
+        """Process the markers and classify the data.
+
+        Parameters
+        ----------
+            None
+
+        Returns
+        ----------
+            success_flag : bool
+                Flag indicating if the processing and classification was successful.
+
+        """
+
         eeg_start_time, eeg_end_time = self.__paradigm.get_eeg_start_and_end_times(
             self.event_marker_buffer, self.event_timestamp_buffer
         )
 
-        # Wait until we have all the EEG for these markers
-        while True:
-            eeg, timestamps = self.__data_tank.get_raw_eeg()
-            if timestamps[-1] < eeg_end_time:
-                time_dif = eeg_end_time - timestamps[-1]
-                if time_dif < 1000:
-                    logger.info(
-                        "Waiting for EEG data, time difference is %s s", time_dif
-                    )
-                    time.sleep(time_dif)
+        # No we actually need to wait until we have all the data for these markers
+        eeg, timestamps = self.__data_tank.get_raw_eeg()
 
-                    if self.online is False:
-                        logger.info(
-                            "Oh wait this is offline, there will never be more data!"
-                        )
-                        break
-
-                    else:
-                        # Pull new EEG data
-                        self.__pull_eeg_data_from_source()
-                else:
-                    logger.error(
-                        "The timestamps are not alligned, the difference is %s s",
-                        time_dif,
-                    )
-            else:
-                break
+        # If the last timestamp is less than the end time, then we don't have the necessarty EEG to process
+        if timestamps[-1] < eeg_end_time:
+            return False
 
         X, y = self.__paradigm.process_markers(
             self.event_marker_buffer,
@@ -263,6 +255,8 @@ class BciController:
 
         self.event_marker_buffer = []
         self.event_timestamp_buffer = []
+
+        return True
 
     def __send_prediction(self, prediction):
         """Send a prediction to the messenger object."""
@@ -367,8 +361,7 @@ class BciController:
 
         Parameters
         ----------
-        max_loops : int, *optional*
-            Maximum number of loops to run, default is `1000000`.
+            None
 
         Returns
         ------
@@ -385,8 +378,6 @@ class BciController:
 
         # check if there is an available command marker, if not, break and wait for more data
         while len(self.marker_timestamps) > self.marker_count:
-            self.loops = 0
-
             # Get the current marker
             current_step_marker = self.marker_data[self.marker_count]
             current_timestamp = self.marker_timestamps[self.marker_count]
@@ -408,7 +399,9 @@ class BciController:
 
                 # If classification is on epochs, then update epochs, maybe classify, and clear the buffer
                 if self.__paradigm.classify_each_epoch:
-                    self.__process_and_classify()
+                    success_flag = self.__process_and_classify()
+                    if success_flag is False:
+                        break
 
             # TODO
             elif current_step_marker == "Done with all RS collection":
@@ -434,7 +427,9 @@ class BciController:
             elif current_step_marker == "Trial Ends":
                 # If we are classifying based on trials, then process the trial,
                 if self.__paradigm.classify_each_trial:
-                    self.__process_and_classify()
+                    success_flag = self.__process_and_classify()
+                    if success_flag is False:
+                        break
 
             elif current_step_marker == "Training Complete":
                 if self.train_lock is False:
@@ -455,7 +450,3 @@ class BciController:
                     self.train_complete = True
 
             self.marker_count += 1
-
-            if self.online:
-                time.sleep(0.01)
-            self.loops += 1
