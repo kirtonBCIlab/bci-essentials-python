@@ -26,14 +26,7 @@ test_ssvep = BciController(
 # set train complete to true so that predictions will be allowed
 test_ssvep.train_complete = True
 
-classifier.target_freqs = [
-    7.857143,
-    9.705882,
-    12.69231,
-    15,
-    18.33333,
-    22
-]
+classifier.target_freqs = [7.857143, 9.705882, 12.69231, 15, 18.33333, 22]
 
 # Run
 test_ssvep.setup(online=True)

@@ -110,7 +110,7 @@ class P300Paradigm(Paradigm):
         y = np.zeros(num_objects, dtype=int)
         if train_target is not -1:
             y[train_target] = 1
-        if train_target is -1: # Set all values of y to -1
+        if train_target is -1:  # Set all values of y to -1
             y = np.full(num_objects, -1)
 
         flash_counts = np.zeros(num_objects)

@@ -398,14 +398,16 @@ class ErpRgClassifier(GenericClassifier):
             the probability is only the posterior probability of the chosen object.
 
         """
-        
+
         n_epochs, n_channels, n_samples = X.shape
 
         # For each epoch get the posterior probability
         posterior_prob = np.zeros(n_epochs)
         for epoch in range(n_epochs):
             # Predict whether the epoch is target or non-target
-            posterior_prob[epoch] = self.clf.predict_proba(X[epoch, :, :].reshape(1, n_channels, n_samples))[0][1]
+            posterior_prob[epoch] = self.clf.predict_proba(
+                X[epoch, :, :].reshape(1, n_channels, n_samples)
+            )[0][1]
 
         label = [np.argmax(posterior_prob)]
         probability = [np.max(posterior_prob)]

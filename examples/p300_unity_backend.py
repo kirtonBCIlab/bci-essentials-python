@@ -25,7 +25,9 @@ classifier.set_p300_clf_settings(
 )
 
 # Initialize the ERP
-test_erp = BciController(classifier, eeg_source, marker_source, paradigm, data_tank, messenger)
+test_erp = BciController(
+    classifier, eeg_source, marker_source, paradigm, data_tank, messenger
+)
 
 # Run main
 test_erp.setup(

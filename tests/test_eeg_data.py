@@ -103,15 +103,11 @@ class TestBciController(unittest.TestCase):
         data.step()
 
         # Add some fake EEG data
-        data_tank.add_raw_eeg(
-                np.array([1, 2, 3]), np.array([0, 1, 2])
-            )
+        data_tank.add_raw_eeg(np.array([1, 2, 3]), np.array([0, 1, 2]))
 
         # Add a marker for which we have no data
-        data_tank.add_raw_markers(
-                np.array(["mi,2,-1,0.5"]), np.array([100])  
-            )
-        
+        data_tank.add_raw_markers(np.array(["mi,2,-1,0.5"]), np.array([100]))
+
         # Run another step, it should not wait for more data (< 1s)
         start = time.time()
         data.step()
