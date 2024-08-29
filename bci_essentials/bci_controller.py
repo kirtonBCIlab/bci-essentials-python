@@ -376,10 +376,6 @@ class BciController:
         # event markers in the event_marker_strings array
         self._pull_data_from_sources()
 
-        # # Initialize the event marker buffer
-        # self.event_marker_buffer = []
-        # self.event_timestamp_buffer = []
-
         # check if there is an available command marker, if not, break and wait for more data
         while len(self.marker_timestamps) > self.marker_count:
             # Get the current marker
