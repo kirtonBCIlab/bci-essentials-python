@@ -1,5 +1,8 @@
 import unittest
 
+import numpy as np
+import time
+
 from bci_essentials.io.sources import MarkerSource, EegSource
 from bci_essentials.io.messenger import Messenger
 
@@ -84,6 +87,33 @@ class TestBciController(unittest.TestCase):
         self.assertEqual(self.messenger.ping_count, 1)
         data.step()
         self.assertEqual(self.messenger.ping_count, 2)
+
+    def test_step_does_not_wait_for_more_data(self):
+        data_tank = DataTank()
+
+        data = BciController(
+            self.classifier,
+            self.eeg,
+            self.markers,
+            MiParadigm(),
+            data_tank,
+            self.messenger,
+        )
+        data.setup(online=True)
+        data.step()
+
+        # Add some fake EEG data
+        data_tank.add_raw_eeg(np.array([1, 2, 3]), np.array([0, 1, 2]))
+
+        # Add a marker for which we have no data
+        data_tank.add_raw_markers(np.array(["mi,2,-1,0.5"]), np.array([100]))
+
+        # Run another step, it should not wait for more data (< 1s)
+        start = time.time()
+        data.step()
+        end = time.time()
+
+        self.assertLess(end - start, 1)
 
     def test_when_online_and_invalid_markers_then_loop_continues(self):
         data = BciController(

@@ -388,12 +388,28 @@ class ErpRgClassifier(GenericClassifier):
         Parameters
         ----------
         X : numpy.ndarray
-            3D array where shape = (n_trials, n_channels, n_samples)
+            3D array where shape = (n_epochs, n_channels, n_samples)
 
         Returns
         -------
         prediction : Prediction
-            Empty Predict object
+            Predict object. Contains the predicted labels and and the probability.
+            Because this classifier chooses the P300 object with the highest posterior probability,
+            the probability is only the posterior probability of the chosen object.
 
         """
-        return Prediction()
+
+        n_epochs, n_channels, n_samples = X.shape
+
+        # For each epoch get the posterior probability
+        posterior_prob = np.zeros(n_epochs)
+        for epoch in range(n_epochs):
+            # Predict whether the epoch is target or non-target
+            posterior_prob[epoch] = self.clf.predict_proba(
+                X[epoch, :, :].reshape(1, n_channels, n_samples)
+            )[0][1]
+
+        label = [np.argmax(posterior_prob)]
+        probability = [np.max(posterior_prob)]
+
+        return Prediction(label, probability)

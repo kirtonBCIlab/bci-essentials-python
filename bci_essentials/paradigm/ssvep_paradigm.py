@@ -104,7 +104,7 @@ class SsvepParadigm(Paradigm):
             marker = marker.split(",")
             label = int(marker[2])
             epoch_length = float(marker[3])
-            self.flash_indices = [float(x) for x in marker[4:]]
+            self.target_freqs = [float(x) for x in marker[4:]]
 
             n_channels, _ = eeg.shape
 

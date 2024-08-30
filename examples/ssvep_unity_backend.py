@@ -23,8 +23,10 @@ classifier.set_ssvep_settings(
 
 # Initialize the data class
 test_ssvep = BciController(
-    classifier, eeg_source, marker_source, messenger, paradigm, data_tank
+    classifier, eeg_source, marker_source, paradigm, data_tank, messenger
 )
+
+classifier.target_freqs = [7.857143, 9.705882, 12.69231, 15, 18.33333, 22]
 
 # # Channel Selection
 # initial_subset=[]

@@ -9,7 +9,6 @@ from bci_essentials.classification.erp_rg_classifier import ErpRgClassifier
 eeg_source = LslEegSource()
 marker_source = LslMarkerSource()
 messenger = LslMessenger()
-
 paradigm = P300Paradigm()
 data_tank = DataTank()
 
@@ -26,7 +25,9 @@ classifier.set_p300_clf_settings(
 )
 
 # Initialize the ERP
-test_erp = BciController(classifier, eeg_source, marker_source, messenger)
+test_erp = BciController(
+    classifier, eeg_source, marker_source, paradigm, data_tank, messenger
+)
 
 # Run main
 test_erp.setup(

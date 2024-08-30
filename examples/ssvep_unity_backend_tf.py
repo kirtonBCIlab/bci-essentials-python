@@ -20,13 +20,13 @@ classifier = SsvepBasicTrainFreeClassifier()
 
 # Initialize the EEG Data
 test_ssvep = BciController(
-    classifier, eeg_source, marker_source, messenger, paradigm, data_tank
+    classifier, eeg_source, marker_source, paradigm, data_tank, messenger
 )
 
 # set train complete to true so that predictions will be allowed
 test_ssvep.train_complete = True
 
-target_freqs = [9, 9.6, 10.28, 11.07, 12, 13.09, 14.4]
+classifier.target_freqs = [7.857143, 9.705882, 12.69231, 15, 18.33333, 22]
 
 # Run
 test_ssvep.setup(online=True)
