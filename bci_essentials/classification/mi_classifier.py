@@ -261,6 +261,7 @@ class MiClassifier(GenericClassifier):
 
             self.results_df = results_df
             self.subset = updated_subset
+            self.subset_defined = True
             self.clf = updated_model
         else:
             logger.warning("Not doing channel selection")
