@@ -349,8 +349,10 @@ class ErpRgClassifier(GenericClassifier):
             self.clf = updated_model
         else:
             logger.warning("Not doing channel selection")
+            X = self.get_subset(self.X, self.subset, self.channel_labels)
+
             self.clf, preds, accuracy, precision, recall = __erp_rg_kernel(
-                self.X, self.y
+                X, self.y
             )
 
         # Log performance stats

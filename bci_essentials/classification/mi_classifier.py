@@ -265,6 +265,9 @@ class MiClassifier(GenericClassifier):
             self.clf = updated_model
         else:
             logger.warning("Not doing channel selection")
+
+            subX = self.get_subset(subX, self.subset, self.channel_labels)
+
             self.clf, preds, accuracy, precision, recall = __mi_kernel(subX, suby)
 
         # Log performance stats
