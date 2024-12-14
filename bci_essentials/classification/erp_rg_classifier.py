@@ -405,7 +405,7 @@ class ErpRgClassifier(GenericClassifier):
         # Get posterior probability for each target
         posterior_prob = self.clf.predict_proba(subset_X)[:, 1]
 
-        label = [np.argmax(posterior_prob)]
+        label = [int(np.argmax(posterior_prob))]
         probability = [np.max(posterior_prob)]
 
         return Prediction(label, probability)
