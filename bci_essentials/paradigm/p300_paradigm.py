@@ -105,8 +105,7 @@ class P300Paradigm(Paradigm):
 
         n_channels, _ = eeg.shape
         num_objects = int(markers[0].split(",")[2])
-
-        train_target = int(markers[3].split(",")[3])
+        train_target = int(markers[0].split(",")[3])
         y = np.zeros(num_objects, dtype=int)
         if train_target is not -1:
             y[train_target] = 1
