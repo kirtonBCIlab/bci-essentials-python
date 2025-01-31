@@ -76,7 +76,14 @@ eeg_timestamps = eeg_timestamps[tuple(eeg_keep_ind)]
 bci_controller = bci_controller[tuple(eeg_keep_ind)]
 
 # create the eeg stream
-info = StreamInfo("MockEEG", "EEG", eeg_source.n_channels, eeg_source.fsample, "float32", "mockeeg1")
+info = StreamInfo(
+    "MockEEG",
+    "EEG",
+    eeg_source.n_channels,
+    eeg_source.fsample,
+    "float32",
+    "mockeeg1"
+)
 
 # add channel data
 channels = info.desc().append_child("channels")
