@@ -80,7 +80,7 @@ info = StreamInfo(
     "MockEEG",
     "EEG",
     eeg_source.n_channels,
-    eeg_source.fsample,
+    round(eeg_source.fsample),
     "float32",
     "mockeeg1"
 )
