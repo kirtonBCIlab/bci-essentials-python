@@ -345,12 +345,13 @@ class ErpRgClassifier(GenericClassifier):
 
             self.results_df = results_df
             self.subset = updated_subset
+            self.subset_defined = True
             self.clf = updated_model
         else:
             logger.warning("Not doing channel selection")
-            self.clf, preds, accuracy, precision, recall = __erp_rg_kernel(
-                self.X, self.y
-            )
+            X = self.get_subset(self.X, self.subset, self.channel_labels)
+
+            self.clf, preds, accuracy, precision, recall = __erp_rg_kernel(X, self.y)
 
         # Log performance stats
         # accuracy
@@ -399,17 +400,12 @@ class ErpRgClassifier(GenericClassifier):
 
         """
 
-        n_epochs, n_channels, n_samples = X.shape
+        subset_X = self.get_subset(X, self.subset, self.channel_labels)
 
-        # For each epoch get the posterior probability
-        posterior_prob = np.zeros(n_epochs)
-        for epoch in range(n_epochs):
-            # Predict whether the epoch is target or non-target
-            posterior_prob[epoch] = self.clf.predict_proba(
-                X[epoch, :, :].reshape(1, n_channels, n_samples)
-            )[0][1]
+        # Get posterior probability for each target
+        posterior_prob = self.clf.predict_proba(subset_X)[:, 1]
 
-        label = [np.argmax(posterior_prob)]
+        label = [int(np.argmax(posterior_prob))]
         probability = [np.max(posterior_prob)]
 
         return Prediction(label, probability)

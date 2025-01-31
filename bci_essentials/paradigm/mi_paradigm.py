@@ -37,6 +37,9 @@ class MiParadigm(Paradigm):
         self.live_update = live_update
         self.iterative_training = iterative_training
 
+        self.lowcut = filters[0]
+        self.highcut = filters[1]
+
         if self.live_update:
             self.classify_each_epoch = True
             self.classify_each_trial = False

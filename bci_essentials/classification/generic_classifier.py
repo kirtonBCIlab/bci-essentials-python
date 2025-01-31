@@ -179,6 +179,7 @@ class GenericClassifier(ABC):
                 logger.info("Using subset indices")
 
                 subset_indices = self.subset
+                self.subset_defined
 
             # Or channel labels
             if type(self.subset[0]) is str:
@@ -188,6 +189,7 @@ class GenericClassifier(ABC):
                 for sl in self.subset:
                     subset_indices.append(self.channel_labels.index(sl))
 
+                self.subset_defined = True
             # Return for the given indices
             try:
                 if sum(X.shape) == 0:

@@ -261,9 +261,13 @@ class MiClassifier(GenericClassifier):
 
             self.results_df = results_df
             self.subset = updated_subset
+            self.subset_defined = True
             self.clf = updated_model
         else:
             logger.warning("Not doing channel selection")
+
+            subX = self.get_subset(subX, self.subset, self.channel_labels)
+
             self.clf, preds, accuracy, precision, recall = __mi_kernel(subX, suby)
 
         # Log performance stats
@@ -318,7 +322,7 @@ class MiClassifier(GenericClassifier):
             subset_X
         )
 
-        pred = self.clf.predict(cov_subset_X)
+        pred = [int(x) for x in self.clf.predict(cov_subset_X)]
         pred_proba = self.clf.predict_proba(cov_subset_X)
 
         logger.info("Prediction: %s", pred)
