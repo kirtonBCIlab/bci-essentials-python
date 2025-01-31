@@ -6,6 +6,7 @@ EEG LSL sim simulates offline EEG data as online data
 Additional Arguments:
 now (-n)            -   start the stream immediately
 num_loops (int)     -   number of times to repeat the stream
+paradigm (str)      -   paradigm to simulate (p300 (default), ssvep, mi)
 
 ex.
 >python eeg_lsl_sim.py now 8
@@ -26,13 +27,18 @@ from pylsl import StreamInfo, StreamOutlet
 from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
 from bci_essentials.utils.logger import Logger  # Logger wrapper
 
+try:
+    paradigm = sys.argv[3]
+except IndexError:
+    paradigm = "p300"  # Default value
+
 # Instantiate a logger for the module at the default level of logging.INFO
 logger = Logger(name="eeg_lsl_sim")
 
 # Identify the file to simulate
 # Filename assumes the data is within a subfolder called "data" located
 # within the same folder as this script
-filename = os.path.join("data", "p300_example.xdf")
+filename = os.path.join("data", f"{paradigm}_example.xdf")
 
 # Check whether to start now, or at the next even minute to sync with other programs
 start_now = False
@@ -69,12 +75,8 @@ eeg_keep_ind = [(eeg_timestamps > time_start) & (eeg_timestamps < time_stop)]
 eeg_timestamps = eeg_timestamps[tuple(eeg_keep_ind)]
 bci_controller = bci_controller[tuple(eeg_keep_ind)]
 
-# estimate sampling rates
-fs_marker = round(len(marker_timestamps) / (time_stop - time_start))
-fs_eeg = round(len(eeg_timestamps) / (time_stop - time_start))
-
 # create the eeg stream
-info = StreamInfo("MockEEG", "EEG", 8, fs_eeg, "float32", "mockeeg1")
+info = StreamInfo("MockEEG", "EEG", eeg_source.n_channels, eeg_source.fsample, "float32", "mockeeg1")
 
 # add channel data
 channels = info.desc().append_child("channels")
