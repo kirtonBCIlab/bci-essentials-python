@@ -19,6 +19,21 @@ classifier = MiClassifier()  # you can add a subset here
 # Set settings
 classifier.set_mi_classifier_settings(n_splits=3, type="TS", random_seed=35)
 
+# Define channel selection settings
+initial_subset = []
+classifier.setup_channel_selection(
+    method="SFS",
+    metric="accuracy",
+    iterative_selection=True,
+    initial_channels=initial_subset,  # wrapper setup
+    max_time=4,
+    min_channels=0,
+    max_channels=20,
+    performance_delta=-0.05,  # stopping criterion
+    n_jobs=-1,
+    record_performance=True,
+)
+
 # Define the MI data object
 mi_data = BciController(
     classifier, eeg_source, marker_source, paradigm, data_tank, messenger
