@@ -410,7 +410,7 @@ def __sfs(
         for channel in range(n_channels):
             if channel not in sfs_subset:
                 set_to_try = sfs_subset.copy()
-                set_to_try.append(c)
+                set_to_try.append(channel)
                 sets_to_try.append(set_to_try)
 
                 # Get the new subset of data
@@ -677,9 +677,9 @@ def __sbs(
         # Exclusion Step
         sets_to_try = []
         X_to_try = []
-        for c in sbs_subset:
+        for channel in sbs_subset:
             set_to_try = sbs_subset.copy()
-            set_to_try.remove(c)
+            set_to_try.remove(channel)
             set_to_try.sort()
 
             # Only try sets that have not been tried before

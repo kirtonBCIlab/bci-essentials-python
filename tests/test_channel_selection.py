@@ -36,20 +36,18 @@ logger = Logger(name="test_channel_selection")
 # Create the ideal signal
 fs = 128
 t = np.arange(0, 1, 1 / fs)
-ideal_signal = np.sin(2 * np.pi * 8 * t)
-
-# Create the noise
-np.random.seed(0)
-noise = np.random.normal(0, 0.1, len(t))
-
-# Create the noisy signal
-noisy_signal = ideal_signal + noise
 
 import matplotlib.pyplot as plt
 # Create epochs of 
 
 X = np.zeros((10, 10, len(t)))
 y = np.zeros(10)
+
+# Create a spline
+trend = [(0.01 * (-0.08*s +2.0)**3.0) + (0.05 * s) + 1.0 for s in range(1,129)]
+
+
+
 
 channel_labels = ["ch" + str(i) for i in range(1,11)]
 
@@ -58,32 +56,33 @@ for i in range(10):
         if i % 2 == 0:
             y[i] = 0
 
-            ideal_signal = np.sin(2 * np.pi * 9 * t)
+            ideal_signal = np.sin(2 * np.pi * 8 * t)
             signal = ideal_signal + np.random.normal(0, 2, len(t))
             for k in range(j):
-                signal += 5 * np.random.normal(0, 2, len(t))
+                signal += np.random.normal(0, 2, len(t))
 
             X[i, j, :] = signal
 
         else:
             y[i] = 1
 
-            ideal_signal = np.sin(2 * np.pi * 8 * t)
+            ideal_signal = np.sin(2 * np.pi * 8 * t) * trend
             signal = ideal_signal + np.random.normal(0, 2, len(t))
             for k in range(j):
-                signal += 5 * np.random.normal(0, 2, len(t))
+                signal += np.random.normal(0, 2, len(t))
 
             X[i, j, :] = signal
 
 # # Plot the first 10 epochs
 # for i in range(10):
-#     plt.plot(t, X[0, i, :] + i*2)
+#     plt.plot(t, X[1, i, :] + i*20)
 
+# plt.legend(channel_labels)
 # plt.show()
 
 
-def test_kernel(subX, suby):
-        """Test kernel.
+def _test_kernel(subX, suby):
+        """Test kernel for channel selection.
 
         Parameters
         ----------
@@ -150,11 +149,11 @@ class TestChannelSelection(unittest.TestCase):
     def test_sfs(self):
         # Test SFS
         selected_channels = channel_selection_by_method(
-            kernel_func = test_kernel, 
+            kernel_func = _test_kernel, 
             X = X, 
             y = y, 
             channel_labels = channel_labels,
-            method="SBS", 
+            method="SFS", 
             initial_channels=[],
             max_time=999,
             min_channels=0,
