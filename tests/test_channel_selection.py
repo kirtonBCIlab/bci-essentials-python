@@ -144,7 +144,7 @@ class TestChannelSelection(unittest.TestCase):
         time_end = time.time()
 
         best_subset = selection_output[0]
-        
+
         # Check that the best subset is within the correct range
         self.assertGreaterEqual(len(best_subset), min_channels)
         self.assertLessEqual(len(best_subset), max_channels)
