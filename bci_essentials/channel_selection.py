@@ -261,7 +261,7 @@ def __check_stopping_criterion(
     if current_performance_delta < performance_delta:
         logger.debug("Stopping because performance improvements are declining")
         return True
-    
+
     return False
 
 
@@ -528,7 +528,7 @@ def __sfs(
     logger.debug("Time to optimal subset: %s s", time.time() - start_time)
 
     if record_performance is True:
-        print(results_df)
+        logger.info(results_df)
 
     # Get the best model
 
@@ -812,7 +812,7 @@ def __sbs(
     logger.debug("Time to optimal subset: %s s", time.time() - start_time)
 
     if record_performance is True:
-        print(results_df)
+        logger.info(results_df)
 
     return (
         best_channel_subset,
@@ -1270,7 +1270,7 @@ def __sbfs(
     logger.debug("Time to optimal subset: %s s", time.time() - start_time)
 
     if record_performance is True:
-        print(results_df)
+        logger.info(results_df)
 
     return (
         best_channel_subset,
@@ -1723,7 +1723,7 @@ def __sffs(
     logger.debug("Time to optimal subset: %s s", time.time() - start_time)
 
     if record_performance is True:
-        print(results_df)
+        logger.info(results_df)
 
     return (
         best_channel_subset,
