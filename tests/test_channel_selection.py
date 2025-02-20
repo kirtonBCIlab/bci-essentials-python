@@ -127,7 +127,7 @@ class TestChannelSelection(unittest.TestCase):
 
         # Test SFS for time
         time_start = time.time()
-        [] = channel_selection_by_method(
+        selection_output = channel_selection_by_method(
             kernel_func=_test_kernel,
             X=X,
             y=y,
@@ -142,6 +142,12 @@ class TestChannelSelection(unittest.TestCase):
             record_performance=True,
         )
         time_end = time.time()
+
+        best_subset = selection_output[0]
+        
+        # Check that the best subset is within the correct range
+        self.assertGreaterEqual(len(best_subset), min_channels)
+        self.assertLessEqual(len(best_subset), max_channels)
 
         # Check time taken
         allowable_buffer = 1.0
