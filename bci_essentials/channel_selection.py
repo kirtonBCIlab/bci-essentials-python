@@ -97,7 +97,6 @@ def channel_selection_by_method(
     preds : numpy.ndarray
         The predictions from the model.
         1D array with the same shape as `y`.
-
         shape = (`n_trials`)
     accuracy : float
         The accuracy of the trained classification model.
@@ -206,6 +205,7 @@ def channel_selection_by_method(
 
 
 def __check_stopping_criterion(
+    algorithm,
     current_time,
     n_channels,
     current_performance_delta,
@@ -218,6 +218,8 @@ def __check_stopping_criterion(
 
     Parameters
     ----------
+    algorithm : str
+        The algorithm being used for channel selection.
     current_time : float
         The time elapsed since the start of the channel selection method.
     n_channels : int
@@ -246,19 +248,21 @@ def __check_stopping_criterion(
         logger.debug("Stopping based on time")
         return True
 
-    elif n_channels <= min_channels:
-        logger.debug("Stopping because minimum number of channels reached")
-        return True
+    if algorithm == "SBS" or algorithm == "SBFS":
+        if n_channels <= min_channels:
+            logger.debug("Stopping because minimum number of channels reached")
+            return True
 
-    elif n_channels >= max_channels:
-        logger.debug("Stopping because maximum number of channels reached")
-        return True
+    if algorithm == "SFS" or algorithm == "SFFS":
+        if n_channels >= max_channels:
+            logger.debug("Stopping because maximum number of channels reached")
+            return True
 
-    elif current_performance_delta < performance_delta:
+    if current_performance_delta < performance_delta:
         logger.debug("Stopping because performance improvements are declining")
         return True
-    else:
-        return False
+    
+    return False
 
 
 def __sfs(
@@ -508,6 +512,7 @@ def __sfs(
         step += 1
 
         stop_criterion = __check_stopping_criterion(
+            "SFS",
             time.time() - start_time,
             len(new_channel_subset),
             p_delta,
@@ -784,11 +789,12 @@ def __sbs(
 
         step += 1
 
-        # Break if SBFS subset is 1 channel
+        # Break if SBS subset is 1 channel
         if len(sbs_subset) == 1:
             break
 
         stop_criterion = __check_stopping_criterion(
+            "SBS",
             time.time() - start_time,
             len(new_channel_subset),
             p_delta,
@@ -1229,6 +1235,7 @@ def __sbfs(
 
             # Check stopping criterion
             stop_criterion = __check_stopping_criterion(
+                "SBFS",
                 time.time() - start_time,
                 len(new_channel_subset),
                 p_delta,
@@ -1239,6 +1246,7 @@ def __sbfs(
             )
 
         stop_criterion = __check_stopping_criterion(
+            "SBFS",
             time.time() - start_time,
             len(new_channel_subset),
             p_delta,
@@ -1678,6 +1686,7 @@ def __sffs(
             # Check stopping criterion
             if pass_stopping_criterion is False:
                 stop_criterion = __check_stopping_criterion(
+                    "SFFS",
                     time.time() - start_time,
                     len(new_channel_subset),
                     p_delta,
@@ -1692,6 +1701,7 @@ def __sffs(
             continue
         else:
             stop_criterion = __check_stopping_criterion(
+                "SFFS",
                 time.time() - start_time,
                 len(new_channel_subset),
                 p_delta,

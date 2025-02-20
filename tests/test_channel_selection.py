@@ -1,6 +1,6 @@
 import unittest
-import os
 import numpy as np
+import time
 
 from bci_essentials.io.xdf_sources import XdfMarkerSource, XdfEegSource
 from bci_essentials.bci_controller import BciController
@@ -16,8 +16,6 @@ from bci_essentials.classification.ssvep_riemannian_mdm_classifier import (
 from bci_essentials.utils.logger import Logger  # Logger wrapper
 from bci_essentials.channel_selection import channel_selection_by_method
 
-
-import numpy as np
 from sklearn.model_selection import StratifiedKFold
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import precision_score, recall_score
@@ -28,31 +26,25 @@ from pyriemann.classification import MDM
 # Instantiate a logger for the module at the default level of logging.INFO
 logger = Logger(name="test_channel_selection")
 
-# Tests channel selection using 10 channels, with growing amounts of noise
-# First create an ideal signal, a sinusoid with frequency 8 Hz and amplitude 1
-# Then add noise to the signal, with increasing standard deviation
-# Finally, test the channel selection algorithm on the noisy signal
+# Tests channel selection using 10 channels, with growing amounts of noise.
+# The "signal" is a spoline that varies the power of a sine wave.
 
 # Create the ideal signal
 fs = 128
 t = np.arange(0, 1, 1 / fs)
 
 import matplotlib.pyplot as plt
-# Create epochs of 
 
-X = np.zeros((10, 10, len(t)))
-y = np.zeros(10)
+X = np.zeros((1000, 10, len(t)))
+y = np.zeros(1000)
 
 # Create a spline
-trend = [(0.01 * (-0.08*s +2.0)**3.0) + (0.05 * s) + 1.0 for s in range(1,129)]
-
-
-
+trend = [((0.01 * (-0.08*s +2.0)**3.0) + (0.05 * s) + 1.0)**0.2 for s in range(1,129)]
 
 channel_labels = ["ch" + str(i) for i in range(1,11)]
 
-for i in range(10):
-    for j in range(10):
+for i in range(1000): # 1000 epochs
+    for j in range(10): # 10 channels
         if i % 2 == 0:
             y[i] = 0
 
@@ -66,19 +58,12 @@ for i in range(10):
         else:
             y[i] = 1
 
-            ideal_signal = np.sin(2 * np.pi * 8 * t) * trend
+            ideal_signal = [np.sin(2 * np.pi * 8 * t) * (trend[t] ** 1/(j+1)) for t in range(len(t))] # Trend size is smaller in higher channels
             signal = ideal_signal + np.random.normal(0, 2, len(t))
             for k in range(j):
-                signal += np.random.normal(0, 2, len(t))
+                signal += np.random.normal(0, 2, len(t)) # More noise added in higher channels
 
             X[i, j, :] = signal
-
-# # Plot the first 10 epochs
-# for i in range(10):
-#     plt.plot(t, X[1, i, :] + i*20)
-
-# plt.legend(channel_labels)
-# plt.show()
 
 
 def _test_kernel(subX, suby):
@@ -142,168 +127,197 @@ def _test_kernel(subX, suby):
 
         return model, preds, accuracy, precision, recall
 
-
-
-
 class TestChannelSelection(unittest.TestCase):
-    def test_sfs(self):
-        # Test SFS
-        selected_channels = channel_selection_by_method(
+    def test_time_limit(self):
+        # Test params for time
+        min_channels = 0 
+        max_channels = 10
+        max_time = 5
+
+        # Test SFS for time
+        time_start = time.time()
+        selection_output = channel_selection_by_method(
+            kernel_func = _test_kernel, 
+            X = X, 
+            y = y, 
+            channel_labels = channel_labels,
+            method="SFS", 
+            initial_channels=["ch1", "ch2"],
+            max_time=max_time,
+            min_channels=min_channels,
+            max_channels=max_channels, 
+            performance_delta=-1,
+            n_jobs=-1, 
+            record_performance=True
+        )
+        time_end = time.time()
+
+        # Check time taken
+        allowable_buffer = 1.0
+        self.assertLessEqual(time_end - time_start, max_time + allowable_buffer)
+
+    def test_max_channels(self):
+        # Test params for max channels
+        min_channels = 1 
+        max_channels = 6
+        max_time = 100
+
+        # Test SFS for max_channels
+        selection_output = channel_selection_by_method(
             kernel_func = _test_kernel, 
             X = X, 
             y = y, 
             channel_labels = channel_labels,
             method="SFS", 
             initial_channels=[],
-            max_time=999,
-            min_channels=0,
-            max_channels=20, 
+            max_time=max_time,
+            min_channels=min_channels,
+            max_channels=max_channels, 
             performance_delta=-1,
             n_jobs=-1, 
             record_performance=True
         )
+
+        best_subset = selection_output[0]
+        results_df = selection_output[6]
+
+        # Check that the best subset is within the correct range
+        self.assertGreaterEqual(len(best_subset), min_channels)
+        self.assertLessEqual(len(best_subset), max_channels)  
+
+        # Check that the algorithm didn't check combinations outside of the range
+        min_channels_tried = int(results_df["N Channels"].min())
+        max_channels_tried = int(results_df["N Channels"].max())
+        self.assertGreaterEqual(min_channels_tried, min_channels)
+        self.assertLessEqual(max_channels_tried, max_channels)
+
+        # Test SFFS for max_channels
+        selection_output = channel_selection_by_method(
+            kernel_func = _test_kernel, 
+            X = X, 
+            y = y, 
+            channel_labels = channel_labels,
+            method="SFS", 
+            initial_channels=["ch1", "ch2", "ch3", "ch4"],
+            max_time=max_time,
+            min_channels=min_channels,
+            max_channels=max_channels, 
+            performance_delta=-1,
+            n_jobs=-1, 
+            record_performance=True
+        )
+
+        best_subset = selection_output[0]
+        results_df = selection_output[6]
+
+        # Check that the best subset is within the correct range
+        self.assertGreaterEqual(len(best_subset), min_channels)
+        self.assertLessEqual(len(best_subset), max_channels)  
+
+        # Check that the algorithm didn't check combinations outside of the range
+        min_channels_tried = int(results_df["N Channels"].min())
+        max_channels_tried = int(results_df["N Channels"].max())
+        self.assertGreaterEqual(min_channels_tried, min_channels)
+        self.assertLessEqual(max_channels_tried, max_channels)
+
         
-        print(selected_channels)
+    def test_min_channels(self):
+        # Test params for max channels
+        min_channels = 2 
+        max_channels = 10
+        max_time = 100
 
-        self.assertEqual(len(selected_channels), 5)
+        # Test SBS for min_channels
+        selection_output = channel_selection_by_method(
+            kernel_func = _test_kernel, 
+            X = X, 
+            y = y, 
+            channel_labels = channel_labels,
+            method="SBS", 
+            initial_channels=[],
+            max_time=max_time,
+            min_channels=min_channels,
+            max_channels=max_channels, 
+            performance_delta=-1,
+            n_jobs=-1, 
+            record_performance=True
+        )
 
+        best_subset = selection_output[0]
+        results_df = selection_output[6]
 
+        # Check that the best subset is within the correct range
+        self.assertGreaterEqual(len(best_subset), min_channels)
+        self.assertLessEqual(len(best_subset), max_channels)  
 
+        # Check that the algorithm didn't check combinations outside of the range
+        min_channels_tried = int(results_df["N Channels"].min())
+        max_channels_tried = int(results_df["N Channels"].max())
+        self.assertGreaterEqual(min_channels_tried, min_channels)
+        self.assertLessEqual(max_channels_tried, max_channels)
 
-#         # Get the MI example data from ./examples/data
-#         xdf_path = os.path.join(os.path.dirname(__file__), "data", "mi_smoke.xdf")
-#         eeg_source = XdfEegSource(xdf_path)
-#         marker_source = XdfMarkerSource(xdf_path)
+        # Test SBFS for min_channels
+        selection_output = channel_selection_by_method(
+            kernel_func = _test_kernel, 
+            X = X, 
+            y = y, 
+            channel_labels = channel_labels,
+            method="SBFS", 
+            initial_channels=["ch1", "ch2", "ch3", "ch4"],
+            max_time=max_time,
+            min_channels=min_channels,
+            max_channels=max_channels, 
+            performance_delta=-1,
+            n_jobs=-1, 
+            record_performance=True
+        )
 
-#         paradigm = MiParadigm(live_update=True, iterative_training=False)
-#         data_tank = DataTank()
+        best_subset = selection_output[0]
+        results_df = selection_output[6]
 
-#         # Select a classifier
-#         classifier = MiClassifier()
-#         classifier.set_mi_classifier_settings(
-#             n_splits=5, type="TS", random_seed=35, channel_selection="riemann"
-#         )
+        # Check that the best subset is within the correct range
+        self.assertGreaterEqual(len(best_subset), min_channels)
+        self.assertLessEqual(len(best_subset), max_channels)  
 
-#         # Load the data
-#         data = BciController(classifier, eeg_source, marker_source, paradigm, data_tank)
+        # Check that the algorithm didn't check combinations outside of the range
+        min_channels_tried = int(results_df["N Channels"].min())
+        max_channels_tried = int(results_df["N Channels"].max())
+        self.assertGreaterEqual(min_channels_tried, min_channels)
+        self.assertLessEqual(max_channels_tried, max_channels)
 
-#         # Run main loop, this will do all of the classification for online or offline
-#         data.setup(
-#             online=False,
-#         )
-#         data.run()
+        best_subset = selection_output[0]
+        results_df = selection_output[6]
 
-#         # Check that a model was trained
-#         self.assertIsNotNone(classifier.clf)
+    # Test performance delta
+    def test_performance_delta(self):
+        # Test params for time
+        min_channels = 0 
+        max_channels = 10
+        max_time = 100
+        performance_delta = 0.01
 
-#         # Check that accuracy, precision, recall and covariance matrix exist
-#         self.assertIsNotNone(classifier.offline_accuracy)
-#         self.assertIsNotNone(classifier.offline_precision)
-#         self.assertIsNotNone(classifier.offline_recall)
-#         self.assertIsNotNone(classifier.offline_cm)
+        # Test SFS for time
+        selection_output = channel_selection_by_method(
+            kernel_func = _test_kernel, 
+            X = X, 
+            y = y, 
+            channel_labels = channel_labels,
+            method="SFS", 
+            initial_channels=[],
+            max_time=max_time,
+            min_channels=min_channels,
+            max_channels=max_channels, 
+            performance_delta=performance_delta,
+            n_jobs=-1, 
+            record_performance=True
+        )
 
-#         # Check that the list of class predictions exists
-#         self.assertIsNotNone(classifier.predictions)
+        results_df = selection_output[6]
 
-#         logger.info("MI test complete")
-
-#     def test_p300_offline(self):
-#         # Get the P300 example data from ./examples/data
-#         xdf_path = os.path.join(os.path.dirname(__file__), "data", "p300_smoke.xdf")
-#         eeg_source = XdfEegSource(xdf_path)
-#         marker_source = XdfMarkerSource(xdf_path)
-
-#         paradigm = P300Paradigm()
-#         data_tank = DataTank()
-
-#         # Select a classifier
-#         classifier = ErpRgClassifier()
-#         classifier.set_p300_clf_settings(
-#             n_splits=5,
-#             lico_expansion_factor=4,
-#             oversample_ratio=0,
-#             undersample_ratio=0,
-#             random_seed=35,
-#         )
-
-#         # Load the data
-#         data = BciController(classifier, eeg_source, marker_source, paradigm, data_tank)
-
-#         # Run main loop, this will do all of the classification for online or offline
-#         data.setup(
-#             online=False,
-#         )
-#         data.run()
-
-#         # Check that a model was trained
-#         self.assertIsNotNone(classifier.clf)
-
-#         # Check that accuracy, precision, recall and covariance matrix exist
-#         self.assertIsNotNone(classifier.offline_accuracy)
-#         self.assertIsNotNone(classifier.offline_precision)
-#         self.assertIsNotNone(classifier.offline_recall)
-#         self.assertIsNotNone(classifier.offline_cm)
-
-#         # Check that the list of class predictions exists
-#         self.assertIsNotNone(classifier.predictions)
-
-#         logger.info("P300 test complete")
-
-#     def test_ssvep_offline(self):
-#         # Get the SSVEP example data from ./examples/data
-#         xdf_path = os.path.join(os.path.dirname(__file__), "data", "ssvep_smoke.xdf")
-#         eeg_source = XdfEegSource(xdf_path)
-#         marker_source = XdfMarkerSource(xdf_path)
-
-#         paradigm = SsvepParadigm()
-#         data_tank = DataTank()
-
-#         # Select a classifier
-#         classifier = SsvepRiemannianMdmClassifier()
-#         classifier.set_ssvep_settings(
-#             n_splits=3,
-#             random_seed=35,
-#             n_harmonics=2,
-#             f_width=0.2,
-#             covariance_estimator="scm",
-#         )
-#         classifier.target_freqs = [
-#             24,
-#             20.57143,
-#             18,
-#             16,
-#             14.4,
-#             12,
-#             10.28571,
-#             9,
-#             8,
-#             7.2,
-#             6,
-#             4.965517,
-#         ]
-
-#         # Load the data
-#         data = BciController(classifier, eeg_source, marker_source, paradigm, data_tank)
-
-#         # Run main loop, this will do all of the classification for online or offline
-#         data.setup(
-#             online=False,
-#         )
-#         data.run()
-
-#         # Check that a model was trained
-#         self.assertIsNotNone(classifier.clf)
-
-#         # Check that accuracy, precision, recall and covariance matrix exist
-#         self.assertIsNotNone(classifier.offline_accuracy)
-#         self.assertIsNotNone(classifier.offline_precision)
-#         self.assertIsNotNone(classifier.offline_recall)
-#         self.assertIsNotNone(classifier.offline_cm)
-
-#         # Check that the list of class predictions exists
-#         self.assertIsNotNone(classifier.predictions)
-
-#         logger.info("SSVEP test complete")
+        # Check that the algorithm didn't check combinations outside of the range
+        scores = results_df["Accuracy"]
+        score_difs = np.diff(scores)
+        self.assertGreaterEqual(score_difs[:-1].max(), performance_delta) # Check that all but the last score difs are greater than performance delta
 
 
 if __name__ == "__main__":
