@@ -2,17 +2,6 @@ import unittest
 import numpy as np
 import time
 
-from bci_essentials.io.xdf_sources import XdfMarkerSource, XdfEegSource
-from bci_essentials.bci_controller import BciController
-from bci_essentials.paradigm.mi_paradigm import MiParadigm
-from bci_essentials.paradigm.p300_paradigm import P300Paradigm
-from bci_essentials.paradigm.ssvep_paradigm import SsvepParadigm
-from bci_essentials.data_tank.data_tank import DataTank
-from bci_essentials.classification.mi_classifier import MiClassifier
-from bci_essentials.classification.erp_rg_classifier import ErpRgClassifier
-from bci_essentials.classification.ssvep_riemannian_mdm_classifier import (
-    SsvepRiemannianMdmClassifier,
-)
 from bci_essentials.utils.logger import Logger  # Logger wrapper
 from bci_essentials.channel_selection import channel_selection_by_method
 
@@ -32,9 +21,6 @@ logger = Logger(name="test_channel_selection")
 # Create the ideal signal
 fs = 128
 t = np.arange(0, 1, 1 / fs)
-
-import matplotlib.pyplot as plt
-
 X = np.zeros((1000, 10, len(t)))
 y = np.zeros(1000)
 
@@ -141,7 +127,7 @@ class TestChannelSelection(unittest.TestCase):
 
         # Test SFS for time
         time_start = time.time()
-        selection_output = channel_selection_by_method(
+        [] = channel_selection_by_method(
             kernel_func=_test_kernel,
             X=X,
             y=y,
