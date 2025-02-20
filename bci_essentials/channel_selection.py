@@ -496,18 +496,17 @@ def __sfs(
             best_precision = precision
             best_recall = recall
 
-        if record_performance is True:
-            new_channel_subset.sort()
-            results_df.loc[step] = [
-                step,
-                time.time() - start_time,
-                len(new_channel_subset),
-                "".join(new_channel_subset),
-                len(sets_to_try),
-                accuracy,
-                precision,
-                recall,
-            ]
+        new_channel_subset.sort()
+        results_df.loc[step] = [
+            step,
+            time.time() - start_time,
+            len(new_channel_subset),
+            "".join(new_channel_subset),
+            len(sets_to_try),
+            accuracy,
+            precision,
+            recall,
+        ]
 
         step += 1
 
@@ -527,6 +526,9 @@ def __sfs(
     logger.debug("Best channel subset: %s", best_channel_subset)
     logger.debug("%s : %s", metric, best_performance)
     logger.debug("Time to optimal subset: %s s", time.time() - start_time)
+
+    if record_performance is True:
+        print(results_df)
 
     # Get the best model
 
@@ -774,18 +776,17 @@ def __sbs(
             best_precision = precision
             best_recall = recall
 
-        if record_performance is True:
-            new_channel_subset.sort()
-            results_df.loc[step] = [
-                step,
-                time.time() - start_time,
-                len(new_channel_subset),
-                "".join(new_channel_subset),
-                len(sets_to_try),
-                accuracy,
-                precision,
-                recall,
-            ]
+        new_channel_subset.sort()
+        results_df.loc[step] = [
+            step,
+            time.time() - start_time,
+            len(new_channel_subset),
+            "".join(new_channel_subset),
+            len(sets_to_try),
+            accuracy,
+            precision,
+            recall,
+        ]
 
         step += 1
 
@@ -809,6 +810,9 @@ def __sbs(
     logger.debug("Best channel subset: %s", best_channel_subset)
     logger.debug("%s : %s", metric, best_performance)
     logger.debug("Time to optimal subset: %s s", time.time() - start_time)
+
+    if record_performance is True:
+        print(results_df)
 
     return (
         best_channel_subset,
@@ -1210,19 +1214,18 @@ def __sbfs(
                     best_precision = precision
                     best_recall = recall
 
-                if record_performance:
-                    new_channel_subset.sort()
-                    results_df.loc[step] = [
-                        step,
-                        time.time() - start_time,
-                        len(new_channel_subset),
-                        "".join(new_channel_subset),
-                        len(sets_to_try),
-                        accuracy,
-                        precision,
-                        recall,
-                    ]
-                    step += 1
+                new_channel_subset.sort()
+                results_df.loc[step] = [
+                    step,
+                    time.time() - start_time,
+                    len(new_channel_subset),
+                    "".join(new_channel_subset),
+                    len(sets_to_try),
+                    accuracy,
+                    precision,
+                    recall,
+                ]
+                step += 1
 
                 performance_at_n_channels[length_of_resultant_set - 1] = (
                     current_performance
@@ -1265,6 +1268,9 @@ def __sbfs(
     logger.debug("Best channel subset: %s", best_channel_subset)
     logger.debug("%s : %s", metric, best_performance)
     logger.debug("Time to optimal subset: %s s", time.time() - start_time)
+
+    if record_performance is True:
+        print(results_df)
 
     return (
         best_channel_subset,
@@ -1525,18 +1531,17 @@ def __sffs(
             best_precision = precision
             best_recall = recall
 
-        if record_performance:
-            new_channel_subset.sort()
-            results_df.loc[step] = [
-                step,
-                time.time() - start_time,
-                len(new_channel_subset),
-                "".join(new_channel_subset),
-                len(sets_to_try),
-                accuracy,
-                precision,
-                recall,
-            ]
+        new_channel_subset.sort()
+        results_df.loc[step] = [
+            step,
+            time.time() - start_time,
+            len(new_channel_subset),
+            "".join(new_channel_subset),
+            len(sets_to_try),
+            accuracy,
+            precision,
+            recall,
+        ]
 
         step += 1
 
@@ -1716,6 +1721,9 @@ def __sffs(
     logger.debug("Best channel subset: %s", best_channel_subset)
     logger.debug("%s : %s", metric, best_performance)
     logger.debug("Time to optimal subset: %s s", time.time() - start_time)
+
+    if record_performance is True:
+        print(results_df)
 
     return (
         best_channel_subset,

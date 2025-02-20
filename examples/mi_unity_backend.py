@@ -24,12 +24,12 @@ initial_subset = []
 classifier.setup_channel_selection(
     method="SFS",
     metric="accuracy",
-    iterative_selection=True,
+    iterative_selection=False,
     initial_channels=initial_subset,  # wrapper setup
-    max_time=4,
+    max_time=100,
     min_channels=0,
-    max_channels=20,
-    performance_delta=-0.05,  # stopping criterion
+    max_channels=4,
+    performance_delta=-1,  # stopping criterion
     n_jobs=-1,
     record_performance=True,
 )
