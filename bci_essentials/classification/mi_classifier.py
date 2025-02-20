@@ -126,11 +126,6 @@ class MiClassifier(GenericClassifier):
             self.clf_model.steps.insert(0, ["Whitening", Whitening()])
             self.clf.steps.insert(0, ["Whitening", Whitening()])
 
-        if channel_selection == "riemann":
-            rcs = ElectrodeSelection()
-            self.clf_model.steps.insert(0, ["Channel Selection", rcs])
-            self.clf.steps.insert(0, ["Channel Selection", rcs])
-
         if remove_flats:
             rf = FlatChannelRemover()
             self.clf_model.steps.insert(0, ["Remove Flat Channels", rf])

@@ -31,7 +31,7 @@ class TestSmoke(unittest.TestCase):
         # Select a classifier
         classifier = MiClassifier()
         classifier.set_mi_classifier_settings(
-            n_splits=5, type="TS", random_seed=35, channel_selection="riemann"
+            n_splits=5, type="TS", random_seed=35
         )
 
         # Load the data
