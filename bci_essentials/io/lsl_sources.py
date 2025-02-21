@@ -96,6 +96,11 @@ class LslEegSource(EegSource):
                 output_labels = labels
                 break
 
+        # If no valid labels found, create numbered channel names
+        if output_labels is None:
+            logger.warning("No valid channel labels found, using numbered channels")
+            output_labels = [f"Ch{i+1}" for i in range(self.n_channels)]
+
         return output_labels
 
     def get_samples(self) -> tuple[list[list], list]:
