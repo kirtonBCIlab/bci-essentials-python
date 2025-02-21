@@ -85,7 +85,18 @@ class LslEegSource(EegSource):
 
     @property
     def channel_labels(self) -> list[str]:
-        return self.get_channel_properties("name")
+        # Possible properties to use for labels, depends on headset used
+        label_properties = ["name", "label"]
+
+        for prop in label_properties:
+            labels = self.get_channel_properties(prop)
+
+            # Check that labels are not empty strings
+            if labels and not any(label == "" for label in labels):
+                output_labels = labels
+                break
+
+        return output_labels
 
     def get_samples(self) -> tuple[list[list], list]:
         return pull_from_lsl_inlet(self.__inlet)
