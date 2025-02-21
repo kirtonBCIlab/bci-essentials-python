@@ -14,7 +14,7 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from pyriemann.preprocessing import Whitening
 from pyriemann.estimation import Covariances
 from pyriemann.classification import MDM, TSclassifier
-from pyriemann.channelselection import FlatChannelRemover, ElectrodeSelection
+from pyriemann.channelselection import FlatChannelRemover
 
 # Import bci_essentials modules and methods
 from ..classification.generic_classifier import GenericClassifier, Prediction
