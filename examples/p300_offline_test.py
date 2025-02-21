@@ -31,6 +31,7 @@ classifier.set_p300_clf_settings(
     undersample_ratio=0,
     random_seed=35,
     covariance_estimator="oas",
+    remove_flats=True,
 )
 
 # Initialize the ERP data object

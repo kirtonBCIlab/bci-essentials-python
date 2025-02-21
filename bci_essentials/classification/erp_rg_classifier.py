@@ -20,6 +20,8 @@ from sklearn.metrics import (
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from pyriemann.estimation import XdawnCovariances
 from pyriemann.tangentspace import TangentSpace
+from pyriemann.channelselection import FlatChannelRemover
+
 
 # Import bci_essentials modules and methods
 from ..classification.generic_classifier import GenericClassifier, Prediction
@@ -43,6 +45,7 @@ class ErpRgClassifier(GenericClassifier):
         undersample_ratio=0,
         random_seed=42,
         covariance_estimator="oas",  # Covariance estimator, see pyriemann Covariances
+        remove_flats=True,
     ):
         """Set P300 Classifier Settings.
 
@@ -70,6 +73,9 @@ class ErpRgClassifier(GenericClassifier):
         covariance_estimator : str, *optional*
             Covariance estimator. See pyriemann Covariances.
             - Default is `"oas"`.
+        remove_flats : bool, *optional*
+            Whether to remove flat channels.
+            - Default is `True`.
 
         Returns
         -------
@@ -83,44 +89,16 @@ class ErpRgClassifier(GenericClassifier):
         self.random_seed = random_seed
         self.covariance_estimator = covariance_estimator
 
-    # def add_to_train(self, decision_block, label_idx):
-    #     """Add to training set.
+        # Define the classifier
+        self.clf = make_pipeline(
+            XdawnCovariances(estimator=self.covariance_estimator),
+            TangentSpace(metric="riemann"),
+            LinearDiscriminantAnalysis(solver="eigen", shrinkage="auto"),
+        )
 
-    #     Parameters
-    #     ----------
-    #     decision_block : numpy.ndarray
-    #         Data to be added to the training set
-    #         3D numpy array with shape = (`n_decisions`,`n_channels`,`n_samples`)
-    #         E.g. 3D array containing data with `float` type.
-    #     label_idx : array_like
-    #         Index or indices indicating the labels for the decision blocks in `decision_block`.
-    #         This should be a 1D array or a list of integers representing labels.
-
-    #     Returns
-    #     -------
-    #     `None`
-
-    #     """
-    #     logger.debug("Adding to training set")
-    #     n_decisions, n_channels, n_samples = decision_block.shape
-
-    #     # get a subset
-    #     decision_block = self.get_subset(decision_block)
-
-    #     # get labels from label_idx
-    #     labels = np.zeros([n_decisions])
-    #     labels[label_idx] = 1
-    #     logger.debug("Labels: %s", labels)
-
-    #     # If the classifier has no data then initialize
-    #     if self.X.size == 0:
-    #         self.X = decision_block
-    #         self.y = labels
-
-    #     # If the classifier already has data then append
-    #     else:
-    #         self.X = np.append(self.X, decision_block, axis=0)
-    #         self.y = np.append(self.y, labels, axis=0)
+        if remove_flats:
+            rf = FlatChannelRemover()
+            self.clf.steps.insert(0, ["Remove Flat Channels", rf])
 
     def fit(
         self,
@@ -163,13 +141,6 @@ class ErpRgClassifier(GenericClassifier):
         # Define the strategy for cross validation
         cv = StratifiedKFold(
             n_splits=n_splits, shuffle=True, random_state=self.random_seed
-        )
-
-        # Define the classifier
-        self.clf = make_pipeline(
-            XdawnCovariances(estimator=self.covariance_estimator),
-            TangentSpace(metric="riemann"),
-            LinearDiscriminantAnalysis(solver="eigen", shrinkage="auto"),
         )
 
         # Init predictions to all false

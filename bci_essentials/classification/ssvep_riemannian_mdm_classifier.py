@@ -13,6 +13,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.metrics import confusion_matrix, precision_score, recall_score
 from pyriemann.classification import MDM
 from pyriemann.estimation import Covariances
+from pyriemann.channelselection import FlatChannelRemover
 
 # Import bci_essentials modules and methods
 from ..classification.generic_classifier import GenericClassifier, Prediction
@@ -38,6 +39,7 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
         n_harmonics=2,
         f_width=0.2,
         covariance_estimator="oas",
+        remove_flats=True,
     ):
         """Set the SSVEP settings.
 
@@ -59,6 +61,9 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
         covariance_estimator : str, *optional*
             Covariance Estimator (see Covariances - pyriemann)
             - Default is `"oas"`.
+        remove_flats : bool, *optional*
+            Remove flat channels.
+            - Default is `True`.
 
         Returns
         -------
@@ -82,6 +87,11 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
         mdm = MDM(metric=dict(mean="riemann", distance="riemann"), n_jobs=1)
         self.clf_model = Pipeline([("MDM", mdm)])
         self.clf = Pipeline([("MDM", mdm)])
+
+        if remove_flats:
+            rf = FlatChannelRemover()
+            self.clf_model.steps.insert(0, ["Remove Flat Channels", rf])
+            self.clf.steps.insert(0, ["Remove Flat Channels", rf])
 
     def get_ssvep_supertrial(
         self,
