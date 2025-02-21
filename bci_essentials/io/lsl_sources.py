@@ -85,7 +85,24 @@ class LslEegSource(EegSource):
 
     @property
     def channel_labels(self) -> list[str]:
-        return self.get_channel_properties("name")
+        # Possible properties to use for labels, depends on headset used
+        label_properties = ["name", "label"]
+        output_labels = None
+
+        for prop in label_properties:
+            labels = self.get_channel_properties(prop)
+
+            # Check that labels are not empty strings
+            if labels and not any(label == "" for label in labels):
+                output_labels = labels
+                break
+
+        # If no valid labels found, create numbered channel names
+        if output_labels is None:
+            logger.warning("No valid channel labels found, using numbered channels")
+            output_labels = [f"Ch{i+1}" for i in range(self.n_channels)]
+
+        return output_labels
 
     def get_samples(self) -> tuple[list[list], list]:
         return pull_from_lsl_inlet(self.__inlet)
