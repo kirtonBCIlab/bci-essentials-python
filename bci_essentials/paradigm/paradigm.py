@@ -24,6 +24,21 @@ class StartAndEndTimes:
     start_time: float = field(default_factory=0.0)
     end_time: float = field(default_factory=0.0)
 
+@dataclass
+class ProcessedMarkers:
+    """Dataclass for processed markers.
+
+    processed_data : np.ndarray
+        Processed EEG data.
+    
+    labels : np.ndarray
+        Labels.
+
+    """
+
+    processed_data: np.ndarray = field(default_factory=np.array)
+    labels: np.ndarray = field(default_factory=np.array)
+
 class Paradigm(ABC):
     def __init__(self, filters=[5, 30], channel_subset=None):
         """

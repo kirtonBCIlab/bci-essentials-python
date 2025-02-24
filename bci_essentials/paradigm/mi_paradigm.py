@@ -1,6 +1,6 @@
 import numpy as np
 
-from .paradigm import Paradigm, StartAndEndTimes
+from .paradigm import Paradigm, StartAndEndTimes, ProcessedMarkers
 
 
 class MiParadigm(Paradigm):
@@ -133,7 +133,7 @@ class MiParadigm(Paradigm):
 
             y[i] = label
 
-        return X, y
+        return ProcessedMarkers(X, y)
 
     # TODO: Implement this to check compatibility between paradigm and classifier
     def check_compatibility(self):

@@ -1,6 +1,6 @@
 import numpy as np
 
-from .paradigm import Paradigm, StartAndEndTimes
+from .paradigm import Paradigm, StartAndEndTimes, ProcessedMarkers
 
 
 class SsvepParadigm(Paradigm):
@@ -135,7 +135,7 @@ class SsvepParadigm(Paradigm):
                 X = np.concatenate((X, epoch_eeg), axis=0)
 
             y[i] = label
-        return X, y
+        return ProcessedMarkers(X, y)
 
     # TODO: Implement this
     def check_compatibility(self):

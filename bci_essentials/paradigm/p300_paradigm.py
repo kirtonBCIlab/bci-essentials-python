@@ -1,6 +1,6 @@
 import numpy as np
 
-from .paradigm import Paradigm, StartAndEndTimes
+from .paradigm import Paradigm, StartAndEndTimes, ProcessedMarkers
 
 
 class P300Paradigm(Paradigm):
@@ -173,7 +173,7 @@ class P300Paradigm(Paradigm):
         # # object_epochs_mean = np.mean(object_epochs, axis=1)
         # X = object_epochs_mean
 
-        return X, y
+        return ProcessedMarkers(X, y)
 
     # TODO: Implement this
     def check_compatibility(self):

@@ -238,13 +238,15 @@ class BciController:
         if timestamps[-1] < eeg_end_time:
             return False
 
-        X, y = self.__paradigm.process_markers(
+        processed_markers = self.__paradigm.process_markers(
             self.event_marker_buffer,
             self.event_timestamp_buffer,
             eeg,
             timestamps,
             self.fsample,
         )
+        X = processed_markers.processed_data
+        y = processed_markers.labels
 
         # Add the epochs to the data tank
         self.__data_tank.add_epochs(X, y)
