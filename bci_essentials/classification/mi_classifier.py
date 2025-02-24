@@ -17,7 +17,7 @@ from pyriemann.classification import MDM, TSclassifier
 from pyriemann.channelselection import FlatChannelRemover, ElectrodeSelection
 
 # Import bci_essentials modules and methods
-from ..classification.generic_classifier import GenericClassifier, Prediction
+from ..classification.generic_classifier import GenericClassifier, Prediction, KernelResults
 from ..channel_selection import channel_selection_by_method
 from ..utils.logger import Logger  # Logger wrapper
 
@@ -222,7 +222,26 @@ class MiClassifier(GenericClassifier):
 
             model = self.clf
 
-            return model, preds, accuracy, precision, recall
+            return KernelResults(model, preds, accuracy, precision, recall)
+        
+        def __extract_kernel_results(X, y):
+            """Wrapper function to call __mi_kernel and extract KernelResults.
+
+            Parameters
+            ----------
+            X : numpy.ndarray
+                Input data for training.
+            y : numpy.ndarray
+                Target labels for training.
+
+            Returns
+            -------
+            tuple
+                Extracted values from KernelResults formatted as:
+                (model, preds, accuracy, precision, recall)
+            """
+            results = __mi_kernel(X, y)
+            return results.model, results.preds, results.accuracy, results.precision, results.recall
 
         # Check if channel selection is true
         if self.channel_selection_setup:
@@ -245,7 +264,7 @@ class MiClassifier(GenericClassifier):
                 recall,
                 results_df,
             ) = channel_selection_by_method(
-                __mi_kernel,
+                __extract_kernel_results,
                 self.X,
                 self.y,
                 self.channel_labels,  # kernel setup
@@ -264,7 +283,12 @@ class MiClassifier(GenericClassifier):
             self.clf = updated_model
         else:
             logger.warning("Not doing channel selection")
-            self.clf, preds, accuracy, precision, recall = __mi_kernel(subX, suby)
+            current_results = __mi_kernel(subX, suby)
+            self.clf = current_results.model
+            preds = current_results.preds
+            accuracy = current_results.accuracy
+            precision = current_results.precision
+            recall = current_results.recall
 
         # Log performance stats
 
