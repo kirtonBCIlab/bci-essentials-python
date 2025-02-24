@@ -15,7 +15,7 @@ from pyriemann.classification import MDM
 from pyriemann.estimation import Covariances
 
 # Import bci_essentials modules and methods
-from ..classification.generic_classifier import GenericClassifier, Prediction
+from ..classification.generic_classifier import GenericClassifier, Prediction, KernelResults
 from ..signal_processing import bandpass
 from ..channel_selection import channel_selection_by_method
 from ..utils.logger import Logger  # Logger wrapper
@@ -259,7 +259,26 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
 
             model = self.clf
 
-            return model, preds, accuracy, precision, recall
+            return KernelResults(model, preds, accuracy, precision, recall)
+        
+        def __extract_kernel_results(X, y):
+            """Wrapper function to call __ssvep_kernel and extract KernelResults.
+
+            Parameters
+            ----------
+            X : numpy.ndarray
+                Input data for training.
+            y : numpy.ndarray
+                Target labels for training.
+
+            Returns
+            -------
+            tuple
+                Extracted values from KernelResults formatted as:
+                (model, preds, accuracy, precision, recall)
+            """
+            results = __ssvep_kernel(X, y)
+            return results.model, results.preds, results.accuracy, results.precision, results.recall
 
         # Check if channel selection is true
         if self.channel_selection_setup:
@@ -273,7 +292,7 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
                 precision,
                 recall,
             ) = channel_selection_by_method(
-                __ssvep_kernel,
+                __extract_kernel_results,
                 self.X,
                 self.y,
                 self.channel_labels,  # kernel setup
@@ -293,7 +312,12 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
             self.clf = updated_model
         else:
             logger.warning("Not doing channel selection")
-            self.clf, preds, accuracy, precision, recall = __ssvep_kernel(subX, suby)
+            current_results = __ssvep_kernel(subX, suby)
+            self.clf = current_results.model
+            preds = current_results.preds
+            accuracy = current_results.accuracy
+            precision = current_results.precision
+            recall = current_results.recall
 
         # Log performance stats
 
