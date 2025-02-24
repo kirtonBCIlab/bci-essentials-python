@@ -1,5 +1,6 @@
 import numpy as np
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 
 from ..utils.logger import Logger
 from ..signal_processing import bandpass
@@ -8,6 +9,20 @@ from ..signal_processing import bandpass
 # Logs to bci_essentials.__module__) where __module__ is the name of the module
 logger = Logger(name=__name__)
 
+@dataclass
+class StartAndEndTimes:
+    """Dataclass for start and end times of EEG data.
+
+    start_time : float
+        Start time.
+
+    end_time : float
+        End time.
+
+    """
+
+    start_time: float = field(default_factory=0.0)
+    end_time: float = field(default_factory=0.0)
 
 class Paradigm(ABC):
     def __init__(self, filters=[5, 30], channel_subset=None):

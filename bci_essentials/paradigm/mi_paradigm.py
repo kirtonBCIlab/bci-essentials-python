@@ -1,6 +1,6 @@
 import numpy as np
 
-from .paradigm import Paradigm
+from .paradigm import Paradigm, StartAndEndTimes
 
 
 class MiParadigm(Paradigm):
@@ -68,7 +68,7 @@ class MiParadigm(Paradigm):
 
         end_time = timestamps[-1] + float(markers[-1].split(",")[-1]) + self.buffer_time
 
-        return start_time, end_time
+        return StartAndEndTimes(start_time, end_time)
 
     def process_markers(self, markers, marker_timestamps, eeg, eeg_timestamps, fsample):
         """
