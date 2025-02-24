@@ -56,11 +56,11 @@ class KernelResults:
         The recall of the trained classification model.
     """
 
-    model: Pipeline
-    preds: np.ndarray
-    accuracy: float
-    precision: float
-    recall: float
+    model: Pipeline = field(default=None)
+    preds: np.ndarray = field(default_factory=np.ndarray)
+    accuracy: float = field(default=0.0)
+    precision: float = field(default=0.0)
+    recall: float = field(default=0.0)
 
 class GenericClassifier(ABC):
     """The base generic classifier class for other classifiers."""
