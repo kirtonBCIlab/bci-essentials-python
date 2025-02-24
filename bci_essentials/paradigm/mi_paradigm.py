@@ -59,10 +59,12 @@ class MiParadigm(Paradigm):
 
         Returns
         -------
-        float
-            Start time.
-        float
-            End time.
+        startAndEndTimes : StartAndEndTimes
+            StartAndEndTimes object containing the following:
+                float
+                    Start time.
+                float
+                    End time.
         """
         start_time = timestamps[0] - self.buffer_time
 
@@ -89,10 +91,12 @@ class MiParadigm(Paradigm):
 
         Returns
         -------
-        np.array
-            Processed EEG data. Shape is (n_epochs, n_channels, n_samples).
-        np.array
-            Labels. Shape is (n_epochs).
+        processedMarkers : ProcessedMarkers
+            ProcessedMarkers object containing the following:
+                np.array
+                    Processed EEG data. Shape is (n_epochs, n_channels, n_samples).
+                np.array
+                    Labels. Shape is (n_epochs).
         """
 
         # Initialize y
