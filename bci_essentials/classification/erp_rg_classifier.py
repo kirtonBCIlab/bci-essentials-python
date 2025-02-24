@@ -194,17 +194,19 @@ class ErpRgClassifier(GenericClassifier):
 
             Returns
             -------
-            model : classifier
-                The trained classification model.
-            preds : numpy.ndarray
-                The predictions from the model.
-                1D array with the same shape as `y`.
-            accuracy : float
-                The accuracy of the trained classification model.
-            precision : float
-                The precision of the trained classification model.
-            recall : float
-                The recall of the trained classification model.
+            kernelResults : KernelResults
+                KernelResults object containing the following attributes:
+                    model : classifier
+                        The trained classification model.
+                    preds : numpy.ndarray
+                        The predictions from the model.
+                        1D array with the same shape as `y`.
+                    accuracy : float
+                        The accuracy of the trained classification model.
+                    precision : float
+                        The precision of the trained classification model.
+                    recall : float
+                        The recall of the trained classification model.
 
             """
             for train_idx, test_idx in cv.split(X, y):

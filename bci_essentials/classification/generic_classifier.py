@@ -40,7 +40,7 @@ class Prediction:
 class KernelResults:
     """Dataclass to store output from the kernel methods
 
-    model: classifier
+    model : classifier
         The trained classification model.
 
     preds : numpy.ndarray
