@@ -22,7 +22,11 @@ from pyriemann.estimation import XdawnCovariances
 from pyriemann.tangentspace import TangentSpace
 
 # Import bci_essentials modules and methods
-from ..classification.generic_classifier import GenericClassifier, Prediction, KernelResults
+from ..classification.generic_classifier import (
+    GenericClassifier,
+    Prediction,
+    KernelResults,
+)
 from ..signal_processing import lico
 from ..channel_selection import channel_selection_by_method
 from ..utils.logger import Logger  # Logger wrapper
@@ -314,7 +318,7 @@ class ErpRgClassifier(GenericClassifier):
             recall = recall_score(self.y, preds)
 
             return KernelResults(model, preds, accuracy, precision, recall)
-        
+
         def __extract_kernel_results(X, y):
             """Wrapper function to call __erp_rg_kernel and extract KernelResults.
 
@@ -332,22 +336,20 @@ class ErpRgClassifier(GenericClassifier):
                 (model, preds, accuracy, precision, recall)
             """
             results = __erp_rg_kernel(X, y)
-            return results.model, results.preds, results.accuracy, results.precision, results.recall
+            return (
+                results.model,
+                results.preds,
+                results.accuracy,
+                results.precision,
+                results.recall,
+            )
 
         # Check if channel selection is true
         if self.channel_selection_setup:
             logger.info("Doing channel selection")
             logger.debug("Initial subset: %s", self.chs_initial_subset)
 
-            (
-                updated_subset,
-                updated_model,
-                preds,
-                accuracy,
-                precision,
-                recall,
-                results_df,
-            ) = channel_selection_by_method(
+            channel_selection_results = channel_selection_by_method(
                 __extract_kernel_results,
                 self.X,
                 self.y,
@@ -362,16 +364,22 @@ class ErpRgClassifier(GenericClassifier):
                 self.chs_n_jobs,
             )  # njobs, output messages
 
-            logger.info("The optimal subset is %s", updated_subset)
+            preds = channel_selection_results.best_preds
+            accuracy = channel_selection_results.best_accuracy
+            precision = channel_selection_results.best_precision
+            recall = channel_selection_results.best_recall
 
-            self.results_df = results_df
-            self.subset = updated_subset
-            self.clf = updated_model
+            logger.info(
+                "The optimal subset is %s",
+                channel_selection_results.best_channel_subset,
+            )
+
+            self.results_df = channel_selection_results.results_df
+            self.subset = channel_selection_results.best_channel_subset
+            self.clf = channel_selection_results.best_model
         else:
             logger.warning("Not doing channel selection")
-            current_results = __erp_rg_kernel(
-                self.X, self.y
-            )
+            current_results = __erp_rg_kernel(self.X, self.y)
             self.clf = current_results.model
             preds = current_results.preds
             accuracy = current_results.accuracy

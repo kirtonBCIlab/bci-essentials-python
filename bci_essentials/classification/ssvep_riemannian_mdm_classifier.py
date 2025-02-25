@@ -15,7 +15,11 @@ from pyriemann.classification import MDM
 from pyriemann.estimation import Covariances
 
 # Import bci_essentials modules and methods
-from ..classification.generic_classifier import GenericClassifier, Prediction, KernelResults
+from ..classification.generic_classifier import (
+    GenericClassifier,
+    Prediction,
+    KernelResults,
+)
 from ..signal_processing import bandpass
 from ..channel_selection import channel_selection_by_method
 from ..utils.logger import Logger  # Logger wrapper
@@ -263,7 +267,7 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
             model = self.clf
 
             return KernelResults(model, preds, accuracy, precision, recall)
-        
+
         def __extract_kernel_results(X, y):
             """Wrapper function to call __ssvep_kernel and extract KernelResults.
 
@@ -281,20 +285,19 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
                 (model, preds, accuracy, precision, recall)
             """
             results = __ssvep_kernel(X, y)
-            return results.model, results.preds, results.accuracy, results.precision, results.recall
+            return (
+                results.model,
+                results.preds,
+                results.accuracy,
+                results.precision,
+                results.recall,
+            )
 
         # Check if channel selection is true
         if self.channel_selection_setup:
             logger.info("Doing channel selection")
 
-            (
-                updated_subset,
-                updated_model,
-                preds,
-                accuracy,
-                precision,
-                recall,
-            ) = channel_selection_by_method(
+            channel_selection_results = channel_selection_by_method(
                 __extract_kernel_results,
                 self.X,
                 self.y,
@@ -309,10 +312,18 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
                 self.chs_n_jobs,
             )
 
-            logger.info("The optimal subset is: %s", updated_subset)
+            preds = channel_selection_results.best_preds
+            accuracy = channel_selection_results.best_accuracy
+            precision = channel_selection_results.best_precision
+            recall = channel_selection_results.best_recall
 
-            self.subset = updated_subset
-            self.clf = updated_model
+            logger.info(
+                "The optimal subset is: %s",
+                channel_selection_results.best_channel_subset,
+            )
+
+            self.subset = channel_selection_results.best_channel_subset
+            self.clf = channel_selection_results.best_model
         else:
             logger.warning("Not doing channel selection")
             current_results = __ssvep_kernel(subX, suby)

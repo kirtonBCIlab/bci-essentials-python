@@ -17,7 +17,11 @@ from pyriemann.classification import MDM, TSclassifier
 from pyriemann.channelselection import FlatChannelRemover, ElectrodeSelection
 
 # Import bci_essentials modules and methods
-from ..classification.generic_classifier import GenericClassifier, Prediction, KernelResults
+from ..classification.generic_classifier import (
+    GenericClassifier,
+    Prediction,
+    KernelResults,
+)
 from ..channel_selection import channel_selection_by_method
 from ..utils.logger import Logger  # Logger wrapper
 
@@ -226,7 +230,7 @@ class MiClassifier(GenericClassifier):
             model = self.clf
 
             return KernelResults(model, preds, accuracy, precision, recall)
-        
+
         def __extract_kernel_results(X, y):
             """Wrapper function to call __mi_kernel and extract KernelResults.
 
@@ -244,7 +248,13 @@ class MiClassifier(GenericClassifier):
                 (model, preds, accuracy, precision, recall)
             """
             results = __mi_kernel(X, y)
-            return results.model, results.preds, results.accuracy, results.precision, results.recall
+            return (
+                results.model,
+                results.preds,
+                results.accuracy,
+                results.precision,
+                results.recall,
+            )
 
         # Check if channel selection is true
         if self.channel_selection_setup:
@@ -258,15 +268,7 @@ class MiClassifier(GenericClassifier):
                 initial_subset = self.chs_initial_subset
 
             logger.info("Doing channel selection")
-            (
-                updated_subset,
-                updated_model,
-                preds,
-                accuracy,
-                precision,
-                recall,
-                results_df,
-            ) = channel_selection_by_method(
+            channel_selection_results = channel_selection_by_method(
                 __extract_kernel_results,
                 self.X,
                 self.y,
@@ -281,9 +283,14 @@ class MiClassifier(GenericClassifier):
                 self.chs_n_jobs,
             )
 
-            self.results_df = results_df
-            self.subset = updated_subset
-            self.clf = updated_model
+            preds = channel_selection_results.best_preds
+            accuracy = channel_selection_results.best_accuracy
+            precision = channel_selection_results.best_precision
+            recall = channel_selection_results.best_recall
+
+            self.results_df = channel_selection_results.results_df
+            self.subset = channel_selection_results.best_channel_subset
+            self.clf = channel_selection_results.best_model
         else:
             logger.warning("Not doing channel selection")
             current_results = __mi_kernel(subX, suby)

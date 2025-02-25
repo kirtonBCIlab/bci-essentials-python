@@ -9,6 +9,7 @@ from ..signal_processing import bandpass
 # Logs to bci_essentials.__module__) where __module__ is the name of the module
 logger = Logger(name=__name__)
 
+
 @dataclass
 class StartAndEndTimes:
     """Dataclass for start and end times of EEG data.
@@ -24,13 +25,14 @@ class StartAndEndTimes:
     start_time: float = field(default_factory=0.0)
     end_time: float = field(default_factory=0.0)
 
+
 @dataclass
 class ProcessedMarkers:
     """Dataclass for processed markers.
 
     processed_data : np.ndarray
         Processed EEG data.
-    
+
     labels : np.ndarray
         Labels.
 
@@ -38,6 +40,7 @@ class ProcessedMarkers:
 
     processed_data: np.ndarray = field(default_factory=np.array)
     labels: np.ndarray = field(default_factory=np.array)
+
 
 class Paradigm(ABC):
     def __init__(self, filters=[5, 30], channel_subset=None):

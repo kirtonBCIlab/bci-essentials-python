@@ -36,6 +36,7 @@ class Prediction:
     labels: list = field(default_factory=list)
     probabilities: list = field(default_factory=list)
 
+
 @dataclass
 class KernelResults:
     """Dataclass to store output from the kernel methods
@@ -61,6 +62,7 @@ class KernelResults:
     accuracy: float = field(default=0.0)
     precision: float = field(default=0.0)
     recall: float = field(default=0.0)
+
 
 class GenericClassifier(ABC):
     """The base generic classifier class for other classifiers."""
