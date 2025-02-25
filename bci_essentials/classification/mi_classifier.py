@@ -232,7 +232,7 @@ class MiClassifier(GenericClassifier):
             return KernelResults(model, preds, accuracy, precision, recall)
 
         def __extract_kernel_results(X, y):
-            """Wrapper function to call __mi_kernel and extract KernelResults.
+            """Wrapper function to extract KernelResults to use in channel_selection_by_method.
 
             Parameters
             ----------
