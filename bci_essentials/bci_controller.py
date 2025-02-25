@@ -228,7 +228,7 @@ class BciController:
         eeg_times = self.__paradigm.get_eeg_start_and_end_times(
             self.event_marker_buffer, self.event_timestamp_buffer
         )
-        eeg_start_time = eeg_times.start_time
+        # eeg_start_time = eeg_times.start_time # Not used
         eeg_end_time = eeg_times.end_time
 
         # No we actually need to wait until we have all the data for these markers
