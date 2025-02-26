@@ -135,7 +135,6 @@ def channel_selection_by_method(
     preds : numpy.ndarray
         The predictions from the model.
         1D array with the same shape as `y`.
-
         shape = (`n_trials`)
     accuracy : float
         The accuracy of the trained classification model.
@@ -244,6 +243,7 @@ def channel_selection_by_method(
 
 
 def __check_stopping_criterion(
+    algorithm,
     current_time,
     n_channels,
     current_performance_delta,
@@ -256,6 +256,8 @@ def __check_stopping_criterion(
 
     Parameters
     ----------
+    algorithm : str
+        The algorithm being used for channel selection.
     current_time : float
         The time elapsed since the start of the channel selection method.
     n_channels : int
@@ -284,19 +286,21 @@ def __check_stopping_criterion(
         logger.debug("Stopping based on time")
         return True
 
-    elif n_channels <= min_channels:
-        logger.debug("Stopping because minimum number of channels reached")
-        return True
+    if algorithm == "SBS" or algorithm == "SBFS":
+        if n_channels <= min_channels:
+            logger.debug("Stopping because minimum number of channels reached")
+            return True
 
-    elif n_channels >= max_channels:
-        logger.debug("Stopping because maximum number of channels reached")
-        return True
+    if algorithm == "SFS" or algorithm == "SFFS":
+        if n_channels >= max_channels:
+            logger.debug("Stopping because maximum number of channels reached")
+            return True
 
-    elif current_performance_delta < performance_delta:
+    if current_performance_delta < performance_delta:
         logger.debug("Stopping because performance improvements are declining")
         return True
-    else:
-        return False
+
+    return False
 
 
 def __sfs(
@@ -448,7 +452,7 @@ def __sfs(
         for channel in range(n_channels):
             if channel not in sfs_subset:
                 set_to_try = sfs_subset.copy()
-                set_to_try.append(c)
+                set_to_try.append(channel)
                 sets_to_try.append(set_to_try)
 
                 # Get the new subset of data
@@ -530,22 +534,22 @@ def __sfs(
             best_precision = precision
             best_recall = recall
 
-        if record_performance is True:
-            new_channel_subset.sort()
-            results_df.loc[step] = [
-                step,
-                time.time() - start_time,
-                len(new_channel_subset),
-                "".join(new_channel_subset),
-                len(sets_to_try),
-                accuracy,
-                precision,
-                recall,
-            ]
+        new_channel_subset.sort()
+        results_df.loc[step] = [
+            step,
+            time.time() - start_time,
+            len(new_channel_subset),
+            "".join(new_channel_subset),
+            len(sets_to_try),
+            accuracy,
+            precision,
+            recall,
+        ]
 
         step += 1
 
         stop_criterion = __check_stopping_criterion(
+            "SFS",
             time.time() - start_time,
             len(new_channel_subset),
             p_delta,
@@ -560,6 +564,9 @@ def __sfs(
     logger.debug("Best channel subset: %s", best_channel_subset)
     logger.debug("%s : %s", metric, best_performance)
     logger.debug("Time to optimal subset: %s s", time.time() - start_time)
+
+    if record_performance is True:
+        logger.info(results_df)
 
     # Get the best model
 
@@ -715,9 +722,9 @@ def __sbs(
         # Exclusion Step
         sets_to_try = []
         X_to_try = []
-        for c in sbs_subset:
+        for channel in sbs_subset:
             set_to_try = sbs_subset.copy()
-            set_to_try.remove(c)
+            set_to_try.remove(channel)
             set_to_try.sort()
 
             # Only try sets that have not been tried before
@@ -807,26 +814,26 @@ def __sbs(
             best_precision = precision
             best_recall = recall
 
-        if record_performance is True:
-            new_channel_subset.sort()
-            results_df.loc[step] = [
-                step,
-                time.time() - start_time,
-                len(new_channel_subset),
-                "".join(new_channel_subset),
-                len(sets_to_try),
-                accuracy,
-                precision,
-                recall,
-            ]
+        new_channel_subset.sort()
+        results_df.loc[step] = [
+            step,
+            time.time() - start_time,
+            len(new_channel_subset),
+            "".join(new_channel_subset),
+            len(sets_to_try),
+            accuracy,
+            precision,
+            recall,
+        ]
 
         step += 1
 
-        # Break if SBFS subset is 1 channel
+        # Break if SBS subset is 1 channel
         if len(sbs_subset) == 1:
             break
 
         stop_criterion = __check_stopping_criterion(
+            "SBS",
             time.time() - start_time,
             len(new_channel_subset),
             p_delta,
@@ -841,6 +848,9 @@ def __sbs(
     logger.debug("Best channel subset: %s", best_channel_subset)
     logger.debug("%s : %s", metric, best_performance)
     logger.debug("Time to optimal subset: %s s", time.time() - start_time)
+
+    if record_performance is True:
+        logger.info(results_df)
 
     return ChannelSelectionOutput(
         best_channel_subset,
@@ -1242,19 +1252,18 @@ def __sbfs(
                     best_precision = precision
                     best_recall = recall
 
-                if record_performance:
-                    new_channel_subset.sort()
-                    results_df.loc[step] = [
-                        step,
-                        time.time() - start_time,
-                        len(new_channel_subset),
-                        "".join(new_channel_subset),
-                        len(sets_to_try),
-                        accuracy,
-                        precision,
-                        recall,
-                    ]
-                    step += 1
+                new_channel_subset.sort()
+                results_df.loc[step] = [
+                    step,
+                    time.time() - start_time,
+                    len(new_channel_subset),
+                    "".join(new_channel_subset),
+                    len(sets_to_try),
+                    accuracy,
+                    precision,
+                    recall,
+                ]
+                step += 1
 
                 performance_at_n_channels[length_of_resultant_set - 1] = (
                     current_performance
@@ -1267,6 +1276,7 @@ def __sbfs(
 
             # Check stopping criterion
             stop_criterion = __check_stopping_criterion(
+                "SBFS",
                 time.time() - start_time,
                 len(new_channel_subset),
                 p_delta,
@@ -1277,6 +1287,7 @@ def __sbfs(
             )
 
         stop_criterion = __check_stopping_criterion(
+            "SBFS",
             time.time() - start_time,
             len(new_channel_subset),
             p_delta,
@@ -1295,6 +1306,9 @@ def __sbfs(
     logger.debug("Best channel subset: %s", best_channel_subset)
     logger.debug("%s : %s", metric, best_performance)
     logger.debug("Time to optimal subset: %s s", time.time() - start_time)
+
+    if record_performance is True:
+        logger.info(results_df)
 
     return ChannelSelectionOutput(
         best_channel_subset,
@@ -1555,18 +1569,17 @@ def __sffs(
             best_precision = precision
             best_recall = recall
 
-        if record_performance:
-            new_channel_subset.sort()
-            results_df.loc[step] = [
-                step,
-                time.time() - start_time,
-                len(new_channel_subset),
-                "".join(new_channel_subset),
-                len(sets_to_try),
-                accuracy,
-                precision,
-                recall,
-            ]
+        new_channel_subset.sort()
+        results_df.loc[step] = [
+            step,
+            time.time() - start_time,
+            len(new_channel_subset),
+            "".join(new_channel_subset),
+            len(sets_to_try),
+            accuracy,
+            precision,
+            recall,
+        ]
 
         step += 1
 
@@ -1716,6 +1729,7 @@ def __sffs(
             # Check stopping criterion
             if pass_stopping_criterion is False:
                 stop_criterion = __check_stopping_criterion(
+                    "SFFS",
                     time.time() - start_time,
                     len(new_channel_subset),
                     p_delta,
@@ -1730,6 +1744,7 @@ def __sffs(
             continue
         else:
             stop_criterion = __check_stopping_criterion(
+                "SFFS",
                 time.time() - start_time,
                 len(new_channel_subset),
                 p_delta,
@@ -1745,6 +1760,9 @@ def __sffs(
     logger.debug("%s : %s", metric, best_performance)
     logger.debug("Time to optimal subset: %s s", time.time() - start_time)
 
+    if record_performance is True:
+        logger.info(results_df)
+        
     return ChannelSelectionOutput(
         best_channel_subset,
         best_model,

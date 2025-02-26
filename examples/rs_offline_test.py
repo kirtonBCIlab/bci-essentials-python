@@ -30,9 +30,7 @@ data_tank = DataTank()
 classifier = MiClassifier()  # you can add a subset here
 
 # Define the classifier settings
-classifier.set_mi_classifier_settings(
-    n_splits=5, type="TS", random_seed=35, channel_selection="riemann"
-)
+classifier.set_mi_classifier_settings(n_splits=5, type="TS", random_seed=35)
 
 # Initialize data object
 test_rs = BciController(classifier, eeg_source, marker_source, paradigm, data_tank)
