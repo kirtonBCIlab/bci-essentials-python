@@ -36,7 +36,7 @@ classifier.set_mi_classifier_settings(n_splits=5, type="TS", random_seed=35)
 # Define channel selection settings
 initial_subset = []
 classifier.setup_channel_selection(
-    method="SFFS",
+    method="SBFS",
     metric="accuracy",
     iterative_selection=True,
     initial_channels=initial_subset,  # wrapper setup
