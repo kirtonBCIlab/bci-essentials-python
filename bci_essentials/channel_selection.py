@@ -1762,7 +1762,7 @@ def __sffs(
 
     if record_performance is True:
         logger.info(results_df)
-        
+
     return ChannelSelectionOutput(
         best_channel_subset,
         best_model,
