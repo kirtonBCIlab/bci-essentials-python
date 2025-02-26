@@ -143,7 +143,7 @@ class TestChannelSelection(unittest.TestCase):
         )
         time_end = time.time()
 
-        best_subset = selection_output[0]
+        best_subset = selection_output.best_channel_subset
 
         # Check that the best subset is within the correct range
         self.assertGreaterEqual(len(best_subset), min_channels)
@@ -175,8 +175,8 @@ class TestChannelSelection(unittest.TestCase):
             record_performance=True,
         )
 
-        best_subset = selection_output[0]
-        results_df = selection_output[6]
+        best_subset = selection_output.best_channel_subset
+        results_df = selection_output.results_df
 
         # Check that the best subset is within the correct range
         self.assertGreaterEqual(len(best_subset), min_channels)
@@ -204,8 +204,8 @@ class TestChannelSelection(unittest.TestCase):
             record_performance=True,
         )
 
-        best_subset = selection_output[0]
-        results_df = selection_output[6]
+        best_subset = selection_output.best_channel_subset
+        results_df = selection_output.results_df
 
         # Check that the best subset is within the correct range
         self.assertGreaterEqual(len(best_subset), min_channels)
@@ -239,8 +239,8 @@ class TestChannelSelection(unittest.TestCase):
             record_performance=True,
         )
 
-        best_subset = selection_output[0]
-        results_df = selection_output[6]
+        best_subset = selection_output.best_channel_subset
+        results_df = selection_output.results_df
 
         # Check that the best subset is within the correct range
         self.assertGreaterEqual(len(best_subset), min_channels)
@@ -268,8 +268,8 @@ class TestChannelSelection(unittest.TestCase):
             record_performance=True,
         )
 
-        best_subset = selection_output[0]
-        results_df = selection_output[6]
+        best_subset = selection_output.best_channel_subset
+        results_df = selection_output.results_df
 
         # Check that the best subset is within the correct range
         self.assertGreaterEqual(len(best_subset), min_channels)
@@ -280,9 +280,6 @@ class TestChannelSelection(unittest.TestCase):
         max_channels_tried = int(results_df["N Channels"].max())
         self.assertGreaterEqual(min_channels_tried, min_channels)
         self.assertLessEqual(max_channels_tried, max_channels)
-
-        best_subset = selection_output[0]
-        results_df = selection_output[6]
 
     # Test performance delta
     def test_performance_delta(self):
@@ -308,7 +305,7 @@ class TestChannelSelection(unittest.TestCase):
             record_performance=True,
         )
 
-        results_df = selection_output[6]
+        results_df = selection_output.results_df
 
         # Check that the algorithm didn't check combinations outside of the range
         scores = results_df["Accuracy"]
