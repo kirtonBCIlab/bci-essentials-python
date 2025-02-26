@@ -31,7 +31,6 @@ class TestClassifierSave(unittest.TestCase):
             n_splits=5,
             type="TS",
             random_seed=35,
-            channel_selection="riemann",
             covariance_estimator="oas",
         )
 

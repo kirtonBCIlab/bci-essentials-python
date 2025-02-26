@@ -28,7 +28,8 @@ classifier.set_mi_classifier_settings(
     n_splits=5,
     type="TS",
     random_seed=35,
-    covariance_estimator="oas",
+    covariance_estimator="scm",
+    remove_flats=True,
 )
 
 # Initialize data object

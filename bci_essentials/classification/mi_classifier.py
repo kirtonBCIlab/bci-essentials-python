@@ -14,7 +14,7 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from pyriemann.preprocessing import Whitening
 from pyriemann.estimation import Covariances
 from pyriemann.classification import MDM, TSclassifier
-from pyriemann.channelselection import FlatChannelRemover, ElectrodeSelection
+from pyriemann.channelselection import FlatChannelRemover
 
 # Import bci_essentials modules and methods
 from ..classification.generic_classifier import GenericClassifier, Prediction
@@ -33,11 +33,10 @@ class MiClassifier(GenericClassifier):
         self,
         n_splits=5,
         type="TS",
-        remove_flats=False,
+        remove_flats=True,
         whitening=False,
         covariance_estimator="oas",
         artifact_rejection="none",
-        channel_selection="none",
         pred_threshold=0.5,
         random_seed=42,
         n_jobs=1,
@@ -55,7 +54,7 @@ class MiClassifier(GenericClassifier):
             - Default is `"TS"`.
         remove_flats : bool, *optional*
             Whether to remove flat channels from the EEG data.
-            - Default is `False`.
+            - Default is `True`.
         whitening : bool, *optional*
             Whether to apply whitening to the EEG data.
             - Default is `False`.
@@ -64,9 +63,6 @@ class MiClassifier(GenericClassifier):
             - Default is `"oas"`.
         artifact_rejection : str, *optional*
             Method for artefact rejection.
-            - Default is `"none"`.
-        channel_selection : str, *optional*
-            Method for channel selection.
             - Default is `"none"`.
         pred_threshold : float, *optional*
             Prediction threshold used for classification.
@@ -119,17 +115,20 @@ class MiClassifier(GenericClassifier):
         else:
             logger.error("Classifier type not defined")
 
+        # All algorithms have covariance estimation as the first step
+        self.clf_model.steps.insert(
+            0, ["Covariances", Covariances(estimator=self.covariance_estimator)]
+        )
+        self.clf.steps.insert(
+            0, ["Covariances", Covariances(estimator=self.covariance_estimator)]
+        )
+
         if artifact_rejection == "potato":
             logger.error("Potato not implemented")
 
         if whitening:
             self.clf_model.steps.insert(0, ["Whitening", Whitening()])
             self.clf.steps.insert(0, ["Whitening", Whitening()])
-
-        if channel_selection == "riemann":
-            rcs = ElectrodeSelection()
-            self.clf_model.steps.insert(0, ["Channel Selection", rcs])
-            self.clf.steps.insert(0, ["Channel Selection", rcs])
 
         if remove_flats:
             rf = FlatChannelRemover()
@@ -204,17 +203,9 @@ class MiClassifier(GenericClassifier):
                 # y_test not implemented
                 y_train = suby[train_idx]
 
-                # get the covariance matrices for the training set
-                X_train_cov = Covariances(
-                    estimator=self.covariance_estimator
-                ).transform(X_train)
-                X_test_cov = Covariances(estimator=self.covariance_estimator).transform(
-                    X_test
-                )
-
                 # fit the classsifier
-                self.clf.fit(X_train_cov, y_train)
-                preds[test_idx] = self.clf.predict(X_test_cov)
+                self.clf.fit(X_train, y_train)
+                preds[test_idx] = self.clf.predict(X_test)
 
             accuracy = sum(preds == self.y) / len(preds)
             precision = precision_score(self.y, preds, average="micro")
@@ -318,12 +309,8 @@ class MiClassifier(GenericClassifier):
 
         logger.info("The shape of X is %s", subset_X.shape)
 
-        cov_subset_X = Covariances(estimator=self.covariance_estimator).transform(
-            subset_X
-        )
-
-        pred = [int(x) for x in self.clf.predict(cov_subset_X)]
-        pred_proba = self.clf.predict_proba(cov_subset_X)
+        pred = [int(x) for x in self.clf.predict(subset_X)]
+        pred_proba = self.clf.predict_proba(subset_X)
 
         logger.info("Prediction: %s", pred)
         logger.info("Prediction probabilities: %s", pred_proba)
