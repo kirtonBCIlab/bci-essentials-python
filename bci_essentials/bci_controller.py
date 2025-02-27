@@ -225,11 +225,9 @@ class BciController:
 
         """
 
-        eeg_times = self.__paradigm.get_eeg_start_and_end_times(
+        eeg_start_time, eeg_end_time = self.__paradigm.get_eeg_start_and_end_times(
             self.event_marker_buffer, self.event_timestamp_buffer
         )
-        # eeg_start_time = eeg_times.start_time # Not used
-        eeg_end_time = eeg_times.end_time
 
         # No we actually need to wait until we have all the data for these markers
         eeg, timestamps = self.__data_tank.get_raw_eeg()
@@ -238,15 +236,13 @@ class BciController:
         if timestamps[-1] < eeg_end_time:
             return False
 
-        processed_markers = self.__paradigm.process_markers(
+        X, y = self.__paradigm.process_markers(
             self.event_marker_buffer,
             self.event_timestamp_buffer,
             eeg,
             timestamps,
             self.fsample,
         )
-        X = processed_markers.processed_data
-        y = processed_markers.labels
 
         # Add the epochs to the data tank
         self.__data_tank.add_epochs(X, y)

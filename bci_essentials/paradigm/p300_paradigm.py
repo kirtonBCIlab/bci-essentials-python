@@ -1,6 +1,6 @@
 import numpy as np
 
-from .paradigm import Paradigm, StartAndEndTimes, ProcessedMarkers
+from .paradigm import Paradigm
 
 
 class P300Paradigm(Paradigm):
@@ -67,18 +67,16 @@ class P300Paradigm(Paradigm):
 
         Returns
         -------
-        startAndEndTimes : StartAndEndTimes
-            StartAndEndTimes object containing the following:
-                float
-                    Start time.
-                float
-                    End time.
+        float
+            Start time.
+        float
+            End time.
         """
         start_time = timestamps[0] + self.epoch_start - self.buffer_time
 
         end_time = timestamps[-1] + self.epoch_end + self.buffer_time
 
-        return StartAndEndTimes(start_time, end_time)
+        return start_time, end_time
 
     def process_markers(self, markers, marker_timestamps, eeg, eeg_timestamps, fsample):
         """
@@ -99,12 +97,10 @@ class P300Paradigm(Paradigm):
 
         Returns
         -------
-        processedMarkers : ProcessedMarkers
-            ProcessedMarkers object containing the following:
-                np.array
-                    Processed EEG data. Shape is (n_epochs, n_channels, n_samples).
-                np.array
-                    Labels. Shape is (n_epochs).
+        np.array
+            Processed EEG data. Shape is (n_epochs, n_channels, n_samples).
+        np.array
+            Labels. Shape is (n_epochs).
         """
 
         n_channels, _ = eeg.shape
@@ -176,7 +172,7 @@ class P300Paradigm(Paradigm):
         # # object_epochs_mean = np.mean(object_epochs, axis=1)
         # X = object_epochs_mean
 
-        return ProcessedMarkers(X, y)
+        return X, y
 
     # TODO: Implement this
     def check_compatibility(self):

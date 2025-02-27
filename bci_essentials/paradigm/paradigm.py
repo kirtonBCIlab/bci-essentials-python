@@ -1,6 +1,5 @@
 import numpy as np
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
 
 from ..utils.logger import Logger
 from ..signal_processing import bandpass
@@ -8,38 +7,6 @@ from ..signal_processing import bandpass
 # Instantiate a logger for the module at the default level of logging.INFO
 # Logs to bci_essentials.__module__) where __module__ is the name of the module
 logger = Logger(name=__name__)
-
-
-@dataclass
-class StartAndEndTimes:
-    """Dataclass for start and end times of EEG data.
-
-    start_time : float
-        Start time.
-
-    end_time : float
-        End time.
-
-    """
-
-    start_time: float = field(default_factory=0.0)
-    end_time: float = field(default_factory=0.0)
-
-
-@dataclass
-class ProcessedMarkers:
-    """Dataclass for processed markers.
-
-    processed_data : np.ndarray
-        Processed EEG data.
-
-    labels : np.ndarray
-        Labels.
-
-    """
-
-    processed_data: np.ndarray = field(default_factory=np.array)
-    labels: np.ndarray = field(default_factory=np.array)
 
 
 class Paradigm(ABC):

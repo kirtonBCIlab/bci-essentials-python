@@ -1,6 +1,6 @@
 import numpy as np
 
-from .paradigm import Paradigm, StartAndEndTimes, ProcessedMarkers
+from .paradigm import Paradigm
 
 
 class MiParadigm(Paradigm):
@@ -62,18 +62,16 @@ class MiParadigm(Paradigm):
 
         Returns
         -------
-        startAndEndTimes : StartAndEndTimes
-            StartAndEndTimes object containing the following:
-                float
-                    Start time.
-                float
-                    End time.
+        float
+            Start time.
+        float
+            End time.
         """
         start_time = timestamps[0] - self.buffer_time
 
         end_time = timestamps[-1] + float(markers[-1].split(",")[-1]) + self.buffer_time
 
-        return StartAndEndTimes(start_time, end_time)
+        return start_time, end_time
 
     def process_markers(self, markers, marker_timestamps, eeg, eeg_timestamps, fsample):
         """
@@ -94,12 +92,10 @@ class MiParadigm(Paradigm):
 
         Returns
         -------
-        processedMarkers : ProcessedMarkers
-            ProcessedMarkers object containing the following:
-                np.array
-                    Processed EEG data. Shape is (n_epochs, n_channels, n_samples).
-                np.array
-                    Labels. Shape is (n_epochs).
+        np.array
+            Processed EEG data. Shape is (n_epochs, n_channels, n_samples).
+        np.array
+            Labels. Shape is (n_epochs).
         """
 
         # Initialize y
@@ -140,7 +136,7 @@ class MiParadigm(Paradigm):
 
             y[i] = label
 
-        return ProcessedMarkers(X, y)
+        return X, y
 
     # TODO: Implement this to check compatibility between paradigm and classifier
     def check_compatibility(self):
