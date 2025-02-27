@@ -128,22 +128,24 @@ def channel_selection_by_method(
 
     Returns
     -------
-    new_channel_subset : list of `str`
-        The new best channel subset from the list of `channel_labels`.
-    self.clf : classifier
-        The trained classification model.
-    preds : numpy.ndarray
-        The predictions from the model.
-        1D array with the same shape as `y`.
-        shape = (`n_trials`)
-    accuracy : float
-        The accuracy of the trained classification model.
-    precision : float
-        The precision of the trained classification model.
-    recall : float
-        The recall of the trained classification model.
-    results_df : pandas.DataFrame
-        The dataframe containing the results of each step of channel selection.
+    channelSelectionOutput : ChannelSelectionOutput
+        ChannelSelectionOutput object containing the following attributes:
+            best_channel_subset : list of `str`
+                The new best channel subset from the list of `channel_labels`.
+            self.clf : classifier
+                The trained classification model.
+            preds : numpy.ndarray
+                The predictions from the model.
+                1D array with the same shape as `y`.
+                shape = (`n_trials`)
+            accuracy : float
+                The accuracy of the trained classification model.
+            precision : float
+                The precision of the trained classification model.
+            recall : float
+                The recall of the trained classification model.
+            results_df : pandas.DataFrame
+                The dataframe containing the results of each step of channel selection.
 
     """
 
@@ -361,23 +363,25 @@ def __sfs(
 
     Returns
     -------
-    new_channel_subset : list of `str`
-        The new best channel subset from the list of `channel_labels`.
-    self.clf : classifier
-        The trained classification model.
-    preds : numpy.ndarray
-        The predictions from the model.
-        1D array with the same shape as `y`.
+    channelSelectionOutput : ChannelSelectionOutput
+        ChannelSelectionOutput object containing the following attributes:
+            best_channel_subset : list of `str`
+                The new best channel subset from the list of `channel_labels`.
+            self.clf : classifier
+                The trained classification model.
+            preds : numpy.ndarray
+                The predictions from the model.
+                1D array with the same shape as `y`.
 
-        shape = (`n_trials`)
-    accuracy : float
-        The accuracy of the trained classification model.
-    precision : float
-        The precision of the trained classification model.
-    recall : float
-        The recall of the trained classification model.
-    results_df : pandas.DataFrame
-        The dataframe containing the results of each step of channel selection.
+                shape = (`n_trials`)
+            accuracy : float
+                The accuracy of the trained classification model.
+            precision : float
+                The precision of the trained classification model.
+            recall : float
+                The recall of the trained classification model.
+            results_df : pandas.DataFrame
+                The dataframe containing the results of each step of channel selection.
     """
     results_df = pd.DataFrame(
         columns=[
@@ -637,23 +641,25 @@ def __sbs(
 
     Returns
     -------
-    new_channel_subset : list of `str`
-        The new best channel subset from the list of `channel_labels`.
-    self.clf : classifier
-        The trained classification model.
-    preds : numpy.ndarray
-        The predictions from the model.
-        1D array with the same shape as `y`.
-
-        shape = (`n_trials`)
-    accuracy : float
-        The accuracy of the trained classification model.
-    precision : float
-        The precision of the trained classification model.
-    recall : float
-        The recall of the trained classification model.
-    results_df : pandas.DataFrame
-        A dataframe containing the performance metrics at each step.
+    channelSelectionOutput : ChannelSelectionOutput
+        ChannelSelectionOutput object containing the following attributes:
+            best_channel_subset : list of `str`
+                The new best channel subset from the list of `channel_labels`.
+            self.clf : classifier
+                The trained classification model.
+            preds : numpy.ndarray
+                The predictions from the model.
+                1D array with the same shape as `y`.
+        
+                shape = (`n_trials`)
+            accuracy : float
+                The accuracy of the trained classification model.
+            precision : float
+                The precision of the trained classification model.
+            recall : float
+                The recall of the trained classification model.
+            results_df : pandas.DataFrame
+                The dataframe containing the results of each step of channel selection.
 
 
     """
@@ -919,23 +925,25 @@ def __sbfs(
 
     Returns
     -------
-    new_channel_subset : list of `str`
-        The new best channel subset from the list of `channel_labels`.
-    self.clf : classifier
-        The trained classification model.
-    preds : numpy.ndarray
-        The predictions from the model.
-        1D array with the same shape as `y`.
-
-        shape = (`n_trials`)
-    accuracy : float
-        The accuracy of the trained classification model.
-    precision : float
-        The precision of the trained classification model.
-    recall : float
-        The recall of the trained classification model.
-    results_df : pandas.DataFrame
-        A dataframe containing the performance metrics at each step.
+    channelSelectionOutput : ChannelSelectionOutput
+        ChannelSelectionOutput object containing the following attributes:
+            best_channel_subset : list of `str`
+                The new best channel subset from the list of `channel_labels`.
+            self.clf : classifier
+                The trained classification model.
+            preds : numpy.ndarray
+                The predictions from the model.
+                1D array with the same shape as `y`.
+        
+                shape = (`n_trials`)
+            accuracy : float
+                The accuracy of the trained classification model.
+            precision : float
+                The precision of the trained classification model.
+            recall : float
+                The recall of the trained classification model.
+            results_df : pandas.DataFrame
+                The dataframe containing the results of each step of channel selection.
 
 
     """
@@ -1377,23 +1385,25 @@ def __sffs(
 
     Returns
     -------
-    new_channel_subset : list of `str`
-        The new best channel subset from the list of `channel_labels`.
-    self.clf : classifier
-        The trained classification model.
-    preds : numpy.ndarray
-        The predictions from the model.
-        1D array with the same shape as `y`.
-
-        shape = (`n_trials`)
-    accuracy : float
-        The accuracy of the trained classification model.
-    precision : float
-        The precision of the trained classification model.
-    recall : float
-        The recall of the trained classification model.
-    results_df : pandas.DataFrame
-        A dataframe containing the performance metrics at each step.
+    channelSelectionOutput : ChannelSelectionOutput
+        ChannelSelectionOutput object containing the following attributes:
+            best_channel_subset : list of `str`
+                The new best channel subset from the list of `channel_labels`.
+            self.clf : classifier
+                The trained classification model.
+            preds : numpy.ndarray
+                The predictions from the model.
+                1D array with the same shape as `y`.
+        
+                shape = (`n_trials`)
+            accuracy : float
+                The accuracy of the trained classification model.
+            precision : float
+                The precision of the trained classification model.
+            recall : float
+                The recall of the trained classification model.
+            results_df : pandas.DataFrame
+                The dataframe containing the results of each step of channel selection.
 
 
     """
