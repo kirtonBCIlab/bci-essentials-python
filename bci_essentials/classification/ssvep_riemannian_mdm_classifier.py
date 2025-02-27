@@ -278,37 +278,12 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
 
             return KernelResults(model, preds, accuracy, precision, recall)
 
-        def __extract_kernel_results(X, y):
-            """Wrapper function to extract KernelResults to use in channel_selection_by_method.
-
-            Parameters
-            ----------
-            X : numpy.ndarray
-                Input data for training.
-            y : numpy.ndarray
-                Target labels for training.
-
-            Returns
-            -------
-            tuple
-                Extracted values from KernelResults formatted as:
-                (model, preds, accuracy, precision, recall)
-            """
-            results = __ssvep_kernel(X, y)
-            return (
-                results.model,
-                results.preds,
-                results.accuracy,
-                results.precision,
-                results.recall,
-            )
-
         # Check if channel selection is true
         if self.channel_selection_setup:
             logger.info("Doing channel selection")
 
             channel_selection_results = channel_selection_by_method(
-                __extract_kernel_results,
+                __ssvep_kernel,
                 self.X,
                 self.y,
                 self.channel_labels,  # kernel setup

@@ -412,13 +412,13 @@ def __sfs(
 
     # Get the performance of the initial subset, if possible
     try:
-        (
-            initial_model,
-            initial_preds,
-            initial_accuracy,
-            initial_precision,
-            initial_recall,
-        ) = kernel_func(X[:, sfs_subset, :], y)
+        initial_results = kernel_func(X[:, sfs_subset, :], y)
+        initial_model = initial_results.model
+        initial_preds = initial_results.preds
+        initial_accuracy = initial_results.accuracy
+        initial_precision = initial_results.precision
+        initial_recall = initial_results.recall
+        
         if metric == "accuracy":
             initial_performance = initial_accuracy
         elif metric == "precision":
@@ -481,11 +481,11 @@ def __sfs(
 
         # Extract the outputs
         for output in outputs:
-            models.append(output[0])
-            predictions.append(output[1])
-            accuracies.append(output[2])
-            precisions.append(output[3])
-            recalls.append(output[4])
+            models.append(output.model)
+            predictions.append(output.preds)
+            accuracies.append(output.accuracy)
+            precisions.append(output.precision)
+            recalls.append(output.recall)
 
         # Get the performance metric
         if metric == "accuracy":
@@ -692,13 +692,13 @@ def __sbs(
             sbs_subset.append(i)
 
     # Get the performance of the initial subset
-    (
-        initial_model,
-        initial_preds,
-        initial_accuracy,
-        initial_precision,
-        initial_recall,
-    ) = kernel_func(X[:, sbs_subset, :], y)
+    initial_results = kernel_func(X[:, sbs_subset, :], y)
+    initial_model = initial_results.model
+    initial_preds = initial_results.preds
+    initial_accuracy = initial_results.accuracy
+    initial_precision = initial_results.precision
+    initial_recall = initial_results.recall
+
     if metric == "accuracy":
         initial_performance = initial_accuracy
     elif metric == "precision":
@@ -764,11 +764,11 @@ def __sbs(
 
         # Extract the outputs
         for output in outputs:
-            models.append(output[0])
-            predictions.append(output[1])
-            accuracies.append(output[2])
-            precisions.append(output[3])
-            recalls.append(output[4])
+            models.append(output.model)
+            predictions.append(output.preds)
+            accuracies.append(output.accuracy)
+            precisions.append(output.precision)
+            recalls.append(output.recall)
 
         # Get the performance metric
         if metric == "accuracy":
@@ -983,13 +983,13 @@ def __sbfs(
 
     # Get the performance of the initial subset, if possible
     try:
-        (
-            initial_model,
-            initial_preds,
-            initial_accuracy,
-            initial_precision,
-            initial_recall,
-        ) = kernel_func(X[:, sbfs_subset, :], y)
+        initial_results = kernel_func(X[:, sbfs_subset, :], y)
+        initial_model = initial_results.model
+        initial_preds = initial_results.preds
+        initial_accuracy = initial_results.accuracy
+        initial_precision = initial_results.precision
+        initial_recall = initial_results.recall
+
         if metric == "accuracy":
             initial_performance = initial_accuracy
         elif metric == "precision":
@@ -1064,11 +1064,11 @@ def __sbfs(
 
         # Extract the outputs
         for output in outputs:
-            models.append(output[0])
-            predictions.append(output[1])
-            accuracies.append(output[2])
-            precisions.append(output[3])
-            recalls.append(output[4])
+            models.append(output.model)
+            predictions.append(output.preds)
+            accuracies.append(output.accuracy)
+            precisions.append(output.precision)
+            recalls.append(output.recall)
 
         # Get the performance metric
         if metric == "accuracy":
@@ -1197,11 +1197,11 @@ def __sbfs(
 
             # Extract the outputs
             for output in outputs:
-                models.append(output[0])
-                predictions.append(output[1])
-                accuracies.append(output[2])
-                precisions.append(output[3])
-                recalls.append(output[4])
+                models.append(output.model)
+                predictions.append(output.preds)
+                accuracies.append(output.accuracy)
+                precisions.append(output.precision)
+                recalls.append(output.recall)
 
             # Get the performance metric
             if metric == "accuracy":
@@ -1441,13 +1441,13 @@ def __sffs(
 
     # Get the performance of the initial subset, if possible
     try:
-        (
-            initial_model,
-            initial_preds,
-            initial_accuracy,
-            initial_precision,
-            initial_recall,
-        ) = kernel_func(X[:, sffs_subset, :], y)
+        initial_results = kernel_func(X[:, sffs_subset, :], y)
+        initial_model = initial_results.model
+        initial_preds = initial_results.preds
+        initial_accuracy = initial_results.accuracy
+        initial_precision = initial_results.precision
+        initial_recall = initial_results.recall
+
         if metric == "accuracy":
             initial_performance = initial_accuracy
         elif metric == "precision":
@@ -1517,11 +1517,11 @@ def __sffs(
 
         # Extract the outputs
         for output in outputs:
-            models.append(output[0])
-            predictions.append(output[1])
-            accuracies.append(output[2])
-            precisions.append(output[3])
-            recalls.append(output[4])
+            models.append(output.model)
+            predictions.append(output.preds)
+            accuracies.append(output.accuracy)
+            precisions.append(output.precision)
+            recalls.append(output.recall)
 
         # Get the performance metric
         if metric == "accuracy":
@@ -1651,11 +1651,11 @@ def __sffs(
 
             # Extract the outputs
             for output in outputs:
-                models.append(output[0])
-                predictions.append(output[1])
-                accuracies.append(output[2])
-                precisions.append(output[3])
-                recalls.append(output[4])
+                models.append(output.model)
+                predictions.append(output.preds)
+                accuracies.append(output.accuracy)
+                precisions.append(output.precision)
+                recalls.append(output.recall)
 
             # Get the performance metric
             if metric == "accuracy":
