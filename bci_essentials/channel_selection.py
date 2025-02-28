@@ -418,7 +418,7 @@ def __sfs(
         initial_accuracy = initial_results.accuracy
         initial_precision = initial_results.precision
         initial_recall = initial_results.recall
-        
+
         if metric == "accuracy":
             initial_performance = initial_accuracy
         elif metric == "precision":
@@ -650,7 +650,6 @@ def __sbs(
             preds : numpy.ndarray
                 The predictions from the model.
                 1D array with the same shape as `y`.
-        
                 shape = (`n_trials`)
             accuracy : float
                 The accuracy of the trained classification model.
@@ -934,7 +933,6 @@ def __sbfs(
             preds : numpy.ndarray
                 The predictions from the model.
                 1D array with the same shape as `y`.
-        
                 shape = (`n_trials`)
             accuracy : float
                 The accuracy of the trained classification model.
@@ -1394,7 +1392,6 @@ def __sffs(
             preds : numpy.ndarray
                 The predictions from the model.
                 1D array with the same shape as `y`.
-        
                 shape = (`n_trials`)
             accuracy : float
                 The accuracy of the trained classification model.
