@@ -4,6 +4,7 @@ import time
 
 from bci_essentials.utils.logger import Logger  # Logger wrapper
 from bci_essentials.channel_selection import channel_selection_by_method
+from bci_essentials.classification.generic_classifier import KernelResults
 
 from sklearn.model_selection import StratifiedKFold
 from sklearn.pipeline import Pipeline
@@ -73,17 +74,19 @@ def _test_kernel(subX, suby):
 
     Returns
     -------
-    model : classifier
-        The trained classification model.
-    preds : numpy.ndarray
-        The predictions from the model.
-        1D array with the same shape as `suby`.
-    accuracy : float
-        The accuracy of the trained classification model.
-    precision : float
-        The precision of the trained classification model.
-    recall : float
-        The recall of the trained classification model.
+    kernelResults : KernelResults
+        KernelResults object containing the following attributes:
+            model : classifier
+                The trained classification model.
+            preds : numpy.ndarray
+                The predictions from the model.
+                1D array with the same shape as `suby`.
+            accuracy : float
+                The accuracy of the trained classification model.
+            precision : float
+                The precision of the trained classification model.
+            recall : float
+                The recall of the trained classification model.
 
     """
     n_splits = 5
@@ -115,7 +118,7 @@ def _test_kernel(subX, suby):
 
     model = clf
 
-    return model, preds, accuracy, precision, recall
+    return KernelResults(model, preds, accuracy, precision, recall)
 
 
 class TestChannelSelection(unittest.TestCase):
