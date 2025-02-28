@@ -1,4 +1,4 @@
-# Instantiate a parent logger for the library at the default level of logging.INFO
+# Instantiate a parent logger for the library at default
 from .utils.logger import Logger
 
 logger = Logger()
