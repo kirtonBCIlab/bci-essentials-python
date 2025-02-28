@@ -16,7 +16,11 @@ from pyriemann.estimation import Covariances
 from pyriemann.channelselection import FlatChannelRemover
 
 # Import bci_essentials modules and methods
-from ..classification.generic_classifier import GenericClassifier, Prediction
+from ..classification.generic_classifier import (
+    GenericClassifier,
+    Prediction,
+    KernelResults,
+)
 from ..signal_processing import bandpass
 from ..channel_selection import channel_selection_by_method
 from ..utils.logger import Logger  # Logger wrapper
@@ -222,17 +226,20 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
 
             Returns
             -------
-            model : classifier
-                The trained classification model.
-            preds : numpy.ndarray
-                The predictions from the model.
-                1D array with the same shape as `suby`.
-            accuracy : float
-                The accuracy of the trained classification model.
-            precision : float
-                The precision of the trained classification model.
-            recall : float
-                The recall of the trained classification model.
+            kernelResults : KernelResults
+                KernelResults object containing the following attributes:
+                    model : classifier
+                        The trained classification model.
+                    preds : numpy.ndarray
+                        The predictions from the model.
+                        1D array with the same shape as `suby`.
+                    accuracy : float
+                        The accuracy of the trained classification model.
+                    precision : float
+                        The precision of the trained classification model.
+                    recall : float
+                        The recall of the trained classification model.
+
 
             """
             for train_idx, test_idx in self.cv.split(subX, suby):
@@ -269,20 +276,13 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
 
             model = self.clf
 
-            return model, preds, accuracy, precision, recall
+            return KernelResults(model, preds, accuracy, precision, recall)
 
         # Check if channel selection is true
         if self.channel_selection_setup:
             logger.info("Doing channel selection")
 
-            (
-                updated_subset,
-                updated_model,
-                preds,
-                accuracy,
-                precision,
-                recall,
-            ) = channel_selection_by_method(
+            channel_selection_results = channel_selection_by_method(
                 __ssvep_kernel,
                 self.X,
                 self.y,
@@ -297,13 +297,26 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
                 self.chs_n_jobs,
             )
 
-            logger.info("The optimal subset is: %s", updated_subset)
+            preds = channel_selection_results.best_preds
+            accuracy = channel_selection_results.best_accuracy
+            precision = channel_selection_results.best_precision
+            recall = channel_selection_results.best_recall
 
-            self.subset = updated_subset
-            self.clf = updated_model
+            logger.info(
+                "The optimal subset is: %s",
+                channel_selection_results.best_channel_subset,
+            )
+
+            self.subset = channel_selection_results.best_channel_subset
+            self.clf = channel_selection_results.best_model
         else:
             logger.warning("Not doing channel selection")
-            self.clf, preds, accuracy, precision, recall = __ssvep_kernel(subX, suby)
+            current_results = __ssvep_kernel(subX, suby)
+            self.clf = current_results.model
+            preds = current_results.preds
+            accuracy = current_results.accuracy
+            precision = current_results.precision
+            recall = current_results.recall
 
         # Log performance stats
 

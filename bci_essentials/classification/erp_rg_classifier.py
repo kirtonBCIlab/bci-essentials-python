@@ -24,7 +24,11 @@ from pyriemann.channelselection import FlatChannelRemover
 
 
 # Import bci_essentials modules and methods
-from ..classification.generic_classifier import GenericClassifier, Prediction
+from ..classification.generic_classifier import (
+    GenericClassifier,
+    Prediction,
+    KernelResults,
+)
 from ..signal_processing import lico
 from ..channel_selection import channel_selection_by_method
 from ..utils.logger import Logger  # Logger wrapper
@@ -165,17 +169,19 @@ class ErpRgClassifier(GenericClassifier):
 
             Returns
             -------
-            model : classifier
-                The trained classification model.
-            preds : numpy.ndarray
-                The predictions from the model.
-                1D array with the same shape as `y`.
-            accuracy : float
-                The accuracy of the trained classification model.
-            precision : float
-                The precision of the trained classification model.
-            recall : float
-                The recall of the trained classification model.
+            kernelResults : KernelResults
+                KernelResults object containing the following attributes:
+                    model : classifier
+                        The trained classification model.
+                    preds : numpy.ndarray
+                        The predictions from the model.
+                        1D array with the same shape as `y`.
+                    accuracy : float
+                        The accuracy of the trained classification model.
+                    precision : float
+                        The precision of the trained classification model.
+                    recall : float
+                        The recall of the trained classification model.
 
             """
             for train_idx, test_idx in cv.split(X, y):
@@ -282,22 +288,14 @@ class ErpRgClassifier(GenericClassifier):
             precision = precision_score(self.y, preds)
             recall = recall_score(self.y, preds)
 
-            return model, preds, accuracy, precision, recall
+            return KernelResults(model, preds, accuracy, precision, recall)
 
         # Check if channel selection is true
         if self.channel_selection_setup:
             logger.info("Doing channel selection")
             logger.debug("Initial subset: %s", self.chs_initial_subset)
 
-            (
-                updated_subset,
-                updated_model,
-                preds,
-                accuracy,
-                precision,
-                recall,
-                results_df,
-            ) = channel_selection_by_method(
+            channel_selection_results = channel_selection_by_method(
                 __erp_rg_kernel,
                 self.X,
                 self.y,
@@ -312,17 +310,30 @@ class ErpRgClassifier(GenericClassifier):
                 self.chs_n_jobs,
             )  # njobs, output messages
 
-            logger.info("The optimal subset is %s", updated_subset)
+            preds = channel_selection_results.best_preds
+            accuracy = channel_selection_results.best_accuracy
+            precision = channel_selection_results.best_precision
+            recall = channel_selection_results.best_recall
 
-            self.results_df = results_df
-            self.subset = updated_subset
+            logger.info(
+                "The optimal subset is %s",
+                channel_selection_results.best_channel_subset,
+            )
+
+            self.results_df = channel_selection_results.results_df
+            self.subset = channel_selection_results.best_channel_subset
             self.subset_defined = True
-            self.clf = updated_model
+            self.clf = channel_selection_results.best_model
         else:
             logger.warning("Not doing channel selection")
             X = self.get_subset(self.X, self.subset, self.channel_labels)
 
-            self.clf, preds, accuracy, precision, recall = __erp_rg_kernel(X, self.y)
+            current_results = __erp_rg_kernel(X, self.y)
+            self.clf = current_results.model
+            preds = current_results.preds
+            accuracy = current_results.accuracy
+            precision = current_results.precision
+            recall = current_results.recall
 
         # Log performance stats
         # accuracy

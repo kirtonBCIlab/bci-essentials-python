@@ -17,7 +17,11 @@ from pyriemann.classification import MDM, TSclassifier
 from pyriemann.channelselection import FlatChannelRemover
 
 # Import bci_essentials modules and methods
-from ..classification.generic_classifier import GenericClassifier, Prediction
+from ..classification.generic_classifier import (
+    GenericClassifier,
+    Prediction,
+    KernelResults,
+)
 from ..channel_selection import channel_selection_by_method
 from ..utils.logger import Logger  # Logger wrapper
 
@@ -183,17 +187,20 @@ class MiClassifier(GenericClassifier):
 
             Returns
             -------
-            model : classifier
-                The trained classification model.
-            preds : numpy.ndarray
-                The predictions from the model.
-                1D array with the same shape as `suby`.
-            accuracy : float
-                The accuracy of the trained classification model.
-            precision : float
-                The precision of the trained classification model.
-            recall : float
-                The recall of the trained classification model.
+            kernelResults : KernelResults
+                KernelResults object containing the following attributes:
+                    model : classifier
+                        The trained classification model.
+                    preds : numpy.ndarray
+                        The predictions from the model.
+                        1D array with the same shape as `suby`.
+                    accuracy : float
+                        The accuracy of the trained classification model.
+                    precision : float
+                        The precision of the trained classification model.
+                    recall : float
+                        The recall of the trained classification model.
+
 
             """
             for train_idx, test_idx in self.cv.split(subX, suby):
@@ -213,7 +220,7 @@ class MiClassifier(GenericClassifier):
 
             model = self.clf
 
-            return model, preds, accuracy, precision, recall
+            return KernelResults(model, preds, accuracy, precision, recall)
 
         # Check if channel selection is true
         if self.channel_selection_setup:
@@ -227,15 +234,7 @@ class MiClassifier(GenericClassifier):
                 initial_subset = self.chs_initial_subset
 
             logger.info("Doing channel selection")
-            (
-                updated_subset,
-                updated_model,
-                preds,
-                accuracy,
-                precision,
-                recall,
-                results_df,
-            ) = channel_selection_by_method(
+            channel_selection_results = channel_selection_by_method(
                 __mi_kernel,
                 self.X,
                 self.y,
@@ -250,16 +249,26 @@ class MiClassifier(GenericClassifier):
                 self.chs_n_jobs,
             )
 
-            self.results_df = results_df
-            self.subset = updated_subset
+            preds = channel_selection_results.best_preds
+            accuracy = channel_selection_results.best_accuracy
+            precision = channel_selection_results.best_precision
+            recall = channel_selection_results.best_recall
+
+            self.results_df = channel_selection_results.results_df
+            self.subset = channel_selection_results.best_channel_subset
             self.subset_defined = True
-            self.clf = updated_model
+            self.clf = channel_selection_results.best_model
         else:
             logger.warning("Not doing channel selection")
 
             subX = self.get_subset(subX, self.subset, self.channel_labels)
 
-            self.clf, preds, accuracy, precision, recall = __mi_kernel(subX, suby)
+            current_results = __mi_kernel(subX, suby)
+            self.clf = current_results.model
+            preds = current_results.preds
+            accuracy = current_results.accuracy
+            precision = current_results.precision
+            recall = current_results.recall
 
         # Log performance stats
 

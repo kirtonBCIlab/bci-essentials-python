@@ -14,11 +14,49 @@ from joblib import Parallel, delayed
 import time
 import numpy as np
 import pandas as pd
+from dataclasses import dataclass, field
 from .utils.logger import Logger  # Logger wrapper
+from sklearn.pipeline import Pipeline
 
 # Instantiate a logger for the module at the default level of logging.INFO
 # Logs to bci_essentials.__module__) where __module__ is the name of the module
 logger = Logger(name=__name__)
+
+
+@dataclass
+class ChannelSelectionOutput:
+    """
+    Dataclass to store output from channel selection.
+
+    best_channel_subset : list of `str`
+        The best channel subset from the list of 'channel_labels'.
+
+    best_model : classifier
+        The trained classification model.
+
+    best_preds : numpy.ndarray
+        The predictions from the model.
+
+    best_accuracy : float
+        The accuracy of the trained classification model.
+
+    best_precision : float
+        The precision of the trained classification model.
+
+    best_recall : float
+        The recall of the trained classification model.
+
+    results_df : pandas.DataFrame
+        A dataframe containing the performance metrics at each step.
+    """
+
+    best_channel_subset: list = field(default_factory=list)
+    best_model: Pipeline = field(default=None)
+    best_preds: np.ndarray = field(default_factory=np.ndarray)
+    best_accuracy: float = field(default=0.0)
+    best_precision: float = field(default=0.0)
+    best_recall: float = field(default=0.0)
+    results_df: pd.DataFrame = field(default_factory=pd.DataFrame)
 
 
 def channel_selection_by_method(
@@ -90,22 +128,24 @@ def channel_selection_by_method(
 
     Returns
     -------
-    new_channel_subset : list of `str`
-        The new best channel subset from the list of `channel_labels`.
-    self.clf : classifier
-        The trained classification model.
-    preds : numpy.ndarray
-        The predictions from the model.
-        1D array with the same shape as `y`.
-        shape = (`n_trials`)
-    accuracy : float
-        The accuracy of the trained classification model.
-    precision : float
-        The precision of the trained classification model.
-    recall : float
-        The recall of the trained classification model.
-    results_df : pandas.DataFrame
-        The dataframe containing the results of each step of channel selection.
+    channelSelectionOutput : ChannelSelectionOutput
+        ChannelSelectionOutput object containing the following attributes:
+            best_channel_subset : list of `str`
+                The new best channel subset from the list of `channel_labels`.
+            self.clf : classifier
+                The trained classification model.
+            preds : numpy.ndarray
+                The predictions from the model.
+                1D array with the same shape as `y`.
+                shape = (`n_trials`)
+            accuracy : float
+                The accuracy of the trained classification model.
+            precision : float
+                The precision of the trained classification model.
+            recall : float
+                The recall of the trained classification model.
+            results_df : pandas.DataFrame
+                The dataframe containing the results of each step of channel selection.
 
     """
 
@@ -323,23 +363,25 @@ def __sfs(
 
     Returns
     -------
-    new_channel_subset : list of `str`
-        The new best channel subset from the list of `channel_labels`.
-    self.clf : classifier
-        The trained classification model.
-    preds : numpy.ndarray
-        The predictions from the model.
-        1D array with the same shape as `y`.
+    channelSelectionOutput : ChannelSelectionOutput
+        ChannelSelectionOutput object containing the following attributes:
+            best_channel_subset : list of `str`
+                The new best channel subset from the list of `channel_labels`.
+            self.clf : classifier
+                The trained classification model.
+            preds : numpy.ndarray
+                The predictions from the model.
+                1D array with the same shape as `y`.
 
-        shape = (`n_trials`)
-    accuracy : float
-        The accuracy of the trained classification model.
-    precision : float
-        The precision of the trained classification model.
-    recall : float
-        The recall of the trained classification model.
-    results_df : pandas.DataFrame
-        The dataframe containing the results of each step of channel selection.
+                shape = (`n_trials`)
+            accuracy : float
+                The accuracy of the trained classification model.
+            precision : float
+                The precision of the trained classification model.
+            recall : float
+                The recall of the trained classification model.
+            results_df : pandas.DataFrame
+                The dataframe containing the results of each step of channel selection.
     """
     results_df = pd.DataFrame(
         columns=[
@@ -370,13 +412,13 @@ def __sfs(
 
     # Get the performance of the initial subset, if possible
     try:
-        (
-            initial_model,
-            initial_preds,
-            initial_accuracy,
-            initial_precision,
-            initial_recall,
-        ) = kernel_func(X[:, sfs_subset, :], y)
+        initial_results = kernel_func(X[:, sfs_subset, :], y)
+        initial_model = initial_results.model
+        initial_preds = initial_results.preds
+        initial_accuracy = initial_results.accuracy
+        initial_precision = initial_results.precision
+        initial_recall = initial_results.recall
+
         if metric == "accuracy":
             initial_performance = initial_accuracy
         elif metric == "precision":
@@ -439,11 +481,11 @@ def __sfs(
 
         # Extract the outputs
         for output in outputs:
-            models.append(output[0])
-            predictions.append(output[1])
-            accuracies.append(output[2])
-            precisions.append(output[3])
-            recalls.append(output[4])
+            models.append(output.model)
+            predictions.append(output.preds)
+            accuracies.append(output.accuracy)
+            precisions.append(output.precision)
+            recalls.append(output.recall)
 
         # Get the performance metric
         if metric == "accuracy":
@@ -532,7 +574,7 @@ def __sfs(
 
     # Get the best model
 
-    return (
+    return ChannelSelectionOutput(
         best_channel_subset,
         best_model,
         best_preds,
@@ -599,23 +641,24 @@ def __sbs(
 
     Returns
     -------
-    new_channel_subset : list of `str`
-        The new best channel subset from the list of `channel_labels`.
-    self.clf : classifier
-        The trained classification model.
-    preds : numpy.ndarray
-        The predictions from the model.
-        1D array with the same shape as `y`.
-
-        shape = (`n_trials`)
-    accuracy : float
-        The accuracy of the trained classification model.
-    precision : float
-        The precision of the trained classification model.
-    recall : float
-        The recall of the trained classification model.
-    results_df : pandas.DataFrame
-        A dataframe containing the performance metrics at each step.
+    channelSelectionOutput : ChannelSelectionOutput
+        ChannelSelectionOutput object containing the following attributes:
+            best_channel_subset : list of `str`
+                The new best channel subset from the list of `channel_labels`.
+            self.clf : classifier
+                The trained classification model.
+            preds : numpy.ndarray
+                The predictions from the model.
+                1D array with the same shape as `y`.
+                shape = (`n_trials`)
+            accuracy : float
+                The accuracy of the trained classification model.
+            precision : float
+                The precision of the trained classification model.
+            recall : float
+                The recall of the trained classification model.
+            results_df : pandas.DataFrame
+                The dataframe containing the results of each step of channel selection.
 
 
     """
@@ -648,13 +691,13 @@ def __sbs(
             sbs_subset.append(i)
 
     # Get the performance of the initial subset
-    (
-        initial_model,
-        initial_preds,
-        initial_accuracy,
-        initial_precision,
-        initial_recall,
-    ) = kernel_func(X[:, sbs_subset, :], y)
+    initial_results = kernel_func(X[:, sbs_subset, :], y)
+    initial_model = initial_results.model
+    initial_preds = initial_results.preds
+    initial_accuracy = initial_results.accuracy
+    initial_precision = initial_results.precision
+    initial_recall = initial_results.recall
+
     if metric == "accuracy":
         initial_performance = initial_accuracy
     elif metric == "precision":
@@ -720,11 +763,11 @@ def __sbs(
 
         # Extract the outputs
         for output in outputs:
-            models.append(output[0])
-            predictions.append(output[1])
-            accuracies.append(output[2])
-            precisions.append(output[3])
-            recalls.append(output[4])
+            models.append(output.model)
+            predictions.append(output.preds)
+            accuracies.append(output.accuracy)
+            precisions.append(output.precision)
+            recalls.append(output.recall)
 
         # Get the performance metric
         if metric == "accuracy":
@@ -814,7 +857,7 @@ def __sbs(
     if record_performance is True:
         logger.info(results_df)
 
-    return (
+    return ChannelSelectionOutput(
         best_channel_subset,
         best_model,
         best_preds,
@@ -881,23 +924,24 @@ def __sbfs(
 
     Returns
     -------
-    new_channel_subset : list of `str`
-        The new best channel subset from the list of `channel_labels`.
-    self.clf : classifier
-        The trained classification model.
-    preds : numpy.ndarray
-        The predictions from the model.
-        1D array with the same shape as `y`.
-
-        shape = (`n_trials`)
-    accuracy : float
-        The accuracy of the trained classification model.
-    precision : float
-        The precision of the trained classification model.
-    recall : float
-        The recall of the trained classification model.
-    results_df : pandas.DataFrame
-        A dataframe containing the performance metrics at each step.
+    channelSelectionOutput : ChannelSelectionOutput
+        ChannelSelectionOutput object containing the following attributes:
+            best_channel_subset : list of `str`
+                The new best channel subset from the list of `channel_labels`.
+            self.clf : classifier
+                The trained classification model.
+            preds : numpy.ndarray
+                The predictions from the model.
+                1D array with the same shape as `y`.
+                shape = (`n_trials`)
+            accuracy : float
+                The accuracy of the trained classification model.
+            precision : float
+                The precision of the trained classification model.
+            recall : float
+                The recall of the trained classification model.
+            results_df : pandas.DataFrame
+                The dataframe containing the results of each step of channel selection.
 
 
     """
@@ -937,13 +981,13 @@ def __sbfs(
 
     # Get the performance of the initial subset, if possible
     try:
-        (
-            initial_model,
-            initial_preds,
-            initial_accuracy,
-            initial_precision,
-            initial_recall,
-        ) = kernel_func(X[:, sbfs_subset, :], y)
+        initial_results = kernel_func(X[:, sbfs_subset, :], y)
+        initial_model = initial_results.model
+        initial_preds = initial_results.preds
+        initial_accuracy = initial_results.accuracy
+        initial_precision = initial_results.precision
+        initial_recall = initial_results.recall
+
         if metric == "accuracy":
             initial_performance = initial_accuracy
         elif metric == "precision":
@@ -1018,11 +1062,11 @@ def __sbfs(
 
         # Extract the outputs
         for output in outputs:
-            models.append(output[0])
-            predictions.append(output[1])
-            accuracies.append(output[2])
-            precisions.append(output[3])
-            recalls.append(output[4])
+            models.append(output.model)
+            predictions.append(output.preds)
+            accuracies.append(output.accuracy)
+            precisions.append(output.precision)
+            recalls.append(output.recall)
 
         # Get the performance metric
         if metric == "accuracy":
@@ -1151,11 +1195,11 @@ def __sbfs(
 
             # Extract the outputs
             for output in outputs:
-                models.append(output[0])
-                predictions.append(output[1])
-                accuracies.append(output[2])
-                precisions.append(output[3])
-                recalls.append(output[4])
+                models.append(output.model)
+                predictions.append(output.preds)
+                accuracies.append(output.accuracy)
+                precisions.append(output.precision)
+                recalls.append(output.recall)
 
             # Get the performance metric
             if metric == "accuracy":
@@ -1272,7 +1316,7 @@ def __sbfs(
     if record_performance is True:
         logger.info(results_df)
 
-    return (
+    return ChannelSelectionOutput(
         best_channel_subset,
         best_model,
         best_preds,
@@ -1339,23 +1383,24 @@ def __sffs(
 
     Returns
     -------
-    new_channel_subset : list of `str`
-        The new best channel subset from the list of `channel_labels`.
-    self.clf : classifier
-        The trained classification model.
-    preds : numpy.ndarray
-        The predictions from the model.
-        1D array with the same shape as `y`.
-
-        shape = (`n_trials`)
-    accuracy : float
-        The accuracy of the trained classification model.
-    precision : float
-        The precision of the trained classification model.
-    recall : float
-        The recall of the trained classification model.
-    results_df : pandas.DataFrame
-        A dataframe containing the performance metrics at each step.
+    channelSelectionOutput : ChannelSelectionOutput
+        ChannelSelectionOutput object containing the following attributes:
+            best_channel_subset : list of `str`
+                The new best channel subset from the list of `channel_labels`.
+            self.clf : classifier
+                The trained classification model.
+            preds : numpy.ndarray
+                The predictions from the model.
+                1D array with the same shape as `y`.
+                shape = (`n_trials`)
+            accuracy : float
+                The accuracy of the trained classification model.
+            precision : float
+                The precision of the trained classification model.
+            recall : float
+                The recall of the trained classification model.
+            results_df : pandas.DataFrame
+                The dataframe containing the results of each step of channel selection.
 
 
     """
@@ -1393,13 +1438,13 @@ def __sffs(
 
     # Get the performance of the initial subset, if possible
     try:
-        (
-            initial_model,
-            initial_preds,
-            initial_accuracy,
-            initial_precision,
-            initial_recall,
-        ) = kernel_func(X[:, sffs_subset, :], y)
+        initial_results = kernel_func(X[:, sffs_subset, :], y)
+        initial_model = initial_results.model
+        initial_preds = initial_results.preds
+        initial_accuracy = initial_results.accuracy
+        initial_precision = initial_results.precision
+        initial_recall = initial_results.recall
+
         if metric == "accuracy":
             initial_performance = initial_accuracy
         elif metric == "precision":
@@ -1469,11 +1514,11 @@ def __sffs(
 
         # Extract the outputs
         for output in outputs:
-            models.append(output[0])
-            predictions.append(output[1])
-            accuracies.append(output[2])
-            precisions.append(output[3])
-            recalls.append(output[4])
+            models.append(output.model)
+            predictions.append(output.preds)
+            accuracies.append(output.accuracy)
+            precisions.append(output.precision)
+            recalls.append(output.recall)
 
         # Get the performance metric
         if metric == "accuracy":
@@ -1603,11 +1648,11 @@ def __sffs(
 
             # Extract the outputs
             for output in outputs:
-                models.append(output[0])
-                predictions.append(output[1])
-                accuracies.append(output[2])
-                precisions.append(output[3])
-                recalls.append(output[4])
+                models.append(output.model)
+                predictions.append(output.preds)
+                accuracies.append(output.accuracy)
+                precisions.append(output.precision)
+                recalls.append(output.recall)
 
             # Get the performance metric
             if metric == "accuracy":
@@ -1725,7 +1770,7 @@ def __sffs(
     if record_performance is True:
         logger.info(results_df)
 
-    return (
+    return ChannelSelectionOutput(
         best_channel_subset,
         best_model,
         best_preds,

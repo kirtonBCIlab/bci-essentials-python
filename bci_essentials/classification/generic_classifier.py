@@ -9,6 +9,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
 import numpy as np
+from sklearn.pipeline import Pipeline
 
 from ..utils.logger import Logger  # Logger wrapper
 
@@ -34,6 +35,33 @@ class Prediction:
 
     labels: list = field(default_factory=list)
     probabilities: list = field(default_factory=list)
+
+
+@dataclass
+class KernelResults:
+    """Dataclass to store output from the kernel methods
+
+    model : classifier
+        The trained classification model.
+
+    preds : numpy.ndarray
+        The predictions from the model.
+
+    accuracy : float
+        The accuracy of the trained classification model.
+
+    precision : float
+        The precision of the trained classification model.
+
+    recall : float
+        The recall of the trained classification model.
+    """
+
+    model: Pipeline = field(default=None)
+    preds: np.ndarray = field(default_factory=np.ndarray)
+    accuracy: float = field(default=0.0)
+    precision: float = field(default=0.0)
+    recall: float = field(default=0.0)
 
 
 class GenericClassifier(ABC):
