@@ -52,9 +52,7 @@ class SsvepBasicTrainFreeClassifier(GenericClassifier):
             Models created used in `predict()`.
 
         """
-        logger.warning(
-            "This classifier does not require training"
-        )
+        logger.warning("This classifier does not require training")
 
     def predict(self, X):
         """Predict the class labels for the provided data.
