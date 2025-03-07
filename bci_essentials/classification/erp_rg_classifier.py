@@ -251,14 +251,19 @@ class ErpRgClassifier(GenericClassifier):
 
                 self.clf.fit(X_train, y_train)
                 preds[test_idx] = self.clf.predict(X_test)
-                predproba = self.clf.predict_proba(X_test)
+                # predproba = self.clf.predict_proba(X_test)
 
                 # Use pred proba to show what would be predicted
-                predprobs = predproba[:, 1]
-                real = np.where(y_test == 1)
+                # predprobs = predproba[:, 1]
+                # real = np.where(y_test == 1)
 
                 # TODO handle exception where two probabilities are the same
-                prediction = int(np.where(predprobs == np.amax(predprobs))[0][0])
+                # prediction = int(np.where(predprobs == np.amax(predprobs))[0][0])
+
+                # logger.debug("y_test = %s", y_test)
+                # logger.debug("predproba = %s", predproba)
+                # logger.debug("real = %s", real[0])
+                # logger.debug("prediction = %s", prediction)
 
             model = self.clf
 
