@@ -419,8 +419,8 @@ class BciController:
                 self.__data_tank.add_resting_state_data(resting_state_data)
 
             elif current_step_marker == "Trial Started":
-                logger.debug("Trial started, incrementing marker count and continuing")
                 # Note that a marker occured, but do nothing else
+                pass
 
             elif current_step_marker == "Trial Ends":
                 # If we are classifying based on trials, then process the trial,
