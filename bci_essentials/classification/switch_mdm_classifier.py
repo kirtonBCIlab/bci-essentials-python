@@ -98,7 +98,6 @@ class SwitchMdmClassifier(GenericClassifier):
 
         # find the number of classes in y there shoud be N + 1, where N is the number of objects in the scene and also the number of classifiers
         self.num_classifiers = len(list(np.unique(self.y))) - 1
-        logger.info("Number of classes: %s", self.num_classifiers)
 
         # make a list to hold all of the classifiers
         self.clfs = []
@@ -130,8 +129,6 @@ class SwitchMdmClassifier(GenericClassifier):
                 scaler_train = preprocessing.StandardScaler().fit(X_train)
                 X_train_scaled = scaler_train.transform(X_train)
 
-                logger.info("The shape of X_train_scaled is %s", X_train_scaled.shape)
-
                 z_dim, y_dim, x_dim = X_test.shape
                 X_test = X_test.reshape(z_dim, x_dim * y_dim)
                 scaler_test = preprocessing.StandardScaler().fit(X_test)
@@ -139,7 +136,6 @@ class SwitchMdmClassifier(GenericClassifier):
 
                 if i == 0:
                     # Compile the model
-                    logger.info("\nWorking on first model...")
                     self.clf0and1.compile(
                         # optimizer=Adam(learning_rate=0.001),
                         loss="sparse_categorical_crossentropy",
@@ -157,7 +153,6 @@ class SwitchMdmClassifier(GenericClassifier):
                     )  # Need to reshape X_train
 
                 else:
-                    logger.info("\nWorking on second model...")
                     # Compile the model
                     self.clf0and2.compile(
                         # optimizer=Adam(learning_rate=0.001),
@@ -220,8 +215,6 @@ class SwitchMdmClassifier(GenericClassifier):
         # if X is 2D, make it 3D with one as first dimension
         if len(X.shape) < 3:
             X = X[np.newaxis, ...]
-
-        logger.info("The shape of X is %s", X.shape)
 
         # self.predict0and1 = Sequential(
         #     [

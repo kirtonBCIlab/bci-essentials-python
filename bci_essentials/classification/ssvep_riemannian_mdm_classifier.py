@@ -280,7 +280,6 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
 
         # Check if channel selection is true
         if self.channel_selection_setup:
-            logger.info("Doing channel selection")
 
             channel_selection_results = channel_selection_by_method(
                 __ssvep_kernel,
@@ -363,8 +362,6 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
             X = X[np.newaxis, ...]
 
         X = self.get_subset(X)
-
-        logger.info("The shape of X is %s", X.shape)
 
         X_super = self.get_ssvep_supertrial(
             X,

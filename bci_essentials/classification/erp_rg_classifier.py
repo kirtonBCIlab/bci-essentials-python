@@ -138,9 +138,6 @@ class ErpRgClassifier(GenericClassifier):
             Models created used in `predict()`.
 
         """
-        logger.info("Fitting the model using RG")
-        logger.info("X shape: %s", self.X.shape)
-        logger.info("y shape: %s", self.y.shape)
 
         # Define the strategy for cross validation
         cv = StratifiedKFold(
@@ -189,13 +186,6 @@ class ErpRgClassifier(GenericClassifier):
 
                 X_train, X_test = X[train_idx], X[test_idx]
 
-                # LICO
-                logger.debug(
-                    "Before LICO:\n\tShape X: %s\n\tShape y: %s",
-                    X_train.shape,
-                    y_train.shape,
-                )
-
                 if sum(y_train) > 2:
                     if lico_expansion_factor > 1:
                         X_train, y_train = lico(
@@ -205,13 +195,6 @@ class ErpRgClassifier(GenericClassifier):
                             sum_num=2,
                             shuffle=False,
                         )
-                        logger.debug("y_train = %s", y_train)
-
-                logger.debug(
-                    "After LICO:\n\tShape X: %s\n\tShape y: %s",
-                    X_train.shape,
-                    y_train.shape,
-                )
 
                 # Oversampling
                 if self.oversample_ratio > 0:
@@ -277,11 +260,6 @@ class ErpRgClassifier(GenericClassifier):
                 # TODO handle exception where two probabilities are the same
                 prediction = int(np.where(predprobs == np.amax(predprobs))[0][0])
 
-                logger.debug("y_test = %s", y_test)
-                logger.debug("predproba = %s", predproba)
-                logger.debug("real = %s", real[0])
-                logger.debug("prediction = %s", prediction)
-
             model = self.clf
 
             accuracy = sum(preds == self.y) / len(preds)
@@ -292,8 +270,6 @@ class ErpRgClassifier(GenericClassifier):
 
         # Check if channel selection is true
         if self.channel_selection_setup:
-            logger.info("Doing channel selection")
-            logger.debug("Initial subset: %s", self.chs_initial_subset)
 
             channel_selection_results = channel_selection_by_method(
                 __erp_rg_kernel,
@@ -362,8 +338,7 @@ class ErpRgClassifier(GenericClassifier):
             plt.show()
 
         if plot_roc:
-            logger.info("Plotting the ROC...")
-            logger.error("Just kidding ROC has not been implemented")
+            pass
 
     def predict(self, X):
         """Predict the class of the data (Unused in this classifier)

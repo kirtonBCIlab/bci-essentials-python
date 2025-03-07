@@ -128,7 +128,6 @@ class GenericClassifier(ABC):
             - Initial value is `[]`.
 
         """
-        logger.info("Initializing the classifier")
         self.X = np.ndarray([0])
         """@private (This is just for the API docs, to avoid double listing."""
         self.y = np.ndarray([0])
@@ -204,15 +203,11 @@ class GenericClassifier(ABC):
                 return X
 
             if type(self.subset[0]) is int:
-                logger.info("Using subset indices")
-
                 subset_indices = self.subset
                 self.subset_defined
 
             # Or channel labels
             if type(self.subset[0]) is str:
-                logger.info("Using channel labels and subset labels")
-
                 # Replace indices with those described by labels
                 for sl in self.subset:
                     subset_indices.append(self.channel_labels.index(sl))
@@ -339,7 +334,6 @@ class GenericClassifier(ABC):
         `None`
 
         """
-        logger.debug("Adding to training set")
         # n = number of channels
         # m = number of samples
         # p = number of epochs

@@ -233,7 +233,6 @@ class MiClassifier(GenericClassifier):
             else:
                 initial_subset = self.chs_initial_subset
 
-            logger.info("Doing channel selection")
             channel_selection_results = channel_selection_by_method(
                 __mi_kernel,
                 self.X,
@@ -315,8 +314,6 @@ class MiClassifier(GenericClassifier):
             X = X[np.newaxis, ...]
 
         subset_X = self.get_subset(X, self.subset, self.channel_labels)
-
-        logger.info("The shape of X is %s", subset_X.shape)
 
         pred = [int(x) for x in self.clf.predict(subset_X)]
         pred_proba = self.clf.predict_proba(subset_X)

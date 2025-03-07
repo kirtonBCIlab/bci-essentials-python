@@ -53,10 +53,8 @@ class SsvepBasicTrainFreeClassifier(GenericClassifier):
 
         """
         logger.warning(
-            "Oh deary me you must have mistaken me for another classifier which requires training"
+            "This classifier does not require training"
         )
-        logger.warning("I DO NOT NEED TRAINING.")
-        logger.warning("THIS IS MY FINAL FORM")
 
     def predict(self, X):
         """Predict the class labels for the provided data.
