@@ -511,7 +511,7 @@ def __sfs(
         recall = recalls[best_set_index]
         logger.debug("New subset: %s", new_channel_subset)
         logger.debug("Accuracy: %s", accuracy)
-        logger.debug("Accuracies: %s", accuracies)
+        logger.debug("Accuracies: %s", [float(acc) for acc in accuracies])
 
         if metric == "accuracy":
             current_performance = accuracy
@@ -795,7 +795,7 @@ def __sbs(
         logger.debug("Removed a channel")
         logger.debug("New subset: %s", new_channel_subset)
         logger.debug("Accuracy: %s", accuracy)
-        logger.debug("Accuracies: %s", accuracies)
+        logger.debug("Accuracies: %s", [float(acc) for acc in accuracies])
 
         p_delta = current_performance - previous_performance
         previous_performance = current_performance
@@ -1093,7 +1093,7 @@ def __sbfs(
         logger.debug("Removed a channel")
         logger.debug("New subset: %s", new_channel_subset)
         logger.debug("Accuracy: %s", accuracy)
-        logger.debug("Accuracies: %s", accuracies)
+        logger.debug("Accuracies: %s", [float(acc) for acc in accuracies])
 
         current_performance = best_round_performance
 
@@ -1231,7 +1231,7 @@ def __sbfs(
                 logger.debug("Added back a channel")
                 logger.debug("New subset: %s", new_channel_subset)
                 logger.debug("Accuracy: %s", accuracy)
-                logger.debug("Accuracies: %s", accuracies)
+                logger.debug("Accuracies: %s", [float(acc) for acc in accuracies])
 
                 current_performance = best_round_performance
 
@@ -1547,7 +1547,7 @@ def __sffs(
         logger.debug("Removed a channel")
         logger.debug("New subset: %s", new_channel_subset)
         logger.debug("Accuracy: %s", accuracy)
-        logger.debug("Accuracies: %s", accuracies)
+        logger.debug("Accuracies: %s", [float(acc) for acc in accuracies])
 
         # If this is the best perfomance at n_channels
         if performance_at_n_channels[len(sffs_subset) - 1] < current_performance:
@@ -1684,7 +1684,7 @@ def __sffs(
                 logger.debug("Added back a channel")
                 logger.debug("New subset: %s", new_channel_subset)
                 logger.debug("Accuracy: %s", accuracy)
-                logger.debug("Accuracies: %s", accuracies)
+                logger.debug("Accuracies: %s", [float(acc) for acc in accuracies])
 
                 current_performance = best_round_performance
 
