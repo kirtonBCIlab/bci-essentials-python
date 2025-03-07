@@ -318,8 +318,8 @@ class MiClassifier(GenericClassifier):
         pred = [int(x) for x in self.clf.predict(subset_X)]
         pred_proba = self.clf.predict_proba(subset_X)
 
-        logger.info("Prediction: %s", pred)
-        logger.info("Prediction probabilities: %s", pred_proba)
+        # logger.info("Prediction: %s", pred)
+        # logger.info("Prediction probabilities: %s", pred_proba)
 
         for i in range(len(pred)):
             self.predictions.append(pred[i])
