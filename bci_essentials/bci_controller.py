@@ -417,11 +417,11 @@ class BciController:
                 # If classification is on epochs, then update epochs, maybe classify, and clear the buffer
                 if self.__paradigm.classify_each_epoch:
                     success_string = self.__process_and_classify()
-                    if success_string is "Wait":
+                    if success_string == "Wait":
                         self.event_marker_buffer = []
                         self.event_timestamp_buffer = []
                         break
-                    elif success_string is "Skip":
+                    elif success_string == "Skip":
                         self.event_marker_buffer = []
                         self.event_timestamp_buffer = []
 
@@ -454,9 +454,9 @@ class BciController:
                 # If we are classifying based on trials, then process the trial,
                 if self.__paradigm.classify_each_trial:
                     success_string = self.__process_and_classify()
-                    if success_string is "Wait":
+                    if success_string == "Wait":
                         break
-                    elif success_string is "Skip":
+                    elif success_string == "Skip":
                         logger.info("Processing of trial failed: skipping trial")
                         self.event_marker_buffer = []
                         self.event_timestamp_buffer = []
