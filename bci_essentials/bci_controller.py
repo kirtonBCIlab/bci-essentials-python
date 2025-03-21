@@ -241,11 +241,11 @@ class BciController:
         if len(eeg) == 0:
             logger.info("No EEG data available")
             return "Skip"
-        
+
         # If the last timestamp is less than the end time, then we don't have the necessary EEG to process
         if timestamps[-1] < eeg_end_time:
             return "Wait"
-        
+
         # Check if EEG sampling is continuous over this time period
         start_index = np.where(timestamps > eeg_start_time)[0][0]
         end_index = np.where(timestamps < eeg_end_time)[0][-1]
@@ -470,9 +470,9 @@ class BciController:
                     if len(y) > 0:
                         self._classifier.add_to_train(X, y)
 
-                    
-                    self._classifier.fit()
-                    self.train_complete = True
+                    if self._classifier.check_ready_for_fit():
+                        self._classifier.fit()
+                        self.train_complete = True
 
             elif current_step_marker == "Update Classifier":
                 if self.train_lock is False:
@@ -480,8 +480,9 @@ class BciController:
                     X, y = self.__data_tank.get_epochs(latest=True)
                     if len(y) > 0:
                         self._classifier.add_to_train(X, y)
-                    self._classifier.fit()
-                    self.train_complete = True
+                    if self._classifier.check_ready_for_fit():
+                        self._classifier.fit()
+                        self.train_complete = True
 
             logger.info("Processed Marker: %s", current_step_marker)
             self.marker_count += 1
