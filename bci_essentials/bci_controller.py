@@ -220,8 +220,13 @@ class BciController:
 
         Returns
         ----------
-            success_flag : bool
-                Flag indicating if the processing and classification was successful.
+            success_string : str
+                String indicating if the processing and classification was successful.
+                Potential values are "Success", "Skip", "Wait".
+
+                "Success": The processing and classification was successful.
+                "Skip": EEG is either absent entirely or contains lost packets.
+                "Wait": The processing is waiting for more data.
 
         """
 
@@ -232,9 +237,23 @@ class BciController:
         # No we actually need to wait until we have all the data for these markers
         eeg, timestamps = self.__data_tank.get_raw_eeg()
 
-        # If the last timestamp is less than the end time, then we don't have the necessarty EEG to process
+        # Check if there is available EEG data
+        if len(eeg) == 0:
+            logger.info("No EEG data available")
+            return "Skip"
+        
+        # If the last timestamp is less than the end time, then we don't have the necessary EEG to process
         if timestamps[-1] < eeg_end_time:
-            return False
+            return "Wait"
+        
+        # Check if EEG sampling is continuous over this time period
+        start_index = np.where(timestamps > eeg_start_time)[0][0]
+        end_index = np.where(timestamps < eeg_end_time)[0][-1]
+
+        time_diffs = np.diff(timestamps[start_index:end_index])
+        if np.any(time_diffs > 2 / self.fsample):
+            logger.info("Time gaps in EEG data")
+            return "Skip"
 
         X, y = self.__paradigm.process_markers(
             self.event_marker_buffer,
@@ -256,7 +275,7 @@ class BciController:
         self.event_marker_buffer = []
         self.event_timestamp_buffer = []
 
-        return True
+        return "Success"
 
     def __send_prediction(self, prediction):
         """Send a prediction to the messenger object."""
@@ -397,11 +416,17 @@ class BciController:
 
                 # If classification is on epochs, then update epochs, maybe classify, and clear the buffer
                 if self.__paradigm.classify_each_epoch:
-                    success_flag = self.__process_and_classify()
-                    if success_flag is False:
-                        # If the processing failed, then there is not enough EEG
+                    success_string = self.__process_and_classify()
+                    if success_string is "Wait":
                         self.event_marker_buffer = []
                         self.event_timestamp_buffer = []
+                        break
+                    elif success_string is "Skip":
+                        self.event_marker_buffer = []
+                        self.event_timestamp_buffer = []
+
+                        logger.info("Processing of epoch failed: skipping epoch")
+                        self.marker_count += 1
                         break
 
             # TODO
@@ -428,8 +453,14 @@ class BciController:
             elif current_step_marker == "Trial Ends":
                 # If we are classifying based on trials, then process the trial,
                 if self.__paradigm.classify_each_trial:
-                    success_flag = self.__process_and_classify()
-                    if success_flag is False:
+                    success_string = self.__process_and_classify()
+                    if success_string is "Wait":
+                        break
+                    elif success_string is "Skip":
+                        logger.info("Processing of trial failed: skipping trial")
+                        self.event_marker_buffer = []
+                        self.event_timestamp_buffer = []
+                        self.marker_count += 1
                         break
 
             elif current_step_marker == "Training Complete":
@@ -438,6 +469,8 @@ class BciController:
                     X, y = self.__data_tank.get_epochs(latest=True)
                     if len(y) > 0:
                         self._classifier.add_to_train(X, y)
+
+                    
                     self._classifier.fit()
                     self.train_complete = True
 

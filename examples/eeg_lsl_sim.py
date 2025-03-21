@@ -59,7 +59,7 @@ except IndexError:
 simulate_packet_loss = False
 try: 
     defect = sys.argv[4]
-    if defect is "packetloss":
+    if defect == "packetloss":
         logger.info("Simulating packet loss")
         simulate_packet_loss = True
 
@@ -133,8 +133,8 @@ while i < nloops:
         eeg_sample = bci_controller[j][:]
 
         if simulate_packet_loss:
-            # Every thousandth sample, pause for 0.5 seconds
-            if j % 1000 == 0:
+            # Every five thousandth sample, pause for 0.5 seconds
+            if j % 5000 == 0:
                 logger.info("Packet loss begins")
                 time.sleep(0.5)
                 logger.info("Packet loss ends")
