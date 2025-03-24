@@ -20,6 +20,7 @@ length.
 
 import time
 import numpy as np
+from enum import Enum
 
 from .paradigm.paradigm import Paradigm
 from .data_tank.data_tank import DataTank
@@ -32,6 +33,12 @@ from .utils.logger import Logger
 # Logs to bci_essentials.__module__) where __module__ is the name of the module
 logger = Logger(name=__name__)
 
+class MarkerTypes(Enum):
+    TRIAL_STARTED = "Trial Started"
+    TRIAL_ENDS = "Trial Ends"
+    TRAINING_COMPLETE = "Training Complete"
+    UPDATE_CLASSIFIER = "Update Classifier"
+    DONE_RS_CLASSIFICATION = "Done will all RS Classification"
 
 # EEG data
 class BciController:
