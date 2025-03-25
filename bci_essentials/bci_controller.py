@@ -430,6 +430,18 @@ class BciController:
             self.marker_count += 1
 
     def __done_rs_classification(self):
+        """Classify the resting state data
+
+        Parameters
+        ----------
+            None
+
+        Returns
+        ------
+            continue_flag : bool
+                Flag indicating to continue the while loop in step().
+
+        """
         (
             self.bci_controller,
             self.eeg_timestamps,
@@ -447,11 +459,35 @@ class BciController:
         return True # continue processing
 
     def __trial_started(self):
+        """Logs the start of a trial.
+
+        Parameters
+        ----------
+            None
+
+        Returns
+        ------
+            continue_flag : bool
+                Flag indicating to continue the while loop in step().
+
+        """   
         logger.debug("Trial started, incrementing marker count and continuing")
         # Note that a marker occured, but do nothing else
         return True # continue processing
 
     def __trial_ends(self):
+        """Handles the end of a trial. Processes and classifies trial data if required.
+
+        Parameters
+        ----------
+            None
+
+        Returns
+        ------
+            success_flag : bool
+                Flag indicating if the processing and classification was successful.
+                Returns True if not classifying.
+        """
         # If we are classifying based on trials, then process the trial,
         if self.__paradigm.classify_each_trial:
             success_flag = self.__process_and_classify()
@@ -460,6 +496,17 @@ class BciController:
         return True # return True by default if not classifying
 
     def __update_classifier(self):
+        """Updates the classifier if required.
+
+        Parameters
+        ----------
+            None
+
+        Returns
+        ------
+            continue_flag : bool
+                Flag indicating to continue the while loop in step().
+        """
         if self.train_lock is False:
             # Pull the epochs from the data tank and pass them to the classifier
             X, y = self.__data_tank.get_epochs(latest=True)
