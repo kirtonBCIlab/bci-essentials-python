@@ -121,6 +121,15 @@ class BciController:
         self.bci_controller = np.zeros((0, self.n_channels))
         self.eeg_timestamps = np.zeros((0))
 
+        # Initialize marker methods dictionary
+        self.marker_methods = {
+            MarkerTypes.DONE_RS_CLASSIFICATION.value: self.__done_rs_classification,
+            MarkerTypes.TRIAL_STARTED.value: self.__trial_started,
+            MarkerTypes.TRIAL_ENDS.value: self.__trial_ends,
+            MarkerTypes.TRAINING_COMPLETE.value: self.__update_classifier,
+            MarkerTypes.UPDATE_CLASSIFIER.value: self.__update_classifier,
+        }
+
         self.ping_count = 0
         self.n_samples = 0
         self.time_units = ""
@@ -411,51 +420,52 @@ class BciController:
                         self.event_timestamp_buffer = []
                         break
 
-            # TODO
-            elif current_step_marker == "Done with all RS collection":
-                (
-                    self.bci_controller,
-                    self.eeg_timestamps,
-                ) = self.__data_tank.get_raw_eeg()
-
-                resting_state_data = self.__paradigm.package_resting_state_data(
-                    self.marker_data,
-                    self.marker_timestamps,
-                    self.bci_controller,
-                    self.eeg_timestamps,
-                    self.fsample,
-                )
-
-                self.__data_tank.add_resting_state_data(resting_state_data)
-
-            elif current_step_marker == "Trial Started":
-                logger.debug("Trial started, incrementing marker count and continuing")
-                # Note that a marker occured, but do nothing else
-
-            elif current_step_marker == "Trial Ends":
-                # If we are classifying based on trials, then process the trial,
-                if self.__paradigm.classify_each_trial:
-                    success_flag = self.__process_and_classify()
-                    if success_flag is False:
-                        break
-
-            elif current_step_marker == "Training Complete":
-                if self.train_lock is False:
-                    # Pull the epochs from the data tank and pass them to the classifier
-                    X, y = self.__data_tank.get_epochs(latest=True)
-                    if len(y) > 0:
-                        self._classifier.add_to_train(X, y)
-                    self._classifier.fit()
-                    self.train_complete = True
-
-            elif current_step_marker == "Update Classifier":
-                if self.train_lock is False:
-                    # Pull the epochs from the data tank and pass them to the classifier
-                    X, y = self.__data_tank.get_epochs(latest=True)
-                    if len(y) > 0:
-                        self._classifier.add_to_train(X, y)
-                    self._classifier.fit()
-                    self.train_complete = True
+            method = self.marker_methods.get(current_step_marker)
+            if method:
+                continue_flag = method()
+                if continue_flag is False:
+                    break
 
             logger.info("Processed Marker: %s", current_step_marker)
             self.marker_count += 1
+
+    def __done_rs_classification(self):
+        (
+            self.bci_controller,
+            self.eeg_timestamps,
+        ) = self.__data_tank.get_raw_eeg()
+
+        resting_state_data = self.__paradigm.package_resting_state_data(
+            self.marker_data,
+            self.marker_timestamps,
+            self.bci_controller,
+            self.eeg_timestamps,
+            self.fsample,
+        )
+        self.__data_tank.add_resting_state_data(resting_state_data)
+
+        return True # continue processing
+
+    def __trial_started(self):
+        logger.debug("Trial started, incrementing marker count and continuing")
+        # Note that a marker occured, but do nothing else
+        return True # continue processing
+
+    def __trial_ends(self):
+        # If we are classifying based on trials, then process the trial,
+        if self.__paradigm.classify_each_trial:
+            success_flag = self.__process_and_classify()
+            return success_flag
+
+        return True # return True by default if not classifying
+
+    def __update_classifier(self):
+        if self.train_lock is False:
+            # Pull the epochs from the data tank and pass them to the classifier
+            X, y = self.__data_tank.get_epochs(latest=True)
+            if len(y) > 0:
+                self._classifier.add_to_train(X, y)
+            self._classifier.fit()
+            self.train_complete = True
+        
+        return True # continue processing
