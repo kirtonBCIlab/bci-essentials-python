@@ -33,12 +33,14 @@ from .utils.logger import Logger
 # Logs to bci_essentials.__module__) where __module__ is the name of the module
 logger = Logger(name=__name__)
 
+
 class MarkerTypes(Enum):
     TRIAL_STARTED = "Trial Started"
     TRIAL_ENDS = "Trial Ends"
     TRAINING_COMPLETE = "Training Complete"
     UPDATE_CLASSIFIER = "Update Classifier"
     DONE_RS_CLASSIFICATION = "Done will all RS Classification"
+
 
 # EEG data
 class BciController:
@@ -456,7 +458,7 @@ class BciController:
         )
         self.__data_tank.add_resting_state_data(resting_state_data)
 
-        return True # continue processing
+        return True  # continue processing
 
     def __trial_started(self):
         """Logs the start of a trial.
@@ -470,10 +472,10 @@ class BciController:
             continue_flag : bool
                 Flag indicating to continue the while loop in step().
 
-        """   
+        """
         logger.debug("Trial started, incrementing marker count and continuing")
         # Note that a marker occured, but do nothing else
-        return True # continue processing
+        return True  # continue processing
 
     def __trial_ends(self):
         """Handles the end of a trial. Processes and classifies trial data if required.
@@ -493,7 +495,7 @@ class BciController:
             success_flag = self.__process_and_classify()
             return success_flag
 
-        return True # return True by default if not classifying
+        return True  # return True by default if not classifying
 
     def __update_classifier(self):
         """Updates the classifier if required.
@@ -514,5 +516,5 @@ class BciController:
                 self._classifier.add_to_train(X, y)
             self._classifier.fit()
             self.train_complete = True
-        
-        return True # continue processing
+
+        return True  # continue processing
