@@ -410,7 +410,9 @@ class BciController:
 
             # Handle event markers
             if is_event_marker:
-                continue_flag = self.__handle_event_marker(current_step_marker, current_timestamp)
+                continue_flag = self.__handle_event_marker(
+                    current_step_marker, current_timestamp
+                )
                 if continue_flag is False:
                     break
 
