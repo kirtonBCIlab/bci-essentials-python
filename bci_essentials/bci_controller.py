@@ -408,20 +408,13 @@ class BciController:
             marker_is_single_string = len(current_step_marker.split(",")) == 1
             is_event_marker = not marker_is_single_string
 
-            # Add the marker to the event marker buffer
+            # Handle event markers
             if is_event_marker:
-                self.event_marker_buffer.append(current_step_marker)
-                self.event_timestamp_buffer.append(current_timestamp)
+                continue_flag = self.__handle_event_marker(current_step_marker, current_timestamp)
+                if continue_flag is False:
+                    break
 
-                # If classification is on epochs, then update epochs, maybe classify, and clear the buffer
-                if self.__paradigm.classify_each_epoch:
-                    success_flag = self.__process_and_classify()
-                    if success_flag is False:
-                        # If the processing failed, then there is not enough EEG
-                        self.event_marker_buffer = []
-                        self.event_timestamp_buffer = []
-                        break
-
+            # Handle all other markers
             method = self.marker_methods.get(current_step_marker)
             if method:
                 continue_flag = method()
@@ -458,7 +451,7 @@ class BciController:
         )
         self.__data_tank.add_resting_state_data(resting_state_data)
 
-        return True  # continue processing
+        return True  # Continue processing
 
     def __trial_started(self):
         """Logs the start of a trial.
@@ -475,7 +468,7 @@ class BciController:
         """
         logger.debug("Trial started, incrementing marker count and continuing")
         # Note that a marker occured, but do nothing else
-        return True  # continue processing
+        return True  # Continue processing
 
     def __trial_ends(self):
         """Handles the end of a trial. Processes and classifies trial data if required.
@@ -495,7 +488,7 @@ class BciController:
             success_flag = self.__process_and_classify()
             return success_flag
 
-        return True  # return True by default if not classifying
+        return True  # Return True by default if not classifying
 
     def __update_classifier(self):
         """Updates the classifier if required.
@@ -517,4 +510,31 @@ class BciController:
             self._classifier.fit()
             self.train_complete = True
 
-        return True  # continue processing
+        return True  # Continue processing
+
+    def __handle_event_marker(self, marker, timestamp):
+        """Processes and classifies event markers.
+
+        Parameters
+        ----------
+            None
+
+        Returns
+        ------
+            continue_flag : bool
+                Flag indicating to continue the while loop in step().
+        """
+        # Add the marker to the event marker buffer
+        self.event_marker_buffer.append(marker)
+        self.event_timestamp_buffer.append(timestamp)
+
+        # If classification is on epochs, then update epochs, maybe classify, and clear the buffer
+        if self.__paradigm.classify_each_epoch:
+            success_flag = self.__process_and_classify()
+            if success_flag is False:
+                # If the processing failed, then there is not enough EEG
+                self.event_marker_buffer = []
+                self.event_timestamp_buffer = []
+                return False  # Stop processing
+
+        return True  # Continue processing
