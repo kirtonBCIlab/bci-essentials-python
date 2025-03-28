@@ -247,7 +247,11 @@ class BciController:
             return "Wait"
 
         # Check if EEG sampling is continuous over this time period
-        start_index = np.where(timestamps > eeg_start_time)[0][0]
+        start_indices = np.where(timestamps > eeg_start_time)[0]
+        if len(start_indices) == 0:
+            logger.info("No timestamps exceed eeg_start_time")
+            return "Skip"
+        start_index = start_indices[0]
         end_index = np.where(timestamps < eeg_end_time)[0][-1]
 
         time_diffs = np.diff(timestamps[start_index:end_index])
