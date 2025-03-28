@@ -467,23 +467,26 @@ class BciController:
                         self.marker_count += 1
                         break
 
-            elif current_step_marker == "Training Complete":
+            elif (
+                current_step_marker == "Training Complete"
+                or current_step_marker == "Train Classifier"
+            ):
                 if self.train_lock is False:
                     # Pull the epochs from the data tank and pass them to the classifier
                     X, y = self.__data_tank.get_epochs(latest=True)
+
+                    # Remove epochs with label -1
+                    ind_to_remove = []
+                    for i, label in enumerate(y):
+                        if label == -1:
+                            ind_to_remove.append(i)
+                    X = np.delete(X, ind_to_remove, axis=0)
+                    y = np.delete(y, ind_to_remove, axis=0)
+
+                    # Check that there are epochs
                     if len(y) > 0:
                         self._classifier.add_to_train(X, y)
 
-                    if self._classifier.check_ready_for_fit():
-                        self._classifier.fit()
-                        self.train_complete = True
-
-            elif current_step_marker == "Update Classifier":
-                if self.train_lock is False:
-                    # Pull the epochs from the data tank and pass them to the classifier
-                    X, y = self.__data_tank.get_epochs(latest=True)
-                    if len(y) > 0:
-                        self._classifier.add_to_train(X, y)
                     if self._classifier.check_ready_for_fit():
                         self._classifier.fit()
                         self.train_complete = True

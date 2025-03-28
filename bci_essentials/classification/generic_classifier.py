@@ -187,6 +187,10 @@ class GenericClassifier(ABC):
 
         unique_y = np.unique(self.y)
 
+        if len(unique_y) == 1:
+            logger.warning("Only one class available for fitting")
+            return False
+
         class_counts = np.zeros(len(unique_y))
         for i, y in enumerate(unique_y):
             class_counts[i] = np.sum(self.y == y)
