@@ -24,7 +24,7 @@ from pyriemann.channelselection import FlatChannelRemover
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
 # Import bci_essentials modules and methods
-from ..classification.generic_classifier import (
+from .generic_classifier import (
     GenericClassifier,
     Prediction,
 )
@@ -36,8 +36,9 @@ from ..utils.logger import Logger  # Logger wrapper
 logger = Logger(name=__name__)
 
 
-class ErpRgClassifier(GenericClassifier):
-    """ERP RG Classifier class (*inherits from `GenericClassifier`*)."""
+class ErpRgClassifierHyperparamGridSearch(GenericClassifier):
+    """ERP RG Classifier with hyperparameter grid search
+    class (*inherits from `GenericClassifier`*)."""
 
     def set_p300_clf_settings(
         self,
@@ -156,9 +157,9 @@ class ErpRgClassifier(GenericClassifier):
         y_pred_proba = self.clf.predict_proba(self.X)[:, 1]
 
         # Calculate training metrics of final model
-        acc = sum(y_pred == self.y) / len(self.y)
-        prec = precision_score(self.y, y_pred)
-        rec = recall_score(self.y, y_pred)
+        self.offline_accuracy = sum(y_pred == self.y) / len(self.y)
+        self.offline_precision = precision_score(self.y, y_pred)
+        self.offline_recall = recall_score(self.y, y_pred)
 
         try:
             roc_auc = roc_auc_score(self.y, y_pred_proba)
@@ -167,7 +168,7 @@ class ErpRgClassifier(GenericClassifier):
             logger.warning("Could not calculate ROC AUC score")
 
         # Display training confusion matrix
-        cm = confusion_matrix(self.y, y_pred)
+        self.offline_cm = confusion_matrix(self.y, y_pred)
         if plot_cm:
             disp = ConfusionMatrixDisplay(confusion_matrix=cm)
             disp.plot()
@@ -179,10 +180,10 @@ class ErpRgClassifier(GenericClassifier):
 
         # Log training metrics
         logger.info("Final model training performance metrics:")
-        logger.info(f"Accuracy: {acc:0.3f}")
-        logger.info(f"Precision: {prec:0.3f}")
-        logger.info(f"Recall: {rec:0.3f}")
-        logger.info(f"Confusion Matrix:\n{cm}")
+        logger.info(f"Accuracy: {self.offline_accuracy:0.3f}")
+        logger.info(f"Precision: {self.offline_precision:0.3f}")
+        logger.info(f"Recall: {self.offline_recall:0.3f}")
+        logger.info(f"Confusion Matrix:\n{self.offline_cm}")
 
     def predict(self, X):
         """Predict the class of the data
