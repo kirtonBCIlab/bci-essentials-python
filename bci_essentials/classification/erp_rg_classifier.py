@@ -6,29 +6,30 @@ approach.
 """
 
 # Stock libraries
+import random
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.model_selection import StratifiedKFold, GridSearchCV
+from sklearn.pipeline import make_pipeline
+from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import (
     confusion_matrix,
     ConfusionMatrixDisplay,
     precision_score,
     recall_score,
-    roc_auc_score,
-    make_scorer,
 )
-from sklearn.pipeline import Pipeline
-from pyriemann.tangentspace import TangentSpace
-from pyriemann.estimation import XdawnCovariances
-from pyriemann.channelselection import FlatChannelRemover
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from pyriemann.estimation import XdawnCovariances
+from pyriemann.tangentspace import TangentSpace
+from pyriemann.channelselection import FlatChannelRemover
+
 
 # Import bci_essentials modules and methods
 from ..classification.generic_classifier import (
     GenericClassifier,
     Prediction,
+    KernelResults,
 )
-from ..signal_processing import lico, random_oversampling, random_undersampling
+from ..signal_processing import lico
 from ..channel_selection import channel_selection_by_method
 from ..utils.logger import Logger  # Logger wrapper
 
@@ -43,11 +44,11 @@ class ErpRgClassifier(GenericClassifier):
     def set_p300_clf_settings(
         self,
         n_splits=3,
-        resampling_method=None,
         lico_expansion_factor=1,
         oversample_ratio=0,
         undersample_ratio=0,
         random_seed=42,
+        covariance_estimator="oas",  # Covariance estimator, see pyriemann Covariances
         remove_flats=True,
     ):
         """Set P300 Classifier Settings.
@@ -57,9 +58,6 @@ class ErpRgClassifier(GenericClassifier):
         n_splits : int, *optional*
             Number of folds for cross-validation.
             - Default is `3`.
-        resampling_method : str, *optional*, None
-            Resampling method to use ["lico", "oversample", "undersample"].
-            Default is None.
         lico_expansion_factor : int, *optional*
             Linear Combination Oversampling expansion factor, which is the
             factor by which the number of ERPs in the training set will be
@@ -76,6 +74,9 @@ class ErpRgClassifier(GenericClassifier):
         random_seed : int, *optional*
             Random seed.
             - Default is `42`.
+        covariance_estimator : str, *optional*
+            Covariance estimator. See pyriemann Covariances.
+            - Default is `"oas"`.
         remove_flats : bool, *optional*
             Whether to remove flat channels.
             - Default is `True`.
@@ -86,52 +87,50 @@ class ErpRgClassifier(GenericClassifier):
 
         """
         self.n_splits = n_splits
-        self.resampling_method = resampling_method
         self.lico_expansion_factor = lico_expansion_factor
         self.oversample_ratio = oversample_ratio
         self.undersample_ratio = undersample_ratio
         self.random_seed = random_seed
+        self.covariance_estimator = covariance_estimator
 
-        # # Create steps list with proper formatting
-        steps = []
-        if remove_flats:
-            steps.append(("remove_flats", FlatChannelRemover()))
-
-        steps.extend(
-            [
-                ("xdawn", XdawnCovariances()),
-                ("tangent", TangentSpace()),
-                ("lda", LinearDiscriminantAnalysis()),
-            ]
+        # Define the classifier
+        self.clf = make_pipeline(
+            XdawnCovariances(estimator=self.covariance_estimator),
+            TangentSpace(metric="riemann"),
+            LinearDiscriminantAnalysis(solver="eigen", shrinkage="auto"),
         )
 
-        # Create pipeline
-        self.clf = Pipeline(steps)
-
-        # Hyperparameters to be optimized
-        self.param_grid = {
-            "xdawn__nfilter": [2, 3, 4],
-            "xdawn__estimator": ["oas", "lwf"],
-            "tangent__metric": ["riemann"],
-            "lda__solver": ["lsqr", "eigen"],
-            "lda__shrinkage": np.linspace(0.5, 0.9, 5),
-        }
+        if remove_flats:
+            rf = FlatChannelRemover()
+            self.clf.steps.insert(0, ["Remove Flat Channels", rf])
 
     def fit(
         self,
+        n_splits=2,
         plot_cm=False,
         plot_roc=False,
+        lico_expansion_factor=1,
     ):
         """Fit the model.
 
         Parameters
         ----------
+        n_splits : int, *optional*
+            Number of folds for cross validation.
+            E.g. how many parts the dataset is divided into and trained/validated.
+            - Default is `2`.
         plot_cm : bool, *optional*
             Whether to plot the confusion matrix during training.
             - Default is `False`.
         plot_roc : bool, *optional*
             Whether to plot the ROC curve during training.
             - Default is `False`.
+        lico_expansion_factor : int, *optional*
+            Linear combination oversampling expansion factor.
+            Determines the number of ERPs in the training set that will be expanded.
+            Higher value increases the oversampling, generating more synthetic
+            samples for the minority class.
+            - Default is `1`.
 
         Returns
         -------
@@ -143,50 +142,231 @@ class ErpRgClassifier(GenericClassifier):
         logger.info("X shape: %s", self.X.shape)
         logger.info("y shape: %s", self.y.shape)
 
-        # Resample data if needed
-        self.X, self.y = self.__resample_data()
+        # Define the strategy for cross validation
+        cv = StratifiedKFold(
+            n_splits=n_splits, shuffle=True, random_state=self.random_seed
+        )
 
-        # Optimize hyperparameters with cross-validation
-        self.__optimize_hyperparameters()
+        # Init predictions to all false
+        preds = np.zeros(len(self.y))
 
-        # Fit the model with the complete dataset and optimized hyperparameters
-        self.clf.fit(self.X, self.y)
+        def __erp_rg_kernel(X, y):
+            """ERP RG kernel.
 
-        # Get predictions for final model
-        y_pred = self.clf.predict(self.X)
-        y_pred_proba = self.clf.predict_proba(self.X)[:, 1]
+            Parameters
+            ----------
+            X : numpy.ndarray
+                Input features (ERP data) for training.
+                3D numpy array with shape = (`n_trials`, `n_channels`, `n_samples`).
+                E.g. (100, 32, 1000) for 100 trials, 32 channels and 1000 samples per channel.
 
-        # Calculate training metrics of final model
-        acc = sum(y_pred == self.y) / len(self.y)
-        prec = precision_score(self.y, y_pred)
-        rec = recall_score(self.y, y_pred)
+            y : numpy.ndarray
+                Target labels corresponding to the input features in `X`.
+                1D numpy array with shape (n_trails, ).
+                Each label indicates the class of the corresponding trial in `X`.
+                E.g. (100, ) for 100 trials.
 
-        try:
-            roc_auc = roc_auc_score(self.y, y_pred_proba)
-            logger.info(f"ROC AUC Score: {roc_auc:0.3f}")
-        except:
-            logger.warning("Could not calculate ROC AUC score")
 
-        # Display training confusion matrix
-        cm = confusion_matrix(self.y, y_pred)
+            Returns
+            -------
+            kernelResults : KernelResults
+                KernelResults object containing the following attributes:
+                    model : classifier
+                        The trained classification model.
+                    preds : numpy.ndarray
+                        The predictions from the model.
+                        1D array with the same shape as `y`.
+                    accuracy : float
+                        The accuracy of the trained classification model.
+                    precision : float
+                        The precision of the trained classification model.
+                    recall : float
+                        The recall of the trained classification model.
+
+            """
+            for train_idx, test_idx in cv.split(X, y):
+                y_train, y_test = y[train_idx], y[test_idx]
+
+                X_train, X_test = X[train_idx], X[test_idx]
+
+                # LICO
+                logger.debug(
+                    "Before LICO:\n\tShape X: %s\n\tShape y: %s",
+                    X_train.shape,
+                    y_train.shape,
+                )
+
+                if sum(y_train) > 2:
+                    if lico_expansion_factor > 1:
+                        X_train, y_train = lico(
+                            X_train,
+                            y_train,
+                            expansion_factor=lico_expansion_factor,
+                            sum_num=2,
+                            shuffle=False,
+                        )
+                        logger.debug("y_train = %s", y_train)
+
+                logger.debug(
+                    "After LICO:\n\tShape X: %s\n\tShape y: %s",
+                    X_train.shape,
+                    y_train.shape,
+                )
+
+                # Oversampling
+                if self.oversample_ratio > 0:
+                    p_count = sum(y_train)
+                    n_count = len(y_train) - sum(y_train)
+
+                    num_to_add = int(
+                        np.floor((self.oversample_ratio * n_count) - p_count)
+                    )
+
+                    # Add num_to_add random selections from the positive
+                    true_X_train = X_train[y_train == 1]
+
+                    len_X_train = len(true_X_train)
+
+                    for s in range(num_to_add):
+                        to_add_X = true_X_train[random.randrange(0, len_X_train), :, :]
+
+                        X_train = np.append(X_train, to_add_X[np.newaxis, :], axis=0)
+                        y_train = np.append(y_train, [1], axis=0)
+
+                # Undersampling
+                if self.undersample_ratio > 0:
+                    p_count = sum(y_train)
+                    n_count = len(y_train) - sum(y_train)
+
+                    num_to_remove = int(
+                        np.floor(n_count - (p_count / self.undersample_ratio))
+                    )
+
+                    ind_range = np.arange(len(y_train))
+                    ind_list = list(ind_range)
+                    to_remove = []
+
+                    # Remove num_to_remove random selections from the negative
+                    false_ind = list(ind_range[y_train == 0])
+
+                    for s in range(num_to_remove):
+                        # select a random value from the list of false indices
+                        remove_at = false_ind[random.randrange(0, len(false_ind))]
+
+                        # remove that value from the false index list
+                        false_ind.remove(remove_at)
+
+                        # add the index to be removed to a list
+                        to_remove.append(remove_at)
+
+                    remaining_ind = ind_list
+                    for i in range(len(to_remove)):
+                        remaining_ind.remove(to_remove[i])
+
+                    X_train = X_train[remaining_ind, :, :]
+                    y_train = y_train[remaining_ind]
+
+                self.clf.fit(X_train, y_train)
+                preds[test_idx] = self.clf.predict(X_test)
+                predproba = self.clf.predict_proba(X_test)
+
+                # Use pred proba to show what would be predicted
+                predprobs = predproba[:, 1]
+                real = np.where(y_test == 1)
+
+                # TODO handle exception where two probabilities are the same
+                prediction = int(np.where(predprobs == np.amax(predprobs))[0][0])
+
+                logger.debug("y_test = %s", y_test)
+                logger.debug("predproba = %s", predproba)
+                logger.debug("real = %s", real[0])
+                logger.debug("prediction = %s", prediction)
+
+            model = self.clf
+
+            accuracy = sum(preds == self.y) / len(preds)
+            precision = precision_score(self.y, preds)
+            recall = recall_score(self.y, preds)
+
+            return KernelResults(model, preds, accuracy, precision, recall)
+
+        # Check if channel selection is true
+        if self.channel_selection_setup:
+            logger.info("Doing channel selection")
+            logger.debug("Initial subset: %s", self.chs_initial_subset)
+
+            channel_selection_results = channel_selection_by_method(
+                __erp_rg_kernel,
+                self.X,
+                self.y,
+                self.channel_labels,  # kernel setup
+                self.chs_method,
+                self.chs_metric,
+                self.chs_initial_subset,  # wrapper setup
+                self.chs_max_time,
+                self.chs_min_channels,
+                self.chs_max_channels,
+                self.chs_performance_delta,  # stopping criterion
+                self.chs_n_jobs,
+            )  # njobs, output messages
+
+            preds = channel_selection_results.best_preds
+            accuracy = channel_selection_results.best_accuracy
+            precision = channel_selection_results.best_precision
+            recall = channel_selection_results.best_recall
+
+            logger.info(
+                "The optimal subset is %s",
+                channel_selection_results.best_channel_subset,
+            )
+
+            self.results_df = channel_selection_results.results_df
+            self.subset = channel_selection_results.best_channel_subset
+            self.subset_defined = True
+            self.clf = channel_selection_results.best_model
+        else:
+            logger.warning("Not doing channel selection")
+            X = self.get_subset(self.X, self.subset, self.channel_labels)
+
+            current_results = __erp_rg_kernel(X, self.y)
+            self.clf = current_results.model
+            preds = current_results.preds
+            accuracy = current_results.accuracy
+            precision = current_results.precision
+            recall = current_results.recall
+
+        # Log performance stats
+        # accuracy
+        accuracy = sum(preds == self.y) / len(preds)
+        self.offline_accuracy = accuracy
+        logger.info("Accuracy = %s", accuracy)
+
+        # precision
+        precision = precision_score(self.y, preds)
+        self.offline_precision = precision
+        logger.info("Precision = %s", precision)
+
+        # recall
+        recall = recall_score(self.y, preds)
+        self.offline_recall = recall
+        logger.info("Recall = %s", recall)
+
+        # confusion matrix in command line
+        cm = confusion_matrix(self.y, preds)
+        self.offline_cm = cm
+        logger.info("Confusion matrix:\n%s", cm)
+
         if plot_cm:
-            disp = ConfusionMatrixDisplay(confusion_matrix=cm)
-            disp.plot()
-            plt.title("Training confusion matrix")
+            cm = confusion_matrix(self.y, preds)
+            ConfusionMatrixDisplay(cm).plot()
+            plt.show()
 
         if plot_roc:
-            # TODO Implementation missing
-            pass
-
-        # Log training metrics
-        logger.info("Final model training performance metrics:")
-        logger.info(f"Accuracy: {acc:0.3f}")
-        logger.info(f"Precision: {prec:0.3f}")
-        logger.info(f"Recall: {rec:0.3f}")
-        logger.info(f"Confusion Matrix:\n{cm}")
+            logger.info("Plotting the ROC...")
+            logger.error("Just kidding ROC has not been implemented")
 
     def predict(self, X):
-        """Predict the class of the data
+        """Predict the class of the data (Unused in this classifier)
 
         Parameters
         ----------
@@ -211,122 +391,3 @@ class ErpRgClassifier(GenericClassifier):
         probability = [np.max(posterior_prob)]
 
         return Prediction(label, probability)
-
-    # TODO implement additional resampling methods, JIRA ticket: B4K-342
-    def __resample_data(self):
-        """Resample data based on the selected method"""
-
-        X_resampled = self.X.copy()
-        y_resampled = self.y.copy()
-
-        try:
-            if (self.resampling_method == "lico") and (self.lico_expansion_factor > 1):
-                [X_resampled, y_resampled] = lico(
-                    self.X, self.y, self.lico_expansion_factor
-                )
-                pass
-
-            elif (self.resampling_method == "oversample") and (
-                self.oversample_ratio > 0
-            ):
-                [X_resampled, y_resampled] = random_oversampling(
-                    self.X, self.y, self.oversample_ratio
-                )
-                pass
-
-            elif (self.resampling_method == "undersample") and (
-                self.undersample_ratio > 0
-            ):
-                [X_resampled, y_resampled] = random_undersampling(
-                    self.X, self.y, self.undersample_ratio
-                )
-                pass
-
-            logger.info(f"Resampling  with {self.resampling_method} done")
-            logger.info(f"X_resampled shape: {X_resampled.shape}")
-            logger.info(f"y_resampled shape: {y_resampled.shape}")
-
-        except Exception as e:
-            logger.error(
-                f"{self.resampling_method.capitalize()} resampling method failed"
-            )
-            logger.error(e)
-
-        return X_resampled, y_resampled
-
-    def __optimize_hyperparameters(self):
-        """Optimize hyperparameters with cross-validation using brute force grid search
-
-        Returns
-        -------
-        `None`
-            Model with best hyperparameters to be used in `predict()`.
-
-        """
-
-        # Perform cross-validation
-        cv = StratifiedKFold(
-            n_splits=self.n_splits, shuffle=True, random_state=self.random_seed
-        )
-
-        # Create custom scorer function
-        custom_scorer = make_scorer(
-            self._valid_roc_auc, response_method="predict_proba", greater_is_better=True
-        )
-
-        # Create GridSearchCV object
-        grid_search = GridSearchCV(
-            estimator=self.clf,
-            param_grid=self.param_grid,
-            cv=cv,
-            n_jobs=-1,
-            verbose=1,
-            scoring=custom_scorer,
-            refit=True,
-        )
-
-        # Start grid search optimization
-        logger.info("Starting grid search optimization...")
-        grid_search.fit(self.X, self.y)
-
-        # Get best parameters and score
-        best_params = grid_search.best_params_
-        best_score = grid_search.best_score_
-
-        # Update classifier with best parameters
-        self.clf.set_params(**best_params)
-        logger.info(f"Best parameters found: {best_params}")
-        logger.info(f"Best CV score: {best_score:0.3f}")
-
-    def _valid_roc_auc(self, y_true, y_pred, **kwargs):
-        """Calculate the ROC AUC score for the classifier.
-        This method is used because the stock `roc_auc_score` function
-        does not handle the case where one class is missing in the fold.
-        This method will return 0.5 in that case.
-
-        Parameters
-        ----------
-        y_true : numpy.ndarray
-            True labels.
-        y_pred : numpy.ndarray
-            Predicted labels.
-        **kwargs : dict
-            Additional keyword arguments passed by make_scorer.
-
-        Returns
-        -------
-        roc_auc : float
-            ROC AUC score.
-
-        """
-        try:
-            # Check if we have both classes in the fold
-            if len(np.unique(y_true)) < 2:
-                logger.warning("Fold contains only one class")
-                return 0.5
-
-            return roc_auc_score(y_true, y_pred)
-
-        except Exception as e:
-            logger.warning(f"ROC AUC calculation failed: {e}")
-            return 0.5
