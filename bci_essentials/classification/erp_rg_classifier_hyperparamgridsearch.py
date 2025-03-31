@@ -170,7 +170,7 @@ class ErpRgClassifierHyperparamGridSearch(GenericClassifier):
         # Display training confusion matrix
         self.offline_cm = confusion_matrix(self.y, y_pred)
         if plot_cm:
-            disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+            disp = ConfusionMatrixDisplay(confusion_matrix=self.offline_cm)
             disp.plot()
             plt.title("Training confusion matrix")
 
