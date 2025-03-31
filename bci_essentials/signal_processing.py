@@ -14,9 +14,11 @@ The EEG data inputs can be 2D or 3D arrays.
 
 """
 
+import random
+import functools
 import numpy as np
 from scipy import signal
-import random
+from typing import Callable, Any
 from .utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
@@ -24,13 +26,38 @@ from .utils.logger import Logger  # Logger wrapper
 logger = Logger(name=__name__)
 
 
+def validate_filter_input(func: Callable) -> Callable:
+    """Decorator to validate input data for filter functions."""
+
+    @functools.wraps(func)
+    def wrapper(data: np.ndarray, *args: Any, **kwargs: Any) -> np.ndarray:
+        try:
+            if not isinstance(data, np.ndarray):
+                raise ValueError(
+                    f"Input data for {func.__name__} must be a numpy array"
+                )
+
+            if not (data.ndim in [2, 3]):
+                raise ValueError(
+                    f"Data shape for {func.__name__} must be 2D or 3D array"
+                )
+
+            return func(data, *args, **kwargs)
+        except Exception as e:
+            logger.ERROR(f"Error in {func.__name__}: {str(e)}")
+            return data
+
+    return wrapper
+
+
+@validate_filter_input
 def bandpass(data, f_low, f_high, order, fsample):
     """Bandpass Filter.
 
     Filters out frequencies outside of the range f_low to f_high with a
     Butterworth filter of specific order.
 
-    Wraps the scipy.signal.butter and scipy.signal.filtfilt methods.
+    Wraps the scipy.signal.butter and scipy.signal.sosfiltfilt methods.
 
     Parameters
     ----------
@@ -57,33 +84,20 @@ def bandpass(data, f_low, f_high, order, fsample):
         shape = (n_trials, n_channels, n_samples) or (n_channels, n_samples)
     """
     Wn = [f_low / (fsample / 2), f_high / (fsample / 2)]
-    b, a = signal.butter(order, Wn, btype="bandpass")
+    sos = signal.butter(order, Wn, btype="bandpass", output="sos")
 
-    try:
-        n_trials, n_channels, n_samples = np.shape(data)
+    filtered_data = signal.sosfiltfilt(sos, data, padlen=0)
 
-        new_data = np.ndarray(shape=(n_trials, n_channels, n_samples), dtype=float)
-        for trial in range(0, n_trials):
-            current_trial = data[trial, :, :]
-            new_data[trial, :, :] = signal.filtfilt(b, a, current_trial, padlen=0)
-
-        return new_data
-
-    except ValueError:
-        n_channels, n_samples = np.shape(data)
-
-        new_data = np.ndarray(shape=(n_channels, n_samples), dtype=float)
-        new_data = signal.filtfilt(b, a, data, padlen=0)
-
-        return new_data
+    return filtered_data
 
 
+@validate_filter_input
 def lowpass(data, f_critical, order, fsample):
     """Lowpass Filter.
 
     Filters out frequencies above f_critical with a Butterworth filter of specific order.
 
-    Wraps the scipy.signal.butter and scipy.signal.filtfilt methods.
+    Wraps the scipy.signal.butter and scipy.signal.sosfiltfilt methods.
 
     Parameters
     ----------
@@ -108,36 +122,20 @@ def lowpass(data, f_critical, order, fsample):
         shape = (n_trials, n_channels, n_samples) or (n_channels, n_samples)
     """
     Wn = f_critical / (fsample / 2)
-    b, a = signal.butter(order, Wn, btype="lowpass")
+    sos = signal.butter(order, Wn, btype="lowpass", output="sos")
 
-    try:
-        n_trials, n_channels, n_samples = np.shape(data)
+    filtered_data = signal.sosfiltfilt(sos, data, padlen=0)
 
-        new_data = np.ndarray(shape=(n_trials, n_channels, n_samples), dtype=float)
-        for trial in range(0, n_trials):
-            for channel in range(0, n_channels):
-                current_trial = data[trial, channel, :]
-                new_data[trial, channel, :] = signal.filtfilt(
-                    b, a, current_trial, padlen=0
-                )
-
-        return new_data
-
-    except ValueError:
-        n_channels, n_samples = np.shape(data)
-
-        new_data = np.ndarray(shape=(n_channels, n_samples), dtype=float)
-        new_data = signal.filtfilt(b, a, data, padlen=0)
-
-        return new_data
+    return filtered_data
 
 
+@validate_filter_input
 def highpass(data, f_critical, order, fsample):
     """Highpass Filter.
 
     Filters out frequencies below f_critical with a Butterworth filter of specific order.
 
-    Wraps the scipy.signal.butter and scipy.signal.filtfilt methods.
+    Wraps the scipy.signal.butter and scipy.signal.sosfiltfilt methods.
 
     Parameters
     ----------
@@ -162,27 +160,14 @@ def highpass(data, f_critical, order, fsample):
         shape = (n_trials, n_channels, n_samples) or (n_channels, n_samples)
     """
     Wn = f_critical / (fsample / 2)
-    b, a = signal.butter(order, Wn, btype="highpass")
+    sos = signal.butter(order, Wn, btype="highpass", output="sos")
 
-    try:
-        n_trials, n_channels, n_samples = np.shape(data)
+    filtered_data = signal.sosfiltfilt(sos, data, padlen=0)
 
-        new_data = np.ndarray(shape=(n_trials, n_channels, n_samples), dtype=float)
-        for trial in range(0, n_trials):
-            current_trial = data[trial, :, :]
-            new_data[trial, :, :] = signal.filtfilt(b, a, current_trial, padlen=0)
-
-        return new_data
-
-    except ValueError:
-        n_channels, n_samples = np.shape(data)
-
-        new_data = np.ndarray(shape=(n_channels, n_samples), dtype=float)
-        new_data = signal.filtfilt(b, a, data, padlen=0)
-
-        return new_data
+    return filtered_data
 
 
+@validate_filter_input
 def notch(data, f_notch, Q, fsample):
     """Notch Filter.
 
@@ -215,20 +200,9 @@ def notch(data, f_notch, Q, fsample):
     """
 
     b, a = signal.iirnotch(f_notch, Q, fsample)
+    filtered_data = signal.filtfilt(b, a, data, padlen=0)
 
-    try:
-        n_trials, n_channels, n_samples = np.shape(data)
-        new_data = np.ndarray(shape=(n_trials, n_channels, n_samples), dtype=float)
-        for trial in range(0, n_trials):
-            current_trial = data[trial, :, :]
-            new_data[trial, :, :] = signal.filtfilt(b, a, current_trial, padlen=0)
-        return new_data
-
-    except Exception:
-        n_channels, n_samples = np.shape(data)
-        new_data = np.ndarray(shape=(n_channels, n_samples), dtype=float)
-        new_data = signal.filtfilt(b, a, data, padlen=0)
-        return new_data
+    return filtered_data
 
 
 def lico(X, y, expansion_factor=3, sum_num=2, shuffle=False):
