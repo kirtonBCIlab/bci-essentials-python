@@ -165,7 +165,7 @@ class ErpSingleChannelClassifier(GenericClassifier):
                         The recall of the trained classification model.
 
             """
-            print("X shape: ", X.shape)
+            logger.info("X shape: %s", X.shape)
 
             for train_idx, test_idx in cv.split(X, y):
                 y_train, y_test = y[train_idx], y[test_idx]
@@ -342,8 +342,7 @@ class ErpSingleChannelClassifier(GenericClassifier):
             plt.show()
 
         if plot_roc:
-            logger.info("Plotting the ROC...")
-            logger.error("Just kidding ROC has not been implemented")
+            logger.error("ROC plot has not been implemented yet")
 
     def predict(self, X):
         """Predict the class of the data (Unused in this classifier)

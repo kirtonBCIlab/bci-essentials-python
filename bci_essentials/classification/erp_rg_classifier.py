@@ -362,8 +362,7 @@ class ErpRgClassifier(GenericClassifier):
             plt.show()
 
         if plot_roc:
-            logger.info("Plotting the ROC...")
-            logger.error("Just kidding ROC has not been implemented")
+            logger.error("ROC plot has not been implemented yet")
 
     def predict(self, X):
         """Predict the class of the data (Unused in this classifier)
