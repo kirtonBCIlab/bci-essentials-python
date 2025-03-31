@@ -422,7 +422,9 @@ class BciController:
                 if self.__paradigm.classify_each_epoch:
                     success_string = self.__process_and_classify()
                     if success_string == "Wait":
-                        logger.debug("Processing of epoch not run: waiting for more data")
+                        logger.debug(
+                            "Processing of epoch not run: waiting for more data"
+                        )
                         self.event_marker_buffer = []
                         self.event_timestamp_buffer = []
                         break
@@ -430,7 +432,7 @@ class BciController:
                         logger.info("Processing of epoch failed: skipping epoch")
                         self.event_marker_buffer = []
                         self.event_timestamp_buffer = []
-                        
+
                         self.marker_count += 1
                         break
 
@@ -460,7 +462,9 @@ class BciController:
                 if self.__paradigm.classify_each_trial:
                     success_string = self.__process_and_classify()
                     if success_string == "Wait":
-                        logger.debug("Processing of trial not run: waiting for more data")
+                        logger.debug(
+                            "Processing of trial not run: waiting for more data"
+                        )
                         break
                     elif success_string == "Skip":
                         logger.info("Processing of trial failed: skipping trial")
