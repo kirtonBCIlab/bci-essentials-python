@@ -203,7 +203,10 @@ class GenericClassifier(ABC):
         if np.min(class_counts) < self.n_splits:
             # Future implementation: Report the class with the least number of samples
             # Future implementation: Report the number of samples in each class
-            logger.warning("Need at least %s samples per class for cross-validation. Please collect more training data.", self.n_splits)
+            logger.warning(
+                "Need at least %s samples per class for cross-validation. Please collect more training data.",
+                self.n_splits,
+            )
             return False
 
         return True
