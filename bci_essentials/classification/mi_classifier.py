@@ -214,13 +214,16 @@ class MiClassifier(GenericClassifier):
                 self.clf.fit(X_train, y_train)
                 preds[test_idx] = self.clf.predict(X_test)
 
-            accuracy = sum(preds == self.y) / len(preds)
-            precision = precision_score(self.y, preds, average="micro")
-            recall = recall_score(self.y, preds, average="micro")
-
+            # Train final model with all available data
+            self.clf.fit(subX, suby)
             model = self.clf
 
-            return KernelResults(model, preds, accuracy, precision, recall)
+            training_preds = self.clf.predict(subX)
+            accuracy = sum(training_preds == self.y) / len(training_preds)
+            precision = precision_score(self.y, training_preds, average="micro")
+            recall = recall_score(self.y, training_preds, average="micro")
+
+            return KernelResults(model, training_preds, accuracy, precision, recall)
 
         # Check if channel selection is true
         if self.channel_selection_setup:
