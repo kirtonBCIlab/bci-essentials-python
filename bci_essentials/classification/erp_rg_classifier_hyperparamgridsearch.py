@@ -164,8 +164,8 @@ class ErpRgClassifierHyperparamGridSearch(GenericClassifier):
         try:
             roc_auc = roc_auc_score(self.y, y_pred_proba)
             logger.info(f"ROC AUC Score: {roc_auc:0.3f}")
-        except:
-            logger.warning("Could not calculate ROC AUC score")
+        except Exception as e:
+            logger.warning(f"Could not calculate ROC AUC score: {e}")
 
         # Display training confusion matrix
         self.offline_cm = confusion_matrix(self.y, y_pred)
