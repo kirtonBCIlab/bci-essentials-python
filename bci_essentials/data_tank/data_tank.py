@@ -1,5 +1,5 @@
 import numpy as np
-from bci_essentials.utils.logger import Logger  # Logger wrapper
+from ..utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
 # Logs to bci_essentials.__module__) where __module__ is the name of the module
