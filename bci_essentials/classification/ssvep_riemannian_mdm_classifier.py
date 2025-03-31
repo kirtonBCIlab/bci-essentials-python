@@ -282,7 +282,7 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
 
             # Train final model with all available data
             self.clf.fit(X_super, suby)
-            model= self.clf
+            model = self.clf
 
             training_preds = self.clf.predict(X_super)
             accuracy = sum(training_preds == self.y) / len(training_preds)
