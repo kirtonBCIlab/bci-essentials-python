@@ -487,7 +487,7 @@ class BciController:
                     if len(y) > 0:
                         self._classifier.add_to_train(X, y)
 
-                    if self._classifier.check_ready_for_fit():
+                    if self._classifier._check_ready_for_fit():
                         self._classifier.fit()
                         self.train_complete = True
 

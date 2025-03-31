@@ -172,7 +172,7 @@ class GenericClassifier(ABC):
         self.n_splits = 5
         """@private (This is just for the API docs, to avoid double listing."""
 
-    def check_ready_for_fit(self):
+    def _check_ready_for_fit(self):
         """Check if sufficient data is available for fitting with cross-validation.
 
         This method validates that:
