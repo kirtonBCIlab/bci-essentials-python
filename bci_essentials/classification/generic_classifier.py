@@ -127,7 +127,7 @@ class GenericClassifier(ABC):
             List to store predication probabilities during testing.
             - Initial value is `[]`.
         n_splits : int
-            Number of splits for cross-validation.
+            Number of splits for cross-validation. Also serves as minimum required samples per class for training when running _check_ready_for_fit().
             - Initial value is `5`.
 
         """
@@ -173,13 +173,17 @@ class GenericClassifier(ABC):
         """@private (This is just for the API docs, to avoid double listing."""
 
     def check_ready_for_fit(self):
-        """Check if data is available for fitting.
+        """Check if sufficient data is available for fitting with cross-validation.
+
+        This method validates that:
+        1. Training data (X) exists
+        2. At least two classes are present in the labels
+        3. Each class has at least n_splits samples (required for k-fold cross-validation)
 
         Returns
         -------
         bool
-            Returns `True` if data is available for fitting, otherwise `False`.
-
+            Returns `True` if data meets all requirements for fitting, otherwise `False`.
         """
         if self.X.size == 0:
             logger.warning("No data available for fitting")
@@ -195,11 +199,11 @@ class GenericClassifier(ABC):
         for i, y in enumerate(unique_y):
             class_counts[i] = np.sum(self.y == y)
 
-        # If n_splits is greater than the min number of members in a class, return False
+        # If n_splits is greater than the min number of samples in a class, return False
         if np.min(class_counts) < self.n_splits:
-            logger.warning(
-                "Not enough data for fitting, please do another round of training"
-            )
+            # Future implementation: Report the class with the least number of samples
+            # Future implementation: Report the number of samples in each class
+            logger.warning("Need at least %s samples per class for cross-validation. Please collect more training data.", self.n_splits)
             return False
 
         return True
