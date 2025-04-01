@@ -39,7 +39,7 @@ class MarkerTypes(Enum):
     TRIAL_ENDS = "Trial Ends"
     TRAINING_COMPLETE = "Training Complete"
     TRAIN_CLASSIFIER = "Train Classifier"
-    DONE_RS_COLLECTION = "Done will all RS collection"
+    DONE_RS_COLLECTION = "Done with all RS collection"
 
 
 # EEG data
