@@ -7,6 +7,7 @@ Additional Arguments:
 now (-n)            -   start the stream immediately
 num_loops (int)     -   number of times to repeat the stream
 paradigm (str)      -   paradigm to simulate (p300 (default), ssvep, mi)
+defect (str)        -   defect to simulate (none (default), packetloss)
 
 ex.
 >python eeg_lsl_sim.py now 8
@@ -27,18 +28,8 @@ from pylsl import StreamInfo, StreamOutlet
 from bci_essentials.io.xdf_sources import XdfEegSource, XdfMarkerSource
 from bci_essentials.utils.logger import Logger  # Logger wrapper
 
-try:
-    paradigm = sys.argv[3]
-except IndexError:
-    paradigm = "p300"  # Default value
-
 # Instantiate a logger for the module at the default level of logging.INFO
 logger = Logger(name="eeg_lsl_sim")
-
-# Identify the file to simulate
-# Filename assumes the data is within a subfolder called "data" located
-# within the same folder as this script
-filename = os.path.join("data", f"{paradigm}_example.xdf")
 
 # Check whether to start now, or at the next even minute to sync with other programs
 start_now = False
@@ -58,6 +49,28 @@ try:
 
 except Exception:
     nloops = 1
+
+try:
+    paradigm = sys.argv[3]
+except IndexError:
+    paradigm = "p300"  # Default value
+
+# Check for defect to simulate
+simulate_packet_loss = False
+try:
+    defect = sys.argv[4]
+    if defect == "packetloss":
+        logger.info("Simulating packet loss")
+        simulate_packet_loss = True
+
+except IndexError:
+    defect = "none"
+
+
+# Identify the file to simulate
+# Filename assumes the data is within a subfolder called "data" located
+# within the same folder as this script
+filename = os.path.join("data", f"{paradigm}_example.xdf")
 
 # Load the example EEG / marker streams
 marker_source = XdfMarkerSource(filename)
@@ -118,6 +131,14 @@ while i < nloops:
     for j in range(0, len(eeg_timestamps) - 1):
         # publish to stream
         eeg_sample = bci_controller[j][:]
+
+        if simulate_packet_loss:
+            # Every two thousandth sample, pause for 0.5 seconds
+            if j % 2000 == 0:
+                logger.info("Packet loss begins")
+                time.sleep(0.5)
+                logger.info("Packet loss ends")
+
         outlet.push_sample(eeg_sample)
         if j != len(eeg_timestamps):
             time.sleep(eeg_timestamps[j + 1] - eeg_timestamps[j])

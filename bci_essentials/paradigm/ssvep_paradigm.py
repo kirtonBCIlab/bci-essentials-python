@@ -68,7 +68,7 @@ class SsvepParadigm(Paradigm):
         """
         start_time = timestamps[0] - self.buffer_time
 
-        end_time = timestamps[-1] + float(markers[-1].split(",")[-1]) + self.buffer_time
+        end_time = timestamps[-1] + float(markers[-1].split(",")[3]) + self.buffer_time
 
         return start_time, end_time
 

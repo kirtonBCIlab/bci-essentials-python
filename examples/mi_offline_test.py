@@ -40,5 +40,3 @@ test_mi.setup(
     online=False,
 )
 test_mi.run()
-
-print("Debug")
