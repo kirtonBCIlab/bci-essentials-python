@@ -38,8 +38,8 @@ class MarkerTypes(Enum):
     TRIAL_STARTED = "Trial Started"
     TRIAL_ENDS = "Trial Ends"
     TRAINING_COMPLETE = "Training Complete"
-    UPDATE_CLASSIFIER = "Update Classifier"
-    DONE_RS_CLASSIFICATION = "Done will all RS Classification"
+    TRAIN_CLASSIFIER = "Train Classifier"
+    DONE_RS_COLLECTION = "Done will all RS collection"
 
 
 # EEG data
@@ -125,11 +125,11 @@ class BciController:
 
         # Initialize marker methods dictionary
         self.marker_methods = {
-            MarkerTypes.DONE_RS_CLASSIFICATION.value: self.__done_rs_classification,
+            MarkerTypes.DONE_RS_COLLECTION.value: self.__done_rs_collection,
             MarkerTypes.TRIAL_STARTED.value: self.__trial_started,
             MarkerTypes.TRIAL_ENDS.value: self.__trial_ends,
-            MarkerTypes.TRAINING_COMPLETE.value: self.__update_classifier,
-            MarkerTypes.UPDATE_CLASSIFIER.value: self.__update_classifier,
+            MarkerTypes.TRAINING_COMPLETE.value: self.__training_complete,
+            MarkerTypes.TRAIN_CLASSIFIER.value: self.__training_complete,
         }
 
         self.ping_count = 0
@@ -449,7 +449,7 @@ class BciController:
             logger.info("Processed Marker: %s", current_step_marker)
             self.marker_count += 1
 
-    def __done_rs_classification(self):
+    def __done_rs_collection(self):
         """Classify the resting state data
 
         Parameters
@@ -474,6 +474,7 @@ class BciController:
             self.eeg_timestamps,
             self.fsample,
         )
+
         self.__data_tank.add_resting_state_data(resting_state_data)
 
         return True  # Continue processing
@@ -510,12 +511,22 @@ class BciController:
         """
         # If we are classifying based on trials, then process the trial,
         if self.__paradigm.classify_each_trial:
-            success_flag = self.__process_and_classify()
-            return success_flag
+            success_string = self.__process_and_classify()
+            if success_string == "Wait":
+                logger.debug(
+                    "Processing of trial not run: waiting for more data"
+                )
+                return False
+            if success_string == "Skip":
+                logger.info("Processing of trial failed: skipping trial")
+                self.event_marker_buffer = []
+                self.event_timestamp_buffer = []
+                self.marker_count += 1
+                return False
 
         return True  # Return True by default if not classifying
 
-    def __update_classifier(self):
+    def __training_complete(self):
         """Updates the classifier if required.
 
         Parameters
@@ -530,12 +541,24 @@ class BciController:
         if self.train_lock is False:
             # Pull the epochs from the data tank and pass them to the classifier
             X, y = self.__data_tank.get_epochs(latest=True)
+            
+           # Remove epochs with label -1
+            ind_to_remove = []
+            for i, label in enumerate(y):
+                if label == -1:
+                    ind_to_remove.append(i)
+            X = np.delete(X, ind_to_remove, axis=0)
+            y = np.delete(y, ind_to_remove, axis=0)
+
+            # Check that there are epochs
             if len(y) > 0:
                 self._classifier.add_to_train(X, y)
-            self._classifier.fit()
-            self.train_complete = True
 
-        return True  # Continue processing
+            if self._classifier._check_ready_for_fit():
+                self._classifier.fit()
+                self.train_complete = True 
+
+        return True
 
     def __handle_event_marker(self, marker, timestamp):
         """Processes and classifies event markers.
@@ -555,11 +578,20 @@ class BciController:
 
         # If classification is on epochs, then update epochs, maybe classify, and clear the buffer
         if self.__paradigm.classify_each_epoch:
-            success_flag = self.__process_and_classify()
-            if success_flag is False:
-                # If the processing failed, then there is not enough EEG
+            success_string = self.__process_and_classify()
+            if success_string == "Wait":
+                logger.debug(
+                    "Processing of epoch not run: waiting for more data"
+                )
                 self.event_marker_buffer = []
                 self.event_timestamp_buffer = []
+                return False  # Stop processing
+            elif success_string == "Skip":
+                logger.info("Processing of epoch failed: skipping epoch")
+                self.event_marker_buffer = []
+                self.event_timestamp_buffer = []
+
+                self.marker_count += 1
                 return False  # Stop processing
 
         return True  # Continue processing
