@@ -125,11 +125,11 @@ class BciController:
 
         # Initialize marker methods dictionary
         self.marker_methods = {
-            MarkerTypes.DONE_RS_COLLECTION.value: self.__done_rs_collection,
-            MarkerTypes.TRIAL_STARTED.value: self.__trial_started,
-            MarkerTypes.TRIAL_ENDS.value: self.__trial_ends,
-            MarkerTypes.TRAINING_COMPLETE.value: self.__training_complete,
-            MarkerTypes.TRAIN_CLASSIFIER.value: self.__training_complete,
+            MarkerTypes.DONE_RS_COLLECTION.value: self.__process_resting_state_data,
+            MarkerTypes.TRIAL_STARTED.value: self.__log_trial_start,
+            MarkerTypes.TRIAL_ENDS.value: self.__handle_trial_end,
+            MarkerTypes.TRAINING_COMPLETE.value: self.__update_and_train_classifier,
+            MarkerTypes.TRAIN_CLASSIFIER.value: self.__update_and_train_classifier,
         }
 
         self.ping_count = 0
@@ -449,8 +449,8 @@ class BciController:
             logger.info("Processed Marker: %s", current_step_marker)
             self.marker_count += 1
 
-    def __done_rs_collection(self):
-        """Classify the resting state data
+    def __process_resting_state_data(self):
+        """Handles the resting state data by packaging it and adding it to the data tank.
 
         Parameters
         ----------
@@ -479,7 +479,7 @@ class BciController:
 
         return True  # Continue processing
 
-    def __trial_started(self):
+    def __log_trial_start(self):
         """Logs the start of a trial.
 
         Parameters
@@ -496,7 +496,7 @@ class BciController:
         # Note that a marker occured, but do nothing else
         return True  # Continue processing
 
-    def __trial_ends(self):
+    def __handle_trial_end(self):
         """Handles the end of a trial. Processes and classifies trial data if required.
 
         Parameters
@@ -524,7 +524,7 @@ class BciController:
 
         return True  # Return True by default if not classifying
 
-    def __training_complete(self):
+    def __update_and_train_classifier(self):
         """Updates the classifier if required.
 
         Parameters
