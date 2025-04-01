@@ -513,9 +513,7 @@ class BciController:
         if self.__paradigm.classify_each_trial:
             success_string = self.__process_and_classify()
             if success_string == "Wait":
-                logger.debug(
-                    "Processing of trial not run: waiting for more data"
-                )
+                logger.debug("Processing of trial not run: waiting for more data")
                 return False
             if success_string == "Skip":
                 logger.info("Processing of trial failed: skipping trial")
@@ -541,8 +539,8 @@ class BciController:
         if self.train_lock is False:
             # Pull the epochs from the data tank and pass them to the classifier
             X, y = self.__data_tank.get_epochs(latest=True)
-            
-           # Remove epochs with label -1
+
+            # Remove epochs with label -1
             ind_to_remove = []
             for i, label in enumerate(y):
                 if label == -1:
@@ -556,7 +554,7 @@ class BciController:
 
             if self._classifier._check_ready_for_fit():
                 self._classifier.fit()
-                self.train_complete = True 
+                self.train_complete = True
 
         return True
 
@@ -580,9 +578,7 @@ class BciController:
         if self.__paradigm.classify_each_epoch:
             success_string = self.__process_and_classify()
             if success_string == "Wait":
-                logger.debug(
-                    "Processing of epoch not run: waiting for more data"
-                )
+                logger.debug("Processing of epoch not run: waiting for more data")
                 self.event_marker_buffer = []
                 self.event_timestamp_buffer = []
                 return False  # Stop processing
