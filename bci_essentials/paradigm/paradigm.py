@@ -33,7 +33,7 @@ class Paradigm(ABC):
         # Do we classify labeled epochs (such as in the case of iterative training)?
         self.classify_labeled_epochs = False
 
-    def _preprocess(self, eeg, fsample, lowcut, highcut):
+    def _preprocess(self, eeg, fsample, lowcut, highcut, order=5):
         """
         Preprocess EEG data with bandpass filter.
 
@@ -47,6 +47,8 @@ class Paradigm(ABC):
             Lower cutoff frequency.
         highcut : float
             Upper cutoff frequency.
+        order : int
+            Order of the filter [n]. Default is 5.
 
         Returns
         -------
@@ -54,7 +56,7 @@ class Paradigm(ABC):
             Bandpassed EEG data. Shape is (n_channels, n_samples).
 
         """
-        new_eeg = bandpass(eeg, lowcut, highcut, 5, fsample)
+        new_eeg = bandpass(eeg, lowcut, highcut, order, fsample)
 
         return new_eeg
 
