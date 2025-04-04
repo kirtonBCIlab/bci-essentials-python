@@ -126,6 +126,9 @@ class GenericClassifier(ABC):
         pred_probas : list of `float`
             List to store predication probabilities during testing.
             - Initial value is `[]`.
+        n_splits : int
+            Number of splits for cross-validation. Also serves as minimum required samples per class for training when running _check_ready_for_fit().
+            - Initial value is `5`.
 
         """
         logger.info("Initializing the classifier")
@@ -164,6 +167,49 @@ class GenericClassifier(ABC):
         """@private (This is just for the API docs, to avoid double listing."""
         self.pred_probas = []
         """@private (This is just for the API docs, to avoid double listing."""
+
+        # N Splits
+        self.n_splits = 5
+        """@private (This is just for the API docs, to avoid double listing."""
+
+    def _check_ready_for_fit(self):
+        """Check if sufficient data is available for fitting with cross-validation.
+
+        This method validates that:
+        1. Training data (X) exists
+        2. At least two classes are present in the labels
+        3. Each class has at least n_splits samples (required for k-fold cross-validation)
+
+        Returns
+        -------
+        bool
+            Returns `True` if data meets all requirements for fitting, otherwise `False`.
+        """
+        if self.X.size == 0:
+            logger.warning("No data available for fitting")
+            return False
+
+        unique_y = np.unique(self.y)
+
+        if len(unique_y) == 1:
+            logger.warning("Only one class available for fitting")
+            return False
+
+        class_counts = np.zeros(len(unique_y))
+        for i, y in enumerate(unique_y):
+            class_counts[i] = np.sum(self.y == y)
+
+        # If n_splits is greater than the min number of samples in a class, return False
+        if np.min(class_counts) < self.n_splits:
+            # Future implementation: Report the class with the least number of samples
+            # Future implementation: Report the number of samples in each class
+            logger.warning(
+                "Need at least %s samples per class for cross-validation. Please collect more training data.",
+                self.n_splits,
+            )
+            return False
+
+        return True
 
     def get_subset(self, X=[], subset=[], channel_labels=[]):
         """Get a subset of X according to labels or indices.
@@ -355,45 +401,6 @@ class GenericClassifier(ABC):
         else:
             self.X = np.append(self.X, decision_block, axis=0)
             self.y = np.append(self.y, labels, axis=0)
-
-    # # predict a label based on a decision block
-    # # This doesn't seem to be used anywhere
-    # def predict_decision_block(self, decision_block) -> Prediction:
-    #     """Predict a label based on a decision block.
-
-    #     Parameters
-    #     ----------
-    #     decision_block : numpy.ndarray
-    #         Decision block containing EEG data for training.
-    #         3D array with shape = (`n_epochs`, `n_channels`, `n_samples`).
-
-    #     Returns
-    #     -------
-    #     prediction : Prediction
-    #         A Predication object containing the predicated label and
-    #         prediction probabilities.
-
-    #     """
-    #     decision_block_subset = self.get_subset(
-    #         decision_block, self.subset, self.channel_labels
-    #     )
-
-    #     # get prediction probabilities for all
-    #     proba_mat = self.clf.predict_proba(decision_block_subset)
-
-    #     proba = proba_mat[:, 1]
-    #     relative_proba = proba / np.amax(proba)
-
-    #     log_proba = np.log(relative_proba)
-    #     logger.info("log relative probabilities:\n%s", log_proba)
-
-    #     # the selection is the highest probability
-    #     prediction = int(np.where(proba == np.amax(proba))[0][0])
-
-    #     self.predictions.append(prediction)
-    #     self.pred_probas.append(proba_mat)
-
-    #     return Prediction(labels=prediction, probabilities=proba_mat)
 
     @abstractmethod
     def fit(self):

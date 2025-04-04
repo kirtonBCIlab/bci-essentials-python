@@ -220,8 +220,13 @@ class BciController:
 
         Returns
         ----------
-            success_flag : bool
-                Flag indicating if the processing and classification was successful.
+            success_string : str
+                String indicating if the processing and classification was successful.
+                Potential values are "Success", "Skip", "Wait".
+
+                "Success": The processing and classification was successful.
+                "Skip": EEG is either absent entirely or contains lost packets.
+                "Wait": The processing is waiting for more data.
 
         """
 
@@ -232,9 +237,27 @@ class BciController:
         # No we actually need to wait until we have all the data for these markers
         eeg, timestamps = self.__data_tank.get_raw_eeg()
 
-        # If the last timestamp is less than the end time, then we don't have the necessarty EEG to process
+        # Check if there is available EEG data
+        if len(eeg) == 0:
+            logger.info("No EEG data available")
+            return "Skip"
+
+        # If the last timestamp is less than the end time, then we don't have the necessary EEG to process
         if timestamps[-1] < eeg_end_time:
-            return False
+            return "Wait"
+
+        # Check if EEG sampling is continuous over this time period
+        start_indices = np.where(timestamps > eeg_start_time)[0]
+        if len(start_indices) == 0:
+            logger.info("No timestamps exceed eeg_start_time")
+            return "Skip"
+        start_index = start_indices[0]
+        end_index = np.where(timestamps < eeg_end_time)[0][-1]
+
+        time_diffs = np.diff(timestamps[start_index:end_index])
+        if np.any(time_diffs > 2 / self.fsample):
+            logger.info("Time gaps in EEG data")
+            return "Skip"
 
         X, y = self.__paradigm.process_markers(
             self.event_marker_buffer,
@@ -256,7 +279,7 @@ class BciController:
         self.event_marker_buffer = []
         self.event_timestamp_buffer = []
 
-        return True
+        return "Success"
 
     def __send_prediction(self, prediction):
         """Send a prediction to the messenger object."""
@@ -397,11 +420,20 @@ class BciController:
 
                 # If classification is on epochs, then update epochs, maybe classify, and clear the buffer
                 if self.__paradigm.classify_each_epoch:
-                    success_flag = self.__process_and_classify()
-                    if success_flag is False:
-                        # If the processing failed, then there is not enough EEG
+                    success_string = self.__process_and_classify()
+                    if success_string == "Wait":
+                        logger.debug(
+                            "Processing of epoch not run: waiting for more data"
+                        )
                         self.event_marker_buffer = []
                         self.event_timestamp_buffer = []
+                        break
+                    elif success_string == "Skip":
+                        logger.info("Processing of epoch failed: skipping epoch")
+                        self.event_marker_buffer = []
+                        self.event_timestamp_buffer = []
+
+                        self.marker_count += 1
                         break
 
             # TODO
@@ -428,27 +460,42 @@ class BciController:
             elif current_step_marker == "Trial Ends":
                 # If we are classifying based on trials, then process the trial,
                 if self.__paradigm.classify_each_trial:
-                    success_flag = self.__process_and_classify()
-                    if success_flag is False:
+                    success_string = self.__process_and_classify()
+                    if success_string == "Wait":
+                        logger.debug(
+                            "Processing of trial not run: waiting for more data"
+                        )
+                        break
+                    elif success_string == "Skip":
+                        logger.info("Processing of trial failed: skipping trial")
+                        self.event_marker_buffer = []
+                        self.event_timestamp_buffer = []
+                        self.marker_count += 1
                         break
 
-            elif current_step_marker == "Training Complete":
+            elif (
+                current_step_marker == "Training Complete"
+                or current_step_marker == "Train Classifier"
+            ):
                 if self.train_lock is False:
                     # Pull the epochs from the data tank and pass them to the classifier
                     X, y = self.__data_tank.get_epochs(latest=True)
-                    if len(y) > 0:
-                        self._classifier.add_to_train(X, y)
-                    self._classifier.fit()
-                    self.train_complete = True
 
-            elif current_step_marker == "Update Classifier":
-                if self.train_lock is False:
-                    # Pull the epochs from the data tank and pass them to the classifier
-                    X, y = self.__data_tank.get_epochs(latest=True)
+                    # Remove epochs with label -1
+                    ind_to_remove = []
+                    for i, label in enumerate(y):
+                        if label == -1:
+                            ind_to_remove.append(i)
+                    X = np.delete(X, ind_to_remove, axis=0)
+                    y = np.delete(y, ind_to_remove, axis=0)
+
+                    # Check that there are epochs
                     if len(y) > 0:
                         self._classifier.add_to_train(X, y)
-                    self._classifier.fit()
-                    self.train_complete = True
+
+                    if self._classifier._check_ready_for_fit():
+                        self._classifier.fit()
+                        self.train_complete = True
 
             logger.info("Processed Marker: %s", current_step_marker)
             self.marker_count += 1
