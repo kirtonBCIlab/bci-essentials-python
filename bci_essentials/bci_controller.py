@@ -425,7 +425,7 @@ class BciController:
         `None`
 
         Returns
-        ------
+        -------
         continue_flag : bool
             Flag indicating to continue the while loop in step().
 
