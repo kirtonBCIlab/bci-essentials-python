@@ -106,7 +106,6 @@ class ErpSingleChannelClassifier(GenericClassifier):
 
         Returns
         -------
-
         `None`
             Models created used in `predict()`.
 

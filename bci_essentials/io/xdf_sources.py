@@ -29,8 +29,13 @@ class XdfMarkerSource(MarkerSource):
         return self.__info["name"][0]
 
     def get_markers(self) -> tuple[list[list], list]:
-        """Read markers and related timestamps from the XDF file.  Returns the contents
-        of the file on the first call to get_markers(), returns empty lists thereafter.
+        """Read markers and related timestamps from the XDF file.
+
+        Returns
+        -------
+        markers_from_xdf : tuple[markers, timestamps]
+            A tuple of (markers, timestamps). The contents of the file on the first call to get_markers().
+                - Returns empty lists [[],[]] thereafter.
         """
         # return all data on first get
         samples = self.__samples

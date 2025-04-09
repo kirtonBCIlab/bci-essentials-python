@@ -82,6 +82,7 @@ def bandpass(data, f_low, f_high, order, fsample):
         3D (or 2D) array containing data with `float` type.
 
         shape = (n_trials, n_channels, n_samples) or (n_channels, n_samples)
+
     """
     Wn = [f_low / (fsample / 2), f_high / (fsample / 2)]
     sos = signal.butter(order, Wn, btype="bandpass", output="sos")
@@ -120,6 +121,7 @@ def lowpass(data, f_critical, order, fsample):
         3D (or 2D) array containing data with `float` type.
 
         shape = (n_trials, n_channels, n_samples) or (n_channels, n_samples)
+
     """
     Wn = f_critical / (fsample / 2)
     sos = signal.butter(order, Wn, btype="lowpass", output="sos")
