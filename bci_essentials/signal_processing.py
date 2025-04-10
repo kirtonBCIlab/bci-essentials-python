@@ -211,7 +211,7 @@ def notch(data, f_notch, Q, fsample):
 def lico(X, y, expansion_factor=3, sum_num=2, shuffle=False):
     """Linear Combination Oversampling (LiCO)
 
-    Generates synthetic EEG trials for the minority class by creating weighted linear 
+    Generates synthetic EEG trials for the minority class by creating weighted linear
     combinations of existing trials, with added Gaussian noise for variability.
     Automatically detects the minority class based on label distribution.
 
@@ -245,19 +245,20 @@ def lico(X, y, expansion_factor=3, sum_num=2, shuffle=False):
         shape = (n_expanded_trials,)
 
     """
-    
+
     # Find unique classes and their counts
     classes, counts = np.unique(y, return_counts=True)
     minority_class = classes[np.argmin(counts)]
     true_X = X[y == minority_class]
-    
+
     n_trials, n_channels, n_samples = true_X.shape
-    logger.info("Shape of minority class only: %s", true_X.shape)
-    
+    logger.debug("Shape of minority class only: %s", true_X.shape)
+
     # Calculate number of new trials needed
     n_new_trials = int(n_trials * (expansion_factor - 1))
     new_X = np.zeros([n_new_trials, n_channels, n_samples])
-    
+    logger.debug("Shape of new trials: %s", new_X.shape)
+
     # Generate synthetic trials
     for trial_idx in range(n_new_trials):
         # Generate random weights
@@ -275,26 +276,30 @@ def lico(X, y, expansion_factor=3, sum_num=2, shuffle=False):
 
         # Normalize the new sample
         new_X[trial_idx, :, :] /= np.linalg.norm(new_X[trial_idx, :, :])
-    
+
     # Combine original data with synthetic data
     over_X = np.append(X, new_X, axis=0)
     over_y = np.append(y, np.ones([n_new_trials], dtype=int))
-    
+
+    logger.info("LiCO expanded data from %d to %d samples", len(y), len(over_y))
+    logger.info("Final class distribution: %s", np.bincount(over_y).tolist())
+
     # Shuffle the data if requested
     if shuffle:
         indices = np.arange(len(over_y))
         np.random.shuffle(indices)
-        
+
         over_X = over_X[indices]
         over_y = over_y[indices]
-    
+
     return over_X, over_y
 
-def eeg_smote(X, y, expansion_factor=3, k_neighbors=5, shuffle=False):
+
+def smote(X, y, expansion_factor=3, k_neighbors=5, shuffle=False, random_state=42):
     """Oversampling using SMOTE (Synthetic Minority Over-sampling Technique)
-    
+
     Generates synthetic EEG trials for the minority class (typically target/P300 responses).
-    
+
     Parameters
     ----------
     X : numpy.ndarray
@@ -312,7 +317,10 @@ def eeg_smote(X, y, expansion_factor=3, k_neighbors=5, shuffle=False):
     shuffle : bool, *optional*
         Whether to shuffle the final combined dataset.
         - Default is `False`.
-        
+    random_state : int, *optional*
+        Random seed for reproducibility.
+        - Default is `42`.
+
     Returns
     -------
     over_X : numpy.ndarray
@@ -323,44 +331,48 @@ def eeg_smote(X, y, expansion_factor=3, k_neighbors=5, shuffle=False):
 
     # Get dimensions
     n_trials, n_channels, n_samples = X.shape
-    
-    # Calculate target number of minority class samples
-    n_minority = sum(y == 1)
-    sampling_strategy = min(expansion_factor, (len(y) - n_minority) / n_minority)
-    
+
+    # Find unique classes and their counts
+    classes, counts = np.unique(y, return_counts=True)
+    minority_class = classes[np.argmin(counts)]
+    n_minority = int(sum(y == minority_class) * expansion_factor)
+    sampling_strategy = {minority_class: n_minority}
+
     # Reshape X to 2D for SMOTE (combine channels and samples)
     X_reshaped = X.reshape(n_trials, n_channels * n_samples)
-    
+
     # Apply SMOTE
     try:
         # If not enough minority samples for k_neighbors, reduce k
         if n_minority <= k_neighbors:
             k_neighbors = max(1, n_minority - 1)
-            logger.warning(f"Reduced k_neighbors to {k_neighbors} due to small minority class")
-            
+            logger.warning(
+                f"Reduced k_neighbors to {k_neighbors} due to small minority class"
+            )
+
         # Configure and apply SMOTE
         smote = SMOTE(
-            sampling_strategy="auto",
+            sampling_strategy=sampling_strategy,
             k_neighbors=k_neighbors,
-            random_state=42
+            random_state=random_state,
         )
         X_resampled, y_resampled = smote.fit_resample(X_reshaped, y)
-        
+
         # Reshape back to 3D
         X_resampled = X_resampled.reshape(-1, n_channels, n_samples)
-        
+
         # Shuffle if requested
         if shuffle:
             indices = np.arange(len(y_resampled))
             np.random.shuffle(indices)
             X_resampled = X_resampled[indices]
             y_resampled = y_resampled[indices]
-        
+
         logger.info(f"SMOTE expanded data from {len(y)} to {len(y_resampled)} samples")
         logger.info(f"New class balance: {sum(y_resampled == 1)}/{len(y_resampled)}")
-        
+
         return X_resampled, y_resampled
-        
+
     except ValueError as e:
         logger.error(f"SMOTE failed: {e}. Returning original data.")
         return X, y
