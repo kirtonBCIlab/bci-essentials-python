@@ -352,7 +352,9 @@ def smote(X, y, expansion_factor=3, k_neighbors=5, shuffle=False, random_state=4
         # If not enough minority samples for k_neighbors, reduce k
         if n_minority <= k_neighbors:
             k_neighbors = max(1, n_minority - 1)
-            logger.warning("Reduced k_neighbors to %s due to small minority class", k_neighbors)
+            logger.warning(
+                "Reduced k_neighbors to %s due to small minority class", k_neighbors
+            )
 
         # Configure and apply SMOTE
         smote = SMOTE(
@@ -372,7 +374,9 @@ def smote(X, y, expansion_factor=3, k_neighbors=5, shuffle=False, random_state=4
             X_resampled = X_resampled[indices]
             y_resampled = y_resampled[indices]
 
-        logger.info("SMOTE expanded data from %s to %s samples", len(y), len(y_resampled))
+        logger.info(
+            "SMOTE expanded data from %s to %s samples", len(y), len(y_resampled)
+        )
         logger.info("New class balance: %s/%s", sum(y_resampled == 1), len(y_resampled))
 
         return X_resampled, y_resampled
