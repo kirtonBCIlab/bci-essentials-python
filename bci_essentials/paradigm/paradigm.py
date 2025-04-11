@@ -40,7 +40,7 @@ class Paradigm(ABC):
         bandpass filter is used.
 
         - If the data is epoched (i.e., shape is [epoch, channels, samples]),
-        the filter type depends on thesignal length relative to the filter's settling time:
+        the filter type depends on the signal length relative to the filter's settling time:
             - If signal length > settling time: use bandpass filter
             - If signal length ≤ settling time: use lowpass filter
             - The settling time is calculated by:
