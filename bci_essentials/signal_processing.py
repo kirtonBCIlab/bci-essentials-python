@@ -211,7 +211,7 @@ def notch(data, f_notch, Q, fsample):
 def lico(X, y, expansion_factor=3, sum_num=2, shuffle=False):
     """Linear Combination Oversampling (LiCO)
 
-    Generates synthetic EEG trials for the minority class by creating weighted linear
+    Generates synthetic EEG trials from the minority class by creating weighted linear
     combinations of existing trials, with added Gaussian noise for variability.
     Automatically detects the minority class based on label distribution.
 
@@ -248,38 +248,44 @@ def lico(X, y, expansion_factor=3, sum_num=2, shuffle=False):
 
     # Find unique classes and their counts
     classes, counts = np.unique(y, return_counts=True)
+
+    # Determine the minority class (class with the fewest samples)
     minority_class = classes[np.argmin(counts)]
-    true_X = X[y == minority_class]
+    logger.debug("Minority class: %s", minority_class)
+    # Select the original EEG trials only corresponding to the minority class
+    minority_X = X[y == minority_class]
+    # Get the shape of the minority class data
+    n_minority, n_channels, n_samples = minority_X.shape
+    logger.debug("Shape of minority class: %s", minority_X.shape)
 
-    n_trials, n_channels, n_samples = true_X.shape
-    logger.debug("Shape of minority class only: %s", true_X.shape)
+    # Calculate number of new synthetic samples needed
+    n_synthetic_trials = int(n_minority * (expansion_factor - 1))
+    # Initialize array for synthetic samples
+    synthetic_X = np.zeros([n_synthetic_trials, n_channels, n_samples])
+    logger.debug("Shape of synthetic trials: %s", synthetic_X.shape)
 
-    # Calculate number of new trials needed
-    n_new_trials = int(n_trials * (expansion_factor - 1))
-    new_X = np.zeros([n_new_trials, n_channels, n_samples])
-    logger.debug("Shape of new trials: %s", new_X.shape)
-
-    # Generate synthetic trials
-    for trial_idx in range(n_new_trials):
+    # Generate synthetic trials by combining minority class samples with LiCO
+    for trial_idx in range(n_synthetic_trials):
         # Generate random weights
         weights = np.random.dirichlet(np.ones(sum_num), size=1)[0]
 
         # For each new trial, create a random combination of existing trials
         for j in range(sum_num):
-            random_trial_idx = random.randint(0, n_trials - 1)
-            random_epoch = true_X[random_trial_idx, :, :]
-            new_X[trial_idx, :, :] += weights[j] * random_epoch
+            random_trial_idx = random.randint(0, n_minority - 1)
+            random_epoch = minority_X[random_trial_idx, :, :]
+            synthetic_X[trial_idx, :, :] += weights[j] * random_epoch
 
         # Add small noise for variability
-        noise = np.random.normal(0, 0.01, size=new_X[trial_idx, :, :].shape)
-        new_X[trial_idx, :, :] += noise
+        # noise = np.random.normal(0, 0.01, size=synthetic_X[trial_idx, :, :].shape)
+        noise = np.random.normal(size=[n_channels, n_samples])
+        synthetic_X[trial_idx, :, :] += noise
 
         # Normalize the new sample
-        new_X[trial_idx, :, :] /= np.linalg.norm(new_X[trial_idx, :, :])
+        synthetic_X[trial_idx, :, :] /= np.linalg.norm(synthetic_X[trial_idx, :, :])
 
     # Combine original data with synthetic data
-    over_X = np.append(X, new_X, axis=0)
-    over_y = np.append(y, np.ones([n_new_trials], dtype=int))
+    over_X = np.append(X, synthetic_X, axis=0)
+    over_y = np.append(y, np.ones([n_synthetic_trials], dtype=int))
 
     logger.info("LiCO expanded data from %d to %d samples", len(y), len(over_y))
     logger.info("Final class distribution: %s", np.bincount(over_y).tolist())
@@ -298,7 +304,7 @@ def lico(X, y, expansion_factor=3, sum_num=2, shuffle=False):
 def smote(X, y, expansion_factor=3, k_neighbors=5, shuffle=False, random_state=42):
     """Oversampling using SMOTE (Synthetic Minority Over-sampling Technique)
 
-    Generates synthetic EEG trials for the minority class (typically target/P300 responses).
+    Generates synthetic EEG trials from minority class (typically target/P300 responses).
 
     Parameters
     ----------
@@ -346,9 +352,7 @@ def smote(X, y, expansion_factor=3, k_neighbors=5, shuffle=False, random_state=4
         # If not enough minority samples for k_neighbors, reduce k
         if n_minority <= k_neighbors:
             k_neighbors = max(1, n_minority - 1)
-            logger.warning(
-                f"Reduced k_neighbors to {k_neighbors} due to small minority class"
-            )
+            logger.warning("Reduced k_neighbors to %s due to small minority class", k_neighbors)
 
         # Configure and apply SMOTE
         smote = SMOTE(
@@ -368,13 +372,13 @@ def smote(X, y, expansion_factor=3, k_neighbors=5, shuffle=False, random_state=4
             X_resampled = X_resampled[indices]
             y_resampled = y_resampled[indices]
 
-        logger.info(f"SMOTE expanded data from {len(y)} to {len(y_resampled)} samples")
-        logger.info(f"New class balance: {sum(y_resampled == 1)}/{len(y_resampled)}")
+        logger.info("SMOTE expanded data from %s to %s samples", len(y), len(y_resampled))
+        logger.info("New class balance: %s/%s", sum(y_resampled == 1), len(y_resampled))
 
         return X_resampled, y_resampled
 
     except ValueError as e:
-        logger.error(f"SMOTE failed: {e}. Returning original data.")
+        logger.error("SMOTE failed: %s. Returning original data.", e)
         return X, y
 
 
