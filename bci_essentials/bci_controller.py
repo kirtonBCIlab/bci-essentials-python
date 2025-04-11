@@ -252,6 +252,7 @@ class BciController:
             else:
                 # Log warning for unknown marker types
                 logger.warning("Unknown marker type received: %s", current_step_marker)
+                continue_flag = True
 
             # Check if we should continue processing markers in the while loop
             # if continue_flag is False, then break out of the while loop
