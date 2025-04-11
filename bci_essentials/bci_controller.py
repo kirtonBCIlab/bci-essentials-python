@@ -13,13 +13,13 @@ and classified (using one of the `classification` sub-modules).
 
 Classes
 -------
-- `BciController` : For processing continuous data in trials of a defined
-length.
+- `BciController` : For processing continuous data in trials of a defined length.
 
 """
 
 import time
 import numpy as np
+from enum import Enum
 
 from .paradigm.paradigm import Paradigm
 from .data_tank.data_tank import DataTank
@@ -33,6 +33,14 @@ from .utils.logger import Logger
 logger = Logger(name=__name__)
 
 
+class MarkerTypes(Enum):
+    TRIAL_STARTED = "Trial Started"
+    TRIAL_ENDS = "Trial Ends"
+    TRAINING_COMPLETE = "Training Complete"
+    TRAIN_CLASSIFIER = "Train Classifier"
+    DONE_RS_COLLECTION = "Done with all RS collection"
+
+
 # EEG data
 class BciController:
     """
@@ -40,6 +48,7 @@ class BciController:
     This class is used for processing of continuous EEG data in trials of a defined length.
     """
 
+    # 0. Special methods (e.g. __init__)
     def __init__(
         self,
         classifier: GenericClassifier,
@@ -58,15 +67,18 @@ class BciController:
         eeg_source : EegSource
             Source of EEG data and timestamps, this could be from a file or headset via LSL, etc.
         marker_source : EegSource
-            Source of Marker/Control data and timestamps, this could be from a file or Unity via
-            LSL, etc.  The default value is None.
+            Source of Marker/Control data and timestamps, this could be from a file or Unity via LSL, etc.
+            - Default is `None`.
         paradigm : Paradigm
             The paradigm used by BciController. This defines the processing and reshaping steps for the EEG data.
         data_tank : DataTank
-            DataTank object to handle the storage of EEG trials and labels.  The default value is None.
+            DataTank object to handle the storage of EEG trials and labels.
+            - Default is `None`.
         messenger: Messenger
             Messenger object to handle events from BciController, ex: acknowledging markers and
-            predictions.  The default value is None.
+            predictions.
+            - Default is `None`.
+
         """
 
         # Ensure the incoming dependencies are the right type
@@ -114,186 +126,31 @@ class BciController:
         self.bci_controller = np.zeros((0, self.n_channels))
         self.eeg_timestamps = np.zeros((0))
 
+        # Initialize marker methods dictionary
+        self.marker_methods = {
+            MarkerTypes.DONE_RS_COLLECTION.value: self.__process_resting_state_data,
+            MarkerTypes.TRIAL_STARTED.value: self.__log_trial_start,
+            MarkerTypes.TRIAL_ENDS.value: self.__handle_trial_end,
+            MarkerTypes.TRAINING_COMPLETE.value: self.__update_and_train_classifier,
+            MarkerTypes.TRAIN_CLASSIFIER.value: self.__update_and_train_classifier,
+        }
+
         self.ping_count = 0
         self.n_samples = 0
         self.time_units = ""
 
-    # Get new data from source, whatever it is
-    def _pull_data_from_sources(self):
-        """Get pull data from EEG and optionally, the marker source.
-        This method will fill up the marker_data, bci_controller and corresponding timestamp arrays.
-        """
-        self.__pull_marker_data_from_source()
-        self.__pull_eeg_data_from_source()
-
-        # If the outlet exists send a ping
-        if self._messenger is not None:
-            self.ping_count += 1
-            self._messenger.ping()
-
-    def __pull_marker_data_from_source(self):
-        """Pulls marker samples from source, sanity checks and appends to buffer"""
-
-        # if there isn't a marker source, abort
-        if self.__marker_source is None:
-            return
-
-        # read in the data
-        markers, timestamps = self.__marker_source.get_markers()
-        markers = np.array(markers)
-        timestamps = np.array(timestamps)
-
-        if markers.size == 0:
-            return
-
-        if markers.ndim != 2:
-            logger.warning("discarded invalid marker data")
-            return
-
-        # apply time correction
-        time_correction = self.__marker_source.time_correction()
-        timestamps = [timestamps[i] + time_correction for i in range(len(timestamps))]
-
-        for i, marker in enumerate(markers):
-            marker = marker[0]
-            if "Ping" in marker:
-                continue
-
-            # Add all markers to the controller
-            self.marker_data = np.append(self.marker_data, marker)
-            self.marker_timestamps = np.append(self.marker_timestamps, timestamps[i])
-
-            # Add all markers to the data tank
-            self.__data_tank.add_raw_markers(
-                np.array([marker]), np.array([timestamps[i]])
-            )
-
-    def __pull_eeg_data_from_source(self):
-        """Pulls eeg samples from source, sanity checks and appends to buffer"""
-
-        # read in the data
-        eeg, timestamps = self.__eeg_source.get_samples()
-        eeg = np.array(eeg)
-        timestamps = np.array(timestamps)
-
-        if eeg.size == 0:
-            return
-
-        if eeg.ndim != 2:
-            logger.warning("discarded invalid eeg data")
-            return
-
-        # if time is in milliseconds, divide by 1000, works for sampling rates above 10Hz
-        try:
-            if self.time_units == "milliseconds":
-                timestamps = [(timestamps[i] / 1000) for i in range(len(timestamps))]
-
-        # If time units are not defined then define them
-        except Exception:
-            dif_low = -2
-            dif_high = -1
-            while timestamps[dif_high] - timestamps[dif_low] == 0:
-                dif_low -= 1
-                dif_high -= 1
-
-            if timestamps[dif_high] - timestamps[dif_low] > 0.1:
-                timestamps = [(timestamps[i] / 1000) for i in range(len(timestamps))]
-                self.time_units = "milliseconds"
-            else:
-                self.time_units = "seconds"
-
-        # apply time correction, this is essential for headsets like neurosity which have their own clock
-        time_correction = self.__eeg_source.time_correction()
-        timestamps = [timestamps[i] + time_correction for i in range(len(timestamps))]
-
-        self.__data_tank.add_raw_eeg(eeg.T, timestamps)
-
-        # Update latest EEG timestamp
-        self.latest_eeg_timestamp = timestamps[-1]
-
-    def __process_and_classify(self):
-        """Process the markers and classify the data.
-
-        Parameters
-        ----------
-            None
-
-        Returns
-        ----------
-            success_string : str
-                String indicating if the processing and classification was successful.
-                Potential values are "Success", "Skip", "Wait".
-
-                "Success": The processing and classification was successful.
-                "Skip": EEG is either absent entirely or contains lost packets.
-                "Wait": The processing is waiting for more data.
-
-        """
-
-        eeg_start_time, eeg_end_time = self.__paradigm.get_eeg_start_and_end_times(
-            self.event_marker_buffer, self.event_timestamp_buffer
-        )
-
-        # No we actually need to wait until we have all the data for these markers
-        eeg, timestamps = self.__data_tank.get_raw_eeg()
-
-        # Check if there is available EEG data
-        if len(eeg) == 0:
-            logger.info("No EEG data available")
-            return "Skip"
-
-        # If the last timestamp is less than the end time, then we don't have the necessary EEG to process
-        if timestamps[-1] < eeg_end_time:
-            return "Wait"
-
-        # Check if EEG sampling is continuous over this time period
-        start_indices = np.where(timestamps > eeg_start_time)[0]
-        if len(start_indices) == 0:
-            logger.info("No timestamps exceed eeg_start_time")
-            return "Skip"
-        start_index = start_indices[0]
-        end_index = np.where(timestamps < eeg_end_time)[0][-1]
-
-        time_diffs = np.diff(timestamps[start_index:end_index])
-        if np.any(time_diffs > 2 / self.fsample):
-            logger.info("Time gaps in EEG data")
-            return "Skip"
-
-        X, y = self.__paradigm.process_markers(
-            self.event_marker_buffer,
-            self.event_timestamp_buffer,
-            eeg,
-            timestamps,
-            self.fsample,
-        )
-
-        # Add the epochs to the data tank
-        self.__data_tank.add_epochs(X, y)
-
-        # If either there are no labels OR iterative training is on, then make a prediction
-        if self.train_complete:
-            if -1 in y or self.__paradigm.iterative_training:
-                prediction = self._classifier.predict(X)
-                self.__send_prediction(prediction)
-
-        self.event_marker_buffer = []
-        self.event_timestamp_buffer = []
-
-        return "Success"
-
-    def __send_prediction(self, prediction):
-        """Send a prediction to the messenger object."""
-        if self._messenger is not None:
-            self._messenger.prediction(prediction)
-
+    # 1. Core public API methods
     def setup(
         self,
         online=True,
         train_complete=False,
         train_lock=False,
     ):
-        """Configure processing loop.  This should be called before starting
-        the loop with run() or step().  Calling after will reset the loop state.
+        """Configure processing loop.
+
+        This should be called before starting the loop with run() or step().
+
+        Calling after will reset the loop state.
 
         The processing loop reads in EEG and marker data and processes it.
         The loop can be run in "offline" or "online" modes:
@@ -339,8 +196,75 @@ class BciController:
         self.online_selection_indices = []
         self.online_selections = []
 
+    def step(self):
+        """Runs a single BciController processing step.
+
+        See setup() for configuration of processing.
+
+        The method:
+        1. Pulls data from sources (EEG and markers).
+        2. Run a while loop to process markers as long as there are unprocessed markers.
+        3. The while loop processes the markers in the following order:
+            - First checks if the marker is a known command marker from self.marker_methods.
+            - Then checks if it's an event marker (contains commas)
+            - If neither, logs a warning about unknown marker type
+        3. If the marker is a command marker, handles it by calling __handle_command_marker().
+        4. If the marker is an event marker, handles it by calling __handle_event_marker().
+        5. If the command or event marker handling return continue_flag as True, increment the marker count and process the next marker.
+            - Note: If there is an unknown marker type, the marker count is still incremented and processing continues.
+        6. If the command or event marker handling return continue_flag as False, break out of the while loop and end the step.
+
+        Parameters
+        ----------
+        `None`
+
+        Returns
+        ------
+        `None`
+
+        """
+        # read from sources to get new data.
+        # This puts command markers in the marker_data array and
+        # event markers in the event_marker_strings array
+        self._pull_data_from_sources()
+
+        # Process markers while there are unprocessed markers
+        # REMOVE COMMENT: check if there is an available command marker, if not, break and wait for more data
+        while len(self.marker_timestamps) > self.marker_count:
+            # Get the current marker
+            current_step_marker = self.marker_data[self.marker_count]  # String
+            current_timestamp = self.marker_timestamps[self.marker_count]  # Float
+
+            # If messenger is available, send feedback for each marker received
+            if self._messenger is not None:
+                self._messenger.marker_received(current_step_marker)
+
+            # Process markers in order specified in the docstrings
+            # First check if it's a known command marker
+            if current_step_marker in self.marker_methods:
+                continue_flag = self.__handle_command_marker(current_step_marker)
+            # Then check if it's an event marker (contains commas)
+            elif "," in current_step_marker:
+                continue_flag = self.__handle_event_marker(
+                    current_step_marker, current_timestamp
+                )
+            # Otherwise, log a warning about unknown marker type
+            else:
+                # Log warning for unknown marker types
+                logger.warning("Unknown marker type received: %s", current_step_marker)
+
+            # Check if we should continue processing markers in the while loop
+            # if continue_flag is False, then break out of the while loop
+            # else, increment the marker count and process the next marker
+            if continue_flag is False:
+                break
+            else:
+                logger.info("Processed Marker: %s", current_step_marker)
+                self.marker_count += 1
+
     def run(self, max_loops: int = 1000000):
         """Runs BciController processing in a loop.
+
         See setup() for configuration of processing.
 
         Parameters
@@ -350,10 +274,9 @@ class BciController:
 
         Returns
         ------
-            None
+        `None`
 
         """
-
         # if offline, then all data is already loaded, only need to loop once
         if self.online is False:
             self.loops = max_loops - 1
@@ -382,120 +305,397 @@ class BciController:
 
             self.loops += 1
 
-    def step(self):
-        """Runs a single BciController processing step.
-        See setup() for configuration of processing.
+    # 2. Protected methods (single underscore)
+    def _pull_data_from_sources(self):
+        """Get pull data from EEG and optionally, the marker source.
+
+        This method will fill up the marker_data, bci_controller and corresponding timestamp arrays.
 
         Parameters
         ----------
-            None
+        `None`
+
+        Returns
+        -------
+        `None`
+
+        """
+        # Get new data from source, whatever it is
+        self.__pull_marker_data_from_source()
+        self.__pull_eeg_data_from_source()
+
+        # If the outlet exists send a ping
+        if self._messenger is not None:
+            self.ping_count += 1
+            self._messenger.ping()
+
+    # 3. Private methods (double underscore)
+    # 3a. Private methods for retrieving data from sources
+    def __pull_marker_data_from_source(self):
+        """Pulls marker samples from source, sanity checks and appends to buffer.
+
+        Parameters
+        ----------
+        `None`
+
+        Returns
+        -------
+        `None`
+
+        """
+
+        # if there isn't a marker source, abort
+        if self.__marker_source is None:
+            return
+
+        # read in the data
+        markers, timestamps = self.__marker_source.get_markers()
+        markers = np.array(markers)
+        timestamps = np.array(timestamps)
+
+        if markers.size == 0:
+            return
+
+        if markers.ndim != 2:
+            logger.warning("discarded invalid marker data")
+            return
+
+        # apply time correction
+        time_correction = self.__marker_source.time_correction()
+        timestamps = [timestamps[i] + time_correction for i in range(len(timestamps))]
+
+        for i, marker in enumerate(markers):
+            marker = marker[0]
+            if "Ping" in marker:
+                continue
+
+            # Add all markers to the controller
+            self.marker_data = np.append(self.marker_data, marker)
+            self.marker_timestamps = np.append(self.marker_timestamps, timestamps[i])
+
+            # Add all markers to the data tank
+            self.__data_tank.add_raw_markers(
+                np.array([marker]), np.array([timestamps[i]])
+            )
+
+    def __pull_eeg_data_from_source(self):
+        """Pulls eeg samples from source, sanity checks and appends to buffer.
+
+        Parameters
+        ----------
+        `None`
+
+        Returns
+        -------
+        `None`
+
+        """
+
+        # read in the data
+        eeg, timestamps = self.__eeg_source.get_samples()
+        eeg = np.array(eeg)
+        timestamps = np.array(timestamps)
+
+        if eeg.size == 0:
+            return
+
+        if eeg.ndim != 2:
+            logger.warning("discarded invalid eeg data")
+            return
+
+        # if time is in milliseconds, divide by 1000, works for sampling rates above 10Hz
+        try:
+            if self.time_units == "milliseconds":
+                timestamps = [(timestamps[i] / 1000) for i in range(len(timestamps))]
+
+        # If time units are not defined then define them
+        except Exception:
+            dif_low = -2
+            dif_high = -1
+            while timestamps[dif_high] - timestamps[dif_low] == 0:
+                dif_low -= 1
+                dif_high -= 1
+
+            if timestamps[dif_high] - timestamps[dif_low] > 0.1:
+                timestamps = [(timestamps[i] / 1000) for i in range(len(timestamps))]
+                self.time_units = "milliseconds"
+            else:
+                self.time_units = "seconds"
+
+        # apply time correction, this is essential for headsets like neurosity which have their own clock
+        time_correction = self.__eeg_source.time_correction()
+        timestamps = [timestamps[i] + time_correction for i in range(len(timestamps))]
+
+        self.__data_tank.add_raw_eeg(eeg.T, timestamps)
+
+        # Update latest EEG timestamp
+        self.latest_eeg_timestamp = timestamps[-1]
+
+    # 3b. Private methods for data processing and classification
+    def __process_resting_state_data(self):
+        """Handles the resting state data by packaging it and adding it to the data tank.
+
+        Parameters
+        ----------
+        `None`
 
         Returns
         ------
-            None
+        continue_flag : bool
+            Flag indicating to continue the while loop in step().
 
         """
-        # read from sources to get new data. This puts command markers in the marker_data array and
-        # event markers in the event_marker_strings array
-        self._pull_data_from_sources()
+        (
+            self.bci_controller,
+            self.eeg_timestamps,
+        ) = self.__data_tank.get_raw_eeg()
 
-        # check if there is an available command marker, if not, break and wait for more data
-        while len(self.marker_timestamps) > self.marker_count:
-            # Get the current marker
-            current_step_marker = self.marker_data[self.marker_count]
-            current_timestamp = self.marker_timestamps[self.marker_count]
+        resting_state_data = self.__paradigm.package_resting_state_data(
+            self.marker_data,
+            self.marker_timestamps,
+            self.bci_controller,
+            self.eeg_timestamps,
+            self.fsample,
+        )
 
-            if self._messenger is not None:
-                # send feedback for each marker that you receive
-                self._messenger.marker_received(current_step_marker)
+        self.__data_tank.add_resting_state_data(resting_state_data)
 
-            # If the marker contains a single string, then it is a command marker
-            marker_is_single_string = len(current_step_marker.split(",")) == 1
-            is_event_marker = not marker_is_single_string
+        return True  # Continue processing
 
-            # Add the marker to the event marker buffer
-            if is_event_marker:
-                self.event_marker_buffer.append(current_step_marker)
-                self.event_timestamp_buffer.append(current_timestamp)
+    def __process_and_classify(self):
+        """Process the markers and classify the data.
 
-                # If classification is on epochs, then update epochs, maybe classify, and clear the buffer
-                if self.__paradigm.classify_each_epoch:
-                    success_string = self.__process_and_classify()
-                    if success_string == "Wait":
-                        logger.debug(
-                            "Processing of epoch not run: waiting for more data"
-                        )
-                        self.event_marker_buffer = []
-                        self.event_timestamp_buffer = []
-                        break
-                    elif success_string == "Skip":
-                        logger.info("Processing of epoch failed: skipping epoch")
-                        self.event_marker_buffer = []
-                        self.event_timestamp_buffer = []
+        Parameters
+        ----------
+        `None`
 
-                        self.marker_count += 1
-                        break
+        Returns
+        -------
+        success_string : str
+            String indicating if the processing and classification was successful.
+            Potential values are "Success", "Skip", "Wait".
+            - "Success": The processing and classification was successful.
+            - "Skip": EEG is either absent entirely or contains lost packets.
+            - "Wait": The processing is waiting for more data.
 
-            # TODO
-            elif current_step_marker == "Done with all RS collection":
-                (
-                    self.bci_controller,
-                    self.eeg_timestamps,
-                ) = self.__data_tank.get_raw_eeg()
+        """
 
-                resting_state_data = self.__paradigm.package_resting_state_data(
-                    self.marker_data,
-                    self.marker_timestamps,
-                    self.bci_controller,
-                    self.eeg_timestamps,
-                    self.fsample,
-                )
+        eeg_start_time, eeg_end_time = self.__paradigm.get_eeg_start_and_end_times(
+            self.event_marker_buffer, self.event_timestamp_buffer
+        )
 
-                self.__data_tank.add_resting_state_data(resting_state_data)
+        # No we actually need to wait until we have all the data for these markers
+        eeg, timestamps = self.__data_tank.get_raw_eeg()
 
-            elif current_step_marker == "Trial Started":
-                logger.debug("Trial started, incrementing marker count and continuing")
-                # Note that a marker occured, but do nothing else
+        # Check if there is available EEG data
+        if len(eeg) == 0:
+            logger.warning("No EEG data available")
+            return "Skip"
 
-            elif current_step_marker == "Trial Ends":
-                # If we are classifying based on trials, then process the trial,
-                if self.__paradigm.classify_each_trial:
-                    success_string = self.__process_and_classify()
-                    if success_string == "Wait":
-                        logger.debug(
-                            "Processing of trial not run: waiting for more data"
-                        )
-                        break
-                    elif success_string == "Skip":
-                        logger.info("Processing of trial failed: skipping trial")
-                        self.event_marker_buffer = []
-                        self.event_timestamp_buffer = []
-                        self.marker_count += 1
-                        break
+        # If the last timestamp is less than the end time, then we don't have the necessary EEG to process
+        if timestamps[-1] < eeg_end_time:
+            return "Wait"
 
-            elif (
-                current_step_marker == "Training Complete"
-                or current_step_marker == "Train Classifier"
-            ):
-                if self.train_lock is False:
-                    # Pull the epochs from the data tank and pass them to the classifier
-                    X, y = self.__data_tank.get_epochs(latest=True)
+        # Check if EEG sampling is continuous over this time period
+        start_indices = np.where(timestamps > eeg_start_time)[0]
+        if len(start_indices) == 0:
+            logger.warning("No timestamps exceed eeg_start_time")
+            return "Skip"
+        start_index = start_indices[0]
+        end_index = np.where(timestamps < eeg_end_time)[0][-1]
 
-                    # Remove epochs with label -1
-                    ind_to_remove = []
-                    for i, label in enumerate(y):
-                        if label == -1:
-                            ind_to_remove.append(i)
-                    X = np.delete(X, ind_to_remove, axis=0)
-                    y = np.delete(y, ind_to_remove, axis=0)
+        time_diffs = np.diff(timestamps[start_index:end_index])
+        if np.any(time_diffs > 2 / self.fsample):
+            logger.warning("Time gaps in EEG data")
+            return "Skip"
 
-                    # Check that there are epochs
-                    if len(y) > 0:
-                        self._classifier.add_to_train(X, y)
+        X, y = self.__paradigm.process_markers(
+            self.event_marker_buffer,
+            self.event_timestamp_buffer,
+            eeg,
+            timestamps,
+            self.fsample,
+        )
 
-                    if self._classifier._check_ready_for_fit():
-                        self._classifier.fit()
-                        self.train_complete = True
+        # Add the epochs to the data tank
+        self.__data_tank.add_epochs(X, y)
 
-            logger.info("Processed Marker: %s", current_step_marker)
-            self.marker_count += 1
+        # If either there are no labels OR iterative training is on, then make a prediction
+        if self.train_complete:
+            if -1 in y or self.__paradigm.iterative_training:
+                prediction = self._classifier.predict(X)
+                self.__send_prediction(prediction)
+
+        self.event_marker_buffer = []
+        self.event_timestamp_buffer = []
+
+        return "Success"
+
+    def __update_and_train_classifier(self):
+        """Updates the classifier if required.
+
+        Parameters
+        ----------
+        `None`
+
+        Returns
+        -------
+        continue_flag : bool
+            Flag indicating to continue the while loop in step().
+        """
+        if self.train_lock is False:
+            # Pull the epochs from the data tank and pass them to the classifier
+            X, y = self.__data_tank.get_epochs(latest=True)
+
+            # Remove epochs with label -1
+            ind_to_remove = []
+            for i, label in enumerate(y):
+                if label == -1:
+                    ind_to_remove.append(i)
+            X = np.delete(X, ind_to_remove, axis=0)
+            y = np.delete(y, ind_to_remove, axis=0)
+
+            # Check that there are epochs
+            if len(y) > 0:
+                self._classifier.add_to_train(X, y)
+
+            if self._classifier._check_ready_for_fit():
+                self._classifier.fit()
+                self.train_complete = True
+
+        return True
+
+    # 3c. Private methods for event handling (trial and markers) and messaging
+    def __log_trial_start(self):
+        """Logs the start of a trial.
+
+        Parameters
+        ----------
+        `None`
+
+        Returns
+        -------
+        continue_flag : bool
+            Flag indicating to continue the while loop in step().
+
+        """
+        logger.debug("Trial started, incrementing marker count and continuing")
+        # Note that a marker occured, but do nothing else
+        return True  # Continue processing
+
+    def __handle_trial_end(self):
+        """Handles the end of a trial. Processes and classifies trial data if required.
+
+        Parameters
+        ----------
+        `None`
+
+        Returns
+        ------
+        success_flag : bool
+            Flag indicating if the processing and classification was successful.
+            - Returns `True` if not classifying.
+        """
+        # If we are classifying based on trials, then process the trial,
+        if self.__paradigm.classify_each_trial:
+            success_string = self.__process_and_classify()
+            if success_string == "Wait":
+                logger.debug("Processing of trial not run: waiting for more data")
+                return False
+            if success_string == "Skip":
+                logger.warning("Processing of trial failed: skipping trial")
+                self.event_marker_buffer = []
+                self.event_timestamp_buffer = []
+                self.marker_count += 1
+                return False
+
+        return True  # Return True by default if not classifying
+
+    def __handle_event_marker(self, marker, timestamp):
+        """Processes and classifies event markers.
+
+        Parameters
+        ----------
+        marker : str
+            Event marker string containing comma-separated values.
+            - Format depends on paradigm implementation.
+        timestamp : float
+            Timestamp of the marker in seconds (after time correction).
+
+
+        Returns
+        ------
+        continue_flag : bool
+            Flag indicating to continue the while loop in step().
+
+        """
+        # Add the marker to the event marker buffer
+        self.event_marker_buffer.append(marker)
+        self.event_timestamp_buffer.append(timestamp)
+
+        # If classification is on epochs, then update epochs, maybe classify, and clear the buffer
+        if self.__paradigm.classify_each_epoch:
+            success_string = self.__process_and_classify()
+            if success_string == "Wait":
+                logger.debug("Processing of epoch not run: waiting for more data")
+                self.event_marker_buffer = []
+                self.event_timestamp_buffer = []
+                return False  # Stop processing
+            elif success_string == "Skip":
+                logger.warning("Processing of epoch failed: skipping epoch")
+                self.event_marker_buffer = []
+                self.event_timestamp_buffer = []
+
+                self.marker_count += 1
+                return False  # Stop processing
+
+        return True  # Continue processing
+
+    def __handle_command_marker(self, marker: str) -> bool:
+        """Processes a command marker by invoking its associated method.
+
+        The command marker string is assumed to be in the self.marker_methods dictionary.
+        The associated method is retrieved and called.
+        The return value of the method is used to determine if processing should continue.
+
+        Parameters
+        ----------
+        marker : str
+            A command marker string (assumed to be in self.marker_methods).
+
+        Returns
+        -------
+        bool
+            A flag indicating if the processing should continue.
+
+        """
+        command_marker_method = self.marker_methods[marker]  # Retrieve method
+        continue_flag = command_marker_method()  # Call method
+
+        # Debug level logging if continue_flag is FALSE
+        if continue_flag is False:
+            logger.debug("Command marker '%s' set continue_flag to FALSE", marker)
+
+        return continue_flag
+
+    def __send_prediction(self, prediction):
+        """Send a prediction to the messenger object.
+
+        Parameters
+        ----------
+        `None`
+
+        Returns
+        -------
+        `None`
+
+        """
+        if self._messenger is not None:
+            logger.debug("Sending prediction: %s", prediction)
+            self._messenger.prediction(prediction)
+        elif self._messenger is None and self.online is True:
+            # If running in online mode and messenger is not available, log a warning
+            logger.warning(
+                "Messenger not available (self._messenger is None). Prediction not sent: %s",
+                prediction,
+            )

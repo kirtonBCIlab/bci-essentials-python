@@ -21,7 +21,6 @@ classifier.set_p300_clf_settings(
     lico_expansion_factor=1,
     oversample_ratio=0,
     undersample_ratio=0,
-    covariance_estimator="oas",
 )
 
 # Initialize the ERP

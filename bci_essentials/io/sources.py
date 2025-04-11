@@ -22,15 +22,16 @@ class MarkerSource(ABC):
 
         Returns
         -------
+        marker_data : tuple(marker, timestemps)
             A tuple of (markers, timestamps):
-
-            markers - A list of samples, where each sample corresponds to a timestamp.
-            Each sample is a list with a single string element that represents a command or
-            a marker.  The string is formatted as follows:
-            command = an arbitrary string, ex: "Trial Started".
-            marker = "paradigm, num options, label number, trial length"
-
-            timestamps - A list timestamps (float in seconds) corresponding to the markers
+            - markers : list[list]
+                - A list of samples, where each sample corresponds to a timestamp.
+                - Each sample is a list with a single string element that represents a command or a marker.
+                - The string is formatted as follows:
+                    - command = an arbitrary string, ex: "Trial Started"
+                    - marker = "paradigm, num options, label number, trial length"
+            - timestamps : list[float]
+                - A list timestamps (float in seconds) corresponding to the markers
         """
         pass
 
@@ -40,9 +41,10 @@ class MarkerSource(ABC):
 
         Returns
         -------
-            The current time correction estimate (float, seconds). This is the number that needs to be added
-            to a time tamp that was remotely generated via local_clock() to map it into
-            the local clock domain of the machine.
+        time_correction : float
+            The current time correction estimate (seconds).
+            - This is the number that needs to be added to a time tamp that was remotely generated via local_clock() to map it into the local clock domain of the machine.
+
         """
         pass
 
@@ -96,12 +98,13 @@ class EegSource(ABC):
 
         Returns
         -------
-            A tuple of (samples, timestamps):
+        samples_data: tuple(samples, timestamps)
+            - A tuple of (samples, timestamps) where:
+                - samples : list[float]
+                    - A list of samples, where each sample corresponds to a timestamp. Each sample is a list of floats representing the value for each channel of EEG.
+                - timestamps : list[float]
+                    - A list timestamps (float in seconds) corresponding to the samples
 
-            samples - A list of samples, where each sample corresponds to a timestamp.
-            Each sample is a list of floats representing the value for each channel of EEG.
-
-            timestamps - A list timestamps (float in seconds) corresponding to the samples
         """
         pass
 
@@ -111,8 +114,9 @@ class EegSource(ABC):
 
         Returns
         -------
-            The current time correction estimate (float, seconds). This is the number that needs to be added
-            to a time tamp that was remotely generated via local_clock() to map it into
-            the local clock domain of the machine.
+        time_correction : float
+            The current time correction estimate (seconds).
+            - This is the number that needs to be added to a time tamp that was remotely generated via local_clock() to map it into the local clock domain of the machine.
+
         """
         pass

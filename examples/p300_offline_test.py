@@ -30,7 +30,6 @@ classifier.set_p300_clf_settings(
     oversample_ratio=0,
     undersample_ratio=0,
     random_seed=35,
-    covariance_estimator="oas",
     remove_flats=True,
 )
 

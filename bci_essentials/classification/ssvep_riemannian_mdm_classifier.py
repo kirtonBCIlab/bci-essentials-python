@@ -270,13 +270,26 @@ class SsvepRiemannianMdmClassifier(GenericClassifier):
                 self.clf.fit(X_train_super, y_train)
                 preds[test_idx] = self.clf.predict(X_test_super)
 
-            accuracy = sum(preds == self.y) / len(preds)
-            precision = precision_score(self.y, preds, average="micro")
-            recall = recall_score(self.y, preds, average="micro")
+            # Create super trial with all available data
+            X_super = self.get_ssvep_supertrial(
+                subX,
+                self.target_freqs,
+                fsample=256,
+                n_harmonics=self.n_harmonics,
+                f_width=self.f_width,
+                covariance_estimator=self.covariance_estimator,
+            )
 
+            # Train final model with all available data
+            self.clf.fit(X_super, suby)
             model = self.clf
 
-            return KernelResults(model, preds, accuracy, precision, recall)
+            training_preds = self.clf.predict(X_super)
+            accuracy = sum(training_preds == self.y) / len(training_preds)
+            precision = precision_score(self.y, training_preds, average="micro")
+            recall = recall_score(self.y, training_preds, average="micro")
+
+            return KernelResults(model, training_preds, accuracy, precision, recall)
 
         # Check if channel selection is true
         if self.channel_selection_setup:

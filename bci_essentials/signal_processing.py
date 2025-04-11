@@ -82,6 +82,7 @@ def bandpass(data, f_low, f_high, order, fsample):
         3D (or 2D) array containing data with `float` type.
 
         shape = (n_trials, n_channels, n_samples) or (n_channels, n_samples)
+
     """
     Wn = [f_low / (fsample / 2), f_high / (fsample / 2)]
     sos = signal.butter(order, Wn, btype="bandpass", output="sos")
@@ -120,6 +121,7 @@ def lowpass(data, f_cutoff, order, fsample):
         3D (or 2D) array containing data with `float` type.
 
         shape = (n_trials, n_channels, n_samples) or (n_channels, n_samples)
+
     """
     Wn = f_cutoff / (fsample / 2)
     sos = signal.butter(order, Wn, btype="lowpass", output="sos")
@@ -251,3 +253,110 @@ def lico(X, y, expansion_factor=3, sum_num=2, shuffle=False):
     over_y = np.append(y, np.ones([new_trial]))
 
     return over_X, over_y
+
+
+def random_oversampling(X, y, ratio):
+    """Random Oversampling
+
+    Randomly samples epochs of X to oversample the MINORITY class.
+    Automatically determines which class is the MINORITY class.
+
+    Parameters
+    ----------
+    X : numpy.ndarray [n_trials, n_channels, n_samples]
+        Trials of EEG data.
+        3D array containing data with `float` type.
+    y : numpy.ndarray [n_trials]
+        Labels corresponding to X.
+    ratio : float
+        Desired ratio of MINORITY class samples to majority class samples
+        - ratio=1 means the number of MINORITY class samples will be equal to the number of majority class samples
+        - ratio=0.5 means the number of MINORITY class samples will be half the number of majority class samples
+        - ratio=2 means the number of MINORITY class samples will be twice the number of majority class samples
+
+    Returns
+    -------
+    over_X : numpy.ndarray
+        Oversampled X.
+    over_y : numpy.ndarray
+        Oversampled y.
+    """
+    # Find unique classes and their counts
+    classes, counts = np.unique(y, return_counts=True)
+
+    # Determine minority and majority classes
+    minority_class = classes[np.argmin(counts)]
+    n_minority = np.min(counts)
+    n_majority = np.max(counts)
+
+    # Get minority class samples
+    minority_X = X[y == minority_class]
+
+    # Calculate number of samples needed
+    n_samples = int(n_majority * ratio) - n_minority
+
+    # Generate new samples
+    new_X = np.zeros([n_samples, X.shape[1], X.shape[2]])
+    for i in range(n_samples):
+        new_X[i, :, :] = minority_X[random.choice(range(n_minority)), :, :]
+
+    over_X = np.append(X, new_X, axis=0)
+    over_y = np.append(y, np.ones([n_samples]) * minority_class)
+
+    return over_X, over_y
+
+
+def random_undersampling(X, y, ratio):
+    """Random Undersampling
+
+    Randomly removes epochs of X to undersample the MAJORITY class.
+    Automatically determines which class is the MAJORITYajority class.
+
+    Parameters
+    ----------
+    X : numpy.ndarray [n_trials, n_channels, n_samples]
+        Trials of EEG data.
+        3D array containing data with `float` type.
+    y : numpy.ndarray [n_trials]
+        Labels corresponding to X.
+    ratio : float
+        Desired ratio of MAJORITY class samples to minority class samples.
+        - ratio=1 means the number of MAJORITY class samples will be equal to the number of minority class samples
+        - ratio=0.5 means the number of MAJORITY class samples will be half the number of minority class samples
+        - ratio=2 means the number of MAJORITY class samples will be twice the number of minority class samples
+
+    Returns
+    -------
+    under_X : numpy.ndarray
+        Undersampled X.
+    under_y : numpy.ndarray
+        Undersampled y.
+    """
+    # Find unique classes and their counts
+    classes, counts = np.unique(y, return_counts=True)
+
+    # Determine minority and majority classes
+    majority_class = classes[np.argmax(counts)]
+    minority_class = classes[np.argmin(counts)]
+    n_minority = np.min(counts)
+
+    # Calculate number of majority samples to keep
+    n_samples = int(n_minority * ratio)
+
+    # Get indices of majority class samples
+    majority_indices = np.where(y == majority_class)[0]
+
+    # Randomly select indices to keep
+    keep_indices = np.random.choice(majority_indices, size=n_samples, replace=False)
+
+    # Get indices of minority class samples
+    minority_indices = np.where(y == minority_class)[0]
+
+    # Combine indices
+    all_indices = np.concatenate([keep_indices, minority_indices])
+
+    # Create undersampled datasets
+    under_X = X[all_indices]
+    under_y = y[all_indices]
+
+    return under_X, under_y
