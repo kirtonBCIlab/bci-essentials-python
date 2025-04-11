@@ -2,7 +2,7 @@ import numpy as np
 from abc import ABC, abstractmethod
 
 from ..utils.logger import Logger
-from ..signal_processing import bandpass
+from ..signal_processing import bandpass, lowpass
 
 # Instantiate a logger for the module at the default level of logging.INFO
 # Logs to bci_essentials.__module__) where __module__ is the name of the module
@@ -35,12 +35,22 @@ class Paradigm(ABC):
 
     def _preprocess(self, eeg, fsample, lowcut, highcut, order=5):
         """
-        Preprocess EEG data with bandpass filter.
+        Preprocess EEG data with the appropriate filter type:
+        - If the data is continuous (i.e., shape is [channels, samples]), a
+        bandpass filter is used.
+        - If the data is epoched (i.e., shape is [epoch, channels, samples]), 
+        the time constant (TC) of the highpass filter is computed:
+            - If the length of the signal > 5*TC, a bandpass filter is used.
+            - If the length of the signal <= 5*TC, a lowpass filter is used.
 
+        Reference
+        https://www.analogictips.com/an-overview-of-filters-and-their-parameters-part-4-time-and-phase-issues/
+        
         Parameters
         ----------
         eeg : np.ndarray
-            EEG data. Shape is (n_channels, n_samples).
+            EEG data. Shape can be 2D [n_channels, n_samples]
+            or 3D [epochs, n_channels, n_samples].
         fsample : float
             Sampling frequency.
         lowcut : float
@@ -53,12 +63,34 @@ class Paradigm(ABC):
         Returns
         -------
         np.ndarray
-            Bandpassed EEG data. Shape is (n_channels, n_samples).
+            Preprocessed EEG. Shape is the same as `eeg`.
 
         """
-        new_eeg = bandpass(eeg, lowcut, highcut, order, fsample)
 
-        return new_eeg
+        n_dims = len(eeg.shape)
+        if n_dims == 2:
+            logger.debug("Preprocessing continuous EEG")
+            preprocessed_eeg = bandpass(eeg, lowcut, highcut, order, fsample)
+        elif n_dims == 3:
+            logger.debug("Preprocessing epoched EEG")
+
+            # Highpass filter settling time
+            tc = 1 / (2*np.pi*lowcut)
+            n_samples = eeg.shape[2]
+            settling_time = order * tc * 5
+
+            if n_samples > settling_time:
+                logger.debug("Applied bandpass filter to epoched EEG")
+                preprocessed_eeg = bandpass(eeg, lowcut, highcut, order, fsample)
+            else:
+                logger.debug("Applied lowpass filter to epoched EEG")
+                preprocessed_eeg = lowpass(eeg, highcut, order, fsample)
+        else:
+            raise ValueError(
+                "Preprocessing failed. EEG must be 2D (continuous) or 3D (epoched)."
+            )
+
+        return preprocessed_eeg
 
     def package_resting_state_data(
         self, marker_data, marker_timestamps, bci_controller, eeg_timestamps, fsample
