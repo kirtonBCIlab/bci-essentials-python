@@ -1,7 +1,14 @@
 import numpy as np
 import unittest
 
-from bci_essentials.signal_processing import lowpass, highpass, bandpass, notch
+from bci_essentials.signal_processing import (
+    lowpass,
+    highpass,
+    bandpass,
+    notch,
+    lico,
+    smote,
+)
 from bci_essentials.utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
@@ -261,6 +268,102 @@ class TestLoadData(unittest.TestCase):
         # Check that output is correct
         assert mse_2d_notch < mse_2d_all
         assert mse_3d_notch < mse_3d_all
+
+    def test_lico(self):
+        logger.debug("Testing LICO function")
+
+        # Test data settings
+        n_trials = 10
+        n_channels = 16
+        fsample = 256
+        duration = 10
+        n_samples = fsample * duration
+
+        # Generate random matrix
+        X = np.random.randn(n_trials, n_channels, n_samples)
+
+        # Generate labels
+        percentage_class_1 = 0.2
+        n_ones = int(n_trials * percentage_class_1)
+        n_zeros = n_trials - n_ones
+        y = np.array([0] * n_zeros + [1] * n_ones, dtype=int)
+
+        # Test LICO expansion factor
+        expansion_factor = 3
+        [oversample_X, oversample_y] = lico(X, y, expansion_factor)
+
+        # Log the shapes of the output arrays
+        logger.debug("Original X shape: %s", X.shape)
+        logger.debug("Original class distribution: %s", np.bincount(y).tolist())
+        logger.debug("Oversampled X shape: %s", oversample_X.shape)
+        logger.debug(
+            "Oversampled class distribution: %s", np.bincount(oversample_y).tolist()
+        )
+
+        # Checks
+        # Check that number of channels, samples and mayority class remains the same
+        assert X.shape[1] == oversample_X.shape[1]
+        assert X.shape[2] == oversample_X.shape[2]
+        assert np.sum(oversample_y == 0) == np.sum(y == 0)
+
+        # Check that minority classs was expanded by the expansion factor
+        assert np.sum(oversample_y == 1) == np.sum(y == 1) * expansion_factor
+        assert (
+            oversample_y.shape[0] == oversample_X.shape[0]
+        )  # Number of labels matches number of trials
+
+    def test_smote(self):
+        logger.debug("Testing SMOTE function")
+
+        # Test data settings
+        n_trials = 100
+        n_channels = 16
+        fsample = 256
+        duration = 1
+        n_samples = fsample * duration
+
+        # Generate random matrix
+        X = np.random.randn(n_trials, n_channels, n_samples)
+
+        # Generate imbalanced labels (20% class 1, 80% class 0)
+        percentage_class_1 = 0.2
+        n_ones = int(n_trials * percentage_class_1)
+        n_zeros = n_trials - n_ones
+        y = np.array([0] * n_zeros + [1] * n_ones, dtype=int)
+
+        # Test SMOTE expansion factor
+        expansion_factor = 3
+        k_neighbors = 5
+        [oversample_X, oversample_y] = smote(X, y, expansion_factor, k_neighbors)
+
+        # Log the shapes of the output arrays
+        logger.debug("Original X shape: %s", X.shape)
+        logger.debug("Original class distribution: %s", np.bincount(y).tolist())
+        logger.debug("Oversampled X shape: %s", oversample_X.shape)
+        logger.debug(
+            "Oversampled class distribution: %s", np.bincount(oversample_y).tolist()
+        )
+
+        # Checks
+        # Check that number of channels and samples remains the same
+        assert X.shape[1] == oversample_X.shape[1]
+        assert X.shape[2] == oversample_X.shape[2]
+
+        # Check that majority class (0) remains unchanged
+        assert np.sum(oversample_y == 0) == np.sum(y == 0)
+
+        # Check that minority class was expanded (approximately) by the expansion factor
+        # SMOTE may not exactly match the expansion factor due to its implementation
+        expected_minority = np.sum(y == 1) * expansion_factor
+        actual_minority = np.sum(oversample_y == 1)
+        tolerance = 0.1 * expected_minority  # 20% tolerance
+        assert np.abs(actual_minority - expected_minority) <= tolerance
+
+        # Check that the number of labels matches the number of trials
+        assert oversample_y.shape[0] == oversample_X.shape[0]
+
+        # Check that all values are either 0 or 1
+        assert set(np.unique(oversample_y)) <= {0, 1}
 
 
 if __name__ == "__main__":

@@ -235,6 +235,12 @@ class BciController:
             current_step_marker = self.marker_data[self.marker_count]  # String
             current_timestamp = self.marker_timestamps[self.marker_count]  # Float
 
+            # If marker is empty, skip it
+            if not current_step_marker:
+                logger.warning("Empty marker received")
+                self.marker_count += 1
+                continue
+
             # If messenger is available, send feedback for each marker received
             if self._messenger is not None:
                 self._messenger.marker_received(current_step_marker)
@@ -252,6 +258,7 @@ class BciController:
             else:
                 # Log warning for unknown marker types
                 logger.warning("Unknown marker type received: %s", current_step_marker)
+                continue_flag = True
 
             # Check if we should continue processing markers in the while loop
             # if continue_flag is False, then break out of the while loop

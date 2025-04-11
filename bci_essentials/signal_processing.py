@@ -19,6 +19,7 @@ import functools
 import numpy as np
 from scipy import signal
 from typing import Callable, Any
+from imblearn.over_sampling import SMOTE
 from .utils.logger import Logger  # Logger wrapper
 
 # Instantiate a logger for the module at the default level of logging.INFO
@@ -208,27 +209,123 @@ def notch(data, f_notch, Q, fsample):
 
 
 def lico(X, y, expansion_factor=3, sum_num=2, shuffle=False):
-    """Oversampling (linear combination oversampling (LiCO))
+    """Linear Combination Oversampling (LiCO)
 
-    Samples random linear combinations of existing epochs of X.
-
-    This is broken, but I am also unsure if it deserves to be fixed. At the very least it probably belongs in a different file. -Brian
+    Generates synthetic EEG trials from the minority class by creating weighted linear
+    combinations of existing trials, with added Gaussian noise for variability.
+    Automatically detects the minority class based on label distribution.
 
     Parameters
     ----------
     X : numpy.ndarray
         Trials of EEG data.
         3D array containing data with `float` type.
-
         shape = (n_trials, n_channels, n_samples)
     y : numpy.ndarray
         Labels corresponding to X.
     expansion_factor : int, *optional*
-        Number of times larger to make the output set over_X
+        Controls the amount of oversampling for the minority class.
+        The minority class size will be increased by this factor.
         - Default is `3`.
     sum_num : int, *optional*
-        Number of signals to be summed together
+        Number of existing trials to combine for each synthetic trial.
+        Higher values create more complex combinations.
         - Default is `2`.
+    shuffle : bool, *optional*
+        Whether to shuffle the final combined dataset.
+        - Default is `False`.
+
+    Returns
+    -------
+    over_X : numpy.ndarray
+        Original trials combined with synthetic trials.
+        shape = (n_expanded_trials, n_channels, n_samples)
+    over_y : numpy.ndarray
+        Labels for original and synthetic trials.
+        shape = (n_expanded_trials,)
+
+    """
+
+    # Find unique classes and their counts
+    classes, counts = np.unique(y, return_counts=True)
+
+    # Determine the minority class (class with the fewest samples)
+    minority_class = classes[np.argmin(counts)]
+    logger.debug("Minority class: %s", minority_class)
+    # Select the original EEG trials only corresponding to the minority class
+    minority_X = X[y == minority_class]
+    # Get the shape of the minority class data
+    n_minority, n_channels, n_samples = minority_X.shape
+    logger.debug("Shape of minority class: %s", minority_X.shape)
+
+    # Calculate number of new synthetic samples needed
+    n_synthetic_trials = int(n_minority * (expansion_factor - 1))
+    # Initialize array for synthetic samples
+    synthetic_X = np.zeros([n_synthetic_trials, n_channels, n_samples])
+    logger.debug("Shape of synthetic trials: %s", synthetic_X.shape)
+
+    # Generate synthetic trials by combining minority class samples with LiCO
+    for trial_idx in range(n_synthetic_trials):
+        # Generate random weights
+        weights = np.random.dirichlet(np.ones(sum_num), size=1)[0]
+
+        # For each new trial, create a random combination of existing trials
+        for j in range(sum_num):
+            random_trial_idx = random.randint(0, n_minority - 1)
+            random_epoch = minority_X[random_trial_idx, :, :]
+            synthetic_X[trial_idx, :, :] += weights[j] * random_epoch
+
+        # Add small noise for variability
+        # noise = np.random.normal(0, 0.01, size=synthetic_X[trial_idx, :, :].shape)
+        noise = np.random.normal(size=[n_channels, n_samples])
+        synthetic_X[trial_idx, :, :] += noise
+
+        # Normalize the new sample
+        synthetic_X[trial_idx, :, :] /= np.linalg.norm(synthetic_X[trial_idx, :, :])
+
+    # Combine original data with synthetic data
+    over_X = np.append(X, synthetic_X, axis=0)
+    over_y = np.append(y, np.ones([n_synthetic_trials], dtype=int))
+
+    logger.info("LiCO expanded data from %d to %d samples", len(y), len(over_y))
+    logger.info("Final class distribution: %s", np.bincount(over_y).tolist())
+
+    # Shuffle the data if requested
+    if shuffle:
+        indices = np.arange(len(over_y))
+        np.random.shuffle(indices)
+
+        over_X = over_X[indices]
+        over_y = over_y[indices]
+
+    return over_X, over_y
+
+
+def smote(X, y, expansion_factor=3, k_neighbors=5, shuffle=False, random_state=42):
+    """Oversampling using SMOTE (Synthetic Minority Over-sampling Technique)
+
+    Generates synthetic EEG trials from minority class (typically target/P300 responses).
+
+    Parameters
+    ----------
+    X : numpy.ndarray
+        Trials of EEG data.
+        3D array containing data with `float` type.
+        shape = (n_trials, n_channels, n_samples)
+    y : numpy.ndarray
+        Labels corresponding to X.
+    expansion_factor : float, *optional*
+        Controls the amount of oversampling for the minority class.
+        - Default is `3`.
+    k_neighbors : int, *optional*
+        Number of nearest neighbors to use for synthetic sample generation.
+        - Default is `5`.
+    shuffle : bool, *optional*
+        Whether to shuffle the final combined dataset.
+        - Default is `False`.
+    random_state : int, *optional*
+        Random seed for reproducibility.
+        - Default is `42`.
 
     Returns
     -------
@@ -236,23 +333,57 @@ def lico(X, y, expansion_factor=3, sum_num=2, shuffle=False):
         Oversampled X.
     over_y : numpy.ndarray
         Oversampled y.
-
     """
-    true_X = X[y == 1]
 
-    n_trials, n_channels, n_samples = true_X.shape
-    logger.info("Shape of ERPs only: %s", true_X.shape)
-    new_trial = n_trials * np.round(expansion_factor - 1)
-    new_X = np.zeros([new_trial, n_channels, n_samples])
-    for trial in range(n_trials):
-        for j in range(sum_num):
-            random_epoch = true_X[random.choice(range(n_trials)), :, :]
-            new_X[trial, :, :] += random_epoch / sum_num
+    # Get dimensions
+    n_trials, n_channels, n_samples = X.shape
 
-    over_X = np.append(X, new_X, axis=0)
-    over_y = np.append(y, np.ones([new_trial]))
+    # Find unique classes and their counts
+    classes, counts = np.unique(y, return_counts=True)
+    minority_class = classes[np.argmin(counts)]
+    n_minority = int(sum(y == minority_class) * expansion_factor)
+    sampling_strategy = {minority_class: n_minority}
 
-    return over_X, over_y
+    # Reshape X to 2D for SMOTE (combine channels and samples)
+    X_reshaped = X.reshape(n_trials, n_channels * n_samples)
+
+    # Apply SMOTE
+    try:
+        # If not enough minority samples for k_neighbors, reduce k
+        if n_minority <= k_neighbors:
+            k_neighbors = max(1, n_minority - 1)
+            logger.warning(
+                "Reduced k_neighbors to %s due to small minority class", k_neighbors
+            )
+
+        # Configure and apply SMOTE
+        smote = SMOTE(
+            sampling_strategy=sampling_strategy,
+            k_neighbors=k_neighbors,
+            random_state=random_state,
+        )
+        X_resampled, y_resampled = smote.fit_resample(X_reshaped, y)
+
+        # Reshape back to 3D
+        X_resampled = X_resampled.reshape(-1, n_channels, n_samples)
+
+        # Shuffle if requested
+        if shuffle:
+            indices = np.arange(len(y_resampled))
+            np.random.shuffle(indices)
+            X_resampled = X_resampled[indices]
+            y_resampled = y_resampled[indices]
+
+        logger.info(
+            "SMOTE expanded data from %s to %s samples", len(y), len(y_resampled)
+        )
+        logger.info("New class balance: %s/%s", sum(y_resampled == 1), len(y_resampled))
+
+        return X_resampled, y_resampled
+
+    except ValueError as e:
+        logger.error("SMOTE failed: %s. Returning original data.", e)
+        return X, y
 
 
 def random_oversampling(X, y, ratio):
