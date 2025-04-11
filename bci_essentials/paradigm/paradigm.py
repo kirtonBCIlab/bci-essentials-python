@@ -122,8 +122,15 @@ class Paradigm(ABC):
 
         Returns
         -------
-        `None`
-            `self.rest_trials` is updated.
+        resting_state_data : dict
+            Dictionary containing resting state data with keys:
+            - 'eyes_open_trials': np.ndarray of EEG data during eyes open condition
+            - 'eyes_open_timestamps': np.ndarray of timestamps for eyes open trials
+            - 'eyes_closed_trials': np.ndarray of EEG data during eyes closed condition
+            - 'eyes_closed_timestamps': np.ndarray of timestamps for eyes closed trials
+            - 'rest_trials': np.ndarray of EEG data during rest condition
+            - 'rest_timestamps': np.ndarray of timestamps for rest trials
+            If an error occurs, returns `None`.
 
         """
         try:
@@ -312,7 +319,7 @@ class Paradigm(ABC):
             return resting_state_data
 
         except Exception as e:
-            logger.error(f"Error packaging resting state data: {e}")
+            logger.error("Error packaging resting state data: %s", e)
 
             return None
 
