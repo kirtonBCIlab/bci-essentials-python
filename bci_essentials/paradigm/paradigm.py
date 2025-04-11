@@ -38,13 +38,21 @@ class Paradigm(ABC):
         Preprocess EEG data with the appropriate filter type:
         - If the data is continuous (i.e., shape is [channels, samples]), a
         bandpass filter is used.
-        - If the data is epoched (i.e., shape is [epoch, channels, samples]),
-        the time constant (TC) of the highpass filter is computed:
-            - If the length of the signal > 5*TC, a bandpass filter is used.
-            - If the length of the signal <= 5*TC, a lowpass filter is used.
 
-        Reference
-        https://www.analogictips.com/an-overview-of-filters-and-their-parameters-part-4-time-and-phase-issues/
+        - If the data is epoched (i.e., shape is [epoch, channels, samples]),
+        the filter type depends on thesignal length relative to the filter's settling time:
+            - If signal length > settling time: use bandpass filter
+            - If signal length ≤ settling time: use lowpass filter
+            - The settling time is calculated by:
+                1. Compute the time constant (tc) of the highpass filter:
+                    tc = 1 / (2 * π * lowcut)
+                2. Compute the settling time with the formula:
+                    settling_time = tc * 5 * order
+                    - In a first-order system, a rule-of-thumb is that the signal settles in approximately 5 time constants (tc * 5)
+                    - In higher-order filters (e.g., a 5th-order filter set as the default), the settling time incrases linearly with the order of the filter (order * tc * 5)
+                    - This is a simplification, but it provides a good approximation for the settling time of the filter.
+                    - For more details, see the reference below:
+                        https://www.analogictips.com/an-overview-of-filters-and-their-parameters-part-4-time-and-phase-issues/
 
         Parameters
         ----------
@@ -74,12 +82,14 @@ class Paradigm(ABC):
         elif n_dims == 3:
             logger.debug("Preprocessing epoched EEG")
 
+            # Get the length of the signal
+            signal_length = eeg.shape[2]
+
             # Highpass filter settling time
             tc = 1 / (2 * np.pi * lowcut)
-            n_samples = eeg.shape[2]
             settling_time = order * tc * 5
 
-            if n_samples > settling_time:
+            if signal_length > settling_time:
                 logger.debug("Applied bandpass filter to epoched EEG")
                 preprocessed_eeg = bandpass(eeg, lowcut, highcut, order, fsample)
             else:
