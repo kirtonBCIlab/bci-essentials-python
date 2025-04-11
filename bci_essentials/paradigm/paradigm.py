@@ -38,14 +38,14 @@ class Paradigm(ABC):
         Preprocess EEG data with the appropriate filter type:
         - If the data is continuous (i.e., shape is [channels, samples]), a
         bandpass filter is used.
-        - If the data is epoched (i.e., shape is [epoch, channels, samples]), 
+        - If the data is epoched (i.e., shape is [epoch, channels, samples]),
         the time constant (TC) of the highpass filter is computed:
             - If the length of the signal > 5*TC, a bandpass filter is used.
             - If the length of the signal <= 5*TC, a lowpass filter is used.
 
         Reference
         https://www.analogictips.com/an-overview-of-filters-and-their-parameters-part-4-time-and-phase-issues/
-        
+
         Parameters
         ----------
         eeg : np.ndarray
@@ -75,7 +75,7 @@ class Paradigm(ABC):
             logger.debug("Preprocessing epoched EEG")
 
             # Highpass filter settling time
-            tc = 1 / (2*np.pi*lowcut)
+            tc = 1 / (2 * np.pi * lowcut)
             n_samples = eeg.shape[2]
             settling_time = order * tc * 5
 
