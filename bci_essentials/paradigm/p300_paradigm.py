@@ -15,6 +15,7 @@ class P300Paradigm(Paradigm):
         epoch_start=0,
         epoch_end=0.6,
         buffer_time=0.01,
+        preprocessing_window=2,
     ):
         """
         Parameters
@@ -34,6 +35,9 @@ class P300Paradigm(Paradigm):
         buffer_time : float, *optional*
             Defines the time in seconds after an epoch for which we require EEG data to ensure that all EEG is present in that epoch.
             - Default is `0.01`.
+        preprocessing_window : float, *optional*
+            Defines the time in seconds before and after a marker to include additional EEG data in preprocessing.
+            - Default is `2`.
         """
 
         super().__init__(filters)
@@ -53,6 +57,8 @@ class P300Paradigm(Paradigm):
         self.epoch_end = epoch_end
 
         self.buffer_time = buffer_time
+
+        self.preprocessing_window = preprocessing_window
 
     def get_eeg_start_and_end_times(self, markers, timestamps):
         """
@@ -129,8 +135,10 @@ class P300Paradigm(Paradigm):
             # Subtract the marker timestamp from the EEG timestamps so that 0 becomes the marker onset
             marker_eeg_timestamps = eeg_timestamps - marker_timestamp
 
-            # Create the epoch time vector
-            epoch_time = np.arange(self.epoch_start, self.epoch_end, 1 / fsample)
+            # Create the epoch time vector using the preprocessing window
+            epoch_time = np.arange(
+                -self.preprocessing_window, self.preprocessing_window, 1 / fsample
+            )
 
             epoch_X = np.zeros((1, n_channels, len(epoch_time)))
 
@@ -150,23 +158,32 @@ class P300Paradigm(Paradigm):
                 epoch_X[0, :, :], fsample, self.lowcut, self.highcut
             )
 
+            # Trim the preprocessed epoch
+            trimmed_epoch_X = epoch_X[
+                :,
+                :,
+                ((epoch_time >= self.epoch_start) & (epoch_time <= self.epoch_end)),
+            ]
+
             # For each flash index in the marker
             for flash_index in flash_indices:
                 if flash_counts[flash_index] == 0:
-                    object_epochs[flash_index] = epoch_X
+                    object_epochs[flash_index] = trimmed_epoch_X
                     flash_counts[flash_index] += 1
                 else:
                     object_epochs[flash_index] = np.concatenate(
-                        (object_epochs[flash_index], epoch_X), axis=0
+                        (object_epochs[flash_index], trimmed_epoch_X), axis=0
                     )
                     flash_counts[flash_index] += 1
 
         # Average all epochs for each object
-        object_epochs_mean = [np.zeros((n_channels, len(epoch_time)))] * num_objects
+        object_epochs_mean = [
+            np.zeros((n_channels, trimmed_epoch_X.shape[-1]))
+        ] * num_objects
         for i in range(num_objects):
             object_epochs_mean[i] = np.mean(object_epochs[i], axis=0)
 
-        X = np.zeros((num_objects, n_channels, len(epoch_time)))
+        X = np.zeros((num_objects, n_channels, trimmed_epoch_X.shape[-1]))
         for i in range(num_objects):
             X[i, :, :] = object_epochs_mean[i]
         # # object_epochs_mean = np.mean(object_epochs, axis=1)
