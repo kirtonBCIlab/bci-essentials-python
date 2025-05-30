@@ -10,7 +10,6 @@ dependencies = [
 	"scikit-learn",
 	"joblib",
 	"pandas",
-	"pylsl",
 	"pyxdf",
 	"matplotlib",
 	"seaborn",

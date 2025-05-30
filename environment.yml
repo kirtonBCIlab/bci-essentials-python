@@ -1,11 +1,3 @@
 name: bci
-channels:
-  - conda-forge
 dependencies:
   - python=3.10
-  - liblsl
-  - build
-  - twine
-  - black
-  - flake8
-  - pre-commit
