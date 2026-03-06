@@ -154,45 +154,28 @@ class ErpRgClassifierHyperparamGridSearch(GenericClassifier):
         # Optimize hyperparameters with cross-validation
         self.__optimize_hyperparameters()
 
-        # Fit the model with the complete dataset and optimized hyperparameters
+        # Calculate proper training metrics using cross-validation with optimized hyperparameters
+        self.__calculate_training_metrics()
+
+        # Fit the final model with the complete dataset and optimized hyperparameters
         self.clf.fit(self.X, self.y)
 
-        # Get predictions for final model
-        y_pred_proba = self.clf.predict_proba(self.X)[:, 1]
-
-        # Calculate estimate of training metrics of final model
-        # TODO: Implement proper training metrics calculation, using cross validation.
-        # self.offline_accuracy = sum(y_pred == self.y) / len(self.y)
-        # self.offline_precision = precision_score(self.y, y_pred)
-        # self.offline_recall = recall_score(self.y, y_pred)
-
-        try:
-            roc_auc = roc_auc_score(self.y, y_pred_proba)
-            logger.info(f"ROC AUC Score: {roc_auc:0.3f}")
-        except Exception as e:
-            logger.warning(f"Could not calculate ROC AUC score: {e}")
-
         # Display training confusion matrix
-        # self.offline_cm = confusion_matrix(self.y, y_pred)
         if plot_cm:
             disp = ConfusionMatrixDisplay(confusion_matrix=self.offline_cm)
             disp.plot()
-            plt.title("Training confusion matrix")
+            plt.title("Training confusion matrix (Cross-Validation)")
+            plt.show()
 
         if plot_roc:
-            # TODO Implementation missing
-            pass
+            logger.error("ROC plot has not been implemented yet")
 
         # Log training metrics
-        logger.info("Final model training performance metrics:")
-        logger.info(f"Accuracy: {self.offline_accuracy:0.3f} - MAY NOT BE ACCURATE")
-        logger.info(f"Precision: {self.offline_precision:0.3f} - MAY NOT BE ACCURATE")
-        logger.info(f"Recall: {self.offline_recall:0.3f} - MAY NOT BE ACCURATE")
-        logger.info(f"Confusion Matrix:\n{self.offline_cm} ")
-        logger.warning(
-            "Note: Training metrics may not be accurate due to the use of "
-            "cross-validation and resampling methods. Use with caution."
-        )
+        logger.info("Training performance metrics (from cross-validation):")
+        logger.info(f"Accuracy: {self.offline_accuracy:.3f}")
+        logger.info(f"Precision: {self.offline_precision:.3f}")
+        logger.info(f"Recall: {self.offline_recall:.3f}")
+        logger.info(f"Confusion Matrix:\n{self.offline_cm}")
 
     def predict(self, X):
         """Predict the class of the data
@@ -304,22 +287,54 @@ class ErpRgClassifierHyperparamGridSearch(GenericClassifier):
         best_params = grid_search.best_params_
         best_score = grid_search.best_score_
 
-        # Report training metrics: TODO: Verify this is the right way to calculate training metrics
-        self.offline_accuracy = grid_search.best_estimator_.score(self.X, self.y)
-        self.offline_cm = confusion_matrix(
-            self.y, grid_search.best_estimator_.predict(self.X)
-        )
-        self.offline_precision = precision_score(
-            self.y, grid_search.best_estimator_.predict(self.X)
-        )
-        self.offline_recall = recall_score(
-            self.y, grid_search.best_estimator_.predict(self.X)
-        )
-
         # Update classifier with best parameters
         self.clf.set_params(**best_params)
         logger.info(f"Best parameters found: {best_params}")
         logger.info(f"Best CV score: {best_score:0.3f}")
+
+    def __calculate_training_metrics(self):
+        """Calculate proper training metrics using cross-validation with optimized hyperparameters.
+
+        This method performs cross-validation with the optimized hyperparameters to get
+        unbiased estimates of the training performance metrics.
+
+        Returns
+        -------
+        None
+            Sets the offline metrics (accuracy, precision, recall, confusion matrix).
+        """
+        logger.info(
+            "Calculating training metrics using cross-validation with optimized hyperparameters"
+        )
+
+        # Define the strategy for cross validation
+        cv = StratifiedKFold(
+            n_splits=self.n_splits, shuffle=True, random_state=self.random_seed
+        )
+
+        # Initialize predictions array
+        cv_preds = np.zeros(len(self.y))
+
+        # Perform cross-validation with the optimized hyperparameters
+        for train_idx, test_idx in cv.split(self.X, self.y):
+            X_train, X_test = self.X[train_idx], self.X[test_idx]
+            y_train, y_test = self.y[train_idx], self.y[test_idx]
+
+            # Create a copy of the classifier with optimized hyperparameters
+            cv_clf = Pipeline(self.clf.steps)
+            cv_clf.set_params(**self.clf.get_params())
+
+            # Fit and predict
+            cv_clf.fit(X_train, y_train)
+            cv_preds[test_idx] = cv_clf.predict(X_test)
+
+        # Calculate metrics from cross-validation predictions
+        self.offline_accuracy = sum(cv_preds == self.y) / len(cv_preds)
+        self.offline_precision = precision_score(self.y, cv_preds)
+        self.offline_recall = recall_score(self.y, cv_preds)
+        self.offline_cm = confusion_matrix(self.y, cv_preds)
+
+        logger.info("Training metrics calculation completed")
 
     def _valid_roc_auc(self, y_true, y_pred, **kwargs):
         """Calculate the ROC AUC score for the classifier.
