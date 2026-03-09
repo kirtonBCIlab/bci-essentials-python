@@ -20,27 +20,18 @@ Classes
 import time
 import os
 import numpy as np
-from enum import Enum
 
 from .paradigm.paradigm import Paradigm
 from .data_tank.data_tank import DataTank
 from .classification.generic_classifier import GenericClassifier
 from .io.sources import EegSource, MarkerSource
 from .io.messenger import Messenger
+from .triggers import MarkerTypes
 from .utils.logger import Logger
 
 # Instantiate a logger for the module at the default level of logging.INFO
 # Logs to bci_essentials.__module__) where __module__ is the name of the module
 logger = Logger(name=__name__)
-
-
-class MarkerTypes(Enum):
-    TRIAL_STARTED = "Trial Started"
-    TRIAL_ENDS = "Trial Ends"
-    TRAINING_COMPLETE = "Training Complete"
-    TRAIN_CLASSIFIER = "Train Classifier"
-    DONE_RS_COLLECTION = "Done with all RS collection"
-    UPDATE_CLASSIFIER = "Update Classifier"
 
 
 # EEG data

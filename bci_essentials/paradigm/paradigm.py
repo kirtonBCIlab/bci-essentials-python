@@ -1,6 +1,7 @@
 import numpy as np
 from abc import ABC, abstractmethod
 
+from ..triggers import MarkerTypes
 from ..utils.logger import Logger
 from ..signal_processing import bandpass, lowpass
 
@@ -170,36 +171,36 @@ class Paradigm(ABC):
                     current_time = eeg_timestamps[current_timestamp_loc]
 
                 # get eyes open start times
-                if current_rs_data_marker == "Start Eyes Open RS: 1":
+                if current_rs_data_marker == MarkerTypes.START_EYES_OPEN.value:
                     eyes_open_start_time.append(current_rs_timestamp)
                     eyes_open_start_loc.append(current_timestamp_loc - 1)
                     logger.debug("received eyes open start")
 
                 # get eyes open end times
-                if current_rs_data_marker == "End Eyes Open RS: 1":
+                if current_rs_data_marker == MarkerTypes.END_EYES_OPEN.value:
                     eyes_open_end_time.append(current_rs_timestamp)
                     eyes_open_end_loc.append(current_timestamp_loc)
                     logger.debug("received eyes open end")
 
                 # get eyes closed start times
-                if current_rs_data_marker == "Start Eyes Closed RS: 2":
+                if current_rs_data_marker == MarkerTypes.START_EYES_CLOSED.value:
                     eyes_closed_start_time.append(current_rs_timestamp)
                     eyes_closed_start_loc.append(current_timestamp_loc - 1)
                     logger.debug("received eyes closed start")
 
                 # get eyes closed end times
-                if current_rs_data_marker == "End Eyes Closed RS: 2":
+                if current_rs_data_marker == MarkerTypes.END_EYES_CLOSED.value:
                     eyes_closed_end_time.append(current_rs_timestamp)
                     eyes_closed_end_loc.append(current_timestamp_loc)
                     logger.debug("received eyes closed end")
 
                 # get rest start times
-                if current_rs_data_marker == "Start Rest for RS: 0":
+                if current_rs_data_marker == MarkerTypes.START_REST.value:
                     rest_start_time.append(current_rs_timestamp)
                     rest_start_loc.append(current_timestamp_loc - 1)
                     logger.debug("received rest start")
                 # get rest end times
-                if current_rs_data_marker == "End Rest for RS: 0":
+                if current_rs_data_marker == MarkerTypes.END_REST.value:
                     rest_end_time.append(current_rs_timestamp)
                     rest_end_loc.append(current_timestamp_loc)
                     logger.debug("received rest end")
