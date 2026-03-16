@@ -35,10 +35,40 @@ python examples/mi_offline_test.py
 Online processing requires an EEG stream and a marker stream. These can both be simulated using eeg_lsl_sim.py and marker_lsl_sim.py.
 Real EEG streams come from a headset connected over LSL. Real marker streams come from the application in the Unity frontend.
 Once these streams are running, simply begin the backend processing script ( ie. mi_unity_backend.py, p300_unity_backend.py, etc.)
-It is recommended to save the EEG, marker, and response (created by the backend processing script) streams using 
+It is recommended to save the EEG, marker, and response (created by the backend processing script) streams using
 [Lab Recorder](https://github.com/labstreaminglayer/App-LabRecorder) for later offline processing.
 ```
 python examples/mi_unity_backend.py
+```
+
+### Serial port triggers
+As an alternative to LSL marker streams, markers can be delivered via a hardware trigger box
+(e.g. MMBT-S) connected to the EEG amplifier's stim channel. Unity's `SerialTriggerWriter`
+sends byte values over a serial port, the trigger box forwards them to the amplifier, and
+`LslStimMarkerSource` reads them from the EEG stream's stim channel.
+
+```python
+from bci_essentials.io.lsl_sources import LslEegSource
+from bci_essentials.io.lsl_stim_marker_source import LslStimMarkerSource
+from bci_essentials.triggers import make_p300_trigger_map
+
+eeg_source = LslEegSource()
+marker_source = LslStimMarkerSource(
+    stim_channel_name="TRG",
+    trigger_map=make_p300_trigger_map(n_options=6),
+)
+```
+
+Trigger maps for MI and SSVEP paradigms are also available via `make_mi_trigger_map` and
+`make_ssvep_trigger_map` in `bci_essentials.triggers`.
+
+## Development
+
+```
+make install   # install package
+make dev-install  # install package in editable mode (pip install -e .) and development dependencies (black, flake8)
+make test      # run tests (python -m unittest)
+make lint      # run black --check and flake8 (same as CI)
 ```
 
 ## Directory
