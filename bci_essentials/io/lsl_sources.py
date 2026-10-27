@@ -117,11 +117,11 @@ class LslEegSource(EegSource):
             # If no labels found or empty strings, use default
             if not ch_names or all(label == "" for label in ch_names):
                 logger.warning("No channel labels found, defaulting to Ch1, Ch2, etc.")
-                ch_names = [f"Ch{i+1}" for i in range(self.n_channels)]
+                ch_names = [f"Ch{i + 1}" for i in range(self.n_channels)]
             return ch_names
         except Exception:
             logger.warning("Could not get channel labels, defaulting to Ch1, Ch2, etc.")
-            return [f"Ch{i+1}" for i in range(self.n_channels)]
+            return [f"Ch{i + 1}" for i in range(self.n_channels)]
 
         # if hasattr(self.__info, 'ch_names') and self.__info.ch_names:
         #     return list(self.__info.ch_names)

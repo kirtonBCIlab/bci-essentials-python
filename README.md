@@ -11,7 +11,7 @@ The front end for this package can be found in [bci-essentials-unity](https://ww
 - **[API documentation](https://kirtonbcilab.github.io/APIdocs-for-bci-essentials-python)**
 
 ### Installation
-BCI Essentials requires Python 3.9 or later.  To install for Windows, MacOS or Linux:
+BCI Essentials requires Python 3.15 or later. To install for Windows, MacOS or Linux:
 
 ```
 pip install bci-essentials
@@ -63,5 +63,4 @@ Example scripts and data.
 - ssvep_unity_backend.py      -   runs online SSVEP processing on live EEG and marker streams
 - switch_offline_test.py      -   runs offline switch state processing on previously collected EEG and marker streams
 - switch_unity_backend.py     -   runs online switch state processing on live EEG and marker streams
-
 

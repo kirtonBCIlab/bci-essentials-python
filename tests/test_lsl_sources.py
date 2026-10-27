@@ -106,7 +106,7 @@ class LslSender:
         for c in range(channels):
             # Use standard EEG channel names (FP1, FP2, etc.) if available
             eeg_names = ["FP1", "FP2", "F3", "F4", "C3", "C4", "P3", "P4"]
-            ch_name = eeg_names[c] if c < len(eeg_names) else f"CH{c+1}"
+            ch_name = eeg_names[c] if c < len(eeg_names) else f"CH{c + 1}"
             # Use method chaining like in eeg_lsl_sim.py
             ch_info.append_child("channel").append_child_value(
                 "name", ch_name

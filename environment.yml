@@ -2,9 +2,9 @@ name: bci
 channels:
   - conda-forge
 dependencies:
-  - python=3.10
+  - python=3.15
   - liblsl
-  - build
+  - python-build
   - twine
   - black
   - flake8
